@@ -3,7 +3,7 @@
 
 // Numerical factorizations use R's declared LAPACK ABI. Regression whitening
 // and concentrated Gaussian likelihood equations are independently assembled.
-#include <R_ext/Lapack.h>
+#include "kalos/detail/lapack.hpp"
 
 #include <algorithm>
 #include <cmath>
@@ -72,14 +72,14 @@ std::vector<double> regression_covariance(const DenseMatrix& design,
     double query = 0;
     std::vector<double> tau(columns);
     checkpoint(interrupt);
-    F77_CALL(dgeqrf)(&m, &n, qr.data(), &m, tau.data(), &query, &query_size, &info);
+    lapack::dgeqrf(&m, &n, qr.data(), &m, tau.data(), &query, &query_size, &info);
     checkpoint(interrupt);
     if (info != 0 || !std::isfinite(query) || query < n || query > std::numeric_limits<int>::max()) {
         throw std::runtime_error("regression covariance QR workspace query failed");
     }
     const auto work_size = static_cast<int>(std::ceil(query));
     std::vector<double> work(static_cast<std::size_t>(work_size));
-    F77_CALL(dgeqrf)(&m, &n, qr.data(), &m, tau.data(), work.data(), &work_size, &info);
+    lapack::dgeqrf(&m, &n, qr.data(), &m, tau.data(), work.data(), &work_size, &info);
     checkpoint(interrupt);
     if (info != 0) throw std::runtime_error("regression covariance QR factorization failed");
     if (log_volume) {

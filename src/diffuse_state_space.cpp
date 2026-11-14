@@ -5,7 +5,7 @@
 
 // DLARFG is called through R's declared LAPACK ABI. Only its orthogonal
 // reflector is used; no third-party filtering implementation is incorporated.
-#include <R_ext/Lapack.h>
+#include "kalos/detail/lapack.hpp"
 
 #include <algorithm>
 #include <cmath>
@@ -171,7 +171,7 @@ Basis remove_observed_direction(const Basis& basis, std::vector<double> w,
     const int n = static_cast<int>(w.size()), increment = 1;
     double tau = 0;
     checkpoint(interrupt);
-    F77_CALL(dlarfg)(&n, &w[0], w.data() + 1, &increment, &tau);
+    lapack::dlarfg(&n, &w[0], w.data() + 1, &increment, &tau);
     checkpoint(interrupt);
     if (!std::isfinite(tau) || tau < 0 || tau > 2) throw std::runtime_error("LAPACK returned an invalid diffuse reflector");
     w[0] = 1;

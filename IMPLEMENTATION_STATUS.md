@@ -19,3 +19,15 @@ Updated: 2026-11-14. Repository extraction in progress.
 The inherited numerical implementation extends through fixed additive initial X-11 tables
 (22b.2). Full native seasonal-adjustment fitting remains unavailable. The historical
 baseline and numerical contracts belong to Kalos; R boundary tests belong to rkalos.
+
+## Provider boundary completed
+
+- Added R-free interfaces for DGELSY, DGEQRF, DGESVD, DPOCON, DPOTRF, DPOTRS,
+  DSYEV, DLARFG and DGEMM, preserving existing workspace and failure semantics.
+- Standalone CMake target `kalos::kalos` links OpenBLAS CBLAS/LAPACKE with a
+  checked 32-bit integer ABI. R's provider remains in the binding repository.
+- Added optional OpenMP, install/export rules, sanitizer configuration and the
+  Kalos thread setting with tested legacy-alias precedence.
+- Validation: Clang 23.1.5, OpenBLAS 0.3.34, macOS ARM64 Release serial build;
+  **36/36 standalone test programs passed**. No R includes or runtime linked.
+  OpenMP, sanitizer and installed-consumer checks follow the preparation port.

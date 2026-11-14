@@ -13,9 +13,9 @@
 namespace {
 void threads(const char* value) {
 #ifdef _WIN32
-    assert(_putenv_s("PERSEPHONE_NUM_THREADS", value) == 0);
+    assert(_putenv_s("KALOS_NUM_THREADS", value) == 0);
 #else
-    assert(setenv("PERSEPHONE_NUM_THREADS", value, 1) == 0);
+    assert(setenv("KALOS_NUM_THREADS", value, 1) == 0);
 #endif
 }
 template <typename Function>
@@ -132,7 +132,17 @@ int main() {
         threads(bad);
         assert(fails([] { parallel_info(); }));
     }
+    // Explicit Kalos controls take precedence; the legacy alias works alone.
+#ifdef _WIN32
+    _putenv_s("PERSEPHONE_NUM_THREADS", "3");
+    _putenv_s("KALOS_NUM_THREADS", "");
+#else
+    setenv("PERSEPHONE_NUM_THREADS", "3", 1);
+    unsetenv("KALOS_NUM_THREADS");
+#endif
+    assert(parallel_info().requested_threads == 3);
     threads("1");
+    assert(parallel_info().requested_threads == 1);
     assert(convolve({1, 2}, {3, 4}) == std::vector<double>({3, 10, 8}));
     std::cout << "PASS: " << (info.compiled ? "OpenMP" : "serial fallback")
               << "; actual worker threads=" << used.size()

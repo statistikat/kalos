@@ -4,7 +4,7 @@
 // Thin QR is evaluated through R's declared LAPACK ABI. The factored
 // homogeneous functions and their original-history normalization are
 // independently derived; no filtering implementation is copied.
-#include <R_ext/Lapack.h>
+#include "kalos/detail/lapack.hpp"
 
 #include <algorithm>
 #include <cmath>
@@ -212,14 +212,14 @@ void SparseHistoryBasis::rebuild(const Interrupt& interrupt) {
     double query = 0;
     std::vector<double> tau(columns);
     checkpoint(interrupt);
-    F77_CALL(dgeqrf)(&m, &n, initial.data(), &m, tau.data(), &query, &query_size, &info);
+    lapack::dgeqrf(&m, &n, initial.data(), &m, tau.data(), &query, &query_size, &info);
     checkpoint(interrupt);
     if (info != 0 || !std::isfinite(query) || query < 1 || query > std::numeric_limits<int>::max()) {
         throw std::runtime_error("sparse history QR workspace query failed");
     }
     const auto work_size = static_cast<int>(std::ceil(query));
     std::vector<double> work(static_cast<std::size_t>(work_size));
-    F77_CALL(dgeqrf)(&m, &n, initial.data(), &m, tau.data(), work.data(), &work_size, &info);
+    lapack::dgeqrf(&m, &n, initial.data(), &m, tau.data(), work.data(), &work_size, &info);
     checkpoint(interrupt);
     if (info != 0) throw std::runtime_error("sparse history QR factorization failed");
     for (std::size_t j = 0; j < columns; ++j) {

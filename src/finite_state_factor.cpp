@@ -3,7 +3,7 @@
 // R supplies the LAPACK eigendecomposition and orthogonal QR factorizations.
 // The finite-factor Joseph update and concatenated disturbance propagation are
 // independently assembled from P=C C'; no numerical filter is translated.
-#include <R_ext/Lapack.h>
+#include "kalos/detail/lapack.hpp"
 
 #include <algorithm>
 #include <cmath>
@@ -71,14 +71,14 @@ FiniteStateFactor::FiniteStateFactor(const DenseMatrix& covariance,
     double query = 0;
     std::vector<double> eigenvalues(m);
     checkpoint(interrupt);
-    F77_CALL(dsyev)("V", "U", &n, eigenvectors.data(), &n, eigenvalues.data(),
-                    &query, &query_size, &info FCONE FCONE);
+    lapack::dsyev("V", "U", &n, eigenvectors.data(), &n, eigenvalues.data(),
+                    &query, &query_size, &info);
     checkpoint(interrupt);
     if (info != 0) throw std::runtime_error("finite state covariance eigen workspace query failed");
     const auto work_size = workspace_size(query, std::max(1, 3 * n - 1));
     std::vector<double> work(static_cast<std::size_t>(work_size));
-    F77_CALL(dsyev)("V", "U", &n, eigenvectors.data(), &n, eigenvalues.data(),
-                    work.data(), &work_size, &info FCONE FCONE);
+    lapack::dsyev("V", "U", &n, eigenvectors.data(), &n, eigenvalues.data(),
+                    work.data(), &work_size, &info);
     checkpoint(interrupt);
     if (info != 0) throw std::runtime_error("finite state covariance eigendecomposition failed");
     const long double negative_bound = static_cast<long double>(residual_tolerance) * static_cast<long double>(m) * scale;
@@ -154,12 +154,12 @@ void FiniteStateFactor::compress(const DenseMatrix& loading, const Interrupt& in
     double query = 0;
     std::vector<double> tau(m);
     checkpoint(interrupt);
-    F77_CALL(dgeqrf)(&rows, &cols, transpose.data(), &rows, tau.data(), &query, &query_size, &info);
+    lapack::dgeqrf(&rows, &cols, transpose.data(), &rows, tau.data(), &query, &query_size, &info);
     checkpoint(interrupt);
     if (info != 0) throw std::runtime_error("finite state QR workspace query failed");
     const auto work_size = workspace_size(query, cols);
     std::vector<double> work(static_cast<std::size_t>(work_size));
-    F77_CALL(dgeqrf)(&rows, &cols, transpose.data(), &rows, tau.data(), work.data(), &work_size, &info);
+    lapack::dgeqrf(&rows, &cols, transpose.data(), &rows, tau.data(), work.data(), &work_size, &info);
     checkpoint(interrupt);
     if (info != 0) throw std::runtime_error("finite state QR compression failed");
     DenseMatrix result(m, m);

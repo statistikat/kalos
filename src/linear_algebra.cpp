@@ -1,9 +1,9 @@
 #include "kalos/linear_algebra.hpp"
 
-// Exact interfaces are declared by R, including Fortran character lengths.
-// References: Writing R Extensions sections 6.6/6.7; Netlib DPOTRF, DPOTRS,
+// Provider adapters own platform ABI details, including hidden character lengths.
+// References: Netlib DPOTRF, DPOTRS,
 // DPOCON and DGELSY documentation. No numerical factorization is reimplemented.
-#include <R_ext/Lapack.h>
+#include "kalos/detail/lapack.hpp"
 
 #include <algorithm>
 #include <cmath>
@@ -73,9 +73,9 @@ DenseMatrix residuals(const DenseMatrix& matrix, const DenseMatrix& rhs,
     const double minus_one = -1;
     const double one = 1;
     checkpoint(interrupt);
-    F77_CALL(dgemm)("N", "N", &m, &n, &k, &minus_one, matrix.values().data(), &m,
+    lapack::dgemm("N", "N", &m, &n, &k, &minus_one, matrix.values().data(), &m,
                     coefficients.values().data(), &k, &one,
-                    result.values().data(), &m FCONE FCONE);
+                    result.values().data(), &m);
     result.validate(interrupt);
     return result;
 }
@@ -125,14 +125,14 @@ std::vector<double> singular_values(const DenseMatrix& matrix, const Interrupt& 
     const int one = 1;
     int info = 0, lwork = -1;
     checkpoint(interrupt);
-    F77_CALL(dgesvd)("N", "N", &m, &n, a.values().data(), &m, values.data(),
-        &unused_u, &one, &unused_v, &one, &query, &lwork, &info FCONE FCONE);
+    lapack::dgesvd("N", "N", &m, &n, a.values().data(), &m, values.data(),
+        &unused_u, &one, &unused_v, &one, &query, &lwork, &info);
     check_info(info, "DGESVD workspace query");
     lwork = workspace_size(query, minimum);
     std::vector<double> work(static_cast<std::size_t>(lwork));
     checkpoint(interrupt);
-    F77_CALL(dgesvd)("N", "N", &m, &n, a.values().data(), &m, values.data(),
-        &unused_u, &one, &unused_v, &one, work.data(), &lwork, &info FCONE FCONE);
+    lapack::dgesvd("N", "N", &m, &n, a.values().data(), &m, values.data(),
+        &unused_u, &one, &unused_v, &one, work.data(), &lwork, &info);
     check_info(info, "DGESVD");
     checkpoint(interrupt);
     double previous = std::numeric_limits<double>::infinity();
@@ -162,12 +162,12 @@ std::vector<double> symmetric_eigenvalues(const DenseMatrix& matrix, const Inter
     double query = 0;
     int info = 0, lwork = -1;
     checkpoint(interrupt);
-    F77_CALL(dsyev)("N", "U", &n, a.values().data(), &n, values.data(), &query, &lwork, &info FCONE FCONE);
+    lapack::dsyev("N", "U", &n, a.values().data(), &n, values.data(), &query, &lwork, &info);
     check_info(info, "DSYEV workspace query");
     lwork = workspace_size(query, 3*a.rows());
     std::vector<double> work(static_cast<std::size_t>(lwork));
     checkpoint(interrupt);
-    F77_CALL(dsyev)("N", "U", &n, a.values().data(), &n, values.data(), work.data(), &lwork, &info FCONE FCONE);
+    lapack::dsyev("N", "U", &n, a.values().data(), &n, values.data(), work.data(), &lwork, &info);
     check_info(info, "DSYEV");
     checkpoint(interrupt);
     double previous = -std::numeric_limits<double>::infinity();
@@ -206,7 +206,7 @@ CholeskyFactor cholesky_factor(const DenseMatrix& matrix, const Interrupt& inter
     const int n = static_cast<int>(matrix.rows());
     int info = 0;
     checkpoint(interrupt);
-    F77_CALL(dpotrf)("U", &n, factor.values().data(), &n, &info FCONE);
+    lapack::dpotrf("U", &n, factor.values().data(), &n, &info);
     if (info > 0) {
         throw std::invalid_argument("Cholesky matrix is not positive definite (leading minor " +
                                     std::to_string(info) + ")");
@@ -225,8 +225,8 @@ CholeskyFactor cholesky_factor(const DenseMatrix& matrix, const Interrupt& inter
     std::vector<int> iwork(static_cast<std::size_t>(n));
     double reciprocal_condition = 0;
     checkpoint(interrupt);
-    F77_CALL(dpocon)("U", &n, factor.values().data(), &n, &norm, &reciprocal_condition,
-                     work.data(), iwork.data(), &info FCONE);
+    lapack::dpocon("U", &n, factor.values().data(), &n, &norm, &reciprocal_condition,
+                     work.data(), iwork.data(), &info);
     check_info(info, "DPOCON");
     checkpoint(interrupt);
     if (!std::isfinite(reciprocal_condition) || reciprocal_condition < 0 ||
@@ -262,8 +262,8 @@ DenseMatrix cholesky_solve(const CholeskyFactor& factor, const DenseMatrix& rhs,
     const int nrhs = static_cast<int>(rhs.columns());
     int info = 0;
     checkpoint(interrupt);
-    F77_CALL(dpotrs)("U", &n, &nrhs, factor.upper.values().data(), &n,
-                     result.values().data(), &n, &info FCONE);
+    lapack::dpotrs("U", &n, &nrhs, factor.upper.values().data(), &n,
+                     result.values().data(), &n, &info);
     check_info(info, "DPOTRS");
     result.validate(interrupt);
     return result;
@@ -303,13 +303,13 @@ LeastSquaresResult qr_least_squares(const DenseMatrix& matrix, const DenseMatrix
     int lwork = -1;
     double query = 0;
     checkpoint(interrupt);
-    F77_CALL(dgelsy)(&m, &n, &nrhs, a.values().data(), &m, b.values().data(), &ldb,
+    lapack::dgelsy(&m, &n, &nrhs, a.values().data(), &m, b.values().data(), &ldb,
                      pivots.data(), &rank_tolerance, &rank, &query, &lwork, &info);
     check_info(info, "DGELSY workspace query");
     lwork = workspace_size(query, minimum_work);
     std::vector<double> work(static_cast<std::size_t>(lwork));
     checkpoint(interrupt);
-    F77_CALL(dgelsy)(&m, &n, &nrhs, a.values().data(), &m, b.values().data(), &ldb,
+    lapack::dgelsy(&m, &n, &nrhs, a.values().data(), &m, b.values().data(), &ldb,
                      pivots.data(), &rank_tolerance, &rank, work.data(), &lwork, &info);
     check_info(info, "DGELSY");
     checkpoint(interrupt);

@@ -7,6 +7,7 @@
 #include <cstdlib>
 #include <exception>
 #include <stdexcept>
+#include <string>
 #include <vector>
 
 #ifdef _OPENMP
@@ -36,17 +37,19 @@ inline bool in_parallel_region() noexcept {
 
 inline ParallelInfo parallel_info() {
     int requested = 2;
-    const auto setting = std::getenv("PERSEPHONE_NUM_THREADS");
+    const char* variable = "KALOS_NUM_THREADS";
+    auto setting = std::getenv(variable);
+    if (!setting) { variable = "PERSEPHONE_NUM_THREADS"; setting = std::getenv(variable); }
     if (setting && *setting) {
         requested = 0;
         for (const char* p = setting; *p; ++p) {
             if (*p < '0' || *p > '9' || requested > 64) {
-                throw std::invalid_argument("PERSEPHONE_NUM_THREADS must be an integer from 1 to 64");
+                throw std::invalid_argument(std::string(variable) + " must be an integer from 1 to 64");
             }
             requested = requested * 10 + (*p - '0');
         }
         if (requested < 1 || requested > 64) {
-            throw std::invalid_argument("PERSEPHONE_NUM_THREADS must be an integer from 1 to 64");
+            throw std::invalid_argument(std::string(variable) + " must be an integer from 1 to 64");
         }
     }
 #ifdef _OPENMP
