@@ -35,6 +35,7 @@ add_library(kalos STATIC
   src/numerics.cpp
   src/optimizer.cpp
   src/prediction_arma_information.cpp
+  src/preparation.cpp
   src/prediction_moments.cpp
   src/regression_likelihood.cpp
   src/residual_information.cpp
@@ -104,6 +105,7 @@ if(KALOS_BUILD_TESTS)
     test_numerics
     test_optimizer
     test_parallel
+    test_preparation
     test_prediction_moments
     test_regression_information
     test_regression_likelihood

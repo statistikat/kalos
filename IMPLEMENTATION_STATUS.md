@@ -31,3 +31,9 @@ baseline and numerical contracts belong to Kalos; R boundary tests belong to rka
 - Validation: Clang 23.1.5, OpenBLAS 0.3.34, macOS ARM64 Release serial build;
   **36/36 standalone test programs passed**. No R includes or runtime linked.
   OpenMP, sanitizer and installed-consumer checks follow the preparation port.
+
+## Shared preparation completed
+
+Added the language-independent preparation contract and independent C++ tests.
+All **37/37** standalone test programs pass with the OpenBLAS serial build.
+R conversions now delegate these operations; package qualification is next.

@@ -19,6 +19,7 @@ class TimeDomain {
 public:
     TimeDomain(std::int64_t year, int period, int frequency, std::int64_t length);
     std::pair<std::int64_t, int> at(std::int64_t offset) const;
+    std::int64_t start_ordinal() const noexcept { return start_; }
     std::int64_t length() const noexcept { return length_; }
     int frequency() const noexcept { return frequency_; }
 
