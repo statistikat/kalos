@@ -1,5 +1,8 @@
 #ifndef KALOS_VERSION_HPP
 #define KALOS_VERSION_HPP
+#if __has_include("kalos/revision.hpp")
+#include "kalos/revision.hpp"
+#endif
 #ifndef KALOS_CORE_REVISION
 #define KALOS_CORE_REVISION "development"
 #endif

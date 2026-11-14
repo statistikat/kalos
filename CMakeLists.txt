@@ -16,6 +16,19 @@ unset(CMAKE_REQUIRED_LIBRARIES)
 if(NOT KALOS_LP64_PROVIDER)
   message(FATAL_ERROR "Kalos requires OpenBLAS with CBLAS, LAPACKE and a 32-bit LP64 integer ABI")
 endif()
+# A committed binding snapshot supplies its own exact revision header.
+if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/include/kalos/revision.hpp")
+  file(READ "${CMAKE_CURRENT_SOURCE_DIR}/include/kalos/revision.hpp" KALOS_REVISION_HEADER)
+else()
+  execute_process(COMMAND git rev-parse HEAD WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
+    OUTPUT_VARIABLE KALOS_REVISION OUTPUT_STRIP_TRAILING_WHITESPACE ERROR_QUIET)
+  if(NOT KALOS_REVISION)
+    set(KALOS_REVISION "unrecorded-source-archive")
+  endif()
+  set(KALOS_REVISION_HEADER "#define KALOS_CORE_REVISION \"${KALOS_REVISION}\"\n")
+endif()
+file(MAKE_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/generated/kalos")
+file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/generated/kalos/revision.hpp" "${KALOS_REVISION_HEADER}")
 add_library(kalos STATIC
   src/arma_identification.cpp
   src/arma_information.cpp
@@ -60,6 +73,7 @@ set_target_properties(kalos PROPERTIES POSITION_INDEPENDENT_CODE ON)
 target_compile_features(kalos PUBLIC cxx_std_17)
 target_include_directories(kalos PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/generated>
   $<INSTALL_INTERFACE:include>)
 target_link_libraries(kalos PUBLIC Kalos::OpenBLAS)
 set(KALOS_WITH_OPENMP OFF)
@@ -141,6 +155,7 @@ include(GNUInstallDirs)
 include(CMakePackageConfigHelpers)
 install(TARGETS kalos EXPORT kalosTargets ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR})
 install(DIRECTORY include/ DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
+install(FILES ${CMAKE_CURRENT_BINARY_DIR}/generated/kalos/revision.hpp DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/kalos)
 install(EXPORT kalosTargets NAMESPACE kalos:: DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/kalos)
 configure_package_config_file(cmake/kalosConfig.cmake.in
   ${CMAKE_CURRENT_BINARY_DIR}/kalosConfig.cmake

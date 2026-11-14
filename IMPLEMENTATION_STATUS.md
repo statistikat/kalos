@@ -37,3 +37,11 @@ baseline and numerical contracts belong to Kalos; R boundary tests belong to rka
 Added the language-independent preparation contract and independent C++ tests.
 All **37/37** standalone test programs pass with the OpenBLAS serial build.
 R conversions now delegate these operations; package qualification is next.
+
+## Pinned source export
+
+Added an explicit committed source/fixture allowlist and a Git-archive exporter.
+Bindings record the exact core commit, version and SHA-256 of every snapshot file.
+Verification is offline and rejects changed, missing, extra or symlinked files.
+The generated revision header is declared separately; original source/fixture
+bytes remain unchanged. Refresh refuses to discard local snapshot edits.
