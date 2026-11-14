@@ -1,11 +1,11 @@
-#include "core/arma_identification.hpp"
+#include "kalos/arma_identification.hpp"
 
 #include <algorithm>
 #include <cmath>
 #include <limits>
 #include <stdexcept>
 
-namespace persephone {
+namespace kalos {
 ArmaIdentification arma_identification(const ArmaParameterMap& map,
     const std::vector<double>& coordinates, int period,
     double rank_tolerance, double near_tolerance, const Interrupt& interrupt) {
@@ -79,4 +79,4 @@ ArmaIdentification arma_identification(const ArmaParameterMap& map,
     result.numerator_jacobian = std::move(jacobian);
     return result;
 }
-} // namespace persephone
+} // namespace kalos

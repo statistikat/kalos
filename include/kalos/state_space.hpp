@@ -1,5 +1,5 @@
-#ifndef PERSEPHONE_STATE_SPACE_HPP
-#define PERSEPHONE_STATE_SPACE_HPP
+#ifndef KALOS_STATE_SPACE_HPP
+#define KALOS_STATE_SPACE_HPP
 
 // Independently authored stationary, fixed-parameter likelihood primitives.
 // These do not estimate ARIMA parameters or perform seasonal adjustment.
@@ -9,7 +9,7 @@
 #include <string>
 #include <vector>
 
-namespace persephone {
+namespace kalos {
 
 // y_t = mean + Z a_t + e_t; a_(t+1) = T a_t + L u_t.
 // u_t ~ N(0, variance I), e_t ~ N(0, variance h), mutually independent.
@@ -77,5 +77,5 @@ StationaryArma stationary_arma(
     const std::vector<double>& seasonal_ar, const std::vector<double>& seasonal_ma,
     int period, const Interrupt& interrupt = {});
 
-} // namespace persephone
+} // namespace kalos
 #endif

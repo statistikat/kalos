@@ -1,5 +1,5 @@
-#include "core/sparse_history.hpp"
-#include "core/linear_algebra.hpp"
+#include "kalos/sparse_history.hpp"
+#include "kalos/linear_algebra.hpp"
 
 // Thin QR is evaluated through R's declared LAPACK ABI. The factored
 // homogeneous functions and their original-history normalization are
@@ -12,7 +12,7 @@
 #include <stdexcept>
 #include <utility>
 
-namespace persephone {
+namespace kalos {
 namespace detail {
 namespace {
 
@@ -244,4 +244,4 @@ void SparseHistoryBasis::rebuild(const Interrupt& interrupt) {
 }
 
 } // namespace detail
-} // namespace persephone
+} // namespace kalos

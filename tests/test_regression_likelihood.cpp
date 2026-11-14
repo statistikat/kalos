@@ -1,5 +1,5 @@
-#include "core/regression_likelihood.hpp"
-#include "core/parallel.hpp"
+#include "kalos/regression_likelihood.hpp"
+#include "kalos/parallel.hpp"
 
 #include <cassert>
 #include <cmath>
@@ -35,7 +35,7 @@ void thread_setting(const char* value) {
 }
 
 int main() {
-    using namespace persephone;
+    using namespace kalos;
     // Orthogonal white-noise GLS: errors have zero sum and zero linear moment.
     // Observed x=-2..2, errors=(1,-2,2,-2,1), hence beta=(2,3), Q=14.
     MaskedSeries values{{0, -3, -3, 4, 3, 9, 0}, {1, 0, 0, 0, 0, 0, 1}};

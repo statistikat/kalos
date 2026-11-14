@@ -1,12 +1,12 @@
-#ifndef PERSEPHONE_ARMA_OBJECTIVE_HPP
-#define PERSEPHONE_ARMA_OBJECTIVE_HPP
+#ifndef KALOS_ARMA_OBJECTIVE_HPP
+#define KALOS_ARMA_OBJECTIVE_HPP
 
 #include "arma_parameters.hpp"
 #include "regression_likelihood.hpp"
 
 #include <optional>
 
-namespace persephone {
+namespace kalos {
 
 struct ArmaObjective {
     std::string status;
@@ -40,5 +40,5 @@ ArmaObjective evaluate_arma_physical_objective(const MaskedSeries& series,
     double mean = 0, double rank_tolerance = 1e-10, double log_jacobian = 0,
     const Interrupt& interrupt = {});
 
-} // namespace persephone
+} // namespace kalos
 #endif

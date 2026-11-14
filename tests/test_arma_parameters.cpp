@@ -1,4 +1,4 @@
-#include "core/arma_parameters.hpp"
+#include "kalos/arma_parameters.hpp"
 
 #include <cassert>
 #include <cmath>
@@ -16,7 +16,7 @@ template<class F> void rejects(F f) {
 }
 
 int main() {
-    using namespace persephone;
+    using namespace kalos;
     const double margin = 1e-8;
     const auto known = arma_admissibility({.5,.2}, false);
     assert(known.status == "admissible");

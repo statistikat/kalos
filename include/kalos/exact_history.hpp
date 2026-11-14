@@ -1,5 +1,5 @@
-#ifndef PERSEPHONE_EXACT_HISTORY_HPP
-#define PERSEPHONE_EXACT_HISTORY_HPP
+#ifndef KALOS_EXACT_HISTORY_HPP
+#define KALOS_EXACT_HISTORY_HPP
 
 #include <algorithm>
 #include <array>
@@ -8,7 +8,7 @@
 #include <limits>
 #include <stdexcept>
 
-namespace persephone {
+namespace kalos {
 namespace detail {
 
 // Exact observed-row rank for Delta=(1-B)^d(1-B^s)^D, d,D <= 2.
@@ -110,5 +110,5 @@ private:
 };
 
 } // namespace detail
-} // namespace persephone
+} // namespace kalos
 #endif

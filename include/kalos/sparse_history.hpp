@@ -1,5 +1,5 @@
-#ifndef PERSEPHONE_SPARSE_HISTORY_HPP
-#define PERSEPHONE_SPARSE_HISTORY_HPP
+#ifndef KALOS_SPARSE_HISTORY_HPP
+#define KALOS_SPARSE_HISTORY_HPP
 
 #include "numerics.hpp"
 
@@ -8,7 +8,7 @@
 #include <cstdint>
 #include <vector>
 
-namespace persephone {
+namespace kalos {
 namespace detail {
 
 // Canonical SARIMA diffuse subspace, evaluated from factored homogeneous
@@ -57,5 +57,5 @@ private:
 };
 
 } // namespace detail
-} // namespace persephone
+} // namespace kalos
 #endif

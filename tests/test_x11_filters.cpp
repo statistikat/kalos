@@ -1,5 +1,5 @@
-#include "core/x11_filters.hpp"
-#include "core/parallel.hpp"
+#include "kalos/x11_filters.hpp"
+#include "kalos/parallel.hpp"
 #include <cassert>
 #include <cmath>
 #include <cstdlib>
@@ -17,7 +17,7 @@ void threads(const char* value) {
 }
 }
 int main() {
-    using namespace persephone;
+    using namespace kalos;
     for(const int frequency:{4,12})for(int length=1;length<=101;length+=2) {
         const auto f=x11_filter_definition(X11FilterKind::henderson,frequency,length);
         assert(f.radius==(length<=3 ? 0 : length/2));

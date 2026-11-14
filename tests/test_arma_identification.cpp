@@ -1,4 +1,4 @@
-#include "core/arma_identification.hpp"
+#include "kalos/arma_identification.hpp"
 
 #include <cassert>
 #include <cmath>
@@ -8,7 +8,7 @@
 #include <thread>
 
 int main() {
-    using namespace persephone;
+    using namespace kalos;
     const DenseMatrix diagonal(3, 2, {3, 0, 0, 0, 2, 0});
     const auto values = singular_values(diagonal);
     assert(values.size() == 2 && std::abs(values[0] - 3) < 1e-14 && std::abs(values[1] - 2) < 1e-14);

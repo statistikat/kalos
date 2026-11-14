@@ -1,5 +1,5 @@
-#include "core/parallel.hpp"
-#include "core/transforms.hpp"
+#include "kalos/parallel.hpp"
+#include "kalos/transforms.hpp"
 
 #include <cassert>
 #include <cmath>
@@ -27,7 +27,7 @@ bool fails(Function function, const std::string& message = "") {
 }
 
 int main() {
-    using namespace persephone;
+    using namespace kalos;
     const auto main_thread = std::this_thread::get_id();
     const Interrupt interrupt = [&] { assert(std::this_thread::get_id() == main_thread); };
     threads("1");
@@ -46,7 +46,7 @@ int main() {
     assert(parallel == serial);
     const std::set<std::thread::id> used(workers.begin(), workers.begin() + parallel_chunk_outputs);
     assert(used.size() <= static_cast<std::size_t>(info.selected_threads));
-    const auto require = std::getenv("PERSEPHONE_REQUIRE_OPENMP");
+    const auto require = std::getenv("KALOS_REQUIRE_OPENMP");
     if (require && std::string(require) == "1") assert(info.compiled && used.size() > 1);
     if (!info.compiled) assert(used.size() == 1 && info.version == 0);
 

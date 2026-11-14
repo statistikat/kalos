@@ -1,5 +1,5 @@
-#ifndef PERSEPHONE_LINEAR_ALGEBRA_HPP
-#define PERSEPHONE_LINEAR_ALGEBRA_HPP
+#ifndef KALOS_LINEAR_ALGEBRA_HPP
+#define KALOS_LINEAR_ALGEBRA_HPP
 
 // Independently authored adapters to R-supported LAPACK, not translated Java.
 // This header owns its storage and does not depend on R or Rcpp. Linking the
@@ -10,7 +10,7 @@
 #include <cstddef>
 #include <vector>
 
-namespace persephone {
+namespace kalos {
 
 // Column-major storage. Empty dimensions and storage/dimensions exceeding the
 // signed LAPACK integer range are deliberately unsupported by these primitives.
@@ -79,5 +79,5 @@ std::vector<double> singular_values(const DenseMatrix& matrix,
 std::vector<double> symmetric_eigenvalues(const DenseMatrix& matrix,
                                          const Interrupt& interrupt = {});
 
-} // namespace persephone
+} // namespace kalos
 #endif

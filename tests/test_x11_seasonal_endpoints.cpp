@@ -1,5 +1,5 @@
-#include "core/x11_seasonal_endpoints.hpp"
-#include "core/parallel.hpp"
+#include "kalos/x11_seasonal_endpoints.hpp"
+#include "kalos/parallel.hpp"
 #include <algorithm>
 #include <cassert>
 #include <cmath>
@@ -21,7 +21,7 @@ template<class F> void invalid(F run) {
 }
 }
 int main() {
-    using namespace persephone;
+    using namespace kalos;
     for(const int frequency:{4,12})for(const int N:{1,3,5,9,15}) {
         for(int q=0;q<(N+1)/2;++q) {
             const auto left=x11_seasonal_endpoint_definition(frequency,N,q,X11SeasonalSide::left);

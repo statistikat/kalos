@@ -1,5 +1,5 @@
-#include "core/x11_musgrave.hpp"
-#include "core/parallel.hpp"
+#include "kalos/x11_musgrave.hpp"
+#include "kalos/parallel.hpp"
 #include <cassert>
 #include <cmath>
 #include <cstdlib>
@@ -20,7 +20,7 @@ template<class F> void invalid(F run) {
 }
 }
 int main() {
-    using namespace persephone;
+    using namespace kalos;
     for(int length=5;length<=101;length+=2)for(int q=0;q<length/2;++q)
     for(const double ratio:{0.,.001,3.5,100.,std::numeric_limits<double>::max()}) {
         const auto right=x11_musgrave_definition(12,length,q,X11EndpointSide::right,ratio);

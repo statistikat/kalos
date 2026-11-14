@@ -1,5 +1,5 @@
-#include "core/arma_objective.hpp"
-#include "core/parallel.hpp"
+#include "kalos/arma_objective.hpp"
+#include "kalos/parallel.hpp"
 
 #include <algorithm>
 #include <cmath>
@@ -8,7 +8,7 @@
 #include <stdexcept>
 #include <utility>
 
-namespace persephone {
+namespace kalos {
 
 void validate_arma_objective_inputs(const MaskedSeries& series,
     const RegressionDesign& design, const ArmaParameterMap& map,
@@ -109,4 +109,4 @@ ArmaObjective evaluate_arma_physical_objective(const MaskedSeries& series,
     return evaluate_decoded(series,design,std::move(decoded),period,d,seasonal_d,mean,rank_tolerance,log_jacobian,interrupt);
 }
 
-} // namespace persephone
+} // namespace kalos

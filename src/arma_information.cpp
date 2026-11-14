@@ -1,10 +1,10 @@
-#include "core/arma_information.hpp"
+#include "kalos/arma_information.hpp"
 #include <algorithm>
 #include <cmath>
 #include <limits>
 #include <stdexcept>
 
-namespace persephone {
+namespace kalos {
 ConditionalRegressionInformation conditional_regression_information(
     const ArmaInformation& result, const Interrupt& interrupt) {
     ConditionalRegressionInformation out;
@@ -123,7 +123,7 @@ ArmaInformation arma_information(const MaskedSeries& series,
             }
             return ResidualSample{"available",std::move(z),detail->finite_count,detail};
         };
-        result.residual_information=persephone::residual_information(residuals,result.coefficients,differences,interrupt);
+        result.residual_information=kalos::residual_information(residuals,result.coefficients,differences,interrupt);
         result.information=result.residual_information->diagnostics;
         ++result.information.evaluations;
         if(result.information.status=="available" || result.information.status=="no_free_parameters") {
@@ -242,4 +242,4 @@ ArmaInformation arma_information(const MaskedSeries& series,
     }
     return result;
 }
-} // namespace persephone
+} // namespace kalos

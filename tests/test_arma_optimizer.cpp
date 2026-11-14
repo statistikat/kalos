@@ -1,4 +1,4 @@
-#include "core/arma_optimizer.hpp"
+#include "kalos/arma_optimizer.hpp"
 
 #include <cassert>
 #include <cmath>
@@ -7,7 +7,7 @@
 #include <thread>
 
 int main() {
-    using namespace persephone;
+    using namespace kalos;
     const MaskedSeries series{{.2,.6,-.3,.1,-.7,-.3,.1,.7,.6,-.2,-.5,.3},std::vector<std::uint8_t>(12,0)};
     const RegressionDesign empty{0,{},{},{}};
     std::array<ArmaParameterBlock,4> blocks{}; blocks[0]={{0},{0}};

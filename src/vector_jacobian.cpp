@@ -1,11 +1,11 @@
-#include "core/information.hpp"
+#include "kalos/information.hpp"
 #include <algorithm>
 #include <array>
 #include <cmath>
 #include <limits>
 #include <stdexcept>
 
-namespace persephone {
+namespace kalos {
 VectorJacobian vector_jacobian(const VectorFunction& function,
     const std::vector<double>& x, const InformationControl& c, const Interrupt& interrupt) {
     c.validate();
@@ -66,4 +66,4 @@ VectorJacobian vector_jacobian(const VectorFunction& function,
     }
     out.status="derivatives_unresolved";return out;
 }
-} // namespace persephone
+} // namespace kalos

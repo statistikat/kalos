@@ -1,7 +1,7 @@
-#ifndef PERSEPHONE_X11_NORMALIZATION_HPP
-#define PERSEPHONE_X11_NORMALIZATION_HPP
+#ifndef KALOS_X11_NORMALIZATION_HPP
+#define KALOS_X11_NORMALIZATION_HPP
 #include "x11_filters.hpp"
-namespace persephone {
+namespace kalos {
 enum class X11NormalizationRule { nearest, requested_stable, short_span, short_3x15_span };
 struct X11SeasonalNormalization {
     MaskedSeries values,normalization;
@@ -19,5 +19,5 @@ struct X11SeasonalNormalization {
 X11SeasonalNormalization x11_seasonal_normalize(const MaskedSeries& series,
     int frequency,int first_period,const std::vector<int>& filters,
     std::size_t extend=0,const Interrupt& interrupt={});
-} // namespace persephone
+} // namespace kalos
 #endif

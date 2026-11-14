@@ -1,5 +1,5 @@
-#include "core/x11_msr_selection.hpp"
-#include "core/parallel.hpp"
+#include "kalos/x11_msr_selection.hpp"
+#include "kalos/parallel.hpp"
 #include <cassert>
 #include <cmath>
 #include <cstdlib>
@@ -17,10 +17,10 @@ void threads(const char* value) {
 #endif
 }
 template<class F>void invalid(F run) {bool caught=false;try{run();}catch(const std::invalid_argument&){caught=true;}assert(caught);}
-persephone::MaskedSeries input(std::size_t n) {return {std::vector<double>(n),std::vector<std::uint8_t>(n,0)};}
+kalos::MaskedSeries input(std::size_t n) {return {std::vector<double>(n),std::vector<std::uint8_t>(n,0)};}
 }
 int main() {
-    using namespace persephone;using Mode=X11MsrMode;using Policy=X11MsrIterationPolicy;using Status=X11MsrSelectionStatus;using Band=X11MsrBand;
+    using namespace kalos;using Mode=X11MsrMode;using Policy=X11MsrIterationPolicy;using Status=X11MsrSelectionStatus;using Band=X11MsrBand;
     const double infinity=std::numeric_limits<double>::infinity();
     assert(x11_msr_band(0)==Band::s3x3 && x11_msr_band(infinity)==Band::s3x9);
     for(const auto cutoff:{2.5,3.5,5.5,6.5}) {

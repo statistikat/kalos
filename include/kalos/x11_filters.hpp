@@ -1,7 +1,7 @@
-#ifndef PERSEPHONE_X11_FILTERS_HPP
-#define PERSEPHONE_X11_FILTERS_HPP
+#ifndef KALOS_X11_FILTERS_HPP
+#define KALOS_X11_FILTERS_HPP
 #include "numerics.hpp"
-namespace persephone {
+namespace kalos {
 enum class X11FilterKind { trend, seasonal, henderson };
 struct X11FilterDefinition {
     std::vector<double> weights;
@@ -18,5 +18,5 @@ X11FilterDefinition x11_filter_definition(X11FilterKind kind,int frequency,int l
 // internal missing values. No extrapolation or renormalization.
 MaskedSeries x11_symmetric_filter(const MaskedSeries& series,X11FilterKind kind,
     int frequency,int length,const Interrupt& interrupt={});
-} // namespace persephone
+} // namespace kalos
 #endif

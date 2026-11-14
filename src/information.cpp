@@ -1,4 +1,4 @@
-#include "core/information.hpp"
+#include "kalos/information.hpp"
 
 #include <algorithm>
 #include <array>
@@ -6,7 +6,7 @@
 #include <limits>
 #include <stdexcept>
 
-namespace persephone {
+namespace kalos {
 void InformationControl::validate() const {
     const auto positive = [](double x) { return std::isfinite(x) && x > 0; };
     if (!positive(difference_step) || difference_step > .1 || difference_refinements < 0 ||
@@ -165,4 +165,4 @@ ObservedInformation observed_information(const ObjectiveFunction& objective,
     out.status="derivatives_unresolved"; out.derivative_status=out.status;
     return out;
 }
-} // namespace persephone
+} // namespace kalos

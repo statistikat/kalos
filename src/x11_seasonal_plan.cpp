@@ -1,7 +1,7 @@
-#include "core/x11_seasonal_plan.hpp"
+#include "kalos/x11_seasonal_plan.hpp"
 #include <algorithm>
 #include <stdexcept>
-namespace persephone {
+namespace kalos {
 X11SeasonalPlan x11_seasonal_plan(int frequency,const std::vector<X11SeasonalRequest>& requests,
     X11SeasonalStage stage) {
     if(frequency!=4 && frequency!=12)throw std::invalid_argument("frequency must be 4 or 12");
@@ -35,4 +35,4 @@ X11SeasonalPlan x11_seasonal_plan(int frequency,const std::vector<X11SeasonalReq
     }
     return out;
 }
-} // namespace persephone
+} // namespace kalos

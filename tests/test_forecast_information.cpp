@@ -1,5 +1,5 @@
-#include "core/forecast_information.hpp"
-#include "core/parallel.hpp"
+#include "kalos/forecast_information.hpp"
+#include "kalos/parallel.hpp"
 #include <cassert>
 #include <cmath>
 #include <cstdlib>
@@ -17,7 +17,7 @@ void threads(const char* value) {
 }
 }
 int main() {
-    using namespace persephone;
+    using namespace kalos;
     const MaskedSeries y{{1,3,2,4,5,2,3,5,4,2,3,6,2,4,5,3},std::vector<std::uint8_t>(16,0)};
     const RegressionDesign none{};
     std::array<ArmaParameterBlock,4> blocks{};blocks[0]={{.5},{1}};

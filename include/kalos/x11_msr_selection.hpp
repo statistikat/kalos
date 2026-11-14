@@ -1,7 +1,7 @@
-#ifndef PERSEPHONE_X11_MSR_SELECTION_HPP
-#define PERSEPHONE_X11_MSR_SELECTION_HPP
+#ifndef KALOS_X11_MSR_SELECTION_HPP
+#define KALOS_X11_MSR_SELECTION_HPP
 #include "x11_msr.hpp"
-namespace persephone {
+namespace kalos {
 enum class X11MsrPilotStatus {
     available, insufficient_observations, missing_observations,
     nonpositive_relative_input, numerical_range
@@ -51,5 +51,5 @@ X11MsrSelection x11_msr_select(const MaskedSeries& series,int frequency,int firs
     X11MsrMode mode,X11MsrIterationPolicy policy=X11MsrIterationPolicy::jdplus,
     std::size_t backcasts=0,std::size_t forecasts=0,std::size_t max_iterations=1000,
     const Interrupt& interrupt={});
-} // namespace persephone
+} // namespace kalos
 #endif

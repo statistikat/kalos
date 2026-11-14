@@ -1,12 +1,12 @@
-#ifndef PERSEPHONE_FINITE_STATE_FACTOR_HPP
-#define PERSEPHONE_FINITE_STATE_FACTOR_HPP
+#ifndef KALOS_FINITE_STATE_FACTOR_HPP
+#define KALOS_FINITE_STATE_FACTOR_HPP
 
 #include "linear_algebra.hpp"
 
 #include <cstddef>
 #include <vector>
 
-namespace persephone {
+namespace kalos {
 namespace detail {
 
 struct FiniteObservation {
@@ -46,5 +46,5 @@ private:
 };
 
 } // namespace detail
-} // namespace persephone
+} // namespace kalos
 #endif

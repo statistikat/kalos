@@ -1,10 +1,10 @@
-#ifndef PERSEPHONE_INTERPOLATION_INFORMATION_HPP
-#define PERSEPHONE_INTERPOLATION_INFORMATION_HPP
+#ifndef KALOS_INTERPOLATION_INFORMATION_HPP
+#define KALOS_INTERPOLATION_INFORMATION_HPP
 #include "arma_residuals.hpp"
 #include "prediction_arma_information.hpp"
 #include <optional>
 
-namespace persephone {
+namespace kalos {
 struct InterpolationInformation {
     std::string status="point_unavailable",message;
     ArmaResiduals fit;
@@ -32,5 +32,5 @@ InterpolationArmaInformation interpolation_arma_information(
     const std::vector<double>& coordinates,int period,int d,int seasonal_d,
     double mean=0,double rank_tolerance=1e-10,double log_jacobian=0,
     const InformationControl& control={},const Interrupt& interrupt={});
-} // namespace persephone
+} // namespace kalos
 #endif

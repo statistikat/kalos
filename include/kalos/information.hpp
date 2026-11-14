@@ -1,11 +1,11 @@
-#ifndef PERSEPHONE_INFORMATION_HPP
-#define PERSEPHONE_INFORMATION_HPP
+#ifndef KALOS_INFORMATION_HPP
+#define KALOS_INFORMATION_HPP
 
 #include "optimizer.hpp"
 #include "linear_algebra.hpp"
 #include <optional>
 
-namespace persephone {
+namespace kalos {
 
 struct InformationControl {
     double difference_step = 1e-3;
@@ -86,5 +86,5 @@ VectorJacobian vector_jacobian(const VectorFunction& function,
     const std::vector<double>& coefficients, const InformationControl& control = {},
     const Interrupt& interrupt = {});
 
-} // namespace persephone
+} // namespace kalos
 #endif

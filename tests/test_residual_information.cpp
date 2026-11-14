@@ -1,4 +1,4 @@
-#include "core/information.hpp"
+#include "kalos/information.hpp"
 #include <cassert>
 #include <cmath>
 #include <iostream>
@@ -6,7 +6,7 @@
 #include <thread>
 
 int main() {
-    using namespace persephone;
+    using namespace kalos;
     const ResidualFunction function=[](const std::vector<double>& x) {
         return ResidualSample{"available",{1,x[0]-2,2*(x[1]+1)},10,{}};
     };

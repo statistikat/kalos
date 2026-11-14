@@ -1,4 +1,4 @@
-#include "core/information.hpp"
+#include "kalos/information.hpp"
 #include <cassert>
 #include <cmath>
 #include <iostream>
@@ -6,7 +6,7 @@
 #include <thread>
 
 int main() {
-    using namespace persephone;
+    using namespace kalos;
     const VectorFunction function=[](const std::vector<double>& x) {
         return VectorSample{"available",{std::sin(x[0])+x[1]*x[1],std::exp(x[0]-x[1]),0}};
     };

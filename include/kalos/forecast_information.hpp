@@ -1,10 +1,10 @@
-#ifndef PERSEPHONE_FORECAST_INFORMATION_HPP
-#define PERSEPHONE_FORECAST_INFORMATION_HPP
+#ifndef KALOS_FORECAST_INFORMATION_HPP
+#define KALOS_FORECAST_INFORMATION_HPP
 #include "arma_residuals.hpp"
 #include "prediction_arma_information.hpp"
 #include <optional>
 
-namespace persephone {
+namespace kalos {
 struct ForecastInformation {
     std::string status="center_unavailable",point_status="center_unavailable",message;
     std::shared_ptr<const ArmaObjective> center;
@@ -30,5 +30,5 @@ PredictionArmaInformation forecast_arma_information(const ForecastInformation& c
     const ArmaParameterMap& map,const std::vector<double>& coordinates,
     int period,int d,int seasonal_d,double mean=0,double rank_tolerance=1e-10,
     double log_jacobian=0,const InformationControl& control={},const Interrupt& interrupt={});
-} // namespace persephone
+} // namespace kalos
 #endif

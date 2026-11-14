@@ -1,8 +1,8 @@
-#include "core/x11_musgrave.hpp"
+#include "kalos/x11_musgrave.hpp"
 #include <algorithm>
 #include <cmath>
 #include <stdexcept>
-namespace persephone {
+namespace kalos {
 namespace {
 void validate_ratio(double ratio) {
     if(!std::isfinite(ratio) || ratio<0)
@@ -85,4 +85,4 @@ MaskedSeries x11_musgrave_filter(const MaskedSeries& series,int frequency,int le
     }
     return out;
 }
-} // namespace persephone
+} // namespace kalos

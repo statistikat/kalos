@@ -1,8 +1,8 @@
-#ifndef PERSEPHONE_PREDICTION_ARMA_INFORMATION_HPP
-#define PERSEPHONE_PREDICTION_ARMA_INFORMATION_HPP
+#ifndef KALOS_PREDICTION_ARMA_INFORMATION_HPP
+#define KALOS_PREDICTION_ARMA_INFORMATION_HPP
 #include "arma_information.hpp"
 #include <optional>
-namespace persephone {
+namespace kalos {
 struct PredictionArmaInformation {
     std::string status="conditional_unavailable",message;
     std::optional<ArmaInformation> arma;
@@ -17,5 +17,5 @@ struct PredictionArmaInformation {
 void assemble_prediction_delta(PredictionArmaInformation& out,
     const DenseMatrix& conditional,const std::vector<double>& conditional_standard_errors,
     const Interrupt& interrupt);
-} // namespace persephone
+} // namespace kalos
 #endif

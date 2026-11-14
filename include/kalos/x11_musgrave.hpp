@@ -1,7 +1,7 @@
-#ifndef PERSEPHONE_X11_MUSGRAVE_HPP
-#define PERSEPHONE_X11_MUSGRAVE_HPP
+#ifndef KALOS_X11_MUSGRAVE_HPP
+#define KALOS_X11_MUSGRAVE_HPP
 #include "x11_filters.hpp"
-namespace persephone {
+namespace kalos {
 enum class X11EndpointSide { left, right };
 // `available` is the number of observations remaining towards the selected
 // boundary, from 0 through effective Henderson radius - 1. Left mirrors right.
@@ -12,5 +12,5 @@ X11FilterDefinition x11_musgrave_definition(int frequency,int length,int availab
 // Identity lengths 1/3 retain identity. No extrapolation or automatic I/C choice.
 MaskedSeries x11_musgrave_filter(const MaskedSeries& series,int frequency,int length,
     double ic_ratio,const Interrupt& interrupt={});
-} // namespace persephone
+} // namespace kalos
 #endif

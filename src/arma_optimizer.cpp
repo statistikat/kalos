@@ -1,10 +1,10 @@
-#include "core/arma_optimizer.hpp"
+#include "kalos/arma_optimizer.hpp"
 
 #include <cmath>
 #include <limits>
 #include <stdexcept>
 
-namespace persephone {
+namespace kalos {
 OptimizationResult optimize_arma_objective(const MaskedSeries& series,
     const RegressionDesign& design, const ArmaParameterMap& map,
     const std::vector<double>& start, int period, int d, int seasonal_d,
@@ -42,4 +42,4 @@ OptimizationResult optimize_arma_objective(const MaskedSeries& series,
     };
     return minimize_bfgs(function,working,control,interrupt);
 }
-} // namespace persephone
+} // namespace kalos

@@ -1,7 +1,7 @@
-#ifndef PERSEPHONE_X11_SEASONAL_PROCESSING_HPP
-#define PERSEPHONE_X11_SEASONAL_PROCESSING_HPP
+#ifndef KALOS_X11_SEASONAL_PROCESSING_HPP
+#define KALOS_X11_SEASONAL_PROCESSING_HPP
 #include "x11_seasonal_endpoints.hpp"
-namespace persephone {
+namespace kalos {
 enum class X11ShortSeriesPolicy { reject, x11 };
 enum class X11SeasonalRowMethod { stable, symmetric, left, right, short_mean };
 enum class X11SeasonalSelectionReason {
@@ -23,5 +23,5 @@ struct X11SeasonalProcessing {
 X11SeasonalProcessing x11_seasonal_process(const MaskedSeries& series,int frequency,
     int start_period,const std::vector<int>& filters,X11ShortSeriesPolicy policy,
     const Interrupt& interrupt={});
-} // namespace persephone
+} // namespace kalos
 #endif

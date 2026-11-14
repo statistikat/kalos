@@ -1,5 +1,5 @@
-#include "core/interpolation_information.hpp"
-#include "core/parallel.hpp"
+#include "kalos/interpolation_information.hpp"
+#include "kalos/parallel.hpp"
 #include <algorithm>
 #include <cmath>
 #include <exception>
@@ -7,7 +7,7 @@
 #include <stdexcept>
 #include <utility>
 
-namespace persephone {
+namespace kalos {
 namespace {
 double finite_prediction(long double value) {
     const auto result=static_cast<double>(value);
@@ -121,4 +121,4 @@ InterpolationArmaInformation interpolation_arma_information(
     }
     return out;
 }
-} // namespace persephone
+} // namespace kalos

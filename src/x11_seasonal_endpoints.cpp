@@ -1,9 +1,9 @@
-#include "core/x11_seasonal_endpoints.hpp"
+#include "kalos/x11_seasonal_endpoints.hpp"
 #include <algorithm>
 #include <cmath>
 #include <stdexcept>
 #include <string>
-namespace persephone {
+namespace kalos {
 namespace {
 void validate_length(int length) {
     if(length!=1 && length!=3 && length!=5 && length!=9 && length!=15)
@@ -109,4 +109,4 @@ MaskedSeries x11_seasonal_endpoints(const MaskedSeries& series,int frequency,
     }
     return out;
 }
-} // namespace persephone
+} // namespace kalos

@@ -1,4 +1,4 @@
-#include "core/state_space.hpp"
+#include "kalos/state_space.hpp"
 
 #include <cassert>
 #include <cmath>
@@ -13,7 +13,7 @@ bool rejects(Function function) {
 }
 
 int main() {
-    using namespace persephone;
+    using namespace kalos;
     const auto model = stationary_arma({.7}, {}, {}, {}, 12);
     const MaskedSeries observations{{0, 2, 0, 1, 0}, {1, 0, 1, 0, 1}};
     const auto fit = stationary_innovations(observations, model.state_space);

@@ -1,4 +1,4 @@
-#include "core/linear_algebra.hpp"
+#include "kalos/linear_algebra.hpp"
 
 // Exact interfaces are declared by R, including Fortran character lengths.
 // References: Writing R Extensions sections 6.6/6.7; Netlib DPOTRF, DPOTRS,
@@ -12,7 +12,7 @@
 #include <string>
 #include <utility>
 
-namespace persephone {
+namespace kalos {
 namespace {
 
 std::size_t checked_size(std::size_t rows, std::size_t columns) {
@@ -336,4 +336,4 @@ LeastSquaresResult qr_least_squares(const DenseMatrix& matrix, const DenseMatrix
     return {std::move(coefficients), std::move(errors), rank, std::move(pivots), rank_tolerance};
 }
 
-} // namespace persephone
+} // namespace kalos

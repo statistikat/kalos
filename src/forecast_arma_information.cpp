@@ -1,13 +1,13 @@
-#include "core/forecast_information.hpp"
-#include "core/prediction_arma_information.hpp"
-#include "core/parallel.hpp"
+#include "kalos/forecast_information.hpp"
+#include "kalos/prediction_arma_information.hpp"
+#include "kalos/parallel.hpp"
 #include <algorithm>
 #include <cmath>
 #include <exception>
 #include <limits>
 #include <stdexcept>
 #include <utility>
-namespace persephone {
+namespace kalos {
 namespace {
 double finite_prediction(long double value) {
     const auto result=static_cast<double>(value);
@@ -133,4 +133,4 @@ PredictionArmaInformation forecast_arma_information(const ForecastInformation& c
     }
     return out;
 }
-} // namespace persephone
+} // namespace kalos

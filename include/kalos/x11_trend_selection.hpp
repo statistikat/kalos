@@ -1,8 +1,8 @@
-#ifndef PERSEPHONE_X11_TREND_SELECTION_HPP
-#define PERSEPHONE_X11_TREND_SELECTION_HPP
+#ifndef KALOS_X11_TREND_SELECTION_HPP
+#define KALOS_X11_TREND_SELECTION_HPP
 #include "x11_filters.hpp"
 #include <limits>
-namespace persephone {
+namespace kalos {
 enum class X11ChangeMode { additive, relative };
 enum class X11TrendSelectionStatus {
     available, insufficient_observations, missing_observations,
@@ -31,5 +31,5 @@ struct X11TrendSelection {
 X11TrendSelection x11_trend_select(const MaskedSeries& series,int frequency,
     X11ChangeMode mode,std::size_t backcasts=0,std::size_t forecasts=0,
     const Interrupt& interrupt={});
-} // namespace persephone
+} // namespace kalos
 #endif

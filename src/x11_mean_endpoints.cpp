@@ -1,9 +1,9 @@
-#include "core/x11_mean_endpoints.hpp"
+#include "kalos/x11_mean_endpoints.hpp"
 #include <algorithm>
 #include <cmath>
 #include <limits>
 #include <stdexcept>
-namespace persephone {
+namespace kalos {
 namespace {
 void boundary_mean(const MaskedSeries& input,std::size_t start,std::size_t count,
     double& mean,bool& missing) {
@@ -47,4 +47,4 @@ X11MeanEndpointResult x11_mean_endpoints(const MaskedSeries& series,int frequenc
     }
     return out;
 }
-} // namespace persephone
+} // namespace kalos

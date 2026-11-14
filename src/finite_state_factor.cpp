@@ -1,4 +1,4 @@
-#include "core/finite_state_factor.hpp"
+#include "kalos/finite_state_factor.hpp"
 
 // R supplies the LAPACK eigendecomposition and orthogonal QR factorizations.
 // The finite-factor Joseph update and concatenated disturbance propagation are
@@ -11,7 +11,7 @@
 #include <stdexcept>
 #include <utility>
 
-namespace persephone {
+namespace kalos {
 namespace detail {
 namespace {
 
@@ -227,4 +227,4 @@ DenseMatrix FiniteStateFactor::covariance(const Interrupt& interrupt) const {
 }
 
 } // namespace detail
-} // namespace persephone
+} // namespace kalos

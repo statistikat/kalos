@@ -1,7 +1,7 @@
-#ifndef PERSEPHONE_X11_MEAN_ENDPOINTS_HPP
-#define PERSEPHONE_X11_MEAN_ENDPOINTS_HPP
+#ifndef KALOS_X11_MEAN_ENDPOINTS_HPP
+#define KALOS_X11_MEAN_ENDPOINTS_HPP
 #include "x11_filters.hpp"
-namespace persephone {
+namespace kalos {
 struct X11MeanEndpointResult {
     MaskedSeries values;
     double left_mean=0,right_mean=0;
@@ -12,5 +12,5 @@ struct X11MeanEndpointResult {
 // At least frequency/2 inputs required; no automatic endpoint selection.
 X11MeanEndpointResult x11_mean_endpoints(const MaskedSeries& series,int frequency,
     const Interrupt& interrupt={});
-} // namespace persephone
+} // namespace kalos
 #endif

@@ -1,0 +1,10 @@
+{
+  "src/core/": "include/kalos/",
+  "src/*.cpp (excluding Rcpp)": "src/",
+  "tools/native-tests/*.cpp": "tests/",
+  "tools/native-tests/*.md": "docs/contracts/",
+  "tools/reference/": "validation/reference/",
+  "inst/tinytest/fixtures/": "validation/fixtures/",
+  "R/native*.R": "validation/migration/original-r/",
+  "IMPLEMENTATION_STATUS.md": "docs/history/persephone-implementation-baseline.md"
+}

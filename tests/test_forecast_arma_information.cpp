@@ -1,6 +1,6 @@
-#include "core/forecast_information.hpp"
-#include "core/arma_optimizer.hpp"
-#include "core/parallel.hpp"
+#include "kalos/forecast_information.hpp"
+#include "kalos/arma_optimizer.hpp"
+#include "kalos/parallel.hpp"
 #include <cassert>
 #include <cmath>
 #include <cstdlib>
@@ -18,7 +18,7 @@ void threads(const char* value) {
 }
 }
 int main() {
-    using namespace persephone;
+    using namespace kalos;
     std::array<ArmaParameterBlock,4> blocks{};blocks[0]={{0},{0}};
     const ArmaParameterMap map(blocks);const RegressionDesign none{};
     MaskedSeries y{std::vector<double>(80),std::vector<std::uint8_t>(80,0)};

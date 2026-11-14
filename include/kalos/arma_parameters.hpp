@@ -1,5 +1,5 @@
-#ifndef PERSEPHONE_ARMA_PARAMETERS_HPP
-#define PERSEPHONE_ARMA_PARAMETERS_HPP
+#ifndef KALOS_ARMA_PARAMETERS_HPP
+#define KALOS_ARMA_PARAMETERS_HPP
 
 #include <array>
 #include <cstddef>
@@ -7,7 +7,7 @@
 #include <string>
 #include <vector>
 
-namespace persephone {
+namespace kalos {
 
 // In increasing lag order; AR polynomial 1-phi(B), MA polynomial 1+theta(B).
 // Seasonal factors use the same coordinates in B^period. No R dependency.
@@ -52,5 +52,5 @@ private:
     double margin_;
 };
 
-} // namespace persephone
+} // namespace kalos
 #endif

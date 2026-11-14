@@ -1,5 +1,5 @@
-#include "core/x11_normalization.hpp"
-#include "core/parallel.hpp"
+#include "kalos/x11_normalization.hpp"
+#include "kalos/parallel.hpp"
 #include <cassert>
 #include <cmath>
 #include <cstdlib>
@@ -17,10 +17,10 @@ void threads(const char* value) {
 #endif
 }
 template<class F>void invalid(F run) {bool caught=false;try{run();}catch(const std::invalid_argument&){caught=true;}assert(caught);}
-persephone::MaskedSeries input(std::size_t n) {return {std::vector<double>(n,0),std::vector<std::uint8_t>(n,0)};}
+kalos::MaskedSeries input(std::size_t n) {return {std::vector<double>(n,0),std::vector<std::uint8_t>(n,0)};}
 }
 int main() {
-    using namespace persephone;using Rule=X11NormalizationRule;
+    using namespace kalos;using Rule=X11NormalizationRule;
     for(const int frequency:{4,12}) {
         const auto f=static_cast<std::size_t>(frequency),h=f/2;auto y=input(10*f+3);const auto n=y.values.size();
         for(std::size_t j=0;j<n;++j)y.values[j]=static_cast<double>(j+1);

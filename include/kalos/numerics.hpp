@@ -1,5 +1,5 @@
-#ifndef PERSEPHONE_NUMERICS_HPP
-#define PERSEPHONE_NUMERICS_HPP
+#ifndef KALOS_NUMERICS_HPP
+#define KALOS_NUMERICS_HPP
 
 // Independently authored numerical building blocks; no upstream Java code is
 // translated or incorporated here. These are not a seasonal-adjustment engine.
@@ -9,7 +9,7 @@
 #include <utility>
 #include <vector>
 
-namespace persephone {
+namespace kalos {
 
 using Interrupt = std::function<void()>;
 
@@ -55,5 +55,5 @@ MaskedSeries finite_filter(const MaskedSeries& series,
                            const std::vector<std::int64_t>& offsets,
                            const Interrupt& interrupt = {});
 
-} // namespace persephone
+} // namespace kalos
 #endif

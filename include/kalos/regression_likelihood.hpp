@@ -1,5 +1,5 @@
-#ifndef PERSEPHONE_REGRESSION_LIKELIHOOD_HPP
-#define PERSEPHONE_REGRESSION_LIKELIHOOD_HPP
+#ifndef KALOS_REGRESSION_LIKELIHOOD_HPP
+#define KALOS_REGRESSION_LIKELIHOOD_HPP
 
 #include "diffuse_state_space.hpp"
 
@@ -8,7 +8,7 @@
 #include <string>
 #include <vector>
 
-namespace persephone {
+namespace kalos {
 
 // Design values are column-major, with the response's full calendar domain.
 // Unlike response values, regressors must be finite even at missing responses.
@@ -111,5 +111,5 @@ CompleteResiduals sarima_complete_residuals(const MaskedSeries& series,
     double mean = 0, double rank_tolerance = 1e-10, const Interrupt& interrupt = {},
     const CompleteResidualOptions& options = {});
 
-} // namespace persephone
+} // namespace kalos
 #endif

@@ -1,8 +1,8 @@
-#include "core/x11_initial.hpp"
-#include "core/parallel.hpp"
+#include "kalos/x11_initial.hpp"
+#include "kalos/parallel.hpp"
 #include <cmath>
 #include <stdexcept>
-namespace persephone {
+namespace kalos {
 X11InitialAdditive x11_initial_additive(const MaskedSeries& series,int frequency,
     int first_period,const std::vector<int>& filters,const Interrupt& interrupt) {
     if(frequency!=4 && frequency!=12)throw std::invalid_argument("frequency must be 4 or 12");
@@ -57,4 +57,4 @@ X11InitialAdditive x11_initial_additive(const MaskedSeries& series,int frequency
     });
     return out;
 }
-} // namespace persephone
+} // namespace kalos

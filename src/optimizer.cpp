@@ -1,11 +1,11 @@
-#include "core/optimizer.hpp"
+#include "kalos/optimizer.hpp"
 
 #include <algorithm>
 #include <cmath>
 #include <limits>
 #include <stdexcept>
 
-namespace persephone {
+namespace kalos {
 namespace {
 const double missing = std::numeric_limits<double>::quiet_NaN();
 double norm_inf(const std::vector<double>& v) {
@@ -236,4 +236,4 @@ OptimizationResult minimize_bfgs(const ObjectiveFunction& objective,
     }
 }
 
-} // namespace persephone
+} // namespace kalos

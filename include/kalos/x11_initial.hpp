@@ -1,8 +1,8 @@
-#ifndef PERSEPHONE_X11_INITIAL_HPP
-#define PERSEPHONE_X11_INITIAL_HPP
+#ifndef KALOS_X11_INITIAL_HPP
+#define KALOS_X11_INITIAL_HPP
 #include "x11_seasonal_processing.hpp"
 #include "x11_normalization.hpp"
-namespace persephone {
+namespace kalos {
 struct X11InitialAdditive {
     // B1 on the supplied span; all remaining tables on the central cropped
     // span. B4a and B4anorm are the values in seasonal and normalization.
@@ -16,5 +16,5 @@ struct X11InitialAdditive {
 // correction, second trend estimate, complete B pass or final decomposition.
 X11InitialAdditive x11_initial_additive(const MaskedSeries& series,int frequency,
     int first_period,const std::vector<int>& filters,const Interrupt& interrupt={});
-} // namespace persephone
+} // namespace kalos
 #endif

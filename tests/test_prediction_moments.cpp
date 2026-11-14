@@ -1,5 +1,5 @@
-#include "core/prediction_moments.hpp"
-#include "core/parallel.hpp"
+#include "kalos/prediction_moments.hpp"
+#include "kalos/parallel.hpp"
 #include <cassert>
 #include <cmath>
 #include <cstdlib>
@@ -17,7 +17,7 @@ void threads(const char* value) {
 }
 }
 int main() {
-    using namespace persephone;
+    using namespace kalos;
     DenseMatrix v(2,2);v(0,0)=.1;v(1,1)=.2;v(0,1)=v(1,0)=-.05;
     const auto x=prediction_moments({1,2},v,Transform::logarithm);
     assert(x.mean_status=="available" && x.covariance_status=="available");

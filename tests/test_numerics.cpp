@@ -1,6 +1,6 @@
 // Standalone tests of the R-independent core. Compile with:
 // c++ -std=c++17 -Isrc src/numerics.cpp tools/native-tests/test_numerics.cpp -o /tmp/persephone-numerics-test
-#include "core/numerics.hpp"
+#include "kalos/numerics.hpp"
 
 #include <cassert>
 #include <cstdint>
@@ -15,7 +15,7 @@ bool throws(Function function) {
 }
 
 int main() {
-    using namespace persephone;
+    using namespace kalos;
     const TimeDomain monthly(2020, 11, 12, 4);
     assert(monthly.at(0) == std::make_pair(std::int64_t(2020), 11));
     assert(monthly.at(3) == std::make_pair(std::int64_t(2021), 2));

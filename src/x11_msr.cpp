@@ -1,9 +1,9 @@
-#include "core/x11_msr.hpp"
-#include "core/parallel.hpp"
+#include "kalos/x11_msr.hpp"
+#include "kalos/parallel.hpp"
 #include <algorithm>
 #include <cmath>
 #include <stdexcept>
-namespace persephone {
+namespace kalos {
 namespace {
 using Status=X11MsrStatus;
 constexpr auto missing=std::numeric_limits<double>::quiet_NaN();
@@ -134,4 +134,4 @@ X11MsrTable x11_msr_table(const MaskedSeries& seasonal,const MaskedSeries& irreg
     if(interrupt)interrupt();
     return out;
 }
-} // namespace persephone
+} // namespace kalos

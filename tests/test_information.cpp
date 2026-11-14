@@ -1,4 +1,4 @@
-#include "core/information.hpp"
+#include "kalos/information.hpp"
 #include <cassert>
 #include <cmath>
 #include <iostream>
@@ -6,7 +6,7 @@
 #include <thread>
 
 int main() {
-    using namespace persephone;
+    using namespace kalos;
     const ObjectiveFunction gaussian=[](const std::vector<double>& x) {
         const auto a=x[0]-2,b=x[1]+1;
         return ObjectiveSample{10+.5*(4*a*a+2*a*b+2*b*b),"available",{}};

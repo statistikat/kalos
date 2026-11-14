@@ -1,10 +1,10 @@
-#ifndef PERSEPHONE_ARMA_RESIDUALS_HPP
-#define PERSEPHONE_ARMA_RESIDUALS_HPP
+#ifndef KALOS_ARMA_RESIDUALS_HPP
+#define KALOS_ARMA_RESIDUALS_HPP
 #include "arma_objective.hpp"
 #include "transforms.hpp"
 #include <memory>
 
-namespace persephone {
+namespace kalos {
 enum class ResidualScale { ML, ResidualDF };
 struct ArmaResiduals {
     std::string status = "center_unavailable", complete_message;
@@ -41,5 +41,5 @@ LegacyArmaResiduals legacy_arma_residuals(const MaskedSeries& series,
     const RegressionDesign& design, const ArmaResiduals& accurate, int period,
     int d, int seasonal_d, double mean=0, double rank_tolerance=1e-10,
     Transform transformation=Transform::none, const Interrupt& interrupt={});
-} // namespace persephone
+} // namespace kalos
 #endif

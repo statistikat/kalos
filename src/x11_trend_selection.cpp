@@ -1,9 +1,9 @@
-#include "core/x11_trend_selection.hpp"
-#include "core/parallel.hpp"
+#include "kalos/x11_trend_selection.hpp"
+#include "kalos/parallel.hpp"
 #include <algorithm>
 #include <cmath>
 #include <stdexcept>
-namespace persephone {
+namespace kalos {
 namespace {
 void frequency_check(int frequency) {
     if(frequency!=4 && frequency!=12)throw std::invalid_argument("frequency must be 4 or 12");
@@ -106,4 +106,4 @@ X11TrendSelection x11_trend_select(const MaskedSeries& series,int frequency,
     out.status=X11TrendSelectionStatus::available;
     return out;
 }
-} // namespace persephone
+} // namespace kalos

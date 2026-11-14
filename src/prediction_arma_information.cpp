@@ -1,9 +1,9 @@
-#include "core/prediction_arma_information.hpp"
-#include "core/parallel.hpp"
+#include "kalos/prediction_arma_information.hpp"
+#include "kalos/parallel.hpp"
 #include <cmath>
 #include <stdexcept>
 #include <utility>
-namespace persephone {
+namespace kalos {
 namespace {
 double finite_prediction(long double value) {
     const auto result=static_cast<double>(value);
@@ -62,4 +62,4 @@ void assemble_prediction_delta(PredictionArmaInformation& out,
     out.covariance=std::move(covariance);out.increment=std::move(increment);
     out.standard_errors=std::move(se);out.status="available";
 }
-} // namespace persephone
+} // namespace kalos

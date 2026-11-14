@@ -1,5 +1,5 @@
-#ifndef PERSEPHONE_OPTIMIZER_HPP
-#define PERSEPHONE_OPTIMIZER_HPP
+#ifndef KALOS_OPTIMIZER_HPP
+#define KALOS_OPTIMIZER_HPP
 
 #include "numerics.hpp"
 
@@ -7,7 +7,7 @@
 #include <memory>
 #include <string>
 
-namespace persephone {
+namespace kalos {
 
 struct ObjectiveSample {
     double value;
@@ -56,5 +56,5 @@ OptimizationResult minimize_bfgs(const ObjectiveFunction& objective,
     const std::vector<double>& start, const OptimizerControl& control = {},
     const Interrupt& interrupt = {});
 
-} // namespace persephone
+} // namespace kalos
 #endif

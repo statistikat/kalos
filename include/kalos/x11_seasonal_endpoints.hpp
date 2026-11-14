@@ -1,7 +1,7 @@
-#ifndef PERSEPHONE_X11_SEASONAL_ENDPOINTS_HPP
-#define PERSEPHONE_X11_SEASONAL_ENDPOINTS_HPP
+#ifndef KALOS_X11_SEASONAL_ENDPOINTS_HPP
+#define KALOS_X11_SEASONAL_ENDPOINTS_HPP
 #include "x11_filters.hpp"
-namespace persephone {
+namespace kalos {
 enum class X11SeasonalSide { left, right };
 // N=1/3/5/9/15. `available` counts same-season observations towards the
 // selected boundary; coefficients use signed original observation offsets.
@@ -13,5 +13,5 @@ int x11_seasonal_minimum_phase_length(int length);
 // and mixed phase choices are separate policies.
 MaskedSeries x11_seasonal_endpoints(const MaskedSeries& series,int frequency,
     int length,const Interrupt& interrupt={});
-} // namespace persephone
+} // namespace kalos
 #endif

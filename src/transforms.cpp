@@ -1,10 +1,10 @@
-#include "core/transforms.hpp"
-#include "core/parallel.hpp"
+#include "kalos/transforms.hpp"
+#include "kalos/parallel.hpp"
 
 #include <cmath>
 #include <stdexcept>
 
-namespace persephone {
+namespace kalos {
 namespace {
 void validate_transform(Transform transform) {
     if (transform != Transform::none && transform != Transform::logarithm) {
@@ -51,4 +51,4 @@ MaskedSeries inverse_transform(const MaskedSeries& series, Transform transform,
     });
     return result;
 }
-} // namespace persephone
+} // namespace kalos

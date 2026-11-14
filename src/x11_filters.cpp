@@ -1,7 +1,7 @@
-#include "core/x11_filters.hpp"
+#include "kalos/x11_filters.hpp"
 #include <cmath>
 #include <stdexcept>
-namespace persephone {
+namespace kalos {
 X11FilterDefinition x11_filter_definition(X11FilterKind kind,int frequency,int length,
     const Interrupt& interrupt) {
     if(frequency!=4 && frequency!=12)throw std::invalid_argument("X-11 filters require quarterly or monthly frequency");
@@ -54,4 +54,4 @@ MaskedSeries x11_symmetric_filter(const MaskedSeries& series,X11FilterKind kind,
     const auto filter=x11_filter_definition(kind,frequency,length,interrupt);
     return finite_filter(series,filter.weights,filter.offsets,interrupt);
 }
-} // namespace persephone
+} // namespace kalos

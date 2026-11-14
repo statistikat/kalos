@@ -1,10 +1,10 @@
-#include "core/x11_msr_selection.hpp"
-#include "core/parallel.hpp"
+#include "kalos/x11_msr_selection.hpp"
+#include "kalos/parallel.hpp"
 #include <algorithm>
 #include <cmath>
 #include <stdexcept>
 #include <utility>
-namespace persephone {
+namespace kalos {
 namespace {
 void validate(int frequency,X11MsrMode mode) {
     if(frequency!=4 && frequency!=12)throw std::invalid_argument("frequency must be 4 or 12");
@@ -144,4 +144,4 @@ X11MsrSelection x11_msr_select(const MaskedSeries& series,int frequency,int firs
         count-=f;++removed;
     }
 }
-} // namespace persephone
+} // namespace kalos

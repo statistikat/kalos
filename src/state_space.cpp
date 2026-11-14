@@ -1,4 +1,4 @@
-#include "core/state_space.hpp"
+#include "kalos/state_space.hpp"
 
 #include <algorithm>
 #include <cmath>
@@ -6,7 +6,7 @@
 #include <stdexcept>
 #include <utility>
 
-namespace persephone {
+namespace kalos {
 namespace {
 
 constexpr std::size_t max_states = 16;
@@ -301,4 +301,4 @@ StationaryArma stationary_arma(const std::vector<double>& ar, const std::vector<
             std::move(expanded_ar), std::move(expanded_ma)};
 }
 
-} // namespace persephone
+} // namespace kalos

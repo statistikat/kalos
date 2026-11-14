@@ -1,0 +1,10 @@
+regex:^src/(?!rcpp_|RcppExports)[^/]+[.]cpp$
+src/core/
+tools/native-tests/
+tools/reference/
+inst/tinytest/fixtures/
+regex:^R/native.*[.]R$
+IMPLEMENTATION_STATUS.md
+DESCRIPTION
+LICENSE
+LICENSE.md

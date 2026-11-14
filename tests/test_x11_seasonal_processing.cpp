@@ -1,5 +1,5 @@
-#include "core/x11_seasonal_processing.hpp"
-#include "core/parallel.hpp"
+#include "kalos/x11_seasonal_processing.hpp"
+#include "kalos/parallel.hpp"
 #include <cassert>
 #include <cmath>
 #include <cstdlib>
@@ -19,14 +19,14 @@ void threads(const char* value) {
 template<class F> void invalid(F run) {
     bool caught=false;try{run();}catch(const std::invalid_argument&){caught=true;}assert(caught);
 }
-persephone::MaskedSeries input(std::size_t n) {
-    persephone::MaskedSeries y{std::vector<double>(n),std::vector<std::uint8_t>(n,0)};
+kalos::MaskedSeries input(std::size_t n) {
+    kalos::MaskedSeries y{std::vector<double>(n),std::vector<std::uint8_t>(n,0)};
     for(std::size_t i=0;i<n;++i)y.values[i]=2+std::sin(static_cast<double>(i)*.7)+static_cast<double>(i)/31;
     return y;
 }
 }
 int main() {
-    using namespace persephone;using Policy=X11ShortSeriesPolicy;using Method=X11SeasonalRowMethod;
+    using namespace kalos;using Policy=X11ShortSeriesPolicy;using Method=X11SeasonalRowMethod;
     for(const int f:{4,12})for(const int N:{1,3,5,9,15}) {
         auto y=input(static_cast<std::size_t>(20*f+1));y.values[1]=0;y.missing[1]=1;
         const std::vector<int> choices(static_cast<std::size_t>(f),N);

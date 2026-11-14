@@ -1,5 +1,5 @@
-#ifndef PERSEPHONE_PARALLEL_HPP
-#define PERSEPHONE_PARALLEL_HPP
+#ifndef KALOS_PARALLEL_HPP
+#define KALOS_PARALLEL_HPP
 
 #include "numerics.hpp"
 
@@ -13,7 +13,7 @@
 #include <omp.h>
 #endif
 
-namespace persephone {
+namespace kalos {
 
 // No process-global OpenMP setting is changed. The environment is read before
 // regions start; callers must not mutate it concurrently with a core call.
@@ -128,5 +128,5 @@ void parallel_for(std::size_t count, std::size_t work_per_output,
     if (interrupt && !info.nested) interrupt();
 }
 
-} // namespace persephone
+} // namespace kalos
 #endif

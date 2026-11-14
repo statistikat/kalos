@@ -1,11 +1,11 @@
-#include "core/transforms.hpp"
+#include "kalos/transforms.hpp"
 
 #include <cassert>
 #include <cmath>
 #include <stdexcept>
 
 int main() {
-    using namespace persephone;
+    using namespace kalos;
     const MaskedSeries input{{1.0, std::exp(2.0), 0.0}, {0, 0, 1}};
     const auto result = transform_series(input, Transform::logarithm);
     assert(result.series.values[0] == 0.0);

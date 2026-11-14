@@ -1,5 +1,5 @@
-#ifndef PERSEPHONE_DIFFUSE_STATE_SPACE_HPP
-#define PERSEPHONE_DIFFUSE_STATE_SPACE_HPP
+#ifndef KALOS_DIFFUSE_STATE_SPACE_HPP
+#define KALOS_DIFFUSE_STATE_SPACE_HPP
 
 // Independently authored fixed-parameter exact diffuse filtering. No arbitrary
 // large-variance initialization, parameter optimization or seasonal adjustment.
@@ -9,7 +9,7 @@
 #include <string>
 #include <vector>
 
-namespace persephone {
+namespace kalos {
 
 struct DiffuseStateSpace {
     DenseMatrix transition;
@@ -116,5 +116,5 @@ SarimaLikelihood sarima_innovations(
     double mean = 0, double variance = 1, const Interrupt& interrupt = {},
     bool save_gains = false);
 
-} // namespace persephone
+} // namespace kalos
 #endif

@@ -1,9 +1,9 @@
-#include "core/x11_normalization.hpp"
-#include "core/parallel.hpp"
+#include "kalos/x11_normalization.hpp"
+#include "kalos/parallel.hpp"
 #include <cmath>
 #include <limits>
 #include <stdexcept>
-namespace persephone {
+namespace kalos {
 X11SeasonalNormalization x11_seasonal_normalize(const MaskedSeries& series,
     int frequency,int first_period,const std::vector<int>& filters,
     std::size_t extend,const Interrupt& interrupt) {
@@ -51,4 +51,4 @@ X11SeasonalNormalization x11_seasonal_normalize(const MaskedSeries& series,
     });
     return out;
 }
-} // namespace persephone
+} // namespace kalos

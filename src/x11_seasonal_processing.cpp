@@ -1,9 +1,9 @@
-#include "core/x11_seasonal_processing.hpp"
-#include "core/parallel.hpp"
+#include "kalos/x11_seasonal_processing.hpp"
+#include "kalos/parallel.hpp"
 #include <algorithm>
 #include <cmath>
 #include <stdexcept>
-namespace persephone {
+namespace kalos {
 namespace {
 struct PhasePlan {
     std::size_t first=0,count=0,radius=0;
@@ -128,4 +128,4 @@ X11SeasonalProcessing x11_seasonal_process(const MaskedSeries& series,int freque
     });
     return result;
 }
-} // namespace persephone
+} // namespace kalos

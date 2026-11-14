@@ -1,4 +1,4 @@
-#include "core/arma_parameters.hpp"
+#include "kalos/arma_parameters.hpp"
 
 #include <algorithm>
 #include <cmath>
@@ -6,7 +6,7 @@
 #include <stdexcept>
 #include <utility>
 
-namespace persephone {
+namespace kalos {
 namespace {
 
 void validate_margin(double margin) {
@@ -141,4 +141,4 @@ ArmaDecoded ArmaParameterMap::decode(const std::vector<double>& coordinates) con
     return result;
 }
 
-} // namespace persephone
+} // namespace kalos

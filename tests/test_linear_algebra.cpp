@@ -1,4 +1,4 @@
-#include "core/linear_algebra.hpp"
+#include "kalos/linear_algebra.hpp"
 #include <cassert>
 #include <cmath>
 #include <limits>
@@ -11,7 +11,7 @@ template <class F> void rejects(F f) {
 }
 
 int main() {
-    using namespace persephone;
+    using namespace kalos;
     rejects([] { DenseMatrix x(0, 1); });
     rejects([] { DenseMatrix x(std::numeric_limits<std::size_t>::max(), 2); });
     rejects([] { DenseMatrix x(65536, 65536); });

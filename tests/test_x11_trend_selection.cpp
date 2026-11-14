@@ -1,5 +1,5 @@
-#include "core/x11_trend_selection.hpp"
-#include "core/parallel.hpp"
+#include "kalos/x11_trend_selection.hpp"
+#include "kalos/parallel.hpp"
 #include <cassert>
 #include <cmath>
 #include <cstdlib>
@@ -19,14 +19,14 @@ void threads(const char* value) {
 template<class F>void invalid(F run) {
     bool caught=false;try{run();}catch(const std::invalid_argument&){caught=true;}assert(caught);
 }
-persephone::MaskedSeries input(std::size_t n) {
-    persephone::MaskedSeries y{std::vector<double>(n),std::vector<std::uint8_t>(n,0)};
+kalos::MaskedSeries input(std::size_t n) {
+    kalos::MaskedSeries y{std::vector<double>(n),std::vector<std::uint8_t>(n,0)};
     for(std::size_t j=0;j<n;++j)y.values[j]=100+static_cast<double>(j)/1000+std::sin(static_cast<double>(j)*.7);
     return y;
 }
 }
 int main() {
-    using namespace persephone;using Mode=X11ChangeMode;using Status=X11TrendSelectionStatus;
+    using namespace kalos;using Mode=X11ChangeMode;using Status=X11TrendSelectionStatus;
     for(const int f:{4,12}) {
         assert(x11_henderson_select(f,std::nextafter(3.5,0.))==(f==4 ? 5 : 13));
         assert(x11_henderson_select(f,3.5)==(f==4 ? 7 : 23));

@@ -1,5 +1,5 @@
-#include "core/forecast_information.hpp"
-#include "core/parallel.hpp"
+#include "kalos/forecast_information.hpp"
+#include "kalos/parallel.hpp"
 #include <algorithm>
 #include <cmath>
 #include <exception>
@@ -7,7 +7,7 @@
 #include <stdexcept>
 #include <utility>
 
-namespace persephone {
+namespace kalos {
 ForecastInformation forecast_information(const MaskedSeries& series,
     const RegressionDesign& context,std::size_t backcasts,std::size_t forecasts,
     const ArmaParameterMap& map,const std::vector<double>& coordinates,
@@ -110,4 +110,4 @@ ForecastInformation forecast_information(const MaskedSeries& series,
     }
     return out;
 }
-} // namespace persephone
+} // namespace kalos

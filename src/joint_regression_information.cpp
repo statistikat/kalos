@@ -1,9 +1,9 @@
-#include "core/arma_information.hpp"
+#include "kalos/arma_information.hpp"
 #include <algorithm>
 #include <cmath>
 #include <limits>
 
-namespace persephone {
+namespace kalos {
 JointRegressionInformation joint_regression_information(const MaskedSeries& series,
     const RegressionDesign& design, const ArmaParameterMap& map,
     const std::vector<double>& coordinates, int period, int d, int seasonal_d,
@@ -142,4 +142,4 @@ JointRegressionInformation joint_regression_information(const MaskedSeries& seri
     out.joint_covariance=std::move(joint);out.status="available";
     return out;
 }
-} // namespace persephone
+} // namespace kalos

@@ -1,12 +1,12 @@
-#include "core/interpolation_information.hpp"
-#include "core/parallel.hpp"
+#include "kalos/interpolation_information.hpp"
+#include "kalos/parallel.hpp"
 #include <cmath>
 #include <exception>
 #include <limits>
 #include <stdexcept>
 #include <utility>
 
-namespace persephone {
+namespace kalos {
 InterpolationInformation interpolation_information(const MaskedSeries& series,
     const RegressionDesign& design,const ArmaParameterMap& map,
     const std::vector<double>& coordinates,int period,int d,int seasonal_d,
@@ -62,4 +62,4 @@ InterpolationInformation interpolation_information(const MaskedSeries& series,
     }
     return out;
 }
-} // namespace persephone
+} // namespace kalos

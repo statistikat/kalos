@@ -1,11 +1,11 @@
-#include "core/information.hpp"
+#include "kalos/information.hpp"
 #include <algorithm>
 #include <array>
 #include <cmath>
 #include <limits>
 #include <stdexcept>
 
-namespace persephone {
+namespace kalos {
 ResidualInformation residual_information(const ResidualFunction& function,
     const std::vector<double>& x, const InformationControl& c, const Interrupt& interrupt) {
     c.validate();
@@ -109,4 +109,4 @@ ResidualInformation residual_information(const ResidualFunction& function,
     out.status=out.derivative_status="derivatives_unresolved";
     return result;
 }
-} // namespace persephone
+} // namespace kalos

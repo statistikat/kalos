@@ -1,5 +1,5 @@
-#include "core/arma_residuals.hpp"
-#include "core/parallel.hpp"
+#include "kalos/arma_residuals.hpp"
+#include "kalos/parallel.hpp"
 #include <algorithm>
 #include <cmath>
 #include <exception>
@@ -7,7 +7,7 @@
 #include <stdexcept>
 #include <utility>
 
-namespace persephone {
+namespace kalos {
 namespace {
 std::vector<double> standardized(const std::vector<double>& values, double sd,
     const Interrupt& interrupt) {
@@ -226,4 +226,4 @@ LegacyArmaResiduals legacy_arma_residuals(const MaskedSeries& series,
     }
     return out;
 }
-} // namespace persephone
+} // namespace kalos

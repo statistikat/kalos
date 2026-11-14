@@ -1,8 +1,8 @@
-#ifndef PERSEPHONE_X11_MSR_HPP
-#define PERSEPHONE_X11_MSR_HPP
+#ifndef KALOS_X11_MSR_HPP
+#define KALOS_X11_MSR_HPP
 #include "numerics.hpp"
 #include <limits>
-namespace persephone {
+namespace kalos {
 enum class X11MsrMode { absolute, relative };
 enum class X11MsrStatus {
     available, insufficient_observations, missing_observations,
@@ -26,5 +26,5 @@ struct X11MsrTable {
 // conventions. No pilot, trimming, transformation or automatic selection.
 X11MsrTable x11_msr_table(const MaskedSeries& seasonal,const MaskedSeries& irregular,
     int frequency,int first_period,X11MsrMode mode,const Interrupt& interrupt={});
-} // namespace persephone
+} // namespace kalos
 #endif

@@ -1,4 +1,4 @@
-#include "core/arma_information.hpp"
+#include "kalos/arma_information.hpp"
 #include <cassert>
 #include <cmath>
 #include <iostream>
@@ -7,7 +7,7 @@
 #include <thread>
 
 int main() {
-    using namespace persephone;
+    using namespace kalos;
     const MaskedSeries y{{.2,.6,-.3,.1,-.7,-.3,.1,.7,.6,-.2,-.5,.3},std::vector<std::uint8_t>(12,0)};
     RegressionDesign design{2,std::vector<double>(24,1),{0,0},{0,0}};
     double sx=0,sxx=0,sy=0,sxy=0;

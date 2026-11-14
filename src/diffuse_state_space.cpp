@@ -1,7 +1,7 @@
-#include "core/diffuse_state_space.hpp"
-#include "core/exact_history.hpp"
-#include "core/sparse_history.hpp"
-#include "core/finite_state_factor.hpp"
+#include "kalos/diffuse_state_space.hpp"
+#include "kalos/exact_history.hpp"
+#include "kalos/sparse_history.hpp"
+#include "kalos/finite_state_factor.hpp"
 
 // DLARFG is called through R's declared LAPACK ABI. Only its orthogonal
 // reflector is used; no third-party filtering implementation is incorporated.
@@ -14,7 +14,7 @@
 #include <stdexcept>
 #include <utility>
 
-namespace persephone {
+namespace kalos {
 namespace {
 
 constexpr std::size_t max_states = 32;
@@ -509,4 +509,4 @@ SarimaLikelihood sarima_innovations(const MaskedSeries& series, const std::vecto
             std::move(difference), std::move(likelihood)};
 }
 
-} // namespace persephone
+} // namespace kalos

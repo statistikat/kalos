@@ -1,11 +1,11 @@
-#ifndef PERSEPHONE_ARMA_IDENTIFICATION_HPP
-#define PERSEPHONE_ARMA_IDENTIFICATION_HPP
+#ifndef KALOS_ARMA_IDENTIFICATION_HPP
+#define KALOS_ARMA_IDENTIFICATION_HPP
 
 #include "arma_parameters.hpp"
 #include "linear_algebra.hpp"
 #include <optional>
 
-namespace persephone {
+namespace kalos {
 
 struct ArmaIdentification {
     std::string status;
@@ -30,5 +30,5 @@ ArmaIdentification arma_identification(const ArmaParameterMap& map,
     double rank_tolerance = 1e-10, double near_tolerance = 1e-4,
     const Interrupt& interrupt = {});
 
-} // namespace persephone
+} // namespace kalos
 #endif

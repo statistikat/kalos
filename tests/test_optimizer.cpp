@@ -1,4 +1,4 @@
-#include "core/optimizer.hpp"
+#include "kalos/optimizer.hpp"
 
 #include <cassert>
 #include <cmath>
@@ -7,7 +7,7 @@
 #include <stdexcept>
 
 namespace {
-using namespace persephone;
+using namespace kalos;
 ObjectiveSample sample(double value) { return {value,"available",{}}; }
 ObjectiveSample rejected() { return {std::numeric_limits<double>::quiet_NaN(),"outside_domain",{}}; }
 bool close(double a,double b,double tol=1e-6) { return std::abs(a-b)<tol*(1+std::abs(b)); }
@@ -23,7 +23,7 @@ void valid(const OptimizationResult& r,const OptimizerControl& c) {
 }
 
 int main() {
-    using namespace persephone;
+    using namespace kalos;
     OptimizerControl c;
     const ObjectiveFunction quadratic=[](const auto& x) { return sample((x[0]-2)*(x[0]-2)+3*(x[1]+1)*(x[1]+1)); };
     const auto q=minimize_bfgs(quadratic,{-4,3},c);

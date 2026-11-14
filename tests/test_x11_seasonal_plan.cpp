@@ -1,4 +1,4 @@
-#include "core/x11_seasonal_plan.hpp"
+#include "kalos/x11_seasonal_plan.hpp"
 #include <cassert>
 #include <iostream>
 #include <limits>
@@ -9,7 +9,7 @@ template<class F>void invalid(F run) {
 }
 }
 int main() {
-    using namespace persephone;using Request=X11SeasonalRequest;using Stage=X11SeasonalStage;using Reason=X11SeasonalResolution;
+    using namespace kalos;using Request=X11SeasonalRequest;using Stage=X11SeasonalStage;using Reason=X11SeasonalResolution;
     for(const int f:{4,12}) {
         const auto size=static_cast<std::size_t>(f);std::vector<Request> requests(size,Request::msr);
         const auto pending=x11_seasonal_plan(f,requests,Stage::d_final);

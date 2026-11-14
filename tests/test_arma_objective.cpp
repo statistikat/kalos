@@ -1,4 +1,4 @@
-#include "core/arma_objective.hpp"
+#include "kalos/arma_objective.hpp"
 
 #include <cassert>
 #include <cmath>
@@ -16,7 +16,7 @@ template<class F> void rejects(F f) {
 }
 
 int main() {
-    using namespace persephone;
+    using namespace kalos;
     const MaskedSeries series{{1,2,-1,3,0,2},std::vector<std::uint8_t>(6,0)};
     const RegressionDesign empty{0,{},{},{}};
     std::array<ArmaParameterBlock,4> blocks{};

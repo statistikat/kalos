@@ -1,10 +1,10 @@
-#ifndef PERSEPHONE_ARMA_OPTIMIZER_HPP
-#define PERSEPHONE_ARMA_OPTIMIZER_HPP
+#ifndef KALOS_ARMA_OPTIMIZER_HPP
+#define KALOS_ARMA_OPTIMIZER_HPP
 
 #include "arma_objective.hpp"
 #include "optimizer.hpp"
 
-namespace persephone {
+namespace kalos {
 struct ArmaOptimizationPoint {
     std::vector<double> coordinates; // The existing map's z/direct coordinates.
     ArmaObjective objective;
@@ -21,5 +21,5 @@ OptimizationResult optimize_arma_objective(const MaskedSeries& series,
     double mean=0, double rank_tolerance=1e-10, double log_jacobian=0,
     const OptimizerControl& control={}, const Interrupt& interrupt={});
 
-} // namespace persephone
+} // namespace kalos
 #endif

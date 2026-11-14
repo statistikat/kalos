@@ -1,10 +1,10 @@
-#ifndef PERSEPHONE_ARMA_INFORMATION_HPP
-#define PERSEPHONE_ARMA_INFORMATION_HPP
+#ifndef KALOS_ARMA_INFORMATION_HPP
+#define KALOS_ARMA_INFORMATION_HPP
 #include "arma_objective.hpp"
 #include "arma_identification.hpp"
 #include "information.hpp"
 
-namespace persephone {
+namespace kalos {
 enum class ArmaInformationMode { ProfileML, ConditionalResidualDF, TramoResidual };
 enum class ArmaCovarianceMode { Accurate, Legacy };
 // Legacy covariance is a function of optimizer history, not final coefficients
@@ -76,5 +76,5 @@ ArmaInformation arma_information(const MaskedSeries& series,
     ArmaInformationMode mode=ArmaInformationMode::ProfileML,
     ArmaCovarianceMode covariance_mode=ArmaCovarianceMode::Accurate,
     const std::optional<LegacyCovarianceState>& legacy_state=std::nullopt);
-} // namespace persephone
+} // namespace kalos
 #endif

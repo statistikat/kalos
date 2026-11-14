@@ -1,5 +1,5 @@
-#include "core/arma_residuals.hpp"
-#include "core/parallel.hpp"
+#include "kalos/arma_residuals.hpp"
+#include "kalos/parallel.hpp"
 #include <cassert>
 #include <cmath>
 #include <cstdlib>
@@ -17,7 +17,7 @@ void threads(const char* value) {
 }
 }
 int main() {
-    using namespace persephone;
+    using namespace kalos;
     const RegressionDesign none{};
     const ArmaParameterMap white(std::array<ArmaParameterBlock,4>{});
     const MaskedSeries y{{7,21,3,13,9,0,8,16,11,27,6,18,14,31,12,19},

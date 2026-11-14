@@ -1,5 +1,5 @@
-#include "core/interpolation_information.hpp"
-#include "core/parallel.hpp"
+#include "kalos/interpolation_information.hpp"
+#include "kalos/parallel.hpp"
 #include <cassert>
 #include <cmath>
 #include <cstdlib>
@@ -17,7 +17,7 @@ void threads(const char* value) {
 }
 }
 int main() {
-    using namespace persephone;
+    using namespace kalos;
     const RegressionDesign none{};
     std::array<ArmaParameterBlock,4> blocks{};blocks[0]={{.5},{1}};
     const ArmaParameterMap ar1(blocks),white(std::array<ArmaParameterBlock,4>{});

@@ -1,5 +1,5 @@
-#include "core/x11_initial.hpp"
-#include "core/parallel.hpp"
+#include "kalos/x11_initial.hpp"
+#include "kalos/parallel.hpp"
 #include <cassert>
 #include <cmath>
 #include <cstdlib>
@@ -17,11 +17,11 @@ void threads(const char* value) {
 #endif
 }
 template<class F>void invalid(F run) {bool caught=false;try{run();}catch(const std::invalid_argument&){caught=true;}assert(caught);}
-persephone::MaskedSeries input(std::size_t n) {return {std::vector<double>(n,0),std::vector<std::uint8_t>(n,0)};}
-void equal(const persephone::MaskedSeries& a,const persephone::MaskedSeries& b) {
+kalos::MaskedSeries input(std::size_t n) {return {std::vector<double>(n,0),std::vector<std::uint8_t>(n,0)};}
+void equal(const kalos::MaskedSeries& a,const kalos::MaskedSeries& b) {
     assert(a.values==b.values && a.missing==b.missing);
 }
-void equal(const persephone::X11InitialAdditive& a,const persephone::X11InitialAdditive& b) {
+void equal(const kalos::X11InitialAdditive& a,const kalos::X11InitialAdditive& b) {
     equal(a.input,b.input);equal(a.trend,b.trend);equal(a.seasonal_irregular,b.seasonal_irregular);
     equal(a.seasonal.values,b.seasonal.values);equal(a.normalization.values,b.normalization.values);
     equal(a.normalization.normalization,b.normalization.normalization);equal(a.irregular,b.irregular);
@@ -31,7 +31,7 @@ void equal(const persephone::X11InitialAdditive& a,const persephone::X11InitialA
 }
 }
 int main() {
-    using namespace persephone;
+    using namespace kalos;
     for(const int frequency:{4,12})for(const int years:{3,5,6,20,21})for(const int filter:{0,1,3,5,9,15}) {
         const auto f=static_cast<std::size_t>(frequency),n=f*static_cast<std::size_t>(years)+1;
         auto y=input(n);

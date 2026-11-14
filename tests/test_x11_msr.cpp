@@ -1,5 +1,5 @@
-#include "core/x11_msr.hpp"
-#include "core/parallel.hpp"
+#include "kalos/x11_msr.hpp"
+#include "kalos/parallel.hpp"
 #include <cassert>
 #include <cmath>
 #include <cstdlib>
@@ -17,14 +17,14 @@ void threads(const char* value) {
 #endif
 }
 template<class F>void invalid(F run) {bool caught=false;try{run();}catch(const std::invalid_argument&){caught=true;}assert(caught);}
-persephone::MaskedSeries input(std::size_t n) {
-    persephone::MaskedSeries y{std::vector<double>(n),std::vector<std::uint8_t>(n,0)};
+kalos::MaskedSeries input(std::size_t n) {
+    kalos::MaskedSeries y{std::vector<double>(n),std::vector<std::uint8_t>(n,0)};
     for(std::size_t j=0;j<n;++j)y.values[j]=100+static_cast<double>(j)/1000+std::sin(static_cast<double>(j)*.7);
     return y;
 }
 }
 int main() {
-    using namespace persephone;using Mode=X11MsrMode;using Status=X11MsrStatus;
+    using namespace kalos;using Mode=X11MsrMode;using Status=X11MsrStatus;
     for(const int f:{4,12}) {
         auto y=input(static_cast<std::size_t>(f*5));auto z=y;
         for(std::size_t j=0;j<y.values.size();++j) {y.values[j]=static_cast<double>(j);z.values[j]=2*y.values[j];}

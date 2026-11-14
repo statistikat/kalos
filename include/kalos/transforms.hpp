@@ -1,9 +1,9 @@
-#ifndef PERSEPHONE_TRANSFORMS_HPP
-#define PERSEPHONE_TRANSFORMS_HPP
+#ifndef KALOS_TRANSFORMS_HPP
+#define KALOS_TRANSFORMS_HPP
 
 #include "numerics.hpp"
 
-namespace persephone {
+namespace kalos {
 
 enum class Transform { none, logarithm };
 
@@ -23,5 +23,5 @@ TransformedSeries transform_series(const MaskedSeries& series, Transform transfo
 MaskedSeries inverse_transform(const MaskedSeries& series, Transform transform,
                                const Interrupt& interrupt = {});
 
-} // namespace persephone
+} // namespace kalos
 #endif

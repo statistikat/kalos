@@ -1,5 +1,5 @@
-#include "core/x11_mean_endpoints.hpp"
-#include "core/parallel.hpp"
+#include "kalos/x11_mean_endpoints.hpp"
+#include "kalos/parallel.hpp"
 #include <cassert>
 #include <cmath>
 #include <cstdlib>
@@ -17,7 +17,7 @@ void threads(const char* value) {
 }
 }
 int main() {
-    using namespace persephone;
+    using namespace kalos;
     const auto closed=x11_mean_endpoints({{1,2,3,4,5},{0,0,0,0,0}},4);
     assert(closed.values.values==std::vector<double>({27./16,35./16,3,61./16,69./16}));
     assert(closed.left_mean==1.5 && closed.right_mean==4.5);

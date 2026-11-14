@@ -1,12 +1,12 @@
-#include "core/numerics.hpp"
-#include "core/parallel.hpp"
+#include "kalos/numerics.hpp"
+#include "kalos/parallel.hpp"
 
 #include <cmath>
 #include <limits>
 #include <stdexcept>
 #include <unordered_set>
 
-namespace persephone {
+namespace kalos {
 namespace {
 
 std::int64_t checked_add(std::int64_t left, std::int64_t right) {
@@ -205,4 +205,4 @@ MaskedSeries finite_filter(const MaskedSeries& series,
     return result;
 }
 
-} // namespace persephone
+} // namespace kalos

@@ -1,6 +1,6 @@
-#include "core/diffuse_state_space.hpp"
-#include "core/exact_history.hpp"
-#include "core/finite_state_factor.hpp"
+#include "kalos/diffuse_state_space.hpp"
+#include "kalos/exact_history.hpp"
+#include "kalos/finite_state_factor.hpp"
 
 #include <cassert>
 #include <cmath>
@@ -15,7 +15,7 @@ bool rejects(Function function) {
 }
 
 int main() {
-    using namespace persephone;
+    using namespace kalos;
     // A singular proper covariance must retain its nonzero direction through
     // conditioning and prediction. Expectations below are direct 2x2 Gaussian
     // identities for P = [2,1]'[2,1], z=[1,.5], and H=.25.

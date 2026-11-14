@@ -1,5 +1,5 @@
-#include "core/regression_likelihood.hpp"
-#include "core/parallel.hpp"
+#include "kalos/regression_likelihood.hpp"
+#include "kalos/parallel.hpp"
 
 // Numerical factorizations use R's declared LAPACK ABI. Regression whitening
 // and concentrated Gaussian likelihood equations are independently assembled.
@@ -12,7 +12,7 @@
 #include <stdexcept>
 #include <utility>
 
-namespace persephone {
+namespace kalos {
 namespace {
 
 void checkpoint(const Interrupt& interrupt) { if (interrupt) interrupt(); }
@@ -551,4 +551,4 @@ CompleteResiduals sarima_complete_residuals(const MaskedSeries& series,
     return out;
 }
 
-} // namespace persephone
+} // namespace kalos

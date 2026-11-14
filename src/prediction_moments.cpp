@@ -1,12 +1,12 @@
-#include "core/prediction_moments.hpp"
-#include "core/parallel.hpp"
+#include "kalos/prediction_moments.hpp"
+#include "kalos/parallel.hpp"
 #include <cmath>
 #include <exception>
 #include <limits>
 #include <stdexcept>
 #include <utility>
 
-namespace persephone {
+namespace kalos {
 namespace {
 double exponent(long double logarithm) {
     const auto result=static_cast<double>(std::exp(logarithm));
@@ -115,4 +115,4 @@ PredictionMoments prediction_moments(const std::vector<double>& location,
     }
     return out;
 }
-} // namespace persephone
+} // namespace kalos
