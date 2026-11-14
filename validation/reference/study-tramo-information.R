@@ -14,7 +14,7 @@ if(!is.null(output)) {
       output==frozen || startsWith(output,paste0(frozen,"/"))) stop("Output must be an empty directory outside the frozen corpus")
 }
 before <- extended_parent_hashes(base_dir);pin <- extended_assert_oracle(base_dir)
-source(file.path(root,"inst/tinytest/fixtures/native/arma-fit-cases.R"))
+reference_source_fixture(file.path(root,"validation/fixtures/native/arma-fit-cases.R"))
 checks <- 0L;direct_fits <- 0L;rows <- list();raw <- list();scale_rows <- list()
 assert <- function(x,label) {checks <<- checks+1L;if(!isTRUE(x))stop("Independent study check failed: ",label)}
 close <- function(a,b,tol,label) assert(length(a)==length(b) && all(is.finite(a)) && all(is.finite(b)) &&

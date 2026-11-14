@@ -1,4 +1,4 @@
-# Rscript tools/reference/verify-regression.R [--native [--source]]
+# Rscript validation/reference/verify-regression.R [--native [--source]]
 # Read-only fixed-ARMA regression probes; original fixtures/tolerances are immutable.
 args <- commandArgs(trailingOnly = FALSE)
 script <- sub("^--file=", "", args[startsWith(args, "--file=")][[1L]])
@@ -263,10 +263,10 @@ cat("PASS:", direct_fits - before_context_fits, "future-context direct fits;", c
 if ("--native" %in% options) {
   if ("--source" %in% options) {
     if (!requireNamespace("pkgload", quietly = TRUE)) stop("--source requires pkgload and an already compiled development tree")
-    pkgload::load_all(root, quiet = TRUE, compile = FALSE)
+    pkgload::load_all(reference_r_root(root), quiet = TRUE, compile = FALSE)
   }
-  if (!requireNamespace("persephone3", quietly = TRUE)) stop("--native requires the development persephone3 installation")
-  native <- getFromNamespace("native_regression_likelihood", "persephone3")
+  if (!requireNamespace("rkalos", quietly = TRUE)) stop("--native requires the development persephone3 installation")
+  native <- getFromNamespace("native_regression_likelihood", "rkalos")
   before_native <- checks
   maximum_native <- c(coefficients = 0, profile = 0, fixed = 0, squares = 0,
                        covariance_unscaled = 0, covariance_residual = 0, jacobian = 0)

@@ -7,7 +7,7 @@ if(length(args)!=1L || !startsWith(args,'--output='))stop('Usage: capture-x11-ms
 output<-normalizePath(sub('^--output=','',args),mustWork=TRUE)
 if(!dir.exists(output) || length(list.files(output,all.files=TRUE,no..=TRUE)) || startsWith(output,normalizePath(base)))stop('Output must be empty and outside original fixtures')
 before<-extended_parent_hashes(base);pin<-extended_assert_oracle(base)
-fixtures<-file.path(root,'inst/tinytest/fixtures/native',c('x11-msr-cases.R','x11-msr-selection-cases.R'))
+fixtures<-file.path(root,'validation/fixtures/native',c('x11-msr-cases.R','x11-msr-selection-cases.R'))
 for(file in fixtures)source(file)
 cases<-x11_msr_selection_cases();summaries<-tables<-attempts<-pilots<-list()
 for(ca in cases) {
@@ -52,7 +52,7 @@ for(target in c(2.5,3.5,5.5,6.5)) {
   if(is.null(hit))stop('No exact public threshold control found: ',target)
   thresholds[[as.character(target)]]<-hit
 }
-stopifnot(identical(before,extended_parent_hashes(base)),!'persephone3' %in% loadedNamespaces())
+stopifnot(identical(before,extended_parent_hashes(base)),!'rkalos' %in% loadedNamespaces())
 for(name in c('summaries','tables','attempts','pilots','thresholds'))write.csv(do.call(rbind,get(name)),file.path(output,paste0(name,'.csv')),row.names=FALSE)
 files<-c(normalizePath(script),file.path(tooling,helpers),fixtures)
 metadata<-list(schema_version=1L,captured_utc=format(Sys.time(),tz='UTC',usetz=TRUE),

@@ -13,14 +13,14 @@ output <- args[startsWith(args,"--output=")]
 output <- if(length(output))normalizePath(sub("^--output=","",output),mustWork=TRUE)else NULL
 if(!is.null(output) && (!dir.exists(output) || length(list.files(output,all.files=TRUE,no..=TRUE)) ||
     startsWith(output,normalizePath(base_dir))))stop("Output must be empty and outside the frozen corpus")
-if("--source" %in% args) { pkgload::load_all(root,quiet=TRUE,compile=FALSE)
-} else if(!requireNamespace("persephone3",quietly=TRUE))stop("Install persephone3 first")
+if("--source" %in% args) { pkgload::load_all(reference_r_root(root),quiet=TRUE,compile=FALSE)
+} else if(!requireNamespace("rkalos",quietly=TRUE))stop("Install rkalos first")
 before <- extended_parent_hashes(base_dir); pin <- extended_assert_oracle(base_dir)
-source(file.path(root,"inst/tinytest/fixtures/native/arma-fit-cases.R"))
-source(file.path(root,"inst/tinytest/fixtures/native/arma-residual-oracle.R"))
-setup <- getFromNamespace("native_arma_objective_setup","persephone3")
-information <- getFromNamespace("native_arma_information","persephone3")
-optimize_native <- getFromNamespace("native_arma_optimize","persephone3")
+reference_source_fixture(file.path(root,"validation/fixtures/native/arma-fit-cases.R"))
+reference_source_fixture(file.path(root,"validation/fixtures/native/arma-residual-oracle.R"))
+setup <- getFromNamespace("native_arma_objective_setup","rkalos")
+information <- getFromNamespace("native_arma_information","rkalos")
+optimize_native <- getFromNamespace("native_arma_optimize","rkalos")
 # Compile only this independently authored observer against the pinned public API.
 # The class is tooling, never a native runtime dependency or a copied optimizer.
 probe <- tempfile("persephone-legacy-probe-");dir.create(probe)
@@ -102,11 +102,11 @@ for(ca in arma_fit_cases()) {
 assert(identical(before,extended_parent_hashes(base_dir)),"frozen corpus unchanged")
 report <- do.call(rbind,rows)
 files <- c(file.path(tooling,c("verify-tramo-information.R","LegacyCovarianceProbe.java","arma-fit-reference.R")),
- file.path(root,"inst/tinytest/fixtures/native/arma-residual-oracle.R"))
+ file.path(root,"validation/fixtures/native/arma-residual-oracle.R"))
 metadata <- list(schema_version=1L,captured_utc=format(Sys.time(),tz="UTC",usetz=TRUE),
  parent_source_commit=system2("git",c("-C",shQuote(root),"rev-parse","HEAD"),stdout=TRUE),
  source_sha256=setNames(reference_sha256(files),basename(files)),
- states_sha256=reference_sha256(file.path(root,"inst/tinytest/fixtures/native/tramo-legacy-states.R")),
+ states_sha256=reference_sha256(file.path(root,"validation/fixtures/native/tramo-legacy-states.R")),
  oracle_manifest_sha256=reference_sha256(file.path(base_dir,"oracle-manifest.R")),R=R.version.string,java=pin$java,
  checks=checks,public_preprocessor_calls=64L,observed_processor_refits=64L,
  covariance_budget=2e-5,legacy_scope="replay of recorded public optimizer history; no inference of history from final coefficients",
@@ -114,7 +114,7 @@ metadata <- list(schema_version=1L,captured_utc=format(Sys.time(),tz="UTC",usetz
  timing_scope="prepared native fit plus accurate TRAMO ARMA covariance versus prepared JDemetra TRAMO fit with legacy covariance",
  timing_conventions="3 warmed rounds, alternating engines, batches >=50ms when possible, GC outside timed regions; setup/JVM/startup/observer excluded; API workloads differ",
  timing_calls_including_calibration_retries=timed_calls,native_threads=Sys.getenv("PERSEPHONE_NUM_THREADS"),
- parallel=getFromNamespace(".native_parallel_info","persephone3")())
+ parallel=getFromNamespace(".native_parallel_info","rkalos")())
 if(!is.null(output)) {
  save_plain <- function(x,path)writeLines(sub("[[:blank:]]+$","",capture.output(dput(x))),path)
  write.csv(report,file.path(output,"matrix.csv"),row.names=FALSE)

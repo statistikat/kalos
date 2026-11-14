@@ -1,4 +1,4 @@
-# Run: Rscript tools/reference/generate.R [--refresh-reference]
+# Run: Rscript validation/reference/generate.R [--refresh-reference]
 # First capture/verify the same inventory, then record direct backend results.
 args <- commandArgs(trailingOnly = FALSE)
 script <- sub("^--file=", "", args[startsWith(args, "--file=")][[1]])
@@ -46,7 +46,7 @@ tolerances <- do.call(rbind, lapply(paths, function(path) {
 }))
 write.csv(tolerances, file.path(outdir, "field-tolerances.csv"), row.names = FALSE)
 generation <- list(schema_version = 1L, scripts_sha256 = setNames(
-  reference_sha256(file.path(root, "tools/reference", c("fixtures.R", "generate.R", "compare.R", "verify.R"))),
+  reference_sha256(file.path(root, "validation/reference", c("fixtures.R", "generate.R", "compare.R", "verify.R"))),
   c("fixtures.R", "generate.R", "compare.R", "verify.R")))
 writeLines(sub("[[:blank:]]+$", "", capture.output(dput(generation, control = "all"))),
            file.path(outdir, "generation-manifest.R"))

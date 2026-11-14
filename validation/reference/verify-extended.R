@@ -1,4 +1,4 @@
-# Rscript tools/reference/verify-extended.R [--live]
+# Rscript validation/reference/verify-extended.R [--live]
 args <- commandArgs(trailingOnly = FALSE)
 script <- sub("^--file=", "", args[startsWith(args, "--file=")][[1]])
 tooling <- dirname(normalizePath(script))

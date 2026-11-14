@@ -8,13 +8,13 @@ root <- reference_root(); base_dir <- reference_fixture_dir(root)
 args <- commandArgs(trailingOnly=TRUE)
 if (any(!args %in% "--source") || anyDuplicated(args)) stop("Only --source is supported")
 if ("--source" %in% args) {
-  pkgload::load_all(root,quiet=TRUE,compile=FALSE)
-} else if (!requireNamespace("persephone3",quietly=TRUE)) stop("Install persephone3 first")
+  pkgload::load_all(reference_r_root(root),quiet=TRUE,compile=FALSE)
+} else if (!requireNamespace("rkalos",quietly=TRUE)) stop("Install rkalos first")
 before <- extended_parent_hashes(base_dir); extended_assert_oracle(base_dir)
-source(file.path(root,"inst/tinytest/fixtures/native/arma-fit-cases.R"))
-setup <- getFromNamespace("native_arma_objective_setup","persephone3")
-optimize_native <- getFromNamespace("native_arma_optimize","persephone3")
-information <- getFromNamespace("native_arma_information","persephone3")
+reference_source_fixture(file.path(root,"validation/fixtures/native/arma-fit-cases.R"))
+setup <- getFromNamespace("native_arma_objective_setup","rkalos")
+optimize_native <- getFromNamespace("native_arma_optimize","rkalos")
+information <- getFromNamespace("native_arma_information","rkalos")
 checks <- 0L; failures <- character(); rows <- list()
 assert <- function(x,label) { checks <<- checks+1L; if(!isTRUE(x)) failures <<- c(failures,label) }
 close <- function(a,b,tol,label) assert(length(a)==length(b) && all(is.finite(a)) && all(is.finite(b)) &&
@@ -33,7 +33,7 @@ compare <- function(id,context,reference,method) {
   })
   names(b) <- c("ar","ma","seasonal_ar","seasonal_ma")
   b$ar <- -b$ar; b$seasonal_ar <- -b$seasonal_ar
-  map <- do.call(getFromNamespace("native_arma_parameter_map","persephone3"),
+  map <- do.call(getFromNamespace("native_arma_parameter_map","rkalos"),
     c(context$parameters$specification,list(initial=b,reflection_margin=context$parameters$reflection_margin)))
   point <- map$initial_coordinates
   profile <- information(context,point)

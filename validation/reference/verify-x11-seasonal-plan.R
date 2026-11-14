@@ -6,13 +6,13 @@ if(anyDuplicated(sub('=.*$','',args)) || any(!args %in% c('--source','--live','-
   stop('Usage: verify-x11-seasonal-plan.R [--source] [--live] [--timing] [--output=<empty directory>]')
 if('--timing' %in% args && !'--live' %in% args)stop('Timings require --live')
 output<-args[startsWith(args,'--output=')];output<-if(length(output))normalizePath(sub('^--output=','',output),mustWork=TRUE)else NULL
-fixture_dir<-file.path(root,'inst/tinytest/fixtures/native/x11-seasonal-plan')
+fixture_dir<-file.path(root,'validation/fixtures/native/x11-seasonal-plan')
 if(!is.null(output) && (!dir.exists(output) || length(list.files(output,all.files=TRUE,no..=TRUE)) ||
     startsWith(output,normalizePath(base)) || startsWith(output,normalizePath(fixture_dir))))stop('Output must be empty and outside frozen corpora')
-if('--source' %in% args)pkgload::load_all(root,quiet=TRUE,compile=FALSE)else
-  if(!requireNamespace('persephone3',quietly=TRUE))stop('Install persephone3 first')
-source(file.path(root,'inst/tinytest/fixtures/native/x11-seasonal-plan-cases.R'))
-plan<-getFromNamespace('native_x11_seasonal_plan','persephone3');stages<-x11_seasonal_stages()
+if('--source' %in% args)pkgload::load_all(reference_r_root(root),quiet=TRUE,compile=FALSE)else
+  if(!requireNamespace('rkalos',quietly=TRUE))stop('Install rkalos first')
+reference_source_fixture(file.path(root,'validation/fixtures/native/x11-seasonal-plan-cases.R'))
+plan<-getFromNamespace('native_x11_seasonal_plan','rkalos');stages<-x11_seasonal_stages()
 checks<-timed_calls<-0L;rows<-timings<-list()
 assert<-function(value,label){checks<<-checks+1L;if(!isTRUE(value))stop('Qualification failed: ',label)}
 manifest<-read.csv(file.path(fixture_dir,'SHA256SUMS.csv'));before<-extended_parent_hashes(base)
@@ -76,7 +76,7 @@ assert(identical(reference_sha256(file.path(fixture_dir,manifest$file)),manifest
 if(!'--live' %in% args)assert(!any(c('rJava','rjd3toolkit','rjd3x13','rjd3tramoseats') %in% loadedNamespaces()),'offline without Java')
 files<-c(file.path(tooling,c('verify-x11-seasonal-plan.R','x11-seasonal-plan-reference.R','fit-timing.R')),
   file.path(root,c('src/x11_seasonal_plan.cpp','src/core/x11_seasonal_plan.hpp','src/rcpp_x11_seasonal_plan.cpp',
-    'R/native_x11_seasonal_plan.R','src/RcppExports.cpp','R/RcppExports.R','inst/tinytest/fixtures/native/x11-seasonal-plan-cases.R')))
+    'R/native_x11_seasonal_plan.R','src/RcppExports.cpp','R/RcppExports.R','validation/fixtures/native/x11-seasonal-plan-cases.R')))
 report<-do.call(rbind,rows)
 metadata<-list(schema_version=1L,captured_utc=format(Sys.time(),tz='UTC',usetz=TRUE),
   parent_source_commit=system2('git',c('-C',shQuote(root),'rev-parse','HEAD'),stdout=TRUE),source_sha256=setNames(reference_sha256(files),basename(files)),

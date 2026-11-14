@@ -20,8 +20,10 @@ endif()
 if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/include/kalos/revision.hpp")
   file(READ "${CMAKE_CURRENT_SOURCE_DIR}/include/kalos/revision.hpp" KALOS_REVISION_HEADER)
 else()
-  execute_process(COMMAND git rev-parse HEAD WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
-    OUTPUT_VARIABLE KALOS_REVISION OUTPUT_STRIP_TRAILING_WHITESPACE ERROR_QUIET)
+  if(NOT KALOS_REVISION)
+    execute_process(COMMAND git rev-parse HEAD WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
+      OUTPUT_VARIABLE KALOS_REVISION OUTPUT_STRIP_TRAILING_WHITESPACE ERROR_QUIET)
+  endif()
   if(NOT KALOS_REVISION)
     set(KALOS_REVISION "unrecorded-source-archive")
   endif()
@@ -80,8 +82,31 @@ set(KALOS_WITH_OPENMP OFF)
 if(KALOS_OPENMP)
   find_package(OpenMP COMPONENTS CXX)
   if(OpenMP_CXX_FOUND)
-    target_link_libraries(kalos PUBLIC OpenMP::OpenMP_CXX)
-    set(KALOS_WITH_OPENMP ON)
+    include(CheckCXXSourceRuns)
+    set(CMAKE_REQUIRED_LIBRARIES Kalos::OpenBLAS OpenMP::OpenMP_CXX)
+    set(_kalos_probe_signature "${KalosOpenBLAS_LIBRARY};${OpenMP_CXX_FLAGS};${OpenMP_CXX_LIBRARIES}")
+    if(NOT "${_kalos_probe_signature}" STREQUAL "${KALOS_OPENMP_PROBE_SIGNATURE}")
+      unset(KALOS_OPENMP_RUNTIME_OK CACHE)
+      set(KALOS_OPENMP_PROBE_SIGNATURE "${_kalos_probe_signature}" CACHE INTERNAL "OpenMP provider probe inputs" FORCE)
+    endif()
+    if(NOT CMAKE_CROSSCOMPILING)
+      check_cxx_source_runs("#include <cblas.h>
+#include <omp.h>
+int main() {
+  if (!openblas_get_config()) return 1;
+  int count = 0;
+  #pragma omp parallel num_threads(2) reduction(+:count)
+  count += 1;
+  return count < 1;
+}" KALOS_OPENMP_RUNTIME_OK)
+    endif()
+    unset(CMAKE_REQUIRED_LIBRARIES)
+    if(KALOS_OPENMP_RUNTIME_OK)
+      target_link_libraries(kalos PUBLIC OpenMP::OpenMP_CXX)
+      set(KALOS_WITH_OPENMP ON)
+    else()
+      message(WARNING "OpenMP/provider runtime probe failed or was not run; using serial Kalos. Select one compatible runtime (for example OpenMP_omp_LIBRARY), or provide KALOS_OPENMP_RUNTIME_OK for a qualified cross toolchain.")
+    endif()
   else()
     message(STATUS "OpenMP unavailable: using serial execution")
   endif()

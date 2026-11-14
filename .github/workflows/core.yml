@@ -1,0 +1,46 @@
+name: Standalone core
+on: [push, pull_request]
+permissions:
+  contents: read
+jobs:
+  core:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+        openmp: [ON, OFF]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Build tools
+        shell: bash
+        run: |
+          if [ "$RUNNER_OS" = Linux ]; then
+            sudo apt-get update
+            sudo apt-get install -y gfortran cmake ninja-build
+          else
+            brew install gcc cmake ninja libomp
+          fi
+      - name: Build pinned OpenBLAS
+        run: python tools/build-openblas.py --prefix "${{ runner.temp }}/openblas" --jobs 2
+      - name: Historical evidence
+        run: python tools/verify-migration.py
+      - name: Configure and test
+        shell: bash
+        env:
+          OPENBLAS_NUM_THREADS: '1'
+          OMP_NUM_THREADS: '2'
+        run: |
+          cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release -DOpenBLAS_ROOT="${{ runner.temp }}/openblas" -DKALOS_OPENMP=${{ matrix.openmp }}
+          cmake --build build --parallel 2
+          if [ "$RUNNER_OS" = Linux ] && [ "${{ matrix.openmp }}" = ON ]; then export KALOS_REQUIRE_OPENMP=1; fi
+          ctest --test-dir build --output-on-failure
+      - name: Sanitizers
+        if: runner.os == 'Linux' && matrix.openmp == 'OFF'
+        run: |
+          cmake -S . -B build-san -G Ninja -DCMAKE_BUILD_TYPE=Debug -DOpenBLAS_ROOT="${{ runner.temp }}/openblas" -DKALOS_OPENMP=OFF -DKALOS_SANITIZERS=ON
+          cmake --build build-san --parallel 2
+          ctest --test-dir build-san --output-on-failure

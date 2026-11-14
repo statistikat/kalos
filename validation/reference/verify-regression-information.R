@@ -13,13 +13,13 @@ output <- args[startsWith(args,"--output=")]
 output <- if(length(output))normalizePath(sub("^--output=","",output),mustWork=TRUE)else NULL
 if(!is.null(output) && (!dir.exists(output) || length(list.files(output,all.files=TRUE,no..=TRUE)) ||
  startsWith(output,normalizePath(base_dir))))stop("Output must be empty and outside the frozen corpus")
-if("--source" %in% args) {pkgload::load_all(root,quiet=TRUE,compile=FALSE)
-} else if(!requireNamespace("persephone3",quietly=TRUE))stop("Install persephone3 first")
+if("--source" %in% args) {pkgload::load_all(reference_r_root(root),quiet=TRUE,compile=FALSE)
+} else if(!requireNamespace("rkalos",quietly=TRUE))stop("Install rkalos first")
 before <- extended_parent_hashes(base_dir);pin <- extended_assert_oracle(base_dir)
-source(file.path(root,"inst/tinytest/fixtures/native/arma-fit-cases.R"))
-source(file.path(root,"inst/tinytest/fixtures/native/arma-residual-oracle.R"))
-setup <- getFromNamespace("native_arma_objective_setup","persephone3")
-information <- getFromNamespace("native_regression_information","persephone3")
+reference_source_fixture(file.path(root,"validation/fixtures/native/arma-fit-cases.R"))
+reference_source_fixture(file.path(root,"validation/fixtures/native/arma-residual-oracle.R"))
+setup <- getFromNamespace("native_arma_objective_setup","rkalos")
+information <- getFromNamespace("native_regression_information","rkalos")
 checks <- 0L;rows <- list()
 assert <- function(value,label){checks<<-checks+1L;if(!isTRUE(value))stop("Qualification failed: ",label)}
 relative <- function(a,b)if(is.null(a)||length(a)!=length(b)||!all(is.finite(a)))Inf else sqrt(sum((a-b)^2)/sum(b^2))
@@ -59,7 +59,7 @@ assert(identical(before,extended_parent_hashes(base_dir)),"frozen corpus unchang
 report <- do.call(rbind,rows)
 files <- c(file.path(tooling,c("verify-regression-information.R","arma-fit-reference.R")),
  file.path(root,c("src/arma_information.cpp","src/core/arma_information.hpp","src/rcpp_arma_objective.cpp",
- "R/native_arma_information.R","inst/tinytest/fixtures/native/arma-residual-oracle.R")))
+ "R/native_arma_information.R","validation/fixtures/native/arma-residual-oracle.R")))
 metadata <- list(schema_version=1L,captured_utc=format(Sys.time(),tz="UTC",usetz=TRUE),
  parent_source_commit=system2("git",c("-C",shQuote(root),"rev-parse","HEAD"),stdout=TRUE),
  source_sha256=setNames(reference_sha256(files),basename(files)),

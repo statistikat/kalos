@@ -18,10 +18,10 @@ if (!is.null(config$output)) {
   }
 }
 before <- extended_parent_hashes(base_dir)
-native_preloaded <- "persephone3" %in% loadedNamespaces()
+native_preloaded <- "rkalos" %in% loadedNamespaces()
 native_load <- fit_timing_once(function() {
-  if (config$source) pkgload::load_all(root, quiet = TRUE, compile = FALSE)
-  else if (!requireNamespace("persephone3", quietly = TRUE)) stop("Install persephone3 before comparing fits")
+  if (config$source) pkgload::load_all(reference_r_root(root), quiet = TRUE, compile = FALSE)
+  else if (!requireNamespace("rkalos", quietly = TRUE)) stop("Install persephone3 before comparing fits")
 })
 reference_preloaded <- any(c("rjd3toolkit", "rjd3x13", "rjd3tramoseats", "rJava") %in% loadedNamespaces())
 reference_load <- fit_timing_once(function() {
@@ -32,9 +32,9 @@ reference_load <- fit_timing_once(function() {
   rJava::.jcall("java/lang/System", "S", "getProperty", "java.version")
 })
 pin <- fit_timing_once(function() extended_assert_oracle(base_dir))
-source(file.path(root, "inst/tinytest/fixtures/native/arma-fit-cases.R"))
-setup <- getFromNamespace("native_arma_objective_setup", "persephone3")
-optimize_native <- getFromNamespace("native_arma_optimize", "persephone3")
+reference_source_fixture(file.path(root, "validation/fixtures/native/arma-fit-cases.R"))
+setup <- getFromNamespace("native_arma_objective_setup", "rkalos")
+optimize_native <- getFromNamespace("native_arma_optimize", "rkalos")
 control <- list(max_iterations = 200L, max_evaluations = 4000L)
 execute_native <- function(context) optimize_native(context, control = control)
 native_value <- function(result) {
@@ -156,8 +156,8 @@ cat("PASS: pinned fitted-model comparisons and independent densities\n")
 if (config$enabled) {
   metadata <- list(schema_version = 1L, captured_utc = format(Sys.time(), tz = "UTC", usetz = TRUE),
     source_commit = system2("git", c("-C", shQuote(root), "rev-parse", "HEAD"), stdout = TRUE),
-    native_version = as.character(utils::packageVersion("persephone3")),
-    native_library_sha256 = reference_sha256(getLoadedDLLs()[["persephone3"]][["path"]]),
+    native_version = as.character(utils::packageVersion("rkalos")),
+    native_library_sha256 = reference_sha256(getLoadedDLLs()[["rkalos"]][["path"]]),
     timing_script_sha256 = reference_sha256(file.path(tooling, c("verify-arma-fits.R", "fit-timing.R", "arma-fit-reference.R"))),
     native_load_mode = if (config$source) "development source" else "installed package",
     native_preloaded = native_preloaded, reference_preloaded = reference_preloaded,
@@ -166,7 +166,7 @@ if (config$enabled) {
     OS = Sys.info()[c("sysname", "release", "machine")], logical_cores = parallel::detectCores(),
     numerical_libraries = extSoftVersion(), java = pin$value$java,
     reference_packages = lapply(pin$value$packages, function(package) package$Version),
-    native_parallel = getFromNamespace(".native_parallel_info", "persephone3")(),
+    native_parallel = getFromNamespace(".native_parallel_info", "rkalos")(),
     thread_environment = Sys.getenv(c("PERSEPHONE_NUM_THREADS", "OMP_NUM_THREADS", "OMP_DYNAMIC",
       "OPENBLAS_NUM_THREADS", "VECLIB_MAXIMUM_THREADS", "MKL_NUM_THREADS"), unset = NA_character_),
     control = control, input_scope = "64 main-matrix cases; persistent and future-context controls excluded")

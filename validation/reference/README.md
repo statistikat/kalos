@@ -201,3 +201,16 @@ are separate. Use `--timing-output=<existing-empty-directory>` to save raw round
 per-model comparisons and runtime/thread metadata outside the frozen corpus;
 `--no-timing` runs only numerical qualification. See the
 [timing protocol](arma-fit-notes.md#runtime-comparison) for aggregation and scope.
+
+## Repository split (2026-11-14)
+
+Run these entry points from Kalos. They now use installed `rkalos`; source-mode
+commands use sibling `../rkalos` or the explicit `RKALOS_SOURCE` override.
+The canonical corpus lives in `validation/fixtures`. The output-request inventory
+is frozen in `validation/migration/output-requests.R`; reading it needs no
+Persephone application checkout. Original capture sources and bytes are preserved
+in `validation/migration/source-snapshot`. Capture audits use those originals,
+while new comparison reports hash the current Kalos and rkalos sources.
+Use `python3 tools/verify-migration.py` to audit historical bytes independently.
+Existing reports under `information/` and `timings/` are historical evidence;
+write new split-qualification reports under `validation/split/`, never over them.

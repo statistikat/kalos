@@ -1,6 +1,6 @@
-# Initial inventory only: Rscript tools/reference/inventory.R
+# Initial inventory only: Rscript validation/reference/inventory.R
 # Once fixtures exist, regenerate their inventory together with the corpus via
-# Rscript tools/reference/generate.R [--refresh-reference].
+# Rscript validation/reference/generate.R [--refresh-reference].
 # An existing oracle cannot be replaced with different JARs unless explicitly
 # requested with --refresh-reference. Review all changed artifacts before commit.
 args <- commandArgs(trailingOnly = FALSE)
@@ -12,12 +12,12 @@ outdir <- reference_fixture_dir(root)
 # Check before creating directories, loading the oracle or writing any artifact:
 # updating only inventory hashes would wrongly pair new metadata with old fits.
 from_generator <- identical(normalizePath(script),
-                            normalizePath(file.path(root, "tools/reference/generate.R")))
+                            normalizePath(file.path(root, "validation/reference/generate.R")))
 has_corpus <- any(file.exists(file.path(outdir, c("fixtures.csv", "SHA256SUMS.csv"))))
 if (has_corpus && !from_generator) {
   stop(paste0("A reference corpus already exists. Inventory-only updates would invalidate its provenance/checksums. ",
-              "Run Rscript tools/reference/generate.R to regenerate the inventory and all fixtures together. ",
-              "For an intentional reviewed oracle change, use Rscript tools/reference/generate.R --refresh-reference. ",
+              "Run Rscript validation/reference/generate.R to regenerate the inventory and all fixtures together. ",
+              "For an intentional reviewed oracle change, use Rscript validation/reference/generate.R --refresh-reference. ",
               "No artifacts were changed."), call. = FALSE)
 }
 dir.create(outdir, recursive = TRUE, showWarnings = FALSE)
@@ -56,14 +56,14 @@ manifest <- list(schema_version = 1L, generated_utc = format(Sys.time(), tz = "U
   inspected_upstream_commit = "15f1821fa71a949f842a5891e7cd68c83187f76d",
   inspected_upstream_version = "3.9.1-SNAPSHOT",
   reference_java_source_commit = NA_character_,
-  generator_sha256 = setNames(reference_sha256(file.path(root, "tools/reference", c("common.R", "inventory.R"))), c("common.R", "inventory.R")),
+  generator_sha256 = setNames(reference_sha256(file.path(root, "validation/reference", c("common.R", "inventory.R"))), c("common.R", "inventory.R")),
   reference_java_source_note = "Installed Maven metadata identifies JD+ 3.9.0. No source SHA was present in the captured wrapper/Maven metadata. JAR checksums below pin the actual oracle; the inspected develop SHA is not its claimed source.",
   r_version = R.version.string, platform = R.version$platform,
   java = setNames(lapply(c("java.version", "java.vendor", "java.runtime.version", "java.vm.name", "os.arch"),
     function(k) rJava::.jcall("java/lang/System", "S", "getProperty", k)),
     c("version", "vendor", "runtime_version", "vm_name", "architecture")),
   java_classpath = rJava::.jclassPath(), packages = package_metadata, jars = jar_metadata,
-  input_provenance = "Deterministic synthetic formula in tools/reference/fixtures.R; no third-party dataset or copied Java implementation.")
+  input_provenance = "Deterministic synthetic formula in validation/reference/fixtures.R; no third-party dataset or copied Java implementation.")
 manifest_path <- file.path(outdir, "oracle-manifest.R")
 if (file.exists(manifest_path) && !"--refresh-reference" %in% commandArgs(trailingOnly = TRUE)) {
   old <- dget(manifest_path)

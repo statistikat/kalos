@@ -7,7 +7,7 @@ if(length(args)!=1 || !startsWith(args,'--output='))stop('Usage: capture-x11-tre
 output<-normalizePath(sub('^--output=','',args),mustWork=TRUE)
 if(!dir.exists(output) || length(list.files(output,all.files=TRUE,no..=TRUE)) || startsWith(output,normalizePath(base)))stop('Output must be empty and outside original fixtures')
 before<-extended_parent_hashes(base);pin<-extended_assert_oracle(base)
-fixtures<-file.path(root,'inst/tinytest/fixtures/native',c('x11-symmetric-cases.R','x11-trend-selection-cases.R'))
+fixtures<-file.path(root,'validation/fixtures/native',c('x11-symmetric-cases.R','x11-trend-selection-cases.R'))
 for(file in fixtures)source(file)
 ratios<-lapply(x11_trend_cases(),function(ca) {
   y<-x11_trend_input(ca);ratio<-reference_x11_trend_ratio(y,ca$frequency,ca$mode,ca$backcasts,ca$forecasts)
@@ -28,7 +28,7 @@ for(f in c(4L,12L))for(length in seq.int(1L,101L,2L)) {
     weights[[paste(id,q,sep='-')]]<-data.frame(case=id,available=q,tap=seq_along(value),weight=value)
   }
 }
-stopifnot(identical(before,extended_parent_hashes(base)),!'persephone3' %in% loadedNamespaces())
+stopifnot(identical(before,extended_parent_hashes(base)),!'rkalos' %in% loadedNamespaces())
 write.csv(do.call(rbind,ratios),file.path(output,'ratios.csv'),row.names=FALSE)
 write.csv(policies,file.path(output,'policies.csv'),row.names=FALSE)
 write.csv(do.call(rbind,defaults),file.path(output,'defaults.csv'),row.names=FALSE)

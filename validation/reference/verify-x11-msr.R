@@ -6,13 +6,13 @@ if(anyDuplicated(sub('=.*$','',args)) || any(!args %in% c('--source','--live','-
   stop('Usage: verify-x11-msr.R [--source] [--live] [--timing] [--output=<empty directory>]')
 if('--timing' %in% args && !'--live' %in% args)stop('Timings require --live')
 output<-args[startsWith(args,'--output=')];output<-if(length(output))normalizePath(sub('^--output=','',output),mustWork=TRUE)else NULL
-fixture_dir<-file.path(root,'inst/tinytest/fixtures/native/x11-msr')
+fixture_dir<-file.path(root,'validation/fixtures/native/x11-msr')
 if(!is.null(output) && (length(list.files(output,all.files=TRUE,no..=TRUE)) || startsWith(output,normalizePath(base)) ||
     startsWith(output,normalizePath(fixture_dir))))stop('Output must be empty and outside frozen corpora')
-if('--source' %in% args)pkgload::load_all(root,quiet=TRUE,compile=FALSE)else
-  if(!requireNamespace('persephone3',quietly=TRUE))stop('Install persephone3 first')
-source(file.path(root,'inst/tinytest/fixtures/native/x11-msr-cases.R'))
-table<-getFromNamespace('native_x11_msr_table','persephone3');checks<-timed_calls<-0L;rows<-timings<-list()
+if('--source' %in% args)pkgload::load_all(reference_r_root(root),quiet=TRUE,compile=FALSE)else
+  if(!requireNamespace('rkalos',quietly=TRUE))stop('Install rkalos first')
+reference_source_fixture(file.path(root,'validation/fixtures/native/x11-msr-cases.R'))
+table<-getFromNamespace('native_x11_msr_table','rkalos');checks<-timed_calls<-0L;rows<-timings<-list()
 assert<-function(value,label){checks<<-checks+1L;if(!isTRUE(value))stop('Qualification failed: ',label)}
 error<-function(a,b) {
   if(!identical(is.na(a),is.na(b)) || !identical(is.infinite(a),is.infinite(b)))return(Inf)
@@ -94,13 +94,13 @@ assert(identical(reference_sha256(file.path(fixture_dir,manifest$file)),manifest
 if(!'--live' %in% args)assert(!any(c('rJava','rjd3toolkit','rjd3x13','rjd3tramoseats') %in% loadedNamespaces()),'offline without Java')
 files<-c(file.path(tooling,c('verify-x11-msr.R','x11-msr-reference.R','fit-timing.R')),file.path(root,c('src/x11_msr.cpp','src/core/x11_msr.hpp',
   'src/numerics.cpp','src/core/numerics.hpp','src/core/parallel.hpp','src/rcpp_x11_msr.cpp','R/native_x11_msr.R','R/native_inputs.R',
-  'src/RcppExports.cpp','R/RcppExports.R','inst/tinytest/fixtures/native/x11-msr-cases.R')))
+  'src/RcppExports.cpp','R/RcppExports.R','validation/fixtures/native/x11-msr-cases.R')))
 report<-do.call(rbind,rows)
 metadata<-list(schema_version=1L,captured_utc=format(Sys.time(),tz='UTC',usetz=TRUE),
   parent_source_commit=system2('git',c('-C',shQuote(root),'rev-parse','HEAD'),stdout=TRUE),source_sha256=setNames(reference_sha256(files),basename(files)),
   fixture_manifest_sha256=reference_sha256(file.path(fixture_dir,'SHA256SUMS.csv')),R=R.version.string,java=if(!is.null(pin))pin$java else NULL,
   checks=checks,cases=length(targets),mode_cases=length(x11_msr_mode_cases()),mode_scaled_error=mode_error,timed_calls_including_warmup_and_calibration=timed_calls,
-  parallel=getFromNamespace('.native_parallel_info','persephone3')(),
+  parallel=getFromNamespace('.native_parallel_info','rkalos')(),
   timing_scope='24 short and 8 long component-table calls; native includes input validation, per-phase statuses/counts/raw means/corrections and serialization. Public includes DoubleSeq creation and table serialization. No pilot, trimming, selection, decomposition or fit.',
   timing_conventions='Three warmed alternating rounds; >=50ms calibrated batches when possible; loading/startup and explicit pre-batch GC excluded; natural in-batch GC included. Owned OpenMP for independent changes; deterministic caller reductions.')
 if(!is.null(output)) {

@@ -8,7 +8,7 @@ if(length(args)!=1L || !startsWith(args,'--output='))stop('Usage: capture-x11-se
 output <- normalizePath(sub('^--output=','',args),mustWork=TRUE)
 if(!dir.exists(output) || length(list.files(output,all.files=TRUE,no..=TRUE)) || startsWith(output,normalizePath(base)))stop('Output must be empty and outside the original corpus')
 before <- extended_parent_hashes(base);pin <- extended_assert_oracle(base)
-fixtures <- file.path(root,'inst/tinytest/fixtures/native',c('x11-symmetric-cases.R','x11-seasonal15-cases.R'))
+fixtures <- file.path(root,'validation/fixtures/native',c('x11-symmetric-cases.R','x11-seasonal15-cases.R'))
 for(fixture in fixtures)source(fixture)
 weights <- points <- controls <- list()
 for(ca in x11_seasonal15_cases()) {

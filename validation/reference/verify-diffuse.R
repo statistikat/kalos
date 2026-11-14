@@ -1,4 +1,4 @@
-# Rscript tools/reference/verify-diffuse.R [--native [--source] [--second-order] [--sparse]]
+# Rscript validation/reference/verify-diffuse.R [--native [--source] [--second-order] [--sparse]]
 # Read-only probes. --native additionally requires an installed development
 # persephone3 containing .native_sarima_likelihood; choose its library with R_LIBS.
 args <- commandArgs(trailingOnly = FALSE)
@@ -18,10 +18,10 @@ native <- NULL
 if ("--native" %in% options) {
   if ("--source" %in% options) {
     if (!requireNamespace("pkgload", quietly = TRUE)) stop("--source requires pkgload and an already compiled development tree")
-    pkgload::load_all(root, quiet = TRUE, compile = FALSE)
+    pkgload::load_all(reference_r_root(root), quiet = TRUE, compile = FALSE)
   }
-  if (!requireNamespace("persephone3", quietly = TRUE)) stop("--native requires the development persephone3 installation")
-  native <- getFromNamespace(".native_sarima_likelihood", "persephone3")
+  if (!requireNamespace("rkalos", quietly = TRUE)) stop("--native requires the development persephone3 installation")
+  native <- getFromNamespace(".native_sarima_likelihood", "rkalos")
 }
 
 checks <- 0L

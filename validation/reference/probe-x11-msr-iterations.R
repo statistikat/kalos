@@ -2,7 +2,7 @@
 args<-commandArgs(trailingOnly=FALSE);script<-sub('^--file=','',args[startsWith(args,'--file=')][[1L]])
 tooling<-dirname(normalizePath(script));source(file.path(tooling,'common.R'));source(file.path(tooling,'extended-fixtures.R'))
 source(file.path(tooling,'x11-msr-reference.R'));root<-reference_root();base<-reference_fixture_dir(root)
-source(file.path(root,'inst/tinytest/fixtures/native/x11-msr-cases.R'))
+reference_source_fixture(file.path(root,'validation/fixtures/native/x11-msr-cases.R'))
 args<-commandArgs(trailingOnly=TRUE)
 if(length(args)!=1L || !startsWith(args,'--output='))stop('Usage: probe-x11-msr-iterations.R --output=<empty directory>')
 output<-normalizePath(sub('^--output=','',args),mustWork=TRUE)
@@ -24,10 +24,10 @@ published_choice<-if(length(published))published[1]else'S3X5'
 asserted<-x11_msr_oracle(x11_msr_mode_components(ca,public$iterations),'additive')
 error<-max(abs(asserted$phases$seasonal-public$seasonal),abs(asserted$phases$irregular-public$irregular),abs(asserted$global-public$global))
 stopifnot(error<2e-12,public$iterations==16L,public$choice=='S3X9',!public$using_default,published_choice=='S3X5',
-  identical(before,extended_parent_hashes(base)),!'persephone3' %in% loadedNamespaces())
+  identical(before,extended_parent_hashes(base)),!'rkalos' %in% loadedNamespaces())
 write.csv(trace,file.path(output,'trace.csv'),row.names=FALSE)
 write.csv(data.frame(value=as.numeric(ca$y)),file.path(output,'input.csv'),row.names=FALSE)
-files<-c(normalizePath(script),file.path(tooling,'x11-msr-reference.R'),file.path(root,'inst/tinytest/fixtures/native/x11-msr-cases.R'))
+files<-c(normalizePath(script),file.path(tooling,'x11-msr-reference.R'),file.path(root,'validation/fixtures/native/x11-msr-cases.R'))
 metadata<-list(schema_version=1L,captured_utc=format(Sys.time(),tz='UTC',usetz=TRUE),
   oracle_manifest_sha256=reference_sha256(file.path(base,'oracle-manifest.R')),source_sha256=setNames(reference_sha256(files),basename(files)),
   java=pin$java,amplitude=amplitude,frequency=4L,start=c(2000L,1L),mode='additive',public=public,

@@ -1,5 +1,5 @@
 # Fast default: integrity and comparator tests, without loading Java or rjd3.
-# Optional: Rscript tools/reference/verify.R --live
+# Optional: Rscript validation/reference/verify.R --live
 args <- commandArgs(trailingOnly = FALSE)
 script <- sub("^--file=", "", args[startsWith(args, "--file=")][[1]])
 tooling <- dirname(normalizePath(script))

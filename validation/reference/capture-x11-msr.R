@@ -6,12 +6,12 @@ if(length(args)!=1L || !startsWith(args,'--output='))stop('Usage: capture-x11-ms
 output<-normalizePath(sub('^--output=','',args),mustWork=TRUE)
 if(!dir.exists(output) || length(list.files(output,all.files=TRUE,no..=TRUE)) || startsWith(output,normalizePath(base)))stop('Output must be empty and outside original fixtures')
 before<-extended_parent_hashes(base);pin<-extended_assert_oracle(base)
-fixture<-file.path(root,'inst/tinytest/fixtures/native/x11-msr-cases.R');source(fixture)
+fixture<-file.path(root,'validation/fixtures/native/x11-msr-cases.R');source(fixture)
 rows<-lapply(x11_msr_cases(),function(ca) {
   y<-x11_msr_input(ca);value<-reference_x11_msr_table(y$seasonal,y$irregular,ca$mode)
   data.frame(case=ca$id,period=seq_len(ca$frequency),seasonal=value$seasonal,irregular=value$irregular,msr=value$msr,global=value$global)
 })
-stopifnot(identical(before,extended_parent_hashes(base)),!'persephone3' %in% loadedNamespaces())
+stopifnot(identical(before,extended_parent_hashes(base)),!'rkalos' %in% loadedNamespaces())
 write.csv(do.call(rbind,rows),file.path(output,'tables.csv'),row.names=FALSE)
 mode_rows<-lapply(x11_msr_mode_cases(),function(ca) {
   value<-reference_x11_msr_mode(ca$y,ca$mode)
@@ -19,7 +19,7 @@ mode_rows<-lapply(x11_msr_mode_cases(),function(ca) {
     seasonal=value$seasonal,irregular=value$irregular,global=value$global)
 })
 write.csv(do.call(rbind,mode_rows),file.path(output,'modes.csv'),row.names=FALSE)
-stopifnot(identical(before,extended_parent_hashes(base)),!'persephone3' %in% loadedNamespaces())
+stopifnot(identical(before,extended_parent_hashes(base)),!'rkalos' %in% loadedNamespaces())
 files<-c(normalizePath(script),file.path(tooling,'x11-msr-reference.R'),fixture)
 metadata<-list(schema_version=1L,captured_utc=format(Sys.time(),tz='UTC',usetz=TRUE),
   oracle_manifest_sha256=reference_sha256(file.path(base,'oracle-manifest.R')),source_sha256=setNames(reference_sha256(files),basename(files)),

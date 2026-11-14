@@ -191,7 +191,7 @@ extended_generate <- function(root, regenerate = FALSE) {
   manifest <- list(schema_version = 1L, suite = "extended-v1", generated_utc = format(Sys.time(), tz = "UTC", usetz = TRUE),
     parent_artifacts = parent_before, oracle_manifest_sha256 = reference_sha256(file.path(base_dir, "oracle-manifest.R")),
     r_version = oracle$r_version, java = oracle$java,
-    scripts_sha256 = setNames(reference_sha256(file.path(root, "tools/reference", scripts)), scripts),
+    scripts_sha256 = setNames(reference_sha256(file.path(root, "validation/reference", scripts)), scripts),
     live_comparison = "Exact identical raw output under the pinned oracle; no new native numerical tolerances",
     input_provenance = "Independent deterministic formulas in extended-fixtures.R; no external dataset or Java implementation copied",
     invariant_checks = checks)

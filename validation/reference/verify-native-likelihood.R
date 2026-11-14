@@ -1,4 +1,4 @@
-# Rscript tools/reference/verify-native-likelihood.R [--native [--source]]
+# Rscript validation/reference/verify-native-likelihood.R [--native [--source]]
 # Pinned direct preprocessing comparisons. No fixtures or tolerance rules change.
 args <- commandArgs(trailingOnly = FALSE)
 script <- sub("^--file=", "", args[startsWith(args, "--file=")][[1L]])
@@ -196,10 +196,10 @@ cat("PASS:", selector_fits, "additional perturbation/selector calls;", checks - 
 if ("--native" %in% options) {
   if ("--source" %in% options) {
     if (!requireNamespace("pkgload", quietly = TRUE)) stop("--source requires pkgload and an already compiled development tree")
-    pkgload::load_all(root, quiet = TRUE, compile = FALSE)
+    pkgload::load_all(reference_r_root(root), quiet = TRUE, compile = FALSE)
   }
-  if (!requireNamespace("persephone3", quietly = TRUE)) stop("--native requires the development persephone3 installation")
-  native <- getFromNamespace("native_fixed_likelihood", "persephone3")
+  if (!requireNamespace("rkalos", quietly = TRUE)) stop("--native requires the development persephone3 installation")
+  native <- getFromNamespace("native_fixed_likelihood", "rkalos")
   before_native_checks <- checks
   maximum_error <- c(raw_profile = 0, adjusted_profile = 0, profiled_variance = 0, jacobian = 0)
   for (case in cases) {

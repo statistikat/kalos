@@ -6,13 +6,13 @@ if(length(args)!=1L || !startsWith(args,'--output='))stop('Usage: capture-x11-no
 output<-normalizePath(sub('^--output=','',args),mustWork=TRUE)
 if(length(list.files(output,all.files=TRUE,no..=TRUE)) || startsWith(output,normalizePath(base)))stop('Output must be empty and outside original fixtures')
 pin<-extended_assert_oracle(base);before<-extended_parent_hashes(base)
-helper<-file.path(root,'inst/tinytest/fixtures/native/x11-normalization-cases.R');source(helper)
+helper<-file.path(root,'validation/fixtures/native/x11-normalization-cases.R');source(helper)
 cases<-x11_normalization_cases();points<-list()
 for(ca in cases) {
   y<-x11_normalization_input(ca);value<-reference_x11_normalization(y,ca$filters,ca$extend)
   points[[ca$id]]<-data.frame(case=ca$id,row=seq_along(value),value=value)
 }
-stopifnot(identical(before,extended_parent_hashes(base)),!'persephone3' %in% loadedNamespaces())
+stopifnot(identical(before,extended_parent_hashes(base)),!'rkalos' %in% loadedNamespaces())
 write.csv(do.call(rbind,points),file.path(output,'points.csv'),row.names=FALSE)
 files<-c(normalizePath(script),file.path(tooling,'x11-normalization-reference.R'),helper)
 metadata<-list(schema_version=1L,captured_utc=format(Sys.time(),tz='UTC',usetz=TRUE),

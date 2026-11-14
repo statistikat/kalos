@@ -1,4 +1,4 @@
-# Rscript tools/reference/generate-extended.R [--regenerate]
+# Rscript validation/reference/generate-extended.R [--regenerate]
 # Regeneration is restricted to the original pinned oracle; no refresh switch.
 args <- commandArgs(trailingOnly = FALSE)
 script <- sub("^--file=", "", args[startsWith(args, "--file=")][[1]])

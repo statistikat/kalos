@@ -6,7 +6,7 @@ if(length(args)!=1L || !startsWith(args,'--output='))stop('Usage: capture-x11-in
 output<-normalizePath(sub('^--output=','',args),mustWork=TRUE)
 if(length(list.files(output,all.files=TRUE,no..=TRUE)) || startsWith(output,normalizePath(base)))stop('Output must be empty and outside original fixtures')
 pin<-extended_assert_oracle(base);before<-extended_parent_hashes(base)
-helper<-file.path(root,'inst/tinytest/fixtures/native/x11-initial-cases.R');source(helper)
+helper<-file.path(root,'validation/fixtures/native/x11-initial-cases.R');source(helper)
 cases<-x11_initial_cases();points<-bstep_points<-statuses<-list()
 as_points<-function(id,tables)do.call(rbind,lapply(names(tables),function(name)
   data.frame(case=id,table=name,row=seq_along(tables[[name]]),value=as.numeric(tables[[name]]))))
@@ -22,7 +22,7 @@ for(ca in cases) {
     bstep_points[[ca$id]]<-as_points(ca$id,bstep[setdiff(names(bstep),'drop')])
   }
 }
-stopifnot(identical(before,extended_parent_hashes(base)),!'persephone3' %in% loadedNamespaces())
+stopifnot(identical(before,extended_parent_hashes(base)),!'rkalos' %in% loadedNamespaces())
 for(name in c('points','bstep_points','statuses'))write.csv(do.call(rbind,get(name)),file.path(output,paste0(name,'.csv')),row.names=FALSE)
 files<-c(normalizePath(script),file.path(tooling,'x11-initial-reference.R'),helper)
 metadata<-list(schema_version=1L,captured_utc=format(Sys.time(),tz='UTC',usetz=TRUE),

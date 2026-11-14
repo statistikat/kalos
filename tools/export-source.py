@@ -31,7 +31,10 @@ def files_under(root):
 
 
 def verify(destination):
-    lock = json.loads((destination / "core.lock.json").read_text())
+    lock_path = destination / "core.lock.json"
+    if not lock_path.exists():
+        lock_path = destination / "inst/core.lock.json"
+    lock = json.loads(lock_path.read_text())
     if lock["schema_version"] != 1:
         raise ValueError("Unsupported source lock version")
     for section in lock["snapshots"]:
@@ -98,6 +101,8 @@ def export(core, revision, kind, destination):
         lock["snapshots"].append({"directory": directory,
             "files": {name: sha(data) for name, data in sorted(files.items())}})
     previous_path.write_text(json.dumps(lock, indent=2) + "\n")
+    if kind == "r":
+        (destination / "inst/core.lock.json").write_bytes(previous_path.read_bytes())
     verify(destination)
 
 

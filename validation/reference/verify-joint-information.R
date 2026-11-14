@@ -14,15 +14,15 @@ output <- args[startsWith(args,'--output=')]
 output <- if(length(output))normalizePath(sub('^--output=','',output),mustWork=TRUE)else NULL
 if(!is.null(output) && (!dir.exists(output) || length(list.files(output,all.files=TRUE,no..=TRUE)) ||
  startsWith(output,normalizePath(base_dir))))stop('Output must be empty and outside the frozen corpus')
-if('--source' %in% args) {pkgload::load_all(root,quiet=TRUE,compile=FALSE)
-} else if(!requireNamespace('persephone3',quietly=TRUE))stop('Install persephone3 first')
+if('--source' %in% args) {pkgload::load_all(reference_r_root(root),quiet=TRUE,compile=FALSE)
+} else if(!requireNamespace('rkalos',quietly=TRUE))stop('Install rkalos first')
 before <- extended_parent_hashes(base_dir);pin <- extended_assert_oracle(base_dir)
 for(file in c('arma-fit-cases.R','arma-residual-oracle.R','joint-information-oracle.R')) {
- source(file.path(root,'inst/tinytest/fixtures/native',file))
+ reference_source_fixture(file.path(root,'validation/fixtures/native',file))
 }
-setup <- getFromNamespace('native_arma_objective_setup','persephone3')
-optimize_native <- getFromNamespace('native_arma_optimize','persephone3')
-information <- getFromNamespace('native_regression_information','persephone3')
+setup <- getFromNamespace('native_arma_objective_setup','rkalos')
+optimize_native <- getFromNamespace('native_arma_optimize','rkalos')
+information <- getFromNamespace('native_regression_information','rkalos')
 checks <- 0L;rows <- timings <- list();timed_calls <- 0L
 assert <- function(value,label){checks<<-checks+1L;if(!isTRUE(value))stop('Qualification failed: ',label)}
 relative <- function(a,b)if(is.null(a)||length(a)!=length(b)||!all(is.finite(a)))Inf else sqrt(sum((a-b)^2)/sum(b^2))
@@ -86,7 +86,7 @@ report <- do.call(rbind,rows)
 files <- c(file.path(tooling,c('verify-joint-information.R','arma-fit-reference.R','fit-timing.R')),
  file.path(root,c('src/joint_regression_information.cpp','src/vector_jacobian.cpp','src/arma_information.cpp',
  'src/core/arma_information.hpp','src/core/information.hpp','src/rcpp_arma_objective.cpp','R/native_arma_information.R',
- 'inst/tinytest/fixtures/native/joint-information-oracle.R')))
+ 'validation/fixtures/native/joint-information-oracle.R')))
 metadata <- list(schema_version=1L,captured_utc=format(Sys.time(),tz='UTC',usetz=TRUE),
  parent_source_commit=system2('git',c('-C',shQuote(root),'rev-parse','HEAD'),stdout=TRUE),
  source_sha256=setNames(reference_sha256(files),basename(files)),
@@ -97,7 +97,7 @@ metadata <- list(schema_version=1L,captured_utc=format(Sys.time(),tz='UTC',usetz
  timing_scope='prepared fit plus regression/ARMA covariance: native conditional versus native joint versus public X13/TRAMO fits',
  timing_conventions='3 warmed rounds, alternating engines, batches >=50ms when possible, GC outside timed regions; setup/loading/startup excluded; estimators and API workloads differ',
  timing_calls_including_warmup_and_calibration_retries=timed_calls,native_threads=Sys.getenv('PERSEPHONE_NUM_THREADS'),
- parallel=getFromNamespace('.native_parallel_info','persephone3')())
+ parallel=getFromNamespace('.native_parallel_info','rkalos')())
 if(!is.null(output)) {
  write.csv(report,file.path(output,'matrix.csv'),row.names=FALSE)
  writeLines(sub('[[:blank:]]+$','',capture.output(dput(metadata))),file.path(output,'metadata.R'))

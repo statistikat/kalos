@@ -8,7 +8,7 @@ if(length(args)!=1L || !startsWith(args,'--output='))stop('Usage: capture-x11-se
 output<-normalizePath(sub('^--output=','',args),mustWork=TRUE)
 if(!dir.exists(output) || length(list.files(output,all.files=TRUE,no..=TRUE)) || startsWith(output,normalizePath(base)))stop('Output must be empty and outside the original corpus')
 before<-extended_parent_hashes(base);pin<-extended_assert_oracle(base)
-fixtures<-file.path(root,'inst/tinytest/fixtures/native',c('x11-symmetric-cases.R','x11-seasonal-cases.R',
+fixtures<-file.path(root,'validation/fixtures/native',c('x11-symmetric-cases.R','x11-seasonal-cases.R',
   'x11-seasonal15-cases.R','x11-seasonal-processing-cases.R'))
 for(fixture in fixtures)source(fixture)
 weights<-points<-list()
@@ -23,7 +23,7 @@ for(ca in x11_processing_cases()) {
   nonzero<-which(A!=0,arr.ind=TRUE)
   weights[[ca$id]]<-data.frame(case=ca$id,row=rows[nonzero[,1]],column=phase[nonzero[,2]],weight=A[nonzero])
 }
-stopifnot(identical(before,extended_parent_hashes(base)),!'persephone3' %in% loadedNamespaces())
+stopifnot(identical(before,extended_parent_hashes(base)),!'rkalos' %in% loadedNamespaces())
 write.csv(do.call(rbind,weights),file.path(output,'weights.csv'),row.names=FALSE)
 write.csv(do.call(rbind,points),file.path(output,'points.csv'),row.names=FALSE)
 files<-c(normalizePath(script),file.path(tooling,'x11-seasonal-processing-reference.R'),fixtures)

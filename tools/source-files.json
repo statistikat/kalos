@@ -2,9 +2,16 @@
   "schema_version": 1,
   "version": "0.1.0",
   "core": [
+    "CMakeLists.txt",
+    "LICENSE",
+    "LICENSE.md",
     "backends/openblas.cpp",
     "cmake/FindKalosOpenBLAS.cmake",
     "cmake/kalosConfig.cmake.in",
+    "dependencies/OpenBLAS-LICENSE.txt",
+    "dependencies/README.md",
+    "dependencies/lapack-netlib-LICENSE.txt",
+    "dependencies/openblas.lock.json",
     "include/kalos/arma_identification.hpp",
     "include/kalos/arma_information.hpp",
     "include/kalos/arma_objective.hpp",
@@ -77,10 +84,7 @@
     "src/x11_seasonal_endpoints.cpp",
     "src/x11_seasonal_plan.cpp",
     "src/x11_seasonal_processing.cpp",
-    "src/x11_trend_selection.cpp",
-    "CMakeLists.txt",
-    "LICENSE",
-    "LICENSE.md"
+    "src/x11_trend_selection.cpp"
   ],
   "fixtures": [
     "validation/fixtures/backend/SHA256SUMS.csv",

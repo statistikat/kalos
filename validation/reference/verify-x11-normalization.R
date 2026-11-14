@@ -6,13 +6,13 @@ if(anyDuplicated(sub('=.*$','',args)) || any(!args %in% c('--source','--live','-
   stop('Usage: verify-x11-normalization.R [--source] [--live] [--timing] [--output=<empty directory>]')
 if('--timing' %in% args && !'--live' %in% args)stop('Timings require --live')
 output<-args[startsWith(args,'--output=')];output<-if(length(output))normalizePath(sub('^--output=','',output),mustWork=TRUE)else NULL
-fixture_dir<-file.path(root,'inst/tinytest/fixtures/native/x11-normalization')
+fixture_dir<-file.path(root,'validation/fixtures/native/x11-normalization')
 if(!is.null(output) && (length(list.files(output,all.files=TRUE,no..=TRUE)) || startsWith(output,normalizePath(base)) ||
     startsWith(output,normalizePath(fixture_dir))))stop('Output must be empty and outside frozen corpora')
-if('--source' %in% args)pkgload::load_all(root,quiet=TRUE,compile=FALSE)else
-  if(!requireNamespace('persephone3',quietly=TRUE))stop('Install persephone3 first')
-source(file.path(root,'inst/tinytest/fixtures/native/x11-normalization-cases.R'))
-normalize<-getFromNamespace('native_x11_seasonal_normalize','persephone3')
+if('--source' %in% args)pkgload::load_all(reference_r_root(root),quiet=TRUE,compile=FALSE)else
+  if(!requireNamespace('rkalos',quietly=TRUE))stop('Install rkalos first')
+reference_source_fixture(file.path(root,'validation/fixtures/native/x11-normalization-cases.R'))
+normalize<-getFromNamespace('native_x11_seasonal_normalize','rkalos')
 checks<-timed_calls<-0L;rows<-timings<-list()
 assert<-function(value,label){checks<<-checks+1L;if(!isTRUE(value))stop('Qualification failed: ',label)}
 error<-function(a,b) {
@@ -26,8 +26,8 @@ assert(identical(reference_sha256(file.path(fixture_dir,manifest$file)),manifest
 meta<-dget(file.path(fixture_dir,'metadata.R'))
 assert(identical(meta$oracle_manifest_sha256,reference_sha256(file.path(base,'oracle-manifest.R'))),'pinned provenance')
 for(name in names(meta$source_sha256)) {
-  path<-if(grepl('-cases[.]R$',name))file.path(root,'inst/tinytest/fixtures/native',name)else file.path(tooling,name)
-  assert(identical(unname(meta$source_sha256[name]),reference_sha256(path)),paste(name,'capture source'))
+  path<-if(grepl('-cases[.]R$',name))file.path(root,'validation/fixtures/native',name)else file.path(tooling,name)
+  assert(identical(unname(meta$source_sha256[name]),reference_capture_sha256(path)),paste(name,'capture source'))
 }
 points<-read.csv(file.path(fixture_dir,'points.csv'));targets<-split(points,points$case);cases<-x11_normalization_cases()
 assert(identical(sort(names(targets)),sort(names(cases))),'complete case matrix')
@@ -85,13 +85,13 @@ if(!'--live' %in% args)assert(!any(c('rJava','rjd3toolkit','rjd3x13','rjd3tramos
 files<-c(file.path(tooling,c('verify-x11-normalization.R','x11-normalization-reference.R','fit-timing.R')),file.path(root,c(
   'src/x11_normalization.cpp','src/core/x11_normalization.hpp','src/x11_filters.cpp','src/core/x11_filters.hpp',
   'src/rcpp_x11_table_support.cpp','src/rcpp_x11_table_support.hpp','src/numerics.cpp','src/core/numerics.hpp','src/core/parallel.hpp','src/rcpp_x11_normalization.cpp','R/native_x11_normalization.R',
-  'R/native_inputs.R','src/RcppExports.cpp','R/RcppExports.R','inst/tinytest/fixtures/native/x11-normalization-cases.R')))
+  'R/native_inputs.R','src/RcppExports.cpp','R/RcppExports.R','validation/fixtures/native/x11-normalization-cases.R')))
 report<-do.call(rbind,rows)
 metadata<-list(schema_version=1L,captured_utc=format(Sys.time(),tz='UTC',usetz=TRUE),
   parent_source_commit=system2('git',c('-C',shQuote(root),'rev-parse','HEAD'),stdout=TRUE),source_sha256=setNames(reference_sha256(files),basename(files)),
   fixture_manifest_sha256=reference_sha256(file.path(fixture_dir,'SHA256SUMS.csv')),R=R.version.string,java=if(!is.null(pin))pin$java else NULL,
   checks=checks,cases=length(cases),timed_calls_including_warmup_and_calibration=timed_calls,
-  parallel=getFromNamespace('.native_parallel_info','persephone3')(),
+  parallel=getFromNamespace('.native_parallel_info','rkalos')(),
   timing_scope='24 short and 8 long additive normalization calls, with fixed/stable/mixed requests and optional half-year periodic restoration. Native additionally returns normalizing means, both source-row maps, domains, masks and phase policy metadata. Public includes validated context creation and output serialization. No seasonal estimation, B/C/D pass or fit.',
   timing_conventions='Three warmed alternating rounds; >=50ms calibrated batches when possible, maximum 1000 calls/batch; loading/startup and explicit pre-batch GC excluded; natural in-batch GC included. Owned OpenMP for central means, independent normalization rows and restoration; fixed per-row arithmetic order.')
 if(!is.null(output)) {

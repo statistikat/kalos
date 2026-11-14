@@ -30,3 +30,9 @@ The provider is selected at build time, never switched dynamically.
 See [implementation status](IMPLEMENTATION_STATUS.md), [contracts](docs/contracts/),
 and [original provenance](validation/reference/NATIVE_PROVENANCE.md).
 This initial series does not promise a stable binary ABI.
+
+On macOS, compiler and OpenBLAS OpenMP runtimes must be the same library.
+Configuration runs a joint provider/OpenMP probe and selects serial fallback if
+it fails. With Homebrew LLVM and OpenBLAS, use
+`-DOpenMP_omp_LIBRARY=/opt/homebrew/opt/libomp/lib/libomp.dylib` (adjust the prefix
+for Intel Macs). Never bypass duplicate-runtime errors with environment overrides.

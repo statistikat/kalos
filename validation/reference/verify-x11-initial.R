@@ -6,14 +6,14 @@ if(anyDuplicated(sub('=.*$','',args)) || any(!args %in% c('--source','--live','-
   stop('Usage: verify-x11-initial.R [--source] [--live] [--timing] [--output=<empty directory>]')
 if('--timing' %in% args && !'--live' %in% args)stop('Timings require --live')
 output<-args[startsWith(args,'--output=')];output<-if(length(output))normalizePath(sub('^--output=','',output),mustWork=TRUE)else NULL
-fixture_dir<-file.path(root,'inst/tinytest/fixtures/native/x11-initial')
+fixture_dir<-file.path(root,'validation/fixtures/native/x11-initial')
 if(!is.null(output) && (length(list.files(output,all.files=TRUE,no..=TRUE)) || startsWith(output,normalizePath(base)) ||
     startsWith(output,normalizePath(fixture_dir))))stop('Output must be empty and outside frozen corpora')
-if('--source' %in% args)pkgload::load_all(root,quiet=TRUE,compile=FALSE)else
-  if(!requireNamespace('persephone3',quietly=TRUE))stop('Install persephone3 first')
+if('--source' %in% args)pkgload::load_all(reference_r_root(root),quiet=TRUE,compile=FALSE)else
+  if(!requireNamespace('rkalos',quietly=TRUE))stop('Install rkalos first')
 helpers<-c('x11-seasonal-cases.R','x11-seasonal15-cases.R','x11-seasonal-processing-cases.R','x11-normalization-cases.R','x11-initial-cases.R')
-for(file in helpers)source(file.path(root,'inst/tinytest/fixtures/native',file))
-initial<-getFromNamespace('native_x11_initial_additive','persephone3')
+for(file in helpers)reference_source_fixture(file.path(root,'validation/fixtures/native',file))
+initial<-getFromNamespace('native_x11_initial_additive','rkalos')
 checks<-timed_calls<-0L;rows<-timings<-list()
 assert<-function(value,label){checks<<-checks+1L;if(!isTRUE(value))stop('Qualification failed: ',label)}
 error<-function(a,b) {
@@ -27,8 +27,8 @@ assert(identical(reference_sha256(file.path(fixture_dir,manifest$file)),manifest
 meta<-dget(file.path(fixture_dir,'metadata.R'))
 assert(identical(meta$oracle_manifest_sha256,reference_sha256(file.path(base,'oracle-manifest.R'))),'pinned provenance')
 for(name in names(meta$source_sha256)) {
-  path<-if(grepl('-cases[.]R$',name))file.path(root,'inst/tinytest/fixtures/native',name)else file.path(tooling,name)
-  assert(identical(unname(meta$source_sha256[name]),reference_sha256(path)),paste(name,'capture source'))
+  path<-if(grepl('-cases[.]R$',name))file.path(root,'validation/fixtures/native',name)else file.path(tooling,name)
+  assert(identical(unname(meta$source_sha256[name]),reference_capture_sha256(path)),paste(name,'capture source'))
 }
 points<-read.csv(file.path(fixture_dir,'points.csv'));targets<-split(points,points$case)
 points<-read.csv(file.path(fixture_dir,'bstep_points.csv'));bstep<-split(points,points$case)
@@ -96,7 +96,7 @@ assert(identical(before,extended_parent_hashes(base)),'original fixtures unchang
 assert(identical(reference_sha256(file.path(fixture_dir,manifest$file)),manifest$sha256),'initial-table fixtures unchanged')
 if(!'--live' %in% args)assert(!any(c('rJava','rjd3toolkit','rjd3x13','rjd3tramoseats') %in% loadedNamespaces()),'offline without Java')
 files<-c(file.path(tooling,c('verify-x11-initial.R','x11-initial-reference.R','fit-timing.R')),
-  file.path(root,'inst/tinytest/fixtures/native',helpers),file.path(root,c(
+  file.path(root,'validation/fixtures/native',helpers),file.path(root,c(
   'src/x11_initial.cpp','src/core/x11_initial.hpp','src/rcpp_x11_initial.cpp','R/native_x11_initial.R',
   'src/x11_normalization.cpp','src/core/x11_normalization.hpp','src/rcpp_x11_table_support.cpp','src/rcpp_x11_table_support.hpp',
   'src/x11_filters.cpp','src/core/x11_filters.hpp','src/x11_seasonal_endpoints.cpp','src/core/x11_seasonal_endpoints.hpp',
@@ -108,7 +108,7 @@ metadata<-list(schema_version=1L,captured_utc=format(Sys.time(),tz='UTC',usetz=T
   parent_source_commit=system2('git',c('-C',shQuote(root),'rev-parse','HEAD'),stdout=TRUE),source_sha256=setNames(reference_sha256(files),basename(files)),
   fixture_manifest_sha256=reference_sha256(file.path(fixture_dir,'SHA256SUMS.csv')),R=R.version.string,java=if(!is.null(pin))pin$java else NULL,
   checks=checks,cases=length(cases),timed_calls_including_warmup_and_calibration=timed_calls,
-  parallel=getFromNamespace('.native_parallel_info','persephone3')(),
+  parallel=getFromNamespace('.native_parallel_info','rkalos')(),
   missing_policy_audits=sum(report$comparison=='missing_policy_audit'),
   timing_scope='24 short and 8 long fixed additive initial B1/B2/B3/B4a/B4anorm/B4d calls. Matched public primitive chain verified against actual B-step getters; the timed public call does not run the rest of B. Native additionally returns nested seasonal/normalization metadata, domains, masks and row maps. Public includes validated context creation and serialization of all six tables. No extreme correction, full B/C/D pass or fitting.',
   timing_conventions='Three warmed alternating rounds; >=50ms calibrated batches when possible, maximum 1000 calls/batch; loading/startup and explicit pre-batch GC excluded; natural in-batch GC included. Owned OpenMP for independent outputs; fixed per-row arithmetic order.')
