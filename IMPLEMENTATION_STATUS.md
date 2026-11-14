@@ -18,14 +18,12 @@ rkalos; Python intentionally exposes only a minimal initial surface.
    now live in C++; R retains conversions and result formatting.
 4. **Completed — pinned export.** Explicit allowlist, source/fixture checksums,
    exact core revision, generated version header and offline verification.
-5. **In validation — language boundaries/reference migration.** Lean R API and
-   minimal Python structure exist. Frozen evidence is preserved; active reference
-   commands use the new repositories. Original capture hashes and current-code
-   hashes remain distinct.
-6. **Next — final artifacts and integration.** Complete installed R/Python and
-   standalone archive checks, connect required rkalos in Persephone, publish the
-   validated sibling repositories. Platform CI configuration is not evidence of
-   completed remote platform runs.
+5. **Completed — language bindings and reference migration.** The R package
+   and minimal Python binding call the same pinned Kalos core. Active reference
+   commands use the new repositories and audit the original capture hashes.
+6. **Completed — packaging and publication.** The standalone source archive
+   and installed CMake consumer, R source package, and Python wheel passed
+   local checks. The repositories are published under `statistikat` on GitHub.
 
 ## Preserved numerical defaults and capabilities
 

@@ -1,7 +1,8 @@
 # Repository split delivery record
 
-Updated 2026-11-14. Target sibling repositories: `~/git/kalos`, `~/git/rkalos`,
-`~/git/pykalos`; the existing application stays at `~/git/persephone3x`.
+Updated 2026-11-14. The four local checkouts are siblings under
+`~/git/seasonaladjustment` and are named `kalos`, `rkalos`, `pykalos`, and
+`persephone`. The Persephone R package is named `persephone3`.
 
 The maintainer confirmed **required rkalos**: `persephone3 → rkalos → kalos`,
 with `pykalos → kalos`. The Python scope is a minimal working binding and package
