@@ -288,3 +288,27 @@ Release OpenMP build **39/39** (39 programs after adding
 `test_x11_replacement`), true serial build (`-DKALOS_OPENMP=OFF`) **39/39**,
 zero warnings under `-Wall -Wextra -Wpedantic` in both. No fixture, oracle or
 tolerance was rebaselined; existing tests are untouched.
+
+## Core export manifest for the 22b.3 units and manifest guard — 2026-11-15
+
+The item 22b.3a/22b.3b units were committed without their per-file export
+manifest entries, so `tools/export-source.py` snapshots of `0d20d21`/`8e91ee4`
+silently omitted `src/x11_sigma.cpp`, `src/x11_replacement.cpp`, their public
+headers and both fixture directories; the downstream rkalos/pykalos pins were
+held at `c6a1881` and the `8e91ee4` snapshot fails at configure. Completed
+`tools/source-files.json` with exactly the 24 missing tracked files (4 core
+sources/headers, 20 fixture files), matching the existing per-file,
+alphabetically sorted convention.
+
+New guard `tools/check-manifest.py` (run as the first CI step in
+`.github/workflows/core.yml`): every `add_library` source, every tracked
+file under `src/`, `include/`, `backends/` and `cmake/`, and every tracked
+file under `validation/fixtures/` must appear in the manifest, in sorted
+order with no duplicates or untracked entries. It passed on the completed
+manifest and deliberately removed entries (a library source, a public header,
+the sigma fixture set) were each refused with a named file list. Export
+snapshots of this revision (`--kind python` and `--kind r`) self-verify and a
+minimal consumer project built the full library, including both 22b.3 units,
+from the exported snapshot alone. No fixture, oracle, tolerance or build
+semantics changed. **Downstream rkalos/pykalos pins may now advance past
+`c6a1881` to this revision.**

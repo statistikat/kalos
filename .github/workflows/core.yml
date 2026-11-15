@@ -26,6 +26,8 @@ jobs:
           fi
       - name: Build pinned OpenBLAS
         run: python tools/build-openblas.py --prefix "${{ runner.temp }}/openblas" --jobs 2
+      - name: Export manifest
+        run: python tools/check-manifest.py
       - name: Historical evidence
         run: python tools/verify-migration.py
       - name: Configure and test
