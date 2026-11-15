@@ -144,3 +144,40 @@ and printed core version `0.1.0` with embedded revision `a01473e`.
 Not run on Linux: Windows; Clang toolchains; R/Python binding lanes; remote CI
 lanes. macOS evidence above remains as previously recorded. No capability or
 default has been promoted by this qualification.
+
+## Platform-independent range-guard semantics — 2026-11-15
+
+Resolved the three Linux x86_64 findings above at provider-independent source
+level. Decision (full rule and rationale in
+[extended-precision-range-contract.md](docs/contracts/extended-precision-range-contract.md)):
+binary64 is the numeric contract and `long double` is accumulation scratch only.
+Guarded conversions round once to binary64 and throw only on non-finite
+results; a nonzero extended-precision intermediate that rounds to zero **is
+zero** (flush-to-zero at binary64 granularity), which is exactly the
+structurally unreachable state of the removed `value != 0 && result == 0`
+throw on the qualified macOS baseline. Every explicit underflow contract
+remains enforced at binary64 granularity (squares, covariance diagonals,
+variance profiles and innovation scalings now guard on the binary64 value of
+their expression on every platform). Accumulation stays extended-precision
+scratch; overflow and relative-margin guards are unchanged.
+
+Changed files: `finite_state_factor.cpp`, `diffuse_state_space.cpp` (`checked`
+and `square`), `sparse_history.cpp`, `regression_likelihood.cpp` (`checked` and
+the whitened-residual square), `state_space.cpp` (standardized-innovation
+square), `prediction_arma_information.cpp`, `forecast_arma_information.cpp`,
+`interpolation_arma_information.cpp` (`finite_prediction`) and
+`arma_residuals.cpp` (`legacy_checked`). The
+`regression_likelihood.cpp` diagonal guard now fires with its own
+`regression coefficient covariance underflows` message on every platform
+instead of a generic conversion throw masking it.
+
+Validation on this machine, pinned OpenBLAS 0.3.34, `env -u LD_LIBRARY_PATH`:
+Release OpenMP build **37/37**, true serial build (`-DKALOS_OPENMP=OFF`)
+**37/37**, zero warnings under `-Wall -Wextra -Wpedantic` in both, and the
+cross-build outputs of every touched area's program are identical (only the
+self-reported thread-team banner differs, as expected). The three previously
+failing programs pass: `test_diffuse_state_space`,
+`test_forecast_arma_information` (`available`, serial/OpenMP equality) and
+`test_regression_likelihood` (message-matched covariance underflow). No
+fixture, oracle, tolerance or test file changed; nothing was rebaselined.
+No capability or default has been promoted.

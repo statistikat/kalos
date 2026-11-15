@@ -264,3 +264,13 @@ controls, masks/ranges, caller-only interruption and reuse. Mandatory R tests
 add public intermediate-table comparisons, independent complete operators,
 calendars, missing-support audits and serialization. These are initial B tables;
 they do not expose a full native seasonal-adjustment fit.
+
+## Extended-precision scratch and range guards
+
+All range guards (underflow/overflow rejection) follow
+[extended-precision-range-contract.md](extended-precision-range-contract.md):
+binary64 is the numeric contract, `long double` is accumulation scratch only,
+guarded conversions flush sub-binary64 magnitudes to zero identically on every
+platform, and every explicit underflow contract is evaluated on binary64
+quantities. This fixed the three Linux x86_64 standalone failures recorded in
+the 2026-11-15 baseline qualification without touching any fixture.
