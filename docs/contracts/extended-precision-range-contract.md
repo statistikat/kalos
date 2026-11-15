@@ -33,9 +33,17 @@ tolerances or failure statuses change.
    expression itself may be evaluated in wider scratch and then rounded once;
    for exact products of two binary64 values this equals the single-rounded
    binary64 product, so the guard fires on every platform in exactly the
-   cases where it fired on the qualified baseline. Examples that remain
-   enforced: `diffuse state-space square underflows`, `regression residual
-   square underflows`, `regression coefficient covariance underflows`,
+   cases where it fired on the qualified baseline. **Named quotients that
+   consumers recompute bit-for-bit** (the profiled variances) are additionally
+   evaluated as binary64 operations on the named binary64 operands, not as
+   once-rounded scratch quotients: on x86-64 a scratch-width quotient of the
+   unrounded extended sum differs from the consumer's binary64 division of
+   the stored sum by up to 1 ULP, breaking the bit-identical identity between
+   the likelihood kernels and the prediction kernels that re-derive the scale
+   (forecast, interpolation, ARMA information and residual recomputations
+   all divide the stored `sum_squared_standardized` in binary64). Examples
+   that remain enforced: `diffuse state-space square underflows`, `regression
+   residual square underflows`, `regression coefficient covariance underflows`,
    `finite innovation variance underflows`, `profiled variance underflows`,
    `ARMA prediction variance underflows`, and the forecast/interpolation
    covariance scaling guards.
@@ -84,6 +92,8 @@ tolerances or failure statuses change.
 | `src/forecast_arma_information.cpp` | `finite_prediction()` | underflow throw removed |
 | `src/interpolation_arma_information.cpp` | `finite_prediction()` | underflow throw removed |
 | `src/arma_residuals.cpp` | `legacy_checked()` | underflow throw removed |
+| `src/diffuse_state_space.cpp` | profiled variance (rule 3) | now a binary64 division of the named binary64 sum; guard tests the named sum |
+| `src/regression_likelihood.cpp` | profiled variance (rule 3) | now a binary64 division of the named binary64 sum; guard tests the named sum |
 
 Guards comparing a binary64 operand against a binary64 result
 (`scaled_covariance`, covariance diagonals, prediction-variance diagonals,

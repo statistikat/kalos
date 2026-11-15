@@ -312,3 +312,32 @@ minimal consumer project built the full library, including both 22b.3 units,
 from the exported snapshot alone. No fixture, oracle, tolerance or build
 semantics changed. **Downstream rkalos/pykalos pins may now advance past
 `c6a1881` to this revision.**
+
+## Profiled variance as a binary64 quotient — bit-identical recomputation — 2026-11-15
+
+The downstream rkalos re-qualification against the underflow-guard-fixed core
+exposed the last scratch-width divergence of the 0cbd012 family: on x86-64 the
+pinned forecast suite showed 15 of 64 cases where `forecast_information`'s
+`variance` and the fit's stored `profiled_variance` differed by exactly 1 ULP
+at identical optimizer coordinates (thread-count-independent and deterministic;
+structurally absent on the macOS baseline where the scratch is binary64).
+Mechanism: both likelihood kernels computed the named `profiled_variance` as
+the once-rounded **extended** quotient of the unrounded scratch sum
+(`checked(squares / n)`), while every consumer — `forecast_information`,
+`interpolation_information`, `arma_information`, `arma_residuals` and the
+internal invariant check in `forecast_arma_information` — divides the stored
+binary64 `sum_squared_standardized` in binary64. Extended-precision-range
+contract rule 3 forbids a named quantity from carrying a different rounding
+than the binary64 expression consumers re-evaluate, so both producers now
+compute the profiled variance as a binary64 division of the named binary64 sum
+(the quotient is bounded by the finite sum, so the removed `checked()`
+overflow guard cannot fire), and the "profiled variance underflows" guard
+tests the named binary64 sum, closing the residual cross-platform branch in
+the sub-binary64-sum corner. Contract rule 3 and the enforced-site inventory
+updated accordingly; no fixture, oracle or tolerance was touched.
+
+Validation on this machine, pinned OpenBLAS 0.3.34 provider,
+`env -u LD_LIBRARY_PATH`: Release OpenMP build **39/39**, true serial build
+**39/39**, zero warnings under `-Wall -Wextra -Wpedantic` in both. The values
+move at most 1 ULP toward the macOS-qualified baseline by construction; the
+rkalos downstream re-run is recorded in the rkalos repository.
