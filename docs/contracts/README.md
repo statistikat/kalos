@@ -274,3 +274,12 @@ guarded conversions flush sub-binary64 magnitudes to zero identically on every
 platform, and every explicit underflow contract is evaluated on binary64
 quantities. This fixed the three Linux x86_64 standalone failures recorded in
 the 2026-11-15 baseline qualification without touching any fixture.
+
+## Moving five-year dispersion and sigma weights
+
+`test_x11_sigma.cpp` and the 125-case pinned fixture qualify the moving
+five-year dispersion windows and two-pass sigma weights of the default X-11
+extreme-value stage (item 22b.3a) for both delivered rules — the exact pinned
+legacy rules and the scale-limit alternative. The default remains an open
+maintainer decision and is not promoted; the policy is a required argument.
+See [x11-sigma-contract.md](x11-sigma-contract.md).

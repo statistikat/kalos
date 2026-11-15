@@ -204,3 +204,40 @@ the environment-variable form. A bogus `OpenBLAS_ROOT` fails configure with
 the documented message and no system fallback. The explicit
 `-DKalosOpenBLAS_INCLUDE_DIR/-DKalosOpenBLAS_LIBRARY` cache entries remain
 supported. No capability or default has been promoted.
+
+## Moving five-year dispersion and two-pass sigma weights — 2026-11-15
+
+Delivered item 22b.3a for both reserved rules without promoting a default:
+`include/kalos/x11_sigma.hpp` / `src/x11_sigma.cpp` compute per-calendar-year
+moving five-year dispersion windows and the two-pass sigma weights of the
+default X-11 extreme-value stage (weights only; replacement values and
+correction factors remain 22b.3b work). `X11SigmaPolicy::legacy` reproduces
+the pinned JDemetra+ default corrector operation for operation — the `1e-5`
+tiny-dispersion year exemption, the `1e-15` threshold slack, two passes with
+exclusion of exactly-zero weights and re-detection on the original values,
+absolute-year window indexing over the full series, and projection trimming
+that affects only the dispersion windows. `X11SigmaPolicy::accurate` applies
+the scale-limit rule (no cutoff, no slack, zero dispersion grants weight 1
+only to exactly zero deviations). The policy is a required argument; the
+spike-revival-versus-limit default decision stays open and **no capability or
+default has been promoted**.
+
+Evidence: `validation/reference/capture-x11-sigma.R` drives the pinned
+`DefaultExtremeValuesCorrector` (rjd3 3.9.0 jars, rJava) and captures 125
+deterministic fixture cases to `validation/fixtures/native/x11-sigma` with
+17-significant-digit round-trip exact CSVs of pass-1/final weights, pass-1/
+final dispersion arrays and pass counts; the private exclusion helper re-run
+confirms the second-pass rule bit-exactly. A throwaway harness compared all
+125 cases with exact double equality (0 failures; legacy policy); the two
+policies diverge on exactly the seven tiny-scale fixture cases (spike revival
+versus scale-equivariant limit). `test_x11_sigma` embeds six pinned cases plus
+closed-form geometry/exclusion/missing/multiplicative/threshold controls,
+input validation (including the sub-one-period rejection, where the pinned
+reference itself runs off the array), interruption, and serial/OpenMP exact
+equality. Rules and semantics: docs/contracts/x11-sigma-contract.md.
+
+Validation on this machine, pinned OpenBLAS 0.3.34, `env -u LD_LIBRARY_PATH`:
+Release OpenMP build **38/38** (38 programs after adding `test_x11_sigma`),
+true serial build (`-DKALOS_OPENMP=OFF`) **38/38**, zero warnings under
+`-Wall -Wextra -Wpedantic` in both. No fixture, oracle or tolerance was
+rebaselined; existing tests are untouched.
