@@ -283,3 +283,13 @@ extreme-value stage (item 22b.3a) for both delivered rules — the exact pinned
 legacy rules and the scale-limit alternative. The default remains an open
 maintainer decision and is not promoted; the policy is a required argument.
 See [x11-sigma-contract.md](x11-sigma-contract.md).
+
+## Same-phase replacements and correction factors
+
+`test_x11_replacement.cpp` and the 22-case pinned fixture qualify the
+same-phase replacement values, neighbor provenance, endpoint extension,
+insufficient-neighbor period-average fallback, projection masking, correction
+factors and apply-corrections identity of the default X-11 extreme-value stage
+(item 22b.3b) on top of the item 22b.3a weights. B17/B20 table placement and
+the CV correction variant are not delivered or claimed. See
+[x11-replacement-contract.md](x11-replacement-contract.md).

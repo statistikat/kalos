@@ -68,6 +68,7 @@ add_library(kalos STATIC
   src/x11_seasonal_endpoints.cpp
   src/x11_seasonal_plan.cpp
   src/x11_seasonal_processing.cpp
+  src/x11_replacement.cpp
   src/x11_sigma.cpp
   src/x11_trend_selection.cpp
   backends/openblas.cpp)
@@ -163,6 +164,7 @@ if(KALOS_BUILD_TESTS)
     test_x11_seasonal_endpoints
     test_x11_seasonal_plan
     test_x11_seasonal_processing
+    test_x11_replacement
     test_x11_sigma
     test_x11_trend_selection)
     add_executable(${test_name} tests/${test_name}.cpp)

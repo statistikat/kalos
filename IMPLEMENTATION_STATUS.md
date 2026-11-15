@@ -241,3 +241,50 @@ Release OpenMP build **38/38** (38 programs after adding `test_x11_sigma`),
 true serial build (`-DKALOS_OPENMP=OFF`) **38/38**, zero warnings under
 `-Wall -Wextra -Wpedantic` in both. No fixture, oracle or tolerance was
 rebaselined; existing tests are untouched.
+
+## Same-phase replacements, endpoints and correction factors — 2026-11-15
+
+Delivered item 22b.3b on top of the 22b.3a weights:
+`include/kalos/x11_replacement.hpp` / `src/x11_replacement.cpp` compute the
+same-phase replacement values of the default X-11 extreme-value stage with
+full neighbor provenance. The pinned discovery walk collects up to two
+fully weighted (weight exactly one) same-phase rows per side and extends the
+opposite side to four at the endpoints; fewer than four neighbors select the
+insufficient-neighbor fallback (kind `period_average` with the pinned
+ascending phase sum), never a partial blend. The blend keeps the pinned
+reciprocal-multiply arithmetic `(w*x + s1 + s2 + s3 + s4) * (1/(4+w))`.
+Masked rows carry weight one with an effective NaN value and poison blends
+and phase averages exactly like the pinned reference. `outside_span` marks
+rows dropped by the projection span; `backcasts + forecasts > n` is rejected
+(the pinned masking then writes outside its output array), `== n` is defined.
+Correction factors follow the pinned public getter — additive `x*(1-w)`,
+multiplicative `x/(1+w*(x-1))` with the zero-denominator IEEE result, mode
+defaults elsewhere — and the corrected series is the apply-corrections
+identity, so weight-one rows cancel completely. B17/B20 table placement and
+the CV correction variant are not delivered or claimed; **no capability or
+default has been promoted**.
+
+Evidence: `validation/reference/capture-x11-replacement.R` drives the pinned
+`DefaultExtremeValuesCorrector` (rjd3 3.9.0 jars, rJava) through
+`analyse` → `getObservationWeights` → `computeCorrections` with both
+projection-masking booleans → `getCorrectionFactors` → `applyCorrections`
+plus static `periodAverages`, and re-runs the private neighbor walk through
+JNI for provenance; the capture re-derives every factor and kind itself and
+refuses to write on disagreement. The 22-case fixture
+(`validation/fixtures/native/x11-replacement`, 17-significant-digit
+round-trip exact) holds 1358 rows: 135 four-neighbor blends, 83 pinned
+null-walk fallbacks (218 flagged rows overall), 54 `outside_span` rows in the
+masking mode, plus NaN-poisoned, whole-phase, multiplicative and legacy-
+revival controls. A throwaway harness compared every artifact of every case
+— 22b.3a final weights, both replacement modes, kinds, all neighbor slots,
+factors, corrected values and averages — with exact double equality, 22/22.
+`test_x11_replacement` embeds six pinned cases plus closed-form walk,
+fallback, poisoning, endpoint-extension, validation, interruption and
+serial/OpenMP-exact-equality controls. Rules and semantics:
+docs/contracts/x11-replacement-contract.md.
+
+Validation on this machine, pinned OpenBLAS 0.3.34, `env -u LD_LIBRARY_PATH`:
+Release OpenMP build **39/39** (39 programs after adding
+`test_x11_replacement`), true serial build (`-DKALOS_OPENMP=OFF`) **39/39**,
+zero warnings under `-Wall -Wextra -Wpedantic` in both. No fixture, oracle or
+tolerance was rebaselined; existing tests are untouched.
