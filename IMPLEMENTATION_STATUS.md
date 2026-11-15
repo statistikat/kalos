@@ -181,3 +181,26 @@ failing programs pass: `test_diffuse_state_space`,
 `test_regression_likelihood` (message-matched covariance underflow). No
 fixture, oracle, tolerance or test file changed; nothing was rebaselined.
 No capability or default has been promoted.
+
+## FindKalosOpenBLAS provider precedence — 2026-11-15
+
+The open follow-up from the Linux baseline qualification is fixed in
+`cmake/FindKalosOpenBLAS.cmake`: an explicit provider root (cache entry
+`-DOpenBLAS_ROOT=<dir>` or the `OpenBLAS_ROOT` environment variable) is now
+exclusive — header and library are searched only under that root, so pkg-config
+or system hints can never contribute one of the two components. A root missing
+either `lapacke.h` or `libopenblas` fails the configure loudly with an
+explanatory warning instead of silently mixing providers. Without an explicit
+root, the previous pkg-config/system discovery applies unchanged.
+
+Verification on this machine (which has the system `openblas.pc` 0.3.26 without
+LAPACKE exports): a fresh build directory configured with only
+`-DOpenBLAS_ROOT=/tmp/opencode/openblas` resolved both cache entries to the
+pinned provider, `KALOS_LP64_PROVIDER` and `KALOS_OPENMP_RUNTIME_OK` probes
+succeeded, the full build produced zero warnings, `ldd` of the test binaries
+shows `libopenblas.so.0 => /tmp/opencode/openblas/lib/libopenblas.so.0`
+(pinned 0.3.34), and `ctest` passed **37/37**. The same resolution holds for
+the environment-variable form. A bogus `OpenBLAS_ROOT` fails configure with
+the documented message and no system fallback. The explicit
+`-DKalosOpenBLAS_INCLUDE_DIR/-DKalosOpenBLAS_LIBRARY` cache entries remain
+supported. No capability or default has been promoted.
