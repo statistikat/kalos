@@ -22,6 +22,10 @@ X11BPass x11_b_pass(const MaskedSeries& series_in,int frequency,int first_period
     const MaskedSeries series=mode==X11DecompositionMode::log_additive
         ?log_domain(series_in):series_in;
     const auto mult=x11_mode_is_multiplicative(mode);
+    // X11{B,C,D}StepPseudoAdd override the composition sites (item 22b.5
+    // M3b-ii); every other site keeps the multiplicative context they
+    // inherit (isMultiplicative() is true for PseudoAdditive).
+    const auto pseudo=mode==X11DecompositionMode::pseudo_additive;
     if(frequency!=4 && frequency!=12)
         throw std::invalid_argument("B pass supports monthly and quarterly series");
     if(first_period<1 || first_period>frequency)
@@ -60,7 +64,9 @@ X11BPass x11_b_pass(const MaskedSeries& series_in,int frequency,int first_period
     pass.b4a=process_pinned(pass.b3,frequency,center_position,initial_filters,interrupt);
     pass.b4anorm=normalize_pinned(pass.b4a,frequency,initial_position,t,0,final_filters,
         mult,interrupt);
-    pass.b4d=remove_pinned(pass.b3,pass.b4anorm,mult,interrupt);
+    // X11BStepPseudoAdd.b4d: PseudoAddUtility.removeIrregular(B3, B4anorm).
+    pass.b4d=pseudo?pseudo_remove_irregular(pass.b3,pass.b4anorm,interrupt)
+        :remove_pinned(pass.b3,pass.b4anorm,mult,interrupt);
     checkpoint(interrupt);
     auto& round1=pass.rounds[0];
     round1.detection=pass.b4d;
@@ -77,7 +83,10 @@ X11BPass x11_b_pass(const MaskedSeries& series_in,int frequency,int first_period
     checkpoint(interrupt);
     const auto initial5=process_pinned(pass.b4g,frequency,center_position,initial_filters,interrupt);
     pass.b5=normalize_pinned(initial5,frequency,center_position,0,t,final_filters,mult,interrupt);
-    pass.b6=remove_pinned(pass.b1,pass.b5,mult,interrupt);
+    // X11BStepPseudoAdd.b6: ratio B1/B5 at the borders, interior
+    // B1.drop - B2*(B5.drop - 1) (removeSeasonalAdjustedWithBorders).
+    pass.b6=pseudo?pseudo_with_borders(pass.b1,pass.b5,pass.b2,t,interrupt)
+        :remove_pinned(pass.b1,pass.b5,mult,interrupt);
     checkpoint(interrupt);
     pass.b7=pinned_trend_filter(pass.b6,frequency,trend_length,interrupt);
     // The pinned b7Step positivity repair of the trend table under a
@@ -89,7 +98,9 @@ X11BPass x11_b_pass(const MaskedSeries& series_in,int frequency,int first_period
     const auto seasonal9=normalize_pinned(final9,frequency,initial_position,0,0,final_filters,
         mult,interrupt);
     auto& round2=pass.rounds[1];
-    round2.detection=remove_pinned(pass.b8,seasonal9,mult,interrupt);
+    // X11BStepPseudoAdd.b9d: removeIrregular(B8, s9) = B8 - s9 + 1.
+    round2.detection=pseudo?pseudo_remove_irregular(pass.b8,seasonal9,interrupt)
+        :remove_pinned(pass.b8,seasonal9,mult,interrupt);
     round2.analysis_position=static_cast<std::int64_t>(initial_position);
     round2.policy=policy;
     round2.sigma=x11_sigma_weights(repo_view(round2.detection),frequency,
@@ -104,7 +115,10 @@ X11BPass x11_b_pass(const MaskedSeries& series_in,int frequency,int first_period
     checkpoint(interrupt);
     const auto final10=process_pinned(pass.b9g,frequency,initial_position,final_filters,interrupt);
     pass.b10=normalize_pinned(final10,frequency,initial_position,0,0,final_filters,mult,interrupt);
-    pass.b11=remove_pinned(pass.b1,pass.b10,mult,interrupt);
+    // X11BStepPseudoAdd.b11: removeSeasonalAdjusted(B1, B10, B7)
+    // = B1 - B7*(B10 - 1).
+    pass.b11=pseudo?pseudo_remove_seasonal_adjusted(pass.b1,pass.b10,pass.b7,interrupt)
+        :remove_pinned(pass.b1,pass.b10,mult,interrupt);
     pass.b13=remove_pinned(pass.b11,pass.b7,mult,interrupt);
     checkpoint(interrupt);
     auto& round3=pass.rounds[2];

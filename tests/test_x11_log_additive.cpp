@@ -21,8 +21,10 @@
 // the log domain the constant-series controls degenerate like the additive
 // fixture (NaN I/C ratio at B7 -> unsupported), in contrast to the
 // multiplicative run where the constant-msr contrast is decided. The
-// pseudo-additive mode still fails explicitly and non-positive log-additive
-// inputs fail with the pinned kernel message (the pinned positivity gate is
+// pseudo-additive mode is a delivered mode since item 22b.5 M3b-ii (qualified
+// in tests/test_x11_pseudo_additive.cpp), so the only pinned failure left here
+// is the non-positive log-additive input with the pinned kernel message (the
+// pinned positivity gate is
 // mode == Multiplicative || mode == LogAdditive with one constant message).
 // Contract: docs/contracts/x11-log-additive-contract.md.
 #include "kalos/x11_b_pass.hpp"
@@ -8901,9 +8903,10 @@ int main() {
             assert(boundaries==total+1);
         }
     }
-    {   // The decomposition-mode gates. Pseudo-additive fails explicitly on
-        // every delivered entry point (its qualification is item 22b.5
-        // M3b-ii); the pinned positivity gate is mode == Multiplicative ||
+    {   // The decomposition-mode gates. All four modes are delivered now
+        // (pseudo-additive qualified in item 22b.5 M3b-ii, see
+        // tests/test_x11_pseudo_additive.cpp); the pinned positivity gate is
+        // mode == Multiplicative ||
         // mode == LogAdditive with one constant message, applied to the RAW
         // present rows before the log transform; flagged-missing rows stay
         // legal at the fixed-pass level and the selection pass keeps its own
@@ -8916,13 +8919,18 @@ int main() {
         const MaskedSeries y{values,std::vector<std::uint8_t>(values.size(),0)};
         const std::vector<int> q5{5,5,5,5},q9{9,9,9,9};
         const auto msr=requests_of({-2,-2,-2,-2});
-        invalid_message([&]{x11_b_pass(y,4,1,q5,q9,13,X11SigmaPolicy::legacy,
-            1.5,2.5,X11DecompositionMode::pseudo_additive);},
-            "B pass: decomposition mode is not delivered");
-        invalid_message([&]{x11_selection_pass(y,4,1,msr,0,X11SigmaPolicy::legacy,
-            X11MsrIterationPolicy::jdplus,1.5,2.5,0,0,
-            X11DecompositionMode::pseudo_additive);},
-            "selection pass: decomposition mode is not delivered");
+        {   // Pseudo-additive is a delivered mode: a multiplicative-context
+            // pipeline with NO log transform (the delivered B1 is the raw
+            // input) and no positivity requirement.
+            const auto pb=x11_b_pass(y,4,1,q5,q9,13,X11SigmaPolicy::legacy,1.5,2.5,
+                X11DecompositionMode::pseudo_additive);
+            assert(pb.status=="available");
+            assert(pb.mode==X11DecompositionMode::pseudo_additive);
+            assert(same(pb.b1.values,y.values)); // no input transform
+            const auto lb=x11_b_pass(y,4,1,q5,q9,13,X11SigmaPolicy::legacy,1.5,2.5,
+                X11DecompositionMode::log_additive);
+            assert(!same(pb.b1.values,lb.b1.values)); // not the log pipeline
+        }
         assert(!x11_mode_is_multiplicative(X11DecompositionMode::additive));
         assert(x11_mode_is_multiplicative(X11DecompositionMode::multiplicative));
         assert(!x11_mode_is_multiplicative(X11DecompositionMode::log_additive));
@@ -8974,22 +8982,27 @@ int main() {
         invalid([&]{x11_selection_pass(hole,4,1,msr,0,X11SigmaPolicy::legacy,
             X11MsrIterationPolicy::jdplus,1.5,2.5,0,0,
             X11DecompositionMode::log_additive);});
-        // The additive mode keeps accepting the non-positive rows, and the
-        // pseudo-additive failure stays a mode gate: a non-positive pseudo
-        // input reports the undelivered mode, never a positivity message
-        // (the pinned PseudoAdditive has no positivity requirement at all).
+        // The additive and pseudo-additive modes keep accepting the non-
+        // positive rows (the pinned check() gates only Multiplicative and
+        // LogAdditive and the pinned PseudoAdditive has no positivity
+        // requirement at all): the zero and negative rows run to an available
+        // result instead of ever reporting the positivity message.
         const auto still=x11_b_pass(below,4,1,q5,q9,13,X11SigmaPolicy::legacy);
         assert(still.status=="available");
-        invalid_message([&]{x11_b_pass(below,4,1,q5,q9,13,X11SigmaPolicy::legacy,
-            1.5,2.5,X11DecompositionMode::pseudo_additive);},
-            "B pass: decomposition mode is not delivered");
+        const auto padd_zero=x11_b_pass(zero,4,1,q5,q9,13,X11SigmaPolicy::legacy,
+            1.5,2.5,X11DecompositionMode::pseudo_additive);
+        assert(padd_zero.status=="available");
+        const auto padd_neg=x11_b_pass(below,4,1,q5,q9,13,X11SigmaPolicy::legacy,
+            1.5,2.5,X11DecompositionMode::pseudo_additive);
+        assert(padd_neg.status=="available");
+        assert(padd_neg.b1.values[7]==-3.); // input untransformed, ungated
     }
     std::cout<<"PASS: "<<checked<<" pinned log-additive-mode cases ("
         <<fixed_cases<<" fixed B/C/D over the Math.log-transformed input and "
         "two extended calendars, 15 kernel selection cases with the "
         "additive-form I/C ratios, absolute-form MSR walks and the five-year "
         "cap, difference decomposition identities, both constant-series "
-        "degenerate controls, serial/OpenMP equality and the pseudo-additive "
-        "and non-positive-input gates)\n";
+        "degenerate controls, serial/OpenMP equality and the four-mode truth "
+        "table with the non-positive-input gates)\n";
     return 0;
 }

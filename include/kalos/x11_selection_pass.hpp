@@ -13,7 +13,8 @@
 // taking the longest filter, a NaN MSR table selecting 3x9) stay explicit
 // unsupported statuses instead of being reproduced.
 // See docs/contracts/x11-selection-pass-contract.md and, for the
-// multiplicative mode, docs/contracts/x11-multiplicative-contract.md.
+// decomposition modes, docs/contracts/x11-multiplicative-contract.md,
+// x11-log-additive-contract.md and x11-pseudo-additive-contract.md.
 // Cross-validation, non-seasonal modes, the period-specific corrector and
 // ARIMA-regression inputs are not delivered or claimed.
 #include "x11_d_pass.hpp"
@@ -82,7 +83,12 @@ struct X11SelectionPass {
 // context): the multiplicative mode runs the ratio arithmetic, positivity
 // repair and the pinned relative-form MSR table over the ratio-composed
 // tables (item 22b.5 M3a) and requires strictly positive complete input;
-// the unqualified modes fail explicitly.
+// log_additive (item 22b.5 M3b-i) runs the additive flow on Math.log of the
+// input under the same positivity requirement; pseudo_additive (item
+// 22b.5 M3b-ii) runs the pinned X11{B,C,D}StepPseudoAdd pipeline — ratio
+// arithmetic with the PseudoAddUtility composition forms, the makePositivity
+// trend repair and the removeIrregular-form global-MSR walk with the
+// absolute-form MSRE table — with no positivity requirement.
 X11SelectionPass x11_selection_pass(const MaskedSeries& series,int frequency,int first_period,
     const std::vector<X11SeasonalRequest>& requests,int trend_length,
     X11SigmaPolicy policy,X11MsrIterationPolicy msr_policy=X11MsrIterationPolicy::jdplus,

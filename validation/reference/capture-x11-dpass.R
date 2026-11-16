@@ -1,5 +1,7 @@
-# Pinned-reference capture for item 22b.4 S3: the fixed additive D pass of
-# jdplus.x13.base.core.x11.X11DStep (pinned rjd3 3.9.0 jars), composed exactly
+# Pinned-reference capture for items 22b.4 S3 (additive), 22b.5 M3a
+# (multiplicative), 22b.5 M3b-i (log-additive) and 22b.5 M3b-ii
+# (pseudo-additive): the fixed D pass of
+# jdplus.x13.base.core.x11.X11DStep resp. pseudoadd.X11DStepPseudoAdd (pinned rjd3 3.9.0 jars), composed exactly
 # like X11Kernel: X11BStep.process(series, ctx), X11CStep.process(series, B20,
 # ctx, cv) and X11DStep.process(series, C20, ctx, cv) with fixed per-phase
 # seasonal filters and a fixed Henderson trend filter. The 18 fixed-additive
@@ -21,28 +23,47 @@ if (length(args) >= 1L && startsWith(args[[1L]], '--mode=')) {
   mode_name <- sub('^--mode=', '', args[[1L]]); args <- args[-1L]
 }
 if (length(args) != 1L || !startsWith(args, '--output='))
-  stop('Usage: capture-x11-dpass.R [--mode=Additive|Multiplicative|LogAdditive] --output=<existing empty directory>')
-stopifnot(mode_name %in% c('Additive', 'Multiplicative', 'LogAdditive'))
+  stop('Usage: capture-x11-dpass.R [--mode=Additive|Multiplicative|LogAdditive|PseudoAdditive] --output=<existing empty directory>')
+stopifnot(mode_name %in% c('Additive', 'Multiplicative', 'LogAdditive', 'PseudoAdditive'))
 # The pinned truth table: isMultiplicative() is (mode == Multiplicative ||
 # mode == PseudoAdditive), so LogAdditive keeps the additive ctx.remove,
-# the 0-valued mode default and no makePositivity guards.
+# the 0-valued mode default and no makePositivity guards, while
+# PseudoAdditive keeps the multiplicative context (ratio removes on the
+# sites it does NOT override, mode default 1, makePositivity guards) and
+# only replaces d1/d6/d8/d11/d11bis with the PseudoAddUtility forms below.
 mult <- mode_name == 'Multiplicative'
 logadd <- mode_name == 'LogAdditive'
-mode_label <- switch(mode_name, Additive = 'additive',
-  Multiplicative = 'multiplicative', LogAdditive = 'log-additive')
-dflt <- if (mult) 1 else 0 # the pinned mode default (DummyFilter/correction factor)
-rem <- function(a, b) if (mult) a / b else a - b # pinned ctx.remove
+padd <- mode_name == 'PseudoAdditive'
+mode_label <- switch(mode_name, Additive = 'additive', Multiplicative = 'multiplicative',
+  LogAdditive = 'log-additive', PseudoAdditive = 'pseudo-additive')
+dflt <- if (mult || padd) 1 else 0 # the pinned mode default (DummyFilter/correction factor)
+rem <- function(a, b) if (mult || padd) a / b else a - b # pinned ctx.remove
+# PseudoAddUtility forms (bytecode PADD_UTIL.txt): removeSeasonalAdjusted
+# (a, b, c) is a - c*(b - 1) (the lambda captures (arg0, arg2, arg1));
+# adjustRefSeries(ref, corr, s, r) is ref + s*(r/corr - r);
+# removeSeasonalAdjustedWithBorders(x, s, f, drop) keeps the ratio x/s at
+# the border rows and takes x - f*(s - 1) on the dropped interior rows.
+padd_seasonal_adjusted <- function(a, b, c) a - c * (b - 1)
+padd_adjust_ref <- function(ref, corr, s, r) ref + s * (r / corr - r)
+padd_with_borders <- function(x, s, f, t) {
+  out <- x / s
+  i <- (t + 1L):(length(x) - t)
+  out[i] <- x[i] - f * (s[i] - 1)
+  out
+}
 output <- normalizePath(sub('^--output=', '', args), mustWork = TRUE)
 if (!dir.exists(output) || length(list.files(output, all.files = TRUE, no.. = TRUE)))
   stop('Output must be empty')
 # The strictly positive multiplicative shapes are the only inventory with
-# the positivity the pinned kernel requires of the log-additive mode.
+# the positivity the pinned kernel requires of the log-additive mode; the
+# pseudo-additive pipeline runs the ratio context too, so it reuses them.
 fixtures <- file.path(root, 'validation/fixtures/native',
-  if (mult || logadd) 'x11-bpass-mult-cases.R' else 'x11-bpass-cases.R')
+  if (mult || logadd || padd) 'x11-bpass-mult-cases.R' else 'x11-bpass-cases.R')
 for (fixture in fixtures) source(fixture)
 cpass <- read.csv(file.path(root, 'validation/fixtures/native',
   switch(mode_name, Multiplicative = 'x11-cpass-mult',
-    LogAdditive = 'x11-cpass-log', 'x11-cpass'), 'tables.csv'))
+    LogAdditive = 'x11-cpass-log', PseudoAdditive = 'x11-cpass-padd',
+    'x11-cpass'), 'tables.csv'))
 suppressWarnings(suppressMessages({
   library(rjd3jars); library(rjd3toolkit); library(rjd3x13); library(rJava)
 }))
@@ -102,17 +123,29 @@ capture <- function(ca, back, fc) {
     backcastHorizon(as.integer(back))$forecastHorizon(as.integer(fc))$excludefcast(FALSE)$build()
   stopifnot(identical(resolved(ctx, 'getInitialSeasonalFilter'), as.integer(ca$initial)),
     identical(resolved(ctx, 'getFinalSeasonalFilter'), as.integer(ca$final)))
-  b <- .jnew('jdplus.x13.base.core.x11.X11BStep')
+  b <- .jnew(if (padd) 'jdplus.x13.base.core.x11.pseudoadd.X11BStepPseudoAdd'
+    else 'jdplus.x13.base.core.x11.X11BStep')
   .jcall(b, 'V', 'process', seqi, ctx)
   if (!is.null(.jgetEx(TRUE))) stop('pinned B pass failed for case ', ca$id)
-  cstep <- .jnew('jdplus.x13.base.core.x11.X11CStep')
+  # X11CStepPseudoAdd carries the kernel's finished B7/B13 (constructor).
+  cstep <- if (padd) .jnew('jdplus.x13.base.core.x11.pseudoadd.X11CStepPseudoAdd',
+      .jcall(b, 'Ljdplus/toolkit/base/api/data/DoubleSeq;', 'getB7'),
+      .jcall(b, 'Ljdplus/toolkit/base/api/data/DoubleSeq;', 'getB13'))
+    else .jnew('jdplus.x13.base.core.x11.X11CStep')
   .jcall(cstep, 'V', 'process', seqi,
     .jcall(b, 'Ljdplus/toolkit/base/api/data/DoubleSeq;', 'getB20'), ctx, NULL)
   if (!is.null(.jgetEx(TRUE))) stop('pinned C pass failed for case ', ca$id)
   cvf <- .jcall(cstep, '[Ljdplus/x13/base/api/x11/SeasonalFilterOption;', 'getCvSeasonalFilter')
   c13 <- cstep$getC13()$toArray(); c17 <- cstep$getC17()$toArray()
   c20 <- cstep$getC20()$toArray()
-  dstep <- .jnew('jdplus.x13.base.core.x11.X11DStep')
+  if (padd) c7 <- cstep$getC7()$toArray() # the pseudo d1 override consumes C7
+  # X11DStepPseudoAdd carries the kernel's finished C7/C13/C20 (constructor);
+  # its d1 = adjustRefSeries(ref, C20, C7, C13) override consumes them.
+  dstep <- if (padd) .jnew('jdplus.x13.base.core.x11.pseudoadd.X11DStepPseudoAdd',
+      .jcall(cstep, 'Ljdplus/toolkit/base/api/data/DoubleSeq;', 'getC7'),
+      .jcall(cstep, 'Ljdplus/toolkit/base/api/data/DoubleSeq;', 'getC13'),
+      .jcall(cstep, 'Ljdplus/toolkit/base/api/data/DoubleSeq;', 'getC20'))
+    else .jnew('jdplus.x13.base.core.x11.X11DStep')
   .jcall(dstep, 'V', 'process', seqi,
     .jcall(cstep, 'Ljdplus/toolkit/base/api/data/DoubleSeq;', 'getC20'), ctx,
     .jnull('[Ljdplus/x13/base/api/x11/SeasonalFilterOption;'))
@@ -141,21 +174,29 @@ capture <- function(ca, back, fc) {
       logical(1))))
   cropped <- function(v) v[(drop + 1L):(n - drop)]
   # Additive identities of the captured tables, checked exactly against the
-  # captured input, the captured C20 and each other. The D9 mask is the
-  # pinned onMapping pair with dcmpg semantics (a NaN difference keeps D9bis).
+  # captured input, the captured C20 and each other. The pseudo-additive
+  # overrides (d1, d6, d8, d11, d11bis) take their PseudoAddUtility forms
+  # (d8 = (D1/D7)*C20 is the ratio remove scaled by the C20 correction) and
+  # every other site keeps the ratio context the subclass inherits. The D9
+  # mask is the pinned onMapping pair with dcmpg semantics (a NaN difference
+  # keeps D9bis).
   # The pinned d9 mask compares the raw pair (dcmpg on the plain difference
   # in both modes - the d9Step carries no decomposition switch).
   m9 <- abs(tab$D9bis - tab$D8)
   d9want <- ifelse(is.na(m9) | m9 >= 1e-9, tab$D9bis, NaN)
-  stopifnot(same(tab$D1, rem(series_values, c20)),
+  stopifnot(same(tab$D1, if (padd) padd_adjust_ref(series_values, c20, c7, c13)
+      else rem(series_values, c20)),
     same(tab$D4, rem(cropped(tab$D1), tab$D2)),
-    same(tab$D6, rem(tab$D1, tab$D5)),
-    same(tab$D8, rem(series_values, tab$D7)),
+    same(tab$D6, if (padd) padd_with_borders(tab$D1, tab$D5, tab$D2, drop)
+      else rem(tab$D1, tab$D5)),
+    same(tab$D8, if (padd) (tab$D1 / tab$D7) * c20 else rem(series_values, tab$D7)),
     same(tab$D9bis, rem(tab$D1, tab$D7)),
     same(tab$D9_g_bis, tab$D9bis),
     same(tab$D9, d9want),
-    same(tab$D11, rem(series_values, tab$D10)),
-    same(tab$D11bis, rem(tab$D1, tab$D10)),
+    same(tab$D11, if (padd) padd_seasonal_adjusted(series_values, tab$D10, tab$D12)
+      else rem(series_values, tab$D10)),
+    same(tab$D11bis, if (padd) padd_seasonal_adjusted(tab$D1, tab$D10, tab$D7)
+      else rem(tab$D1, tab$D10)),
     same(tab$D13, rem(tab$D11, tab$D12)))
   # The pinned D2 filter is the same annual trend-cycle filter re-applied
   # here independently through the toolkit's Mutable view convention.
@@ -175,7 +216,8 @@ capture <- function(ca, back, fc) {
   r <- J('jdplus/x13/base/core/x11/filter/MusgraveFilterFactory')$findR(
     as.integer(ca$trend), as.integer(f))
   afs <- ctx$asymmetricTrendFilters(htf, r)
-  # Under the multiplicative mode the delivered trend tables are the pinned
+  # Under the multiplicative and pseudo-additive modes (isMultiplicative()
+  # is true for both) the delivered trend tables are the pinned
   # makePositivity repair of the rebuild (d7Step and dFinalStep sites):
   # repairing the rebuild through the pinned static must equal the getter
   # and the counts record how many rows the guard fixed.
@@ -192,7 +234,7 @@ capture <- function(ca, back, fc) {
       J('jdplus.toolkit.base.core.data.DataBlock')$of(a))
     if (!is.null(.jgetEx(TRUE))) stop('pinned endpoint recomposition failed for ', ca$id)
     raw <- .jcall(J('jdplus.toolkit.base.core.data.DataBlock')$of(a), '[D', 'toArray')
-    if (!mult) return(same(raw, got))
+    if (!(mult || padd)) return(same(raw, got))
     fixed <- .jcall('jdplus/x13/base/core/x11/X11Context',
       'Ljdplus/toolkit/base/api/data/DoubleSeq;', 'makePositivity',
       .jcast(J('jdplus.toolkit.base.api.data.Doubles')$of(.jarray(raw)),
@@ -262,8 +304,8 @@ capture <- function(ca, back, fc) {
     orig_start_period = as.integer(ca$start_period),
     global_msr = msr$getGlobalMsr(), d9_nonnan = sum(!is.nan(tab$D9)),
     corrected_rc = sum(c20 != dflt))
-  if (mult || logadd) cases[[id]]$mode <<- mode_name # mode-carrying schemas
-  if (mult) { # multiplicative-only columns keep the additive schema byte-exact
+  if (mult || logadd || padd) cases[[id]]$mode <<- mode_name # mode-carrying schemas
+  if (mult || padd) { # ratio-context columns keep the additive schema byte-exact
     cases[[id]]$d7_repair <<- repair7 # <<- keeps the modification in the enclosing
     cases[[id]]$d12_repair <<- repair12 # scope: plain $<- would only touch the
   } # function-local shadow copy
@@ -286,16 +328,20 @@ write.csv(fixtures_fmt(do.call(rbind, msrrows)), file.path(output, 'msr.csv'), r
 files <- c(normalizePath(script), fixtures,
   file.path(root, 'validation/fixtures/native',
     switch(mode_name, Multiplicative = 'x11-cpass-mult',
-      LogAdditive = 'x11-cpass-log', 'x11-cpass'), 'tables.csv'))
+      LogAdditive = 'x11-cpass-log', PseudoAdditive = 'x11-cpass-padd',
+      'x11-cpass'), 'tables.csv'))
 java <- list(version = .jcall('java/lang/System', 'Ljava/lang/String;', 'getProperty', 'java.version'),
   vendor = .jcall('java/lang/System', 'Ljava/lang/String;', 'getProperty', 'java.vendor'),
   runtime_version = .jcall('java/lang/System', 'Ljava/lang/String;', 'getProperty', 'java.runtime.version'),
   vm_name = .jcall('java/lang/System', 'Ljava/lang/String;', 'getProperty', 'java.vm.name'),
   architecture = .jcall('java/lang/System', 'Ljava/lang/String;', 'getProperty', 'os.arch'),
-  oracle = paste0('rjd3 3.9.0/3.9.1 pinned jars via rjd3jars classpath; X11Kernel composition X11BStep.process(series, ctx) + X11CStep.process(series, B20, ctx, cv) + X11DStep.process(series, C20, ctx, cv) on',
+  oracle = paste0('rjd3 3.9.0/3.9.1 pinned jars via rjd3jars classpath; X11Kernel composition ',
+    if (padd) 'X11BStepPseudoAdd.process(series, ctx) + X11CStepPseudoAdd(B7, B13).process(series, B20, ctx, cv) + X11DStepPseudoAdd(C7, C13, C20).process(series, C20, ctx, cv) on'
+      else 'X11BStep.process(series, ctx) + X11CStep.process(series, B20, ctx, cv) + X11DStep.process(series, C20, ctx, cv) on',
     if (logadd) ' DoubleSeq.log() of the strictly positive input (the pinned kernel input transform) with' else '',
     ' fixed per-phase SeasonalFilterOption arrays, fixed Henderson trendFilterLength, ', mode_label, ' mode; extended cases set backcastHorizon/forecastHorizon with a hand-extended series and shifted firstPeriod; all public D getters D1..D13 (D9g is null in the fixed corrector mode), getD9msr, getSeasFilter, getD2drop and the Henderson lengths',
-    if (mult) ' plus the pinned makePositivity rebuild cross-checks of D7 and D12' else ''))
+    if (padd) ' (the pseudo-additive overrides d1/d6/d8/d11/d11bis re-derived through the pinned PseudoAddUtility forms, the MSRE diagnostic through the mode-driven X11Utility.defaultMsrTable)' else '',
+    if (mult || padd) ' plus the pinned makePositivity rebuild cross-checks of D7 and D12' else ''))
 metadata <- list(schema_version = 1L,
   captured_utc = format(Sys.time(), tz = 'UTC', usetz = TRUE),
   source_sha256 = setNames(reference_sha256(files), basename(files)),
@@ -303,6 +349,7 @@ metadata <- list(schema_version = 1L,
   public_scope = switch(mode_name,
     Multiplicative = 'Pinned X11DStep fixed multiplicative D-pass tables only (D1, D2, D4, D5, D6, D7, D8, D9, D9bis, D9_g_bis, D10, D10bis, D11, D11bis, D12, D13, the D9 MSRE diagnostic table and the seasFilter echo) composed from the fixed multiplicative B and C passes exactly like X11Kernel, at zero horizon and on four hand-extended calendars with context backcast/forecast horizons, including the d7Step and dFinalStep makePositivity repair cross-checks and repair counts; the MSRE filter selection, automatic Henderson (getICRatio is diagnostic-only and not captured), cross-validation, the period-specific corrector (D9g), log-additive and pseudo-additive modes and ARIMA-regression inputs are not claimed',
     LogAdditive = 'Pinned X11DStep fixed log-additive D-pass tables only (D1, D2, D4, D5, D6, D7, D8, D9, D9bis, D9_g_bis, D10, D10bis, D11, D11bis, D12, D13, the D9 MSRE diagnostic table and the seasFilter echo) composed from the fixed log-additive B and C passes exactly like X11Kernel, at zero horizon and on four hand-extended calendars with context backcast/forecast horizons: the tables are the log-domain step tables of the pinned pipeline (additive arithmetic on DoubleSeq.log() of the strictly positive input, no makePositivity guards because isMultiplicative() is false); the results-builder exp of D10..D13 and the bias-correction skip are export-stage behaviour and are not claimed; the MSRE filter selection, automatic Henderson (getICRatio is diagnostic-only and not captured), cross-validation, the period-specific corrector (D9g), multiplicative and pseudo-additive modes and ARIMA-regression inputs are not claimed',
+    PseudoAdditive = 'Pinned X11DStepPseudoAdd fixed pseudo-additive D-pass tables only (D1, D2, D4, D5, D6, D7, D8, D9, D9bis, D9_g_bis, D10, D10bis, D11, D11bis, D12, D13, the D9 MSRE diagnostic table and the seasFilter echo) composed from the fixed pseudo-additive B and C passes exactly like X11Kernel (the D step carries the C7/C13/C20 of that run), at zero horizon and on four hand-extended calendars with context backcast/forecast horizons: the multiplicative ratio context of isMultiplicative() at every site the subclass does not override (D4, D9bis, D13, the sigma/correction arithmetic with mode default 1, the makePositivity-repaired D7 and D12 with repair counts) plus the pinned PseudoAddUtility overrides d1 = ref + C7*(C13/C20 - C13), d6 with ratio border rows and interior D1 - D2*(D5 - 1), d8 = (D1/D7)*C20, d11 = ref - D12*(D10 - 1) and d11bis = D1 - D7*(D10 - 1), each cross-checked against the same IEEE form, and the MSRE diagnostic reproduced through the mode-driven X11Utility.defaultMsrTable; the MSRE filter selection, automatic Henderson (getICRatio is diagnostic-only and not captured), cross-validation, the period-specific corrector (D9g), multiplicative and log-additive modes and ARIMA-regression inputs are not claimed',
     'Pinned X11DStep fixed additive D-pass tables only (D1, D2, D4, D5, D6, D7, D8, D9, D9bis, D9_g_bis, D10, D10bis, D11, D11bis, D12, D13, the D9 MSRE diagnostic table and the seasFilter echo) composed from the fixed additive B and C passes exactly like X11Kernel, at zero horizon and on four hand-extended calendars with context backcast/forecast horizons; the MSRE filter selection, automatic Henderson (getICRatio is diagnostic-only and not captured), cross-validation, the period-specific corrector (D9g), multiplicative modes and ARIMA-regression inputs are not claimed'))
 writeLines(sub('[[:blank:]]+$', '', capture.output(dput(metadata))), file.path(output, 'metadata.R'))
 captured <- file.path(output, c('inputs.csv', 'cases.csv', 'tables.csv', 'msr.csv', 'metadata.R'))

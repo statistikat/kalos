@@ -59,7 +59,10 @@ inline MaskedSeries repo_view(const MaskedSeries& pinned) {
 // wise ratio. Both mirror the pinned IEEE arithmetic: the missing flag is
 // the union of the inputs and masked values carry NaN, exactly the NaN the
 // pinned elementwise operation produces from NaN-carrying rows. Every step
-// composition of the pinned reference goes through this single site.
+// composition of the pinned additive/multiplicative/log-additive reference
+// goes through this single site; the pseudo-additive overrides decode to
+// the dedicated PseudoAddUtility forms below (item 22b.5 M3b-ii), which
+// carry masked rows through the identical union/NaN pattern.
 inline MaskedSeries remove_pinned(const MaskedSeries& left,const MaskedSeries& right,
         bool multiplicative,const Interrupt& interrupt) {
     MaskedSeries out;
@@ -74,22 +77,108 @@ inline MaskedSeries remove_pinned(const MaskedSeries& left,const MaskedSeries& r
     });
     return out;
 }
+// PseudoAddUtility (pinned jdplus.x13.base.core.x11.pseudoadd, bytecode
+// PADD_UTIL.txt) — the elementwise forms the X11{B,C,D}StepPseudoAdd
+// overrides apply where the base classes call ctx.remove. The lambda
+// capture orders are bytecode-exact: removeSeasonalAdjusted(a, b, c) is
+// a - c*(b - 1) (the invokedynamic captures (arg0, arg2, arg1)) and
+// adjustRefSeries(a, b, c, d) is a + c*(d/b - d). NaN rows propagate like
+// the pinned DoubleSeq.onMapping, so the missing pattern matches the
+// remove_pinned convention.
+inline MaskedSeries pseudo_remove_irregular(const MaskedSeries& left,
+        const MaskedSeries& right,const Interrupt& interrupt) {
+    MaskedSeries out;
+    out.values.assign(left.values.size(),nan());
+    out.missing.assign(left.values.size(),1);
+    parallel_for(left.values.size(),1,interrupt,[&](std::size_t row) {
+        if(!left.missing[row] && !right.missing[row]) {
+            const auto value=left.values[row]-right.values[row]+1.;
+            out.values[row]=value; out.missing[row]=std::isnan(value);
+        }
+    });
+    return out;
+}
+inline MaskedSeries pseudo_remove_seasonal_adjusted(const MaskedSeries& a,
+        const MaskedSeries& b,const MaskedSeries& c,const Interrupt& interrupt) {
+    MaskedSeries out;
+    out.values.assign(a.values.size(),nan());
+    out.missing.assign(a.values.size(),1);
+    parallel_for(a.values.size(),1,interrupt,[&](std::size_t row) {
+        if(!a.missing[row] && !b.missing[row] && !c.missing[row]) {
+            const auto value=a.values[row]-c.values[row]*(b.values[row]-1.);
+            out.values[row]=value; out.missing[row]=std::isnan(value);
+        }
+    });
+    return out;
+}
+inline MaskedSeries pseudo_adjust_ref_series(const MaskedSeries& ref,
+        const MaskedSeries& corr,const MaskedSeries& s,const MaskedSeries& r,
+        const Interrupt& interrupt) {
+    MaskedSeries out;
+    out.values.assign(ref.values.size(),nan());
+    out.missing.assign(ref.values.size(),1);
+    parallel_for(ref.values.size(),1,interrupt,[&](std::size_t row) {
+        if(!ref.missing[row] && !corr.missing[row] && !s.missing[row]
+                && !r.missing[row]) {
+            const auto value=ref.values[row]
+                +s.values[row]*(r.values[row]/corr.values[row]-r.values[row]);
+            out.values[row]=value; out.missing[row]=std::isnan(value);
+        }
+    });
+    return out;
+}
+inline MaskedSeries product_pinned(const MaskedSeries& left,
+        const MaskedSeries& right,const Interrupt& interrupt) {
+    MaskedSeries out;
+    out.values.assign(left.values.size(),nan());
+    out.missing.assign(left.values.size(),1);
+    parallel_for(left.values.size(),1,interrupt,[&](std::size_t row) {
+        if(!left.missing[row] && !right.missing[row]) {
+            const auto value=left.values[row]*right.values[row];
+            out.values[row]=value; out.missing[row]=std::isnan(value);
+        }
+    });
+    return out;
+}
+// removeSeasonalAdjustedWithBorders(x, s, f, drop): the border rows keep
+// the ratio x/s of the full-length inputs, the interior rows drop(t, t)
+// both full-length inputs and take x - f*(s - 1) — the filter f is NOT
+// dropped (at every pinned call site it already lives on the cropped
+// span), matching the DoubleSeq.drop/get use of the bytecode.
+inline MaskedSeries pseudo_with_borders(const MaskedSeries& x,const MaskedSeries& s,
+        const MaskedSeries& f,std::size_t drop,const Interrupt& interrupt) {
+    MaskedSeries out;
+    out.values.assign(x.values.size(),nan());
+    out.missing.assign(x.values.size(),1);
+    const auto n=x.values.size();
+    parallel_for(n,1,interrupt,[&](std::size_t row) {
+        if(row<drop || row+drop>=n) { // the ratio fallback rows
+            if(!x.missing[row] && !s.missing[row]) {
+                const auto value=x.values[row]/s.values[row];
+                out.values[row]=value; out.missing[row]=std::isnan(value);
+            }
+        } else if(!x.missing[row] && !s.missing[row] && !f.missing[row-drop]) {
+            const auto value=x.values[row]
+                -f.values[row-drop]*(s.values[row]-1.);
+            out.values[row]=value; out.missing[row]=std::isnan(value);
+        }
+    });
+    return out;
+}
 // The pass-level mode gate. Unqualified modes fail explicitly: the pinned
-// The pass-level mode gate. Pseudo-additive fails explicitly until its own
-// qualification (item 22b.5 M3b-ii): the pinned pseudo-additive pipeline
-// runs the dedicated X11{B,C,D}StepPseudoAdd classes whose overrides
-// decode to PseudoAddUtility forms the ratio arithmetic alone does not
-// reproduce. The positivity requirement mirrors the pinned
-// X11Kernel.check() predicate dcmpg(x, 0) > 0 on the present rows, gated
-// on mode == Multiplicative || mode == LogAdditive (the pinned message is
-// the constant string for BOTH gated modes; PseudoAdditive has no
-// requirement at all). The pinned missing-value error is a kernel-level
-// rule the selection pass applies separately; the steps themselves carry
-// masked rows through the ratio as NaN.
-inline void check_decomposition(const char* what,X11DecompositionMode mode,
+// The pass-level mode gate. All four decomposition modes are delivered and
+// qualified: additive (item 22b.4), multiplicative (item 22b.5 M3a),
+// log_additive (item 22b.5 M3b-i) and pseudo_additive (item 22b.5 M3b-ii,
+// the pinned X11{B,C,D}StepPseudoAdd pipeline). The positivity requirement
+// mirrors the pinned X11Kernel.check() predicate dcmpg(x, 0) > 0 on the
+// present rows, gated on mode == Multiplicative || mode == LogAdditive
+// (the pinned message is the constant string for BOTH gated modes;
+// Additive and PseudoAdditive have no requirement at all — a non-positive
+// pseudo-additive input is legal). The pinned missing-value error is a
+// kernel-level rule the selection pass applies separately; the steps
+// themselves carry masked rows through the arithmetic as NaN.
+inline void check_decomposition(const char*,X11DecompositionMode mode,
         const MaskedSeries& series) {
-    if(mode==X11DecompositionMode::pseudo_additive)
-        throw std::invalid_argument(std::string(what)+": decomposition mode is not delivered");
     if(mode!=X11DecompositionMode::multiplicative&&mode!=X11DecompositionMode::log_additive)
         return;
     for(std::size_t row=0;row<series.values.size();++row)
@@ -500,9 +589,18 @@ inline void pinned_filtered_mean(const std::vector<double>& block,
 // relative-form flag set, which divides EVERY phase difference (of both
 // the residual and the filtered mean) by its leading value.
 inline void pinned_msr_table(const std::vector<double>& x,int frequency,
-        std::size_t position,bool multiplicative,
+        std::size_t position,X11DecompositionMode mode,
         std::vector<double>& ri,std::vector<double>& rs,
         std::vector<std::int64_t>& counts) {
+    // The pinned mode switch of the observation residual (X11Utility.
+    // defaultMsrTable / MsrFilterSelection.calcComponents): Multiplicative
+    // takes x/mean and sets the MsrTable.of relative flag; PseudoAdditive
+    // takes x - mean + 1 (the PseudoAddUtility.removeIrregular form, also
+    // used by MsrFilterSelectionPseudoAdd.calcIrregular) with the flag
+    // FALSE — the flag is the strict mode == Multiplicative test;
+    // Additive/LogAdditive keep the plain difference.
+    const bool relative=mode==X11DecompositionMode::multiplicative;
+    const bool pseudo=mode==X11DecompositionMode::pseudo_additive;
     const auto f=static_cast<std::size_t>(frequency),m=x.size();
     static const double ctab[]={1.,1.02584,1.01779,1.01383,1.,3.,1.55291,1.30095};
     const auto fis=[](long n)->double {
@@ -528,10 +626,11 @@ inline void pinned_msr_table(const std::vector<double>& x,int frequency,
     }
     std::vector<double> residual(m);
     for(std::size_t row=0;row<m;++row)
-        residual[row]=multiplicative?x[row]/mean[row]:x[row]-mean[row];
-    const auto phase_delta=[multiplicative](double first,double second) {
+        residual[row]=relative?x[row]/mean[row]
+            :pseudo?x[row]-mean[row]+1.:x[row]-mean[row];
+    const auto phase_delta=[relative](double first,double second) {
         const auto delta=second-first;
-        return multiplicative?delta/first:delta;
+        return relative?delta/first:delta;
     };
     ri.assign(f,nan());rs.assign(f,nan());counts.assign(f,0);
     for(std::size_t phase=0;phase<f;++phase) {

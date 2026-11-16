@@ -72,6 +72,7 @@ kalos::X11DecompositionMode parse_mode(const std::string& raw) {
   if (s == "Multiplicative") return kalos::X11DecompositionMode::multiplicative;
   if (s == "Additive") return kalos::X11DecompositionMode::additive;
   if (s == "LogAdditive") return kalos::X11DecompositionMode::log_additive;
+  if (s == "PseudoAdditive") return kalos::X11DecompositionMode::pseudo_additive;
   throw std::runtime_error("unexpected fixture mode " + s);
 }
 bool equal_nan(const std::vector<double>& a, const std::vector<double>& b) {
@@ -199,7 +200,7 @@ int main(int argc, char** argv) {
     }
     long flagged = 0, corrected = 0;
     const double dflt =  // the pinned mode default (DummyFilter/correction factor)
-        c.mode == kalos::X11DecompositionMode::multiplicative ? 1. : 0.;
+        kalos::x11_mode_is_multiplicative(c.mode) ? 1. : 0.;
     for (const auto w : pass.c17.values) if (w != 1.) ++flagged;
     for (const auto f : pass.c20.values) if (f != dflt) ++corrected;
     if (flagged != c.flagged_rc || corrected != c.corrected_rc) {

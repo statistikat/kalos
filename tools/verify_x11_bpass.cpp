@@ -73,6 +73,7 @@ kalos::X11DecompositionMode parse_mode(const std::string& raw) {
   if (s == "Multiplicative") return kalos::X11DecompositionMode::multiplicative;
   if (s == "Additive") return kalos::X11DecompositionMode::additive;
   if (s == "LogAdditive") return kalos::X11DecompositionMode::log_additive;
+  if (s == "PseudoAdditive") return kalos::X11DecompositionMode::pseudo_additive;
   throw std::runtime_error("unexpected fixture mode " + s);
 }
 bool equal_nan(const std::vector<double>& a, const std::vector<double>& b) {

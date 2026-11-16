@@ -10,12 +10,14 @@
 // in docs/contracts/x11-multiplicative-contract.md.
 //
 // Delivered and qualified: additive (items 22b.4 S1-S4), multiplicative
-// (item 22b.5 M3a) and log_additive (item 22b.5 M3b-i: the pinned kernel
+// (item 22b.5 M3a), log_additive (item 22b.5 M3b-i: the pinned kernel
 // transforms the input with Math.log before the plain additive steps; the
 // delivered tables are those step-level log-domain tables, the results-
-// builder exp of D10..D13 is not). pseudo_additive is declared for
-// completeness only — every pass rejects it with an explicit unsupported
-// argument error until its own qualification (item 22b.5 M3b-ii).
+// builder exp of D10..D13 is not) and pseudo_additive (item 22b.5 M3b-ii:
+// the pinned X11{B,C,D}StepPseudoAdd pipeline — the multiplicative ratio
+// context with the PseudoAddUtility forms at the twelve overridden
+// composition sites and the removeIrregular global-MSR walk, documented in
+// docs/contracts/x11-pseudo-additive-contract.md).
 #include <cstddef>
 namespace kalos {
 enum class X11DecompositionMode {

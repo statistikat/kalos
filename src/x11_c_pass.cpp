@@ -53,6 +53,7 @@ X11CPass x11_c_pass(const MaskedSeries& series_in,int frequency,int first_period
             throw std::invalid_argument("C pass series differs from the B pass input");
     }
     const auto mult=x11_mode_is_multiplicative(mode);
+    const auto pseudo=mode==X11DecompositionMode::pseudo_additive;
     checkpoint(interrupt);
     X11CPass pass;
     pass.c2drop=t;
@@ -63,7 +64,11 @@ X11CPass x11_c_pass(const MaskedSeries& series_in,int frequency,int first_period
     // X11CStep.process(refSeries, B20, ctx): c1 = remove(refSeries, B20).
     const auto y=to_pinned(series);
     pass.reference_series=y;
-    pass.c1=remove_pinned(y,b.b20,mult,interrupt);
+    // X11CStepPseudoAdd.c1 = adjustRefSeries(refSeries, B20, B7, B13)
+    // = ref + B7*(B13/B20 - B13) (the constructor carries B7/B13 from the
+    // kernel's finished B step).
+    pass.c1=pseudo?pseudo_adjust_ref_series(y,b.b20,b.b7,b.b13,interrupt)
+        :remove_pinned(y,b.b20,mult,interrupt);
     // c2Step: X11TrendCycleFilterFactory.makeTrendFilter(period) over the
     // central span only (the pinned table has length n - 2*c2drop).
     const auto annual=x11_symmetric_filter(repo_view(pass.c1),X11FilterKind::trend,
@@ -81,7 +86,10 @@ X11CPass x11_c_pass(const MaskedSeries& series_in,int frequency,int first_period
     // iStart = c2drop (the pinned extension back to the full span).
     pass.c5a=process_pinned(pass.c4,frequency,center_position,initial_filters,interrupt);
     pass.c5=normalize_pinned(pass.c5a,frequency,center_position,0,t,final_filters,mult,interrupt);
-    pass.c6=remove_pinned(pass.c1,pass.c5,mult,interrupt);
+    // X11CStepPseudoAdd.c6: ratio C1/C5 at the borders, interior
+    // C1.drop - C2*(C5.drop - 1).
+    pass.c6=pseudo?pseudo_with_borders(pass.c1,pass.c5,pass.c2,t,interrupt)
+        :remove_pinned(pass.c1,pass.c5,mult,interrupt);
     checkpoint(interrupt);
     // c7Step: the fixed Henderson filter with mmsre endpoints over C6.
     pass.c7=pinned_trend_filter(pass.c6,frequency,trend_length,interrupt);
@@ -93,7 +101,10 @@ X11CPass x11_c_pass(const MaskedSeries& series_in,int frequency,int first_period
     // cFinalStep: the final requests over C9, normalized with iStart = 0.
     pass.c10a=process_pinned(pass.c9,frequency,first,final_filters,interrupt);
     pass.c10=normalize_pinned(pass.c10a,frequency,first,0,0,final_filters,mult,interrupt);
-    pass.c11=remove_pinned(y,pass.c10,mult,interrupt); // remove(refSeries, c10)
+    // X11CStepPseudoAdd.c11: removeSeasonalAdjusted(refSeries, C10, C7)
+    // = ref - C7*(C10 - 1).
+    pass.c11=pseudo?pseudo_remove_seasonal_adjusted(y,pass.c10,pass.c7,interrupt)
+        :remove_pinned(y,pass.c10,mult,interrupt); // remove(refSeries, c10)
     pass.c13=remove_pinned(pass.c11,pass.c7,mult,interrupt);
     checkpoint(interrupt);
     auto& round=pass.round;

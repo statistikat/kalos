@@ -1,5 +1,6 @@
 # Pinned-reference capture for item 22b.4 S4 (additive), item 22b.5 M3a
-# (multiplicative) and item 22b.5 M3b-i (log-additive): the selection flow of
+# (multiplicative), item 22b.5 M3b-i (log-additive) and item 22b.5 M3b-ii
+# (pseudo-additive): the selection flow of
 # the pinned X11Kernel (pinned rjd3
 # 3.9.0 jars). Each case is captured by running the kernel itself
 # (X11Kernel.process on complete fixed-mode inputs with per-phase
@@ -23,20 +24,25 @@ if (length(args) >= 1L && startsWith(args[[1L]], '--mode=')) {
   mode_name <- sub('^--mode=', '', args[[1L]]); args <- args[-1L]
 }
 if (length(args) != 1L || !startsWith(args, '--output='))
-  stop('Usage: capture-x11-selection.R [--mode=Additive|Multiplicative|LogAdditive] --output=<existing empty directory>')
-stopifnot(mode_name %in% c('Additive', 'Multiplicative', 'LogAdditive'))
+  stop('Usage: capture-x11-selection.R [--mode=Additive|Multiplicative|LogAdditive|PseudoAdditive] --output=<existing empty directory>')
+stopifnot(mode_name %in% c('Additive', 'Multiplicative', 'LogAdditive', 'PseudoAdditive'))
 # The pinned truth table: isMultiplicative() is (mode == Multiplicative ||
 # mode == PseudoAdditive), so LogAdditive keeps the additive ctx.remove, the
 # 0-valued mode default, the strict MsrTable relative flag == FALSE and no
 # makePositivity guards; the kernel itself applies the DoubleSeq.log() input
-# transform, so the capture feeds raw values and every captured step table
-# is log-domain (inputs.csv keeps the raw values).
+# transform, so the log capture feeds raw values and every captured step
+# table is log-domain (inputs.csv keeps the raw values). PseudoAdditive runs
+# the ratio context through the X11{B,C,D}StepPseudoAdd classes the kernel
+# picks itself; its global-MSR walk uses MsrFilterSelectionPseudoAdd with
+# the x - seas + 1 irregular (PseudoAddUtility.removeIrregular) while the
+# MsrTable.of relative flag stays the strict mode == Multiplicative test.
 mult <- mode_name == 'Multiplicative'
 logadd <- mode_name == 'LogAdditive'
-mode_label <- switch(mode_name, Additive = 'additive',
-  Multiplicative = 'multiplicative', LogAdditive = 'log-additive')
-dflt <- if (mult) 1 else 0 # the pinned mode default (DummyFilter/correction factor)
-rem <- function(a, b) if (mult) a / b else a - b # pinned ctx.remove
+padd <- mode_name == 'PseudoAdditive'
+mode_label <- switch(mode_name, Additive = 'additive', Multiplicative = 'multiplicative',
+  LogAdditive = 'log-additive', PseudoAdditive = 'pseudo-additive')
+dflt <- if (mult || padd) 1 else 0 # the pinned mode default (DummyFilter/correction factor)
+rem <- function(a, b) if (mult || padd) a / b else a - b # pinned ctx.remove
 output <- normalizePath(sub('^--output=', '', args), mustWork = TRUE)
 if (!dir.exists(output) || length(list.files(output, all.files = TRUE, no.. = TRUE)))
   stop('Output must be empty')
@@ -86,7 +92,10 @@ fmend_pilot <- function(w, f) {
   }
   seas <- .jcall(dst, '[D', 'toArray')
   seas <- seas[seq_len(length(w))]
-  list(seasonal = seas, irregular = rem(as.double(w), seas))
+  # MsrFilterSelectionPseudoAdd.calcIrregular is
+  # PseudoAddUtility.removeIrregular(x, seas) = x - seas + 1.
+  irregular <- if (padd) as.double(w) - seas + 1 else rem(as.double(w), seas)
+  list(seasonal = seas, irregular = irregular)
 }
 msr_table_global <- function(seas, irr, f, first0) {
   # The pinned MsrTable.of relative-delta flag is the strict mode ==
@@ -145,7 +154,8 @@ capture <- function(id, values, f, first_period, requests, trend, back = 0L, fc 
   stopifnot(d7len == expected_d7, finallen == expected_final)
   # Standalone pinned doMSR over the kernel D9_g_bis and the pinned attempt walk.
   gbf <- .jcall(d, 'Ljdplus/toolkit/base/api/data/DoubleSeq;', 'getD9_g_bis')$toArray()
-  mfs <- .jnew('jdplus/x13/base/core/x11/filter/MsrFilterSelection')
+  mfs <- .jnew(if (padd) 'jdplus/x13/base/core/x11/pseudoadd/MsrFilterSelectionPseudoAdd'
+    else 'jdplus/x13/base/core/x11/filter/MsrFilterSelection')
   f2 <- .jcall(mfs, 'Ljdplus/x13/base/api/x11/SeasonalFilterOption;', 'doMSR',
     .jcall(d, 'Ljdplus/toolkit/base/api/data/DoubleSeq;', 'getD9_g_bis'), ctx)
   stand <- list(filter = code_of(.jarray(list(f2))), iter = mfs$getIterCount(),
@@ -191,7 +201,7 @@ capture <- function(id, values, f, first_period, requests, trend, back = 0L, fc 
     engaged = engaged, d9filter = if (is.null(d$getD9filter())) NA_integer_ else code_of(.jarray(list(d$getD9filter()))),
     d9msriter = d$getD9msriter(), d9default = d$isD9default(),
     b20nz = sum(seq_of(b, 'B20')$toArray() != dflt), stringsAsFactors = FALSE)
-  if (mult || logadd) row$mode <- mode_name # mode-carrying schemas
+  if (mult || logadd || padd) row$mode <- mode_name # mode-carrying schemas
   cases <<- rbind(cases, row)                        # keep the additive schema byte-exact
   stages <- data.frame(stage = c('b7', 'c7', 'd7', 'final'),
     input = c('b6', 'c6', 'd6', 'd11bis'), ic_ratio = as.numeric(ics),
@@ -272,7 +282,8 @@ java <- list(version = .jcall('java/lang/System', 'Ljava/lang/String;', 'getProp
   architecture = .jcall('java/lang/System', 'Ljava/lang/String;', 'getProperty', 'os.arch'),
   oracle = paste0('rjd3 3.9.0/3.9.1 pinned jars via rjd3jars classpath; X11Kernel.process(TsData, X11Spec, ProcessingLog.dummy) with per-phase SeasonalFilterOption requests, fixed or automatic (0) Henderson length, ',
     mode_label, ' mode, zero or hand-extended horizons; step getters B7/B13/B20, C7/C13/C20, D1..D13, getSeasFilter, getD9filter, getD9msriter, isD9default, getD7HendersonFilterLength, getFinalHendersonFilterLength, getICRatio; pinned AutomaticHenderson.calcICR/selectFilter and standalone MsrFilterSelection.doMSR cross-checks on the kernel context; pinned FilteredMeanEndPoints/MsrTable.of attempt walk reproducing every doMSR iteration',
-    if (logadd) '; the kernel applies the DoubleSeq.log() input transform, so every captured step table is log-domain and the doMSR/MSR cross-checks run in the additive (isMultiplicative() == false) form' else ''))
+    if (logadd) '; the kernel applies the DoubleSeq.log() input transform, so every captured step table is log-domain and the doMSR/MSR cross-checks run in the additive (isMultiplicative() == false) form' else '',
+    if (padd) '; the kernel runs the X11{B,C,D}StepPseudoAdd pipeline (ratio context with the PseudoAddUtility overrides), the standalone doMSR cross-check uses MsrFilterSelectionPseudoAdd and the attempt-walk irregular takes x - seas + 1 with the MsrTable.of relative flag FALSE' else ''))
 metadata <- list(schema_version = 1L,
   captured_utc = format(Sys.time(), tz = 'UTC', usetz = TRUE),
   source_sha256 = setNames(reference_sha256(files), basename(files)),
@@ -280,6 +291,7 @@ metadata <- list(schema_version = 1L,
   public_scope = switch(mode_name,
     Multiplicative = 'Pinned X11Kernel fixed multiplicative selection flow only: staged fixed/X11Default/MSR seasonal requests resolved by the pinned context, automatic Henderson length at B7 (with the pinned inline ratio >= 1 -> period + 1 branch), C7, D7 and the D final step (selectFilter thresholds), the always-computed D final iCRatio, the global-MSR D-final filter decision (doMSR attempts with the mode-aware calcComponents irregular x / seas and the MsrTable.of relative flag set exactly when the mode is Multiplicative, iteration count, exhausted default and seasFilter fill) and the post-selection B/C/D tables of the same run. The constant-series case pins the pinned degenerate choices (NaN I/C ratio -> longest filter, degenerate global MSR -> 3x5 default) as controls the qualified pass deliberately does not reproduce; cross-validation, log-additive and pseudo-additive modes, the period-specific corrector and ARIMA-regression inputs are not claimed',
     LogAdditive = 'Pinned X11Kernel fixed log-additive selection flow only: staged fixed/X11Default/MSR seasonal requests resolved by the pinned context, automatic Henderson length at B7 (with the pinned inline ratio >= 1 -> period + 1 branch), C7, D7 and the D final step (selectFilter thresholds), the always-computed D final iCRatio, the global-MSR D-final filter decision (doMSR attempts with the additive-form calcComponents irregular x - seas and the MsrTable.of relative flag FALSE, because isMultiplicative() is false under LogAdditive, iteration count, exhausted default and seasFilter fill) and the post-selection B/C/D tables of the same run: the tables are the log-domain step tables (additive arithmetic on DoubleSeq.log() of the strictly positive input); the results-builder exp of D10..D13 and the bias-correction skip are export-stage behaviour and are not claimed. The constant-series case pins the pinned degenerate choices (NaN I/C ratio -> longest filter, degenerate global MSR -> 3x5 default) as controls the qualified pass deliberately does not reproduce; cross-validation, multiplicative and pseudo-additive modes, the period-specific corrector and ARIMA-regression inputs are not claimed',
+    PseudoAdditive = 'Pinned X11Kernel fixed pseudo-additive selection flow only: the kernel-internal X11{B,C,D}StepPseudoAdd pipeline (multiplicative ratio context with the PseudoAddUtility overrides and the makePositivity-repaired trend tables) with staged fixed/X11Default/MSR seasonal requests resolved by the pinned context, automatic Henderson length at B7 (with the pinned inline ratio >= 1 -> period + 1 branch), C7, D7 and the D final step (selectFilter thresholds), the always-computed D final iCRatio, the global-MSR D-final filter decision (MsrFilterSelectionPseudoAdd doMSR attempts with the removeIrregular calcComponents irregular x - seas + 1 and the MsrTable.of relative flag FALSE (the strict mode == Multiplicative test), iteration count, exhausted default and seasFilter fill) and the post-selection B/C/D tables of the same run. The constant-series cases pin the pinned degenerate or decided choices as controls the qualified pass deliberately does not reproduce when the I/C ratio is NaN; cross-validation, multiplicative and log-additive modes, the period-specific corrector and ARIMA-regression inputs are not claimed',
     'Pinned X11Kernel additive selection flow only: staged fixed/X11Default/MSR seasonal requests resolved by the pinned context, automatic Henderson length at B7 (with the pinned inline ratio >= 1 -> period + 1 branch), C7, D7 and the D final step (selectFilter thresholds), the always-computed D final iCRatio, the global-MSR D-final filter decision (doMSR attempts, iteration count, exhausted default and seasFilter fill) and the post-selection B/C/D tables of the same run. The constant-series cases pin the pinned degenerate choices (NaN I/C ratio -> longest filter, MSR 3.844... -> 3x5) as controls the qualified pass deliberately does not reproduce; cross-validation, multiplicative modes, the period-specific corrector and ARIMA-regression inputs are not claimed'))
 writeLines(sub('[[:blank:]]+$', '', capture.output(dput(metadata))), file.path(output, 'metadata.R'))
 captured <- file.path(output, c('inputs.csv', 'cases.csv', 'tables.csv', 'selections.csv', 'msr.csv', 'metadata.R'))

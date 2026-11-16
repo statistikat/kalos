@@ -170,6 +170,7 @@ if(KALOS_BUILD_TESTS)
     test_x11_multiplicative
     test_x11_musgrave
     test_x11_normalization
+    test_x11_pseudo_additive
     test_x11_selection_pass
     test_x11_seasonal_endpoints
     test_x11_seasonal_plan

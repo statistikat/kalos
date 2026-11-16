@@ -58,6 +58,7 @@ X11DPass x11_d_pass(const MaskedSeries& series_in,int frequency,int first_period
             throw std::invalid_argument("D pass series differs from the C pass input");
     }
     const auto mult=x11_mode_is_multiplicative(mode);
+    const auto pseudo=mode==X11DecompositionMode::pseudo_additive;
     checkpoint(interrupt);
     X11DPass pass;
     pass.d2drop=t;
@@ -71,7 +72,11 @@ X11DPass x11_d_pass(const MaskedSeries& series_in,int frequency,int first_period
     pass.msr_iterations=0; // pinned constant: no MSRE filter selection
     // X11DStep.process(refSeries, C20, ctx, cvFilters): d1 = remove(refSeries, C20).
     const auto y=to_pinned(series);
-    pass.d1=remove_pinned(y,c.c20,mult,interrupt);
+    // X11DStepPseudoAdd.d1 = adjustRefSeries(refSeries, C20, C7, C13)
+    // = ref + C7*(C13/C20 - C13) (the constructor carries C7/C13 from the
+    // kernel's finished C step; C20 is the reference correction).
+    pass.d1=pseudo?pseudo_adjust_ref_series(y,c.c20,c.c7,c.c13,interrupt)
+        :remove_pinned(y,c.c20,mult,interrupt);
     // d2Step: X11TrendCycleFilterFactory.makeTrendFilter(period) over the
     // central span only (the pinned table has length n - 2*d2drop).
     const auto annual=x11_symmetric_filter(repo_view(pass.d1),X11FilterKind::trend,
@@ -89,13 +94,20 @@ X11DPass x11_d_pass(const MaskedSeries& series_in,int frequency,int first_period
     // d2drop), normalized with iStart = d2drop (extension back to the span).
     const auto d5raw=process_pinned(pass.d4,frequency,center_position,initial_filters,interrupt);
     pass.d5=normalize_pinned(d5raw,frequency,center_position,0,t,final_filters,mult,interrupt);
-    pass.d6=remove_pinned(pass.d1,pass.d5,mult,interrupt);
+    // X11DStepPseudoAdd.d6: ratio D1/D5 at the borders, interior
+    // D1.drop - D2*(D5.drop - 1).
+    pass.d6=pseudo?pseudo_with_borders(pass.d1,pass.d5,pass.d2,t,interrupt)
+        :remove_pinned(pass.d1,pass.d5,mult,interrupt);
     checkpoint(interrupt);
     // d7Step: the fixed Henderson filter with mmsre endpoints over D6.
     pass.d7=pinned_trend_filter(pass.d6,frequency,trend_length,interrupt);
     // The pinned d7Step positivity repair under a multiplicative context.
     if(mult) make_positivity(pass.d7.values);
-    pass.d8=remove_pinned(y,pass.d7,mult,interrupt); // remove(refSeries, d7)
+    // X11DStepPseudoAdd.d8: (D1/D7)*C20 — the ratio ctx.remove runs on D1
+    // (not the reference) and the result is scaled by the C20 correction.
+    pass.d8=pseudo?product_pinned(remove_pinned(pass.d1,pass.d7,true,interrupt),
+        c.c20,interrupt)
+        :remove_pinned(y,pass.d7,mult,interrupt); // remove(refSeries, d7)
     pass.d9bis=remove_pinned(pass.d1,pass.d7,mult,interrupt);
     pass.d9=d9_mask_pinned(pass.d9bis,pass.d8,interrupt); // pinned dcmpg mask
     checkpoint(interrupt);
@@ -103,12 +115,18 @@ X11DPass x11_d_pass(const MaskedSeries& series_in,int frequency,int first_period
     // with iStart = 0; the final Henderson trend over D11bis.
     pass.d10bis=process_pinned(pass.d9bis,frequency,first,final_filters,interrupt);
     pass.d10=normalize_pinned(pass.d10bis,frequency,first,0,0,final_filters,mult,interrupt);
-    pass.d11bis=remove_pinned(pass.d1,pass.d10,mult,interrupt);
+    // X11DStepPseudoAdd.d11bis: removeSeasonalAdjusted(D1, D10, D7)
+    // = D1 - D7*(D10 - 1).
+    pass.d11bis=pseudo?pseudo_remove_seasonal_adjusted(pass.d1,pass.d10,pass.d7,interrupt)
+        :remove_pinned(pass.d1,pass.d10,mult,interrupt);
     pass.d12=pinned_trend_filter(pass.d11bis,frequency,trend_length,interrupt);
     // The pinned dFinalStep positivity repair of the final Henderson trend,
     // before D13 composes it away (the second X11DStep makePositivity site).
     if(mult) make_positivity(pass.d12.values);
-    pass.d11=remove_pinned(y,pass.d10,mult,interrupt); // remove(refSeries, d10)
+    // X11DStepPseudoAdd.d11: ref - D12*(D10 - 1)
+    // (removeSeasonalAdjustedFinal(refSeries, D12*(D10 - 1))).
+    pass.d11=pseudo?pseudo_remove_seasonal_adjusted(y,pass.d10,pass.d12,interrupt)
+        :remove_pinned(y,pass.d10,mult,interrupt); // remove(refSeries, d10)
     pass.d13=remove_pinned(pass.d11,pass.d12,mult,interrupt);
     checkpoint(interrupt);
     // The pinned MSRE diagnostic runs on the dropped original calendar at
@@ -118,7 +136,7 @@ X11DPass x11_d_pass(const MaskedSeries& series_in,int frequency,int first_period
     std::vector<double> ri,rs;
     std::vector<std::int64_t> counts;
     pinned_msr_table(original,frequency,(first+static_cast<std::size_t>(backcast))%f,
-        mult,ri,rs,counts);
+        mode,ri,rs,counts);
     auto& msr=pass.msr_table;
     msr.mean_irregular_evolutions=std::move(ri);
     msr.mean_seasonal_evolutions=std::move(rs);

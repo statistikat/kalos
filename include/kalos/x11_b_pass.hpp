@@ -63,7 +63,13 @@ struct X11BPass {
 // item 22b.4 tables and multiplicative (item 22b.5 M3a, contract
 // x11-multiplicative-contract.md) runs the pinned ratio arithmetic with the
 // positivity repair and the mode-aware corrector, requiring strictly
-// positive complete input; the other modes fail explicitly.
+// positive complete input; log_additive (contract
+// x11-log-additive-contract.md) runs the plain additive steps on Math.log of
+// the input under the same positivity requirement, and pseudo_additive
+// (contract x11-pseudo-additive-contract.md) runs the pinned
+// X11{B,C,D}StepPseudoAdd pipeline — the multiplicative context with the
+// PseudoAddUtility forms at the overridden composition sites — with no
+// positivity requirement.
 X11BPass x11_b_pass(const MaskedSeries& series,int frequency,int first_period,
     const std::vector<int>& initial_filters,const std::vector<int>& final_filters,
     int trend_length,X11SigmaPolicy policy,

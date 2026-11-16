@@ -75,6 +75,7 @@ kalos::X11DecompositionMode parse_mode(const std::string& raw) {
   if (s == "Multiplicative") return kalos::X11DecompositionMode::multiplicative;
   if (s == "Additive") return kalos::X11DecompositionMode::additive;
   if (s == "LogAdditive") return kalos::X11DecompositionMode::log_additive;
+  if (s == "PseudoAdditive") return kalos::X11DecompositionMode::pseudo_additive;
   throw std::runtime_error("unexpected fixture mode " + s);
 }
 bool equal_nan(const std::vector<double>& a, const std::vector<double>& b) {
@@ -235,7 +236,8 @@ int main(int argc, char** argv) {
         const std::size_t f = static_cast<std::size_t>(c.frequency);
         const std::size_t pos =
             (static_cast<std::size_t>(c.start_period - 1) + static_cast<std::size_t>(c.back)) % f;
-        kalos::detail::pinned_msr_table(slice, c.frequency, pos, false, ri2, rs2, n2);
+        kalos::detail::pinned_msr_table(slice, c.frequency, pos,
+            kalos::X11DecompositionMode::additive, ri2, rs2, n2);
         std::printf("   fixture-input ri:");
         for (auto v : ri2) std::printf(" %.17g", v);
         std::printf("\n   fixture-input rs:");

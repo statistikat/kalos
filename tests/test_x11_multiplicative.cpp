@@ -18,9 +18,11 @@
 // (the monthly inventory is re-verified by the tools/verify_x11_*pass
 // sweeps over the full fixture); the selection subset is the complete
 // 15-case pinned kernel inventory in multiplicative mode. The
-// pseudo-additive mode and the non-positive multiplicative input fail
-// explicitly with the pinned messages (log-additive is a delivered mode
-// since item 22b.5 M3b-i, qualified in tests/test_x11_log_additive.cpp). Contract:
+// pseudo-additive mode is a delivered mode since item 22b.5 M3b-ii (qualified
+// in tests/test_x11_pseudo_additive.cpp), so the only pinned failure left
+// here is the non-positive multiplicative input with its message (log-additive
+// has been delivered since item 22b.5 M3b-i, qualified in
+// tests/test_x11_log_additive.cpp). Contract:
 // docs/contracts/x11-multiplicative-contract.md.
 #include "kalos/x11_b_pass.hpp"
 #include "kalos/x11_c_pass.hpp"
@@ -9153,10 +9155,10 @@ int main() {
             assert(boundaries==total+1);
         }
     }
-    {   // The decomposition-mode gates. Pseudo-additive fails explicitly on
-        // every delivered entry point (log-additive became a delivered mode
-        // with its own qualification in item 22b.5 M3b-i, see
-        // tests/test_x11_log_additive.cpp); the multiplicative mode
+    {   // The decomposition-mode gates. All four modes are delivered now
+        // (log-additive qualified in item 22b.5 M3b-i, pseudo-additive in
+        // item 22b.5 M3b-ii, each with its own pinned test); the
+        // multiplicative mode
         // requires strictly positive present rows with the pinned kernel
         // message, while flagged-missing rows stay legal at the fixed-pass
         // level (the masked fixture cases above) and the selection pass keeps
@@ -9166,13 +9168,23 @@ int main() {
         const MaskedSeries y{values,std::vector<std::uint8_t>(values.size(),0)};
         const std::vector<int> q5{5,5,5,5},q9{9,9,9,9};
         const auto msr=requests_of({-2,-2,-2,-2});
-        invalid_message([&]{x11_b_pass(y,4,1,q5,q9,13,X11SigmaPolicy::legacy,
-            1.5,2.5,X11DecompositionMode::pseudo_additive);},
-            "B pass: decomposition mode is not delivered");
-        invalid_message([&]{x11_selection_pass(y,4,1,msr,0,X11SigmaPolicy::legacy,
-            X11MsrIterationPolicy::jdplus,1.5,2.5,0,0,
-            X11DecompositionMode::pseudo_additive);},
-            "selection pass: decomposition mode is not delivered");
+        {   // Pseudo-additive is a delivered mode (tests/
+            // test_x11_pseudo_additive.cpp): the same input runs through the
+            // X11{B,C,D}StepPseudoAdd pipeline — a multiplicative-context
+            // mode, but NOT the plain multiplicative pipeline (the B11
+            // removeSeasonalAdjusted override separates the two tables).
+            const auto pb=x11_b_pass(y,4,1,q5,q9,13,X11SigmaPolicy::legacy,1.5,2.5,
+                X11DecompositionMode::pseudo_additive);
+            assert(pb.status=="available");
+            assert(pb.mode==X11DecompositionMode::pseudo_additive);
+            const auto mb=x11_b_pass(y,4,1,q5,q9,13,X11SigmaPolicy::legacy,1.5,2.5,
+                X11DecompositionMode::multiplicative);
+            assert(!same(mb.b11.values,pb.b11.values));
+            const auto b11=[&](std::size_t row) {   // removeSeasonalAdjusted
+                return pb.b1.values[row]-pb.b7.values[row]*(pb.b10.values[row]-1.);};
+            for(std::size_t row=0;row<pb.b11.values.size();++row)
+                assert(pb.b11.values[row]==b11(row));
+        }
         assert(!x11_mode_is_multiplicative(X11DecompositionMode::additive));
         assert(x11_mode_is_multiplicative(X11DecompositionMode::multiplicative));
         assert(!x11_mode_is_multiplicative(X11DecompositionMode::log_additive));
@@ -9219,7 +9231,7 @@ int main() {
         "spikeend and wideband cases and two extended calendars, 15 kernel "
         "selection cases with the mode-aware I/C ratios, relative-form MSR "
         "walks and the five-year cap, ratio decomposition identities, "
-        "serial/OpenMP equality and the unqualified-mode and positivity "
-        "gates)\n";
+        "serial/OpenMP equality and the positivity gate with the four-mode "
+        "truth table)\n";
     return 0;
 }

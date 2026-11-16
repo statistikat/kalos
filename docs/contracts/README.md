@@ -355,11 +355,9 @@ branch live), the mode-default-1 sigma/corrector arithmetic, the
 relative-form `MsrTable.of` flag set exactly for `Multiplicative`, the
 mode-aware `doMSR` irregular and the new pinned `calcICR` fact that the
 flag makes the lag-1 variations relative in both windows (it decides the
-additive-NaN `const-msr` contrast at 3.515625). Pseudo-additive fails
-every entry point with an explicit unsupported-mode argument error (its
-pinned `X11{B,C,D}StepPseudoAdd`/`PseudoAddUtility` pipeline is decoded
-but not delivered until M3b-ii); log-additive became a delivered mode
-with its own qualification in item 22b.5 M3b-i (see below). See
+additive-NaN `const-msr` contrast at 3.515625). The other modes are now
+all delivered too: log-additive with its own qualification in item 22b.5
+M3b-i and pseudo-additive in item 22b.5 M3b-ii (see below). See
 [x11-multiplicative-contract.md](x11-multiplicative-contract.md).
 
 ## Log-additive decomposition mode
@@ -380,3 +378,27 @@ multiplicative `const-msr`). The results-builder `exp` of D10..D13 and the
 LogAdditive bias-correction skip are export-stage behaviour and are not
 delivered or claimed. See
 [x11-log-additive-contract.md](x11-log-additive-contract.md).
+
+## Pseudo-additive decomposition mode
+
+`test_x11_pseudo_additive.cpp` and the 91-case pinned pseudo-additive
+fixtures qualify the pseudo-additive decomposition mode (item 22b.5 M3b-ii)
+across the S1–S4 passes: the pinned `pseudoadd.X11{B,C,D}StepPseudoAdd` and
+`MsrFilterSelectionPseudoAdd` pipeline that `X11Kernel` selects for mode
+`PseudoAdditive`. Because `isMultiplicative()` is true, the whole context
+runs the ratio arithmetic (ratio `remove`, centre-1 sigma, 1 mode default,
+`makePositivity` trend repairs proven live on the spikeend/wideband cases,
+relative-form `calcICR` lag-1 variations), while the subclasses override
+exactly twelve composition sites with the bytecode-exact `PseudoAddUtility`
+forms (`removeSeasonalAdjusted(a, b, c) = a − c·(b − 1)`, `adjustRefSeries
+(ref, corr, s, r) = ref + s·(r/corr − r)`, `removeIrregular(a, b) = a − b +
+1`, `removeSeasonalAdjustedWithBorders` keeping the ratio at the borders and
+`x − f·(s − 1)` inside) and the global-MSR walk measures `x − seas + 1` with
+the `MsrTable.of` relative flag staying the strict `mode == Multiplicative`
+test (false). Unlike `multiplicative`/`log_additive`, `X11Kernel.check()`
+imposes no positivity requirement, so non-positive inputs are legal; the
+`const-msr` contrast is decided (I/C 3.515625, one decisive 3x9 evaluation)
+like the multiplicative run while `const-fixed` stays NaN-degenerate, and
+the 15-attempt `q-longmsr` walk decides at its fifteenth so the five-year
+cap and the full run deliver identical tables with differing MSR metadata.
+See [x11-pseudo-additive-contract.md](x11-pseudo-additive-contract.md).

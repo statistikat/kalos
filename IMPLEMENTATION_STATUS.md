@@ -674,3 +674,80 @@ tolerance, default or capability was promoted. Cross-validation, the
 period-specific corrector, the pseudo-additive mode, the log-additive
 export stage (`exp` of D10..D13, bias-skip), the mean-endpoint fallback
 and ARIMA-regression inputs remain undelivered and unclaimed.
+
+## Pseudo-additive decomposition mode (22b.5 M3b-ii) — 2026-11-16
+
+Delivered the pinned **pseudo-additive decomposition mode** (item 22b.5
+slice M3b-ii) across the S1–S4 passes. Pinned decode (PADD_{B,C,D,UTIL}.
+txt, MSRFSEL_PADD.txt bytecode in /tmp/opencode/jdprobe): `X11Kernel`
+selects `pseudoadd.X11{B,C,D}StepPseudoAdd` and
+`MsrFilterSelectionPseudoAdd` under mode `PseudoAdditive`;
+`isMultiplicative()` is TRUE, so every non-overridden site keeps the ratio
+context (ratio removes, centre-1 sigma, 1 mode default, relative-form
+`calcICR`, the four `makePositivity` trend guards live) while the
+subclasses replace exactly twelve composition sites with the bytecode-exact
+`PseudoAddUtility` forms — `b4d = B3 − B4anorm + 1`, `b6/b6/c6/d6` with
+ratio border rows and interior `x − f·(s − 1)`, `b9d = B8 − s9 + 1`,
+`b11 = B1 − B7·(B10 − 1)`, `c1 = Y + B7·(B13/B20 − B13)`,
+`c11 = Y − C7·(C10 − 1)`, `d1 = Y + C7·(C13/C20 − C13)`,
+`d8 = (D1/D7)·C20`, `d11 = Y − D12·(D10 − 1)`,
+`d11bis = D1 − D7·(D10 − 1)` (lambda capture orders verified against the
+invokedynamic bootstrap records) — and the C/D steps carry the finished
+predecessor tables through their constructors (B7/B13, C7/C13/C20) exactly
+like the kernel wires them. `X11Kernel.check()` imposes NO positivity
+requirement on this mode (the gate is Multiplicative/LogAdditive only) and
+`X11Utility.defaultMsrTable` takes its own `case 1`: `obs = x − mov + 1`
+with `MsrTable.of` relative flag FALSE; `MsrFilterSelectionPseudoAdd.
+calcIrregular` is `x − seas + 1` while `doMSR` keeps the strict
+`mode == Multiplicative` flag (false). Implementation: the mode gate
+accepts all four modes (the not-delivered message is now unreachable),
+`detail` gained the four pseudo forms plus the three-form mode-driven
+`pinned_msr_table`, the twelve override branches select on the mode in the
+B/C/D passes, the selection pass's manual C-stage sites and the global-MSR
+walk (`msr_walk` mode parameter) take the pseudo forms. All four capture
+scripts take `--mode=PseudoAdditive`: the fixed captures compose the
+pseudo step classes like the kernel and re-derive every identity through
+the bytecode forms (cross-checked against the pinned statics), the
+selection capture runs the kernel itself plus a standalone
+`MsrFilterSelectionPseudoAdd.doMSR` and a pinned-component attempt walk.
+Fixtures: `x11-{bpass,cpass,dpass}-padd` (24/24/28 cases, 32,656/23,224/
+31,616 rows, masked + four extended calendars, removeIrregular-form/
+absolute-evolution MSRE diagnostic, repair-count columns) and
+`x11-selection-padd` (15-case kernel inventory, 28,382 rows; dpass
+cross-links the installed cpass-padd fixture). In the pseudo domain the
+`const-msr` contrast is decided (I/C 3.5156250000000027, one decisive 3x9
+evaluation) like the multiplicative run while `const-fixed` stays
+NaN-degenerate, and the 15-attempt `q-longmsr` walk decides at its
+fifteenth — the five-year-cap run (six evaluations, `five_year_cap`
+reason, default 3x5) delivers **identical tables** with differing MSR
+metadata only.
+
+`test_x11_pseudo_additive.cpp` (ctest #45) embeds 32 pinned cases verbatim:
+5 B + 5 C + 7 D (masked, two extended calendars) + the 15-case selection
+inventory with the ratio/pseudo decomposition identities on the delivered
+tables, the strictly-positive repaired trend tables, the `B1 = input`
+no-transform identity, the removeIrregular-form MSR walks with the cap
+contrast, both constant-series controls, serial/OpenMP equality and the
+interruption boundary sweep. `test_x11_multiplicative.cpp` and
+`test_x11_log_additive.cpp` gate blocks updated: the not-delivered-mode
+assertions are gone (message unreachable), both prove the four-mode truth
+table and the positivity gate holding for mult/log alone; the log test now
+asserts pseudo availability on zero/negative inputs and the mult test
+proves pseudo tables differ from the plain multiplicative ones.
+`tools/verify_x11_{bpass,cpass,dpass}` parse the `PseudoAdditive` mode name
+(cpass mode default from `x11_mode_is_multiplicative`).
+
+Validation on this machine, pinned OpenBLAS 0.3.34 provider,
+`env LD_LIBRARY_PATH=/tmp/opencode/openblas/lib`: Release OpenMP build
+**46/46**, true serial build **46/46**; padd sweeps **24/24, 24/24, 28/28**
+bit-exact beside the unchanged additive **18/18, 18/18, 22/22**, mult
+**24/24, 24/24, 28/28** and log **24/24, 24/24, 28/28** sweeps (OMP and
+serial binaries, 24/24 after the header-documentation touch); the three
+padd fixture directories re-swept at `KALOS_NUM_THREADS` 1, 2 and 8 (9/9
+bit-exact); the pseudo, log and mult units are diagnostic-free under gcc
+13.3 `-fsanitize=address,undefined` with leak detection. Rules and
+semantics: docs/contracts/x11-pseudo-additive-contract.md. No fixture,
+oracle, tolerance, default or capability was promoted. Cross-validation,
+the period-specific corrector, the log-additive export stage (`exp` of
+D10..D13, bias-skip), the mean-endpoint fallback and ARIMA-regression
+inputs remain undelivered and unclaimed.
