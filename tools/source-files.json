@@ -56,6 +56,7 @@
     "include/kalos/x11_selection_pass.hpp",
     "include/kalos/x11_sigma.hpp",
     "include/kalos/x11_trend_selection.hpp",
+    "include/kalos/x13_allocation.hpp",
     "src/arma_identification.cpp",
     "src/arma_information.cpp",
     "src/arma_objective.cpp",
@@ -98,7 +99,8 @@
     "src/x11_seasonal_processing.cpp",
     "src/x11_selection_pass.cpp",
     "src/x11_sigma.cpp",
-    "src/x11_trend_selection.cpp"
+    "src/x11_trend_selection.cpp",
+    "src/x13_allocation.cpp"
   ],
   "fixtures": [
     "validation/fixtures/backend/SHA256SUMS.csv",
@@ -326,6 +328,14 @@
     "validation/fixtures/native/x11-trend-selection/metadata.R",
     "validation/fixtures/native/x11-trend-selection/policies.csv",
     "validation/fixtures/native/x11-trend-selection/ratios.csv",
-    "validation/fixtures/native/x11-trend-selection/weights.csv"
+    "validation/fixtures/native/x11-trend-selection/weights.csv",
+    "validation/fixtures/native/x13-allocation/SHA256SUMS.csv",
+    "validation/fixtures/native/x13-allocation/cases.csv",
+    "validation/fixtures/native/x13-allocation/columns.csv",
+    "validation/fixtures/native/x13-allocation/inputs.csv",
+    "validation/fixtures/native/x13-allocation/logs.csv",
+    "validation/fixtures/native/x13-allocation/metadata.R",
+    "validation/fixtures/native/x13-allocation/tables.csv",
+    "validation/fixtures/native/x13-allocation/vars.csv"
   ]
 }

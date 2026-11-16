@@ -751,3 +751,64 @@ oracle, tolerance, default or capability was promoted. Cross-validation,
 the period-specific corrector, the log-additive export stage (`exp` of
 D10..D13, bias-skip), the mean-endpoint fallback and ARIMA-regression
 inputs remain undelivered and unclaimed.
+
+## X-13 deterministic-effect allocation staging (22c M3c) — 2026-11-16
+
+Delivered the pinned **deterministic-effect allocation staging** of the
+X-13 pipeline (item 22c slice M3c): `x13_preadjust` (the fixed-coefficient
+`X13Kernel.initialStep` seam — class/bucket allocation into the stored
+a-tables, the `out` series fed to X-11 and the `X11Spec` mode forcing) and
+`x13_restore` (the `X13Kernel.finals` seam — d11final/d12final/d13final/d16/
+d18/e1/e2/e3/e11 with the pinned op/invOp/mean truth table and the
+`correctSeries` rule). The kernel gives no fixed-coefficient entry point, so
+the qualification captures the full pinned run and proves a compositional
+recompute seam: `X13AllocationProbe.java` recomposes all 22 stored tables per
+case bit-exactly from the pinned `deterministicEffect`/`backTransform`/
+TsData-fold/`correctSeries` pieces and the capture refuses on any
+disagreement, removed variable or mode-forcing violation. Pinned semantics
+now proven: class predicates (`isOutlier`/`isDaysRelated`/`isMovingHoliday`/
+`isUser`) with the **EXACT** `regeffect` attribute match — an outlier outside
+Trend/Seasonal/Irregular contributes to no table, only user variables carry
+the a9 buckets, days/holiday ignore the attribute — the `DataBlock.addAY`
+rule (0 skips the column unread, 1 adds undamped, else plain mul-add)
+accumulated in model-description order, the left-associative a8/a9/v26 fold
+orders with `a9u` excluded from `out` and the finals, `out`'s
+subtract/divide keyed on `isLogTransformation` (not the mode), the exp
+back-transform of every stored a-table while a1 stays the complete input
+bit-exactly, the `updateSpec` forcing, and the log-additive
+op-subtract/invOp-multiply asymmetry (`isMultiplicative()` includes
+LogAdditive). The X13 `X11Results` tables consumed by the restore are the
+raw step tables outside log-additive; the LA results-builder rescale
+(`ratioBiasCorrection`, the `X11Spec` default bias: D10=exp(d10)/avg(exp
+(d10)), D12=exp(d12)·v13, D11=out/D10, D13=(out/D10)/D12) is reconstructed
+**for verification only** (M3b-i export scope, not delivered). Fixtures:
+`validation/fixtures/native/x13-allocation` — 7 cases (full additive mix of
+11 variables incl. 6-column TD7, Easter and an Undefined outlier; empty
+model; forced Additive; log→Multiplicative; LogAdditive; PseudoAdditive;
+monthly), 154 in-pipeline recomposition checks, all CSVs at 17 significant
+digits and byte-identical across reruns (an R `write.csv` 15-digit
+round-trip bug in the first capture was caught by the bit-exact sweeps and
+fixed with the corpus `%.17g` convention).
+
+`test_x13_allocation.cpp` (ctest #47) embeds all seven cases verbatim and
+proves per case the mode forcing, the native preadjust (bit-exact; the
+exp'd log-model buckets at 1e-15 across the backTransform boundary), the
+native selection pass over the preadjusted series against the captured
+D10..D13/C17 (bit-exact; LA through the results-builder reconstruction at
+1e-12) and the restore over both the captured and native X-11 tables —
+252 table checks per thread leg at 2/1/8 pinned threads, 756 total per run;
+the fail-closed shapes, the empty-model rule and the addAY damping rules
+run through the public surface. `tools/verify_x13_allocation.cpp` sweeps the
+CSV corpus: 280 checks, 0 failures, identical at `KALOS_NUM_THREADS` 1/2/8.
+
+Validation on this machine, pinned OpenBLAS 0.3.34 provider,
+`env LD_LIBRARY_PATH=/tmp/opencode/openblas/lib`: Release OpenMP build
+**47/47**, true serial build **47/47**, ASan/UBSan Debug build **47/47**;
+the unit and the sweep are diagnostic-free under gcc 13.3
+`-fsanitize=address,undefined` with leak detection; transcendental-boundary
+worst deviation 1.88e-16 (std::exp vs Math.exp, documented). Coefficient/
+ARIMA estimation, the `ExactArimaForecasts` backcast/forecast route with the
+a1a/a1b tables, missing-row interpolation, length-of-period transforms,
+arimadiffreg/bty variables, benchmarking and diagnostics remain undelivered
+and unclaimed (docs/contracts/x13-allocation-scope-22c.md); no fixture,
+oracle, tolerance, default or capability was promoted.

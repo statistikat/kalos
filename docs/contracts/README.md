@@ -402,3 +402,33 @@ like the multiplicative run while `const-fixed` stays NaN-degenerate, and
 the 15-attempt `q-longmsr` walk decides at its fifteenth so the five-year
 cap and the full run deliver identical tables with differing MSR metadata.
 See [x11-pseudo-additive-contract.md](x11-pseudo-additive-contract.md).
+
+## X-13 deterministic-effect allocation staging
+
+`test_x13_allocation.cpp` and the 7-case pinned x13-allocation fixtures
+qualify the deterministic-effect allocation staging of the pinned
+`X13Kernel` (item 22c slice M3c): the fixed-coefficient preadjust
+(`initialStep`) that allocates the model variables into the stored a-tables
+and the `out` series fed to X-11, and the finals restore (`finals`) that
+re-adds the effects, with the `X11Spec` mode forcing in between. The pinned
+kernel gives no fixed-coefficient entry point, so the capture runs the full
+kernel and validates a compositional recompute seam: every stored table is
+recomposed bit-exactly from the pinned `deterministicEffect`/`backTransform`/
+`TsData`-fold/`correctSeries` pieces (22 checks per case, refuse-on-
+disagreement). The fixtures pin the class predicates with the EXACT
+`regeffect` attribute match (an outlier outside Trend/Seasonal/Irregular
+contributes to no table; `a9u` enters neither `out` nor the finals), the
+`DataBlock.addAY` damping rule, the pinned left-associative fold orders, the
+exp back-transform boundary (a1 stays the complete input bit-exactly), the
+`updateSpec` forcing (non-log → additive, log → multiplicative unless
+log_additive/pseudo_additive), the op/invOp/mean truth table with the
+log-additive subtract-then-multiply asymmetry, and the `correctSeries`
+zero-weight replacement (negative zero included, NaN kept). The X-11 leg
+over the preadjusted series and the end-to-end restore run through the
+qualified selection passes; the log-additive results-builder rescale
+(ratio bias correction, the `X11Spec` default) is reconstructed for
+verification only, at the transcendental boundary. Estimation, the ARIMA
+extension, missing-row interpolation, length-of-period transforms,
+benchmarking and diagnostics stay outside the surface (fail closed). See
+[x13-allocation-contract.md](x13-allocation-contract.md) and
+[x13-allocation-scope-22c.md](x13-allocation-scope-22c.md).
