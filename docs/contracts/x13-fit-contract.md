@@ -100,27 +100,56 @@ diagnostics all stay outside (scope memo).
 
 ## Qualification
 
-`test_x13_fit.cpp` (ctest `#48`) drives every case of the pinned corpus
-through `x13_fit` and checks per case: the `available` status, the full
-provenance echo (request fields plus the requested and forced modes), the
-13 stored a-tables and `out` (bit-exact; the exp'd log-model buckets at
-1e-15), the four results tables as consumed (bit-exact outside
-log-additive, across the results-builder boundary at 1e-12 inside), `c17`
-(bit-exact in every mode), the nine finals tables (bit-exact outside
-log-additive, at 1e-9 inside) and the final-components triplet identity —
-30 checks per case per thread leg at pinned thread settings 2, 1 and 8.
-The boundary table above, the throw shapes and the `updateSpec` forcing of
-pseudo-additive-over-non-log run per executable.
+`test_x13_fit.cpp` (ctest `#48`) drives every fixed-route case of both
+pinned corpora through `x13_fit` and checks per case: the `available`
+status, the full provenance echo (request fields plus the requested and
+forced modes), the 13 stored a-tables and `out`, the four results tables as
+consumed, `c17`, the nine finals tables and the final-components triplet
+identity (finalSA/finalTrend/finalIrregular are the stored
+`finals.d11final/d12final/d13final`) — 30 checks per case per thread leg at
+pinned thread settings 2, 1 and 8. Outside a log model every table except
+the raw pass inputs is bit-exact (the pass runs on bit-identical input);
+under a log model `out` itself carries `backTransform`'s exp — Java's
+`Math.exp` and the native libm agree on every M3c allocation argument but
+can flip a final ulp (the fit corpus shows one row of `f_log` at 1 ulp) —
+so under a log model everything downstream of that exp is checked at the
+transcendental boundary: a-buckets and `out` at 1e-15, the results tables
+and `c17` at 1e-12, the finals at 1e-9 (the same policy the log-additive
+results-builder stage already carries). The boundary table above, the throw
+shapes and the `updateSpec` forcing of pseudo-additive-over-non-log run per
+executable: 16 cases (7 allocation-seam + 9 fit-corpus fixed-route), 480
+checks per leg, 1440 total; `tools/verify_x13_fit.cpp` sweeps both corpora
+with per-table diff reporting (528 comparisons, worst boundary deviation
+4.5e-16, identical at `KALOS_NUM_THREADS` 1/2/8). OMP, serial and
+ASan/UBSan builds all pass 48/48.
 
-Fixtures: `validation/fixtures/native/x13-allocation` (the M3c seam corpus,
-all four modes, quarterly and monthly) plus
+Corpora: `validation/fixtures/native/x13-allocation` (the M3c seam cases,
+all four modes, quarterly and monthly, driven here with the uniform fixed
+S3X9/Henderson-5/legacy/1.5–2.5 specification) and
 `validation/fixtures/native/x13-fit`, captured end to end through the
 `x13_fast` entry point (`jdplus.x13.base.r.X13.process` —
 `X13Kernel.of(spec, ctx).process(ts.cleanExtremities(), null)`, exactly the
-pinned R fast path) on fully fixed monthly specifications, with the
-capture-side identity guards of `X13FitProbe.java` (all 27 stored tables
-recomposed from the pinned pieces at bit precision, refusal on any
-disagreement, fixed-coefficient and zero-horizon domain assertions, plus
-the nonzero-horizon route evidence). See
+pinned R fast path) on fully fixed monthly specifications: 11 cases — 9
+fixed-route (all four forced modes, including the forced `Multiplicative`
+from a non-log `Multiplicative` request and the log-model forcing; fixed
+seasonal requests Stable/S3X1/S3X9/S3X15, Henderson lengths 5 and 13, sigma
+cuttings 1.5/2.5 and 2/3; models from empty through TD7-only and user-only
+to the full 11-variable TD7 + Easter + AO/LS + five-bucket user mix) and 2
+nonzero-horizon evidence cases. The capture-side identity guards of
+`X13FitProbe.java` recompose all 22 stored tables per fixed case from the
+pinned pieces at bit precision (198 checks, refusal on any disagreement,
+on any free coefficient — the estimation cursor is never read — and on any
+fixed-path/horizon-domain violation) and the runs are byte-identical across
+reruns. The `f_empty` case is additionally re-executed through the R
+`x13_fast` result path (R ts marshalling, the pinned `process` call and the
+proto result transform) and compared bit-exactly against the probe tables
+(`x13fast.csv`, 14 tables), proving the R entry point and the probe driver
+see the same fixed run. The evidence cases (`f_h6`, `f_b3h3`) execute the
+same fixed specs with nonzero horizons and record only the deterministic
+route facts (`horizons.csv`: `a1a_len`/`a1b_len` equal the requested
+horizons, `out_len = n + backcast + forecast`, the split finals present,
+`d11final` stays on the input calendar) — the pinned engine leaves the
+fixed path through `ExactArimaForecasts` for every nonzero horizon, exactly
+where the fit answers `unsupported:x13 fit requires zero horizons`. See
 [x13-allocation-scope-22c.md](x13-allocation-scope-22c.md) for what later
 slices must pin.

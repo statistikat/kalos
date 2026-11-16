@@ -812,3 +812,86 @@ a1a/a1b tables, missing-row interpolation, length-of-period transforms,
 arimadiffreg/bty variables, benchmarking and diagnostics remain undelivered
 and unclaimed (docs/contracts/x13-allocation-scope-22c.md); no fixture,
 oracle, tolerance, default or capability was promoted.
+
+## Restricted fixed-model X-13 fit (22c M3-finale) — 2026-11-16
+
+Delivered the **restricted fixed-model X-13 fit** (item 22c M3-finale,
+M3's exit gate): `x13_fit(const X13FitRequest&)` composes the qualified
+pieces in the pinned `X13Kernel.process` order — the fixed-coefficient
+`initialStep` seam, the `X11Kernel` selection run over `out` under the
+`updateSpec`-forced mode (non-log → Additive; log → Multiplicative unless
+LogAdditive/PseudoAdditive, echoed as `mode_effective`), the pinned
+results-builder stage as fit composition where the mode is log-additive
+(`finalResults` → `ratioBiasCorrection`, the `X11Spec` default **Ratio**
+bias: `A=exp(d10)`, `v9=avg(A)`, `v13=v9·avg(exp(d13))`, `D10=A/v9`,
+`D12=exp(d12)·v13`, `D11=out/D10`, `D13=(out/D10)/D12`; `makePositivity`
+is provably the identity on that path, every factor being a strictly
+positive `exp`), and the `finals` seam. Final components are the pinned
+`X13Finals` triplet `D11final/D12final/D13final`, exposed as
+`finalSA`/`finalTrend`/`finalIrregular` — **no separate final-trend or
+final-irregular table exists** anywhere in the pinned jars. **Forecast
+domain: the fixed path supports {0, 0} exactly.** `initialStep` engages its
+extension branch iff `back > 0 || forecast > 0` (`updateSpec` takes
+absolute values first, so negative requests mean `|h| · annualFreq`, not
+"auto") and runs the ARIMA machinery — `linv − v27`, `ExactArimaForecasts`,
+`a1b`/`a1a`, the extended `out` calendar and the split
+`d11a/d12a/d16a/d18a`/`d11b/...` finals. There is no fixed-coefficient route
+to a nonzero horizon, so the fit answers `unsupported:x13 fit requires zero
+horizons` on every other request and the corpus keeps the boundary under
+evidence: `f_h6` (forecast 6) and `f_b3h3` (3/3) run the same fixed specs
+through the pinned engine and record only the deterministic route facts
+(`a1a_len`/`a1b_len` equal the requested lengths, `out_len = 126`,
+`d11a_len` non-null, `d11final_len` stays 120).
+
+Fixtures: `validation/fixtures/native/x13-fit` — 11 monthly cases executed
+end to end through the **pinned fast entry point**
+`jdplus.x13.base.r.X13.process(ts, spec, ctx)`, exactly the method
+`rjd3x13::x13_fast` calls (`X13Kernel.of(spec, ctx).process(ts
+.cleanExtremities(), null)`), on fully fixed specs: 9 fixed-route cases
+covering all four modes after the forcing (Additive, Multiplicative both by
+a log model and by a forced non-log request, LogAdditive, PseudoAdditive),
+fixed seasonal requests Stable/S3X1/S3X9/S3X15, Henderson 5 and 13, sigma
+cuttings 1.5/2.5 and 2/3, and models from empty through TD7-only and
+user-only to the full 11-variable mix, plus the 2 route-evidence cases.
+`X13FitProbe.java` asserts no free coefficient is ever read (the estimation
+cursor is untouched), the zero-horizon domain (a1a/a1b null, unextended
+`out`, no split finals) and recomposes all 22 stored tables per fixed case
+bit-exactly from the pinned pieces — **198 checks, 22 per case, refusal on
+any disagreement**; every CSV is byte-identical across reruns. The `f_empty`
+case is additionally re-executed through the **R `x13_fast` result path**
+(R ts marshalling, the pinned `process` call, the proto result transform)
+and compared bit-exactly against the probe capture — 14 tables
+(`x13fast.csv`), so the R driver and the probe see the same fixed run.
+
+`test_x13_fit.cpp` (ctest #48) drives both corpora — the 7 allocation-seam
+cases with a uniform fixed S3X9/Henderson-5/legacy/1.5-2.5 spec and the 9
+fixed-route fit cases with their own specs, 16 cases in all — checking per
+case the `available` status, the full provenance echo including requested
+and forced mode, the 13 a-tables and `out`, the four results tables as
+`finals` consumed them, `c17`, the nine finals and the final-components
+triplet identity: **30 checks per case per thread leg at 2/1/8 pinned
+threads, 1440 total**, plus the fail-closed boundary table (non-fixed
+seasonal requests, automatic Henderson length, nonzero requested horizons
+including negatives, missing sigma policy), the throw shapes and the
+`updateSpec` forcing per executable. Comparison policy: bit-exact outside
+the log models; inside them everything downstream of `backTransform`'s
+`exp` — `out` included — is checked at the transcendental boundary (a-tables
+1e-15, results tables and `c17` 1e-12, finals 1e-9; **worst observed
+deviation 4.49e-16**), because Java's `Math.exp` and the native libm can
+flip a final ulp, which the M3c corpus did not exercise but `f_log` does.
+`tools/verify_x13_fit.cpp` sweeps both corpora with per-table diff
+reporting plus the x13_fast cross-driver guard: **528 checks, 0 failures,
+identical at `KALOS_NUM_THREADS` 1/2/8**.
+
+Validation on this machine, pinned OpenBLAS 0.3.34 provider,
+`env LD_LIBRARY_PATH=/tmp/opencode/openblas/lib`: Release OpenMP build
+**48/48**, true serial build **48/48**, ASan/UBSan Debug build **48/48**;
+the fit unit and both sweep binaries are diagnostic-free under gcc 13.3
+`-fsanitize=address,undefined` with leak detection. Coefficient/ARIMA
+estimation, the ARIMA backcast/forecast route values (the boundary itself
+is pinned), missing-row interpolation, length-of-period transforms,
+arimadiffreg/bty variables, quarterly fit cases, the general
+`BiasCorrection` options, benchmarking and diagnostics remain undelivered
+and unclaimed (docs/contracts/x13-fit-contract.md,
+docs/contracts/x13-allocation-scope-22c.md); no fixture, oracle, tolerance,
+default or capability was promoted.

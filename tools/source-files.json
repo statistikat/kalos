@@ -338,6 +338,15 @@
     "validation/fixtures/native/x13-allocation/logs.csv",
     "validation/fixtures/native/x13-allocation/metadata.R",
     "validation/fixtures/native/x13-allocation/tables.csv",
-    "validation/fixtures/native/x13-allocation/vars.csv"
+    "validation/fixtures/native/x13-allocation/vars.csv",
+    "validation/fixtures/native/x13-fit/SHA256SUMS.csv",
+    "validation/fixtures/native/x13-fit/cases.csv",
+    "validation/fixtures/native/x13-fit/columns.csv",
+    "validation/fixtures/native/x13-fit/horizons.csv",
+    "validation/fixtures/native/x13-fit/inputs.csv",
+    "validation/fixtures/native/x13-fit/metadata.R",
+    "validation/fixtures/native/x13-fit/tables.csv",
+    "validation/fixtures/native/x13-fit/vars.csv",
+    "validation/fixtures/native/x13-fit/x13fast.csv"
   ]
 }

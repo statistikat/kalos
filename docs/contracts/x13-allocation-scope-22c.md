@@ -48,10 +48,16 @@ plus the test/sweep table checks listed in the contract).
    cursor order (`Estimation.getCoefficients()`), outlier/auto model
    selection and the `PreliminaryChecks` refusals (no data, fewer than
    `max(8, 3*freq)` observations, >80% identical values, >33% NaN).
-2. **Backcast/forecast extension**: the nonzero-horizon route through
-   `ExactArimaForecasts` (`linv − v27` residual, `v27 = v26 + a9u`), the
-   `a1a`/`a1b` extension tables, the extended `out` calendar and the
-   `d11a/d11b/...` split finals.
+2. **Backcast/forecast extension**: LANDED as a pinned boundary in the
+   M3-finale fit, not as a delivered route. The fit's fixed-path horizon
+   domain is exactly `{0, 0}` and every nonzero request answers
+   `unsupported:x13 fit requires zero horizons`; the pinned route facts are
+   recorded by evidence capture (`validation/fixtures/native/x13-fit`,
+   `horizons.csv`: `a1a`/`a1b` take the requested lengths — negatives
+   becoming `|h| · annualFreq` — `out` spans `n + backcast + forecast` and
+   the split finals `d11a/d11b/...` appear). The route itself
+   (`ExactArimaForecasts` over `linv − v27`, `v27 = v26 + a9u`) stays
+   undelivered until a slice pins its values.
 3. **Missing-value interpolation**: `interpolatedSeries(arima)` and the
    `MissingValueEstimation` semantics (`mv + pred` vs `mv·exp(pred)` under
    log), which make `a1` differ from the input.
@@ -60,9 +66,12 @@ plus the test/sweep table checks listed in the contract).
 5. **ArimaDiffReg/bty** user variables (the ARIMA route that consumes `v27`).
 6. **Benchmarking and diagnostics** (item 25): the `CholetteProcessor` hook
    in `X13Kernel.process`, the SI/metadata outputs and the `X13Results`
-   export layout, including the M3b-i results-builder export stage this
-   slice only reconstructs for verification (its general `BiasCorrection`
-   options and `makePositivity` branch are not delivered).
+   export layout. The M3b-i results-builder export stage LANDED in the
+   M3-finale fit as a composition step (`logAdditiveResults`): the `Ratio`
+   default of `ratioBiasCorrection` under the pinned `X11Spec` default bias,
+   with `makePositivity` provably the identity there (every factor is a
+   strictly positive `exp`). The general `BiasCorrection` options (`None`,
+   `Legacy`, `Smooth`) remain undelivered.
 
 X-11 internals between the seams are the qualified M3a/M3b-i/M3b-ii scope
 (`x11-multiplicative-contract.md`, `x11-log-additive-contract.md`,

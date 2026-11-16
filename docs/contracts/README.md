@@ -432,3 +432,31 @@ extension, missing-row interpolation, length-of-period transforms,
 benchmarking and diagnostics stay outside the surface (fail closed). See
 [x13-allocation-contract.md](x13-allocation-contract.md) and
 [x13-allocation-scope-22c.md](x13-allocation-scope-22c.md).
+
+## Restricted fixed-model X-13 fit
+
+`test_x13_fit.cpp` and the pinned x13-fit fixtures qualify `x13_fit`, the
+restricted fixed-model X-13 fit (item 22c M3-finale): one entry point
+composing the two allocation seams and the pass-level selection run in the
+pinned `X13Kernel.process` order — `initialStep`, the X-11 run over `out`
+under the `updateSpec`-forced mode, the `X11Results` tables as `finals`
+consumes them (the log-additive results-builder stage — `finalResults` →
+`ratioBiasCorrection`, the `X11Spec` `Ratio` default — delivered as fit
+composition) and the finals restore — with the final components exposed as
+the pinned final-components triplet `D11final/D12final/D13final` (no
+separate final-trend or final-irregular table exists in the pinned jars).
+The pinned fixed-path horizon domain is exactly `{0, 0}`: `initialStep`
+engages `ExactArimaForecasts` (a1a/a1b, the extended out calendar, the
+split finals) for any nonzero horizon — negatives becoming
+`|h| · annual frequency` — so every nonzero request answers the explicit
+unsupported status, as do non-fixed seasonal requests, the automatic
+Henderson length and the missing required sigma policy; shapes throw
+through the seams. The fixtures were captured end to end through the
+`x13_fast` entry point on fully fixed monthly specs (11 cases: 9
+fixed-route covering all four forced modes with Stable/S3X1/S3X9/S3X15 and
+Henderson 5/13, 2 nonzero-horizon route-evidence cases), with the capture
+recomposing all 22 stored tables per case at bit precision (198 checks) and
+one case re-executed bit-exactly through the R `x13_fast` result path
+(proto round trip, 14 tables). 16 embedded cases, 1440 checks; OMP, serial
+and sanitized builds 48/48. See
+[x13-fit-contract.md](x13-fit-contract.md).
