@@ -270,6 +270,15 @@ The resolved 22b.3a sigma default (`legacy`, 2026-11-17) applies to every
 re-estimation path that reaches the X-11 stages; no open default remains
 there.
 
+Stage E position recorded with 21-A.1 (2026-11-17): decisions 1 and 2 stay
+pinned-behavior — no `ml`/`mt`/`cdf`/`fast` or `eps`/`feps` promotion and no
+starting-point default. `estimate_sarima_fixed` keeps every control field a
+required argument; pinned values (builder defaults 1e-7/1e-4, ml true, mt
+false, cdf true, fast true) arrive from the call site, and the
+HannanRissanen-dependent starts are explicit rejections until 21-A.2. The
+PROCESSOR singleton (`eps = 1e-9`) is not adopted anywhere. No promotion
+without a maintainer ruling.
+
 ## Non-goals
 
 No TRAMO/SEATS (items 23/24), no benchmarking/diagnostics (item 25), no

@@ -484,3 +484,22 @@ one case re-executed bit-exactly through the R `x13_fast` result path
 (proto round trip, 14 tables). 16 embedded cases, 1440 checks; OMP, serial
 and sanitized builds 48/48. See
 [x13-fit-contract.md](x13-fit-contract.md).
+
+## Fixed-order estimation control
+
+`test_estimation_control.cpp`, the 17-case pinned estimation-control corpus
+and `tools/verify_estimation_control.cpp` qualify `estimate_sarima_fixed`,
+the estimation-CONTROL layer of the pinned `RegSarimaComputer` (item 21-A.1)
+over the qualified 20b.2 objective/optimizer kernels: the pinned Zero/Default
+starting-point fills on the probe-verified sign convention (rjd3 raw
+`1 + phi(B)` versus Kalos `1 - phi(B)`), the `eps`-precision pass, the
+pinned likelihood-only guard, the `ur_regular`/`ur_seasonal` unit-root
+cancellation gates, deflations and strict-improvement acceptance with per-pass
+decision records. Control fields are required request data (no defaults); the
+HannanRissanen-dependent starts and the `ml = false` form are explicit
+rejections. Agreement with the pinned Levenberg-Marquardt oracle is at fit
+tolerance (2e-3 coefficients, 5e-4 likelihood, guards at 1e-9; measured
+agreement 3.99e-4/3.12e-6). The Hannan-Rissanen initializer, the score and
+information, the Rcpp boundary and any promotion of pinned values to
+configuration are not delivered or claimed. See
+[estimation-control-contract.md](estimation-control-contract.md).

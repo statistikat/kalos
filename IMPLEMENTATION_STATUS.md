@@ -1040,3 +1040,83 @@ swept from the new root — `tools/verify_x11_bpass` 18/18 cases and
 `tools/verify_x13_fit` 528 checks / 0 failures with the default
 `validation/evidence/...` roots. No fixture byte, oracle, tolerance,
 expectation or scanner rule changed.
+
+## Fixed-order estimation control (21-A.1) — 2026-11-17
+
+**Scope.** Item 21 stage E, first of the two planned 21-A increments: the
+bytecode-pinned estimation-**CONTROL** layer of `RegSarimaComputer`
+(eps/feps, starting points, UR-cancelling passes, per-pass decision records)
+composed onto the already-qualified fixed-order 20b.2 objective/optimizer
+kernels. New unit `include/kalos/estimation_control.hpp` +
+`src/estimation_control.cpp` (`estimate_sarima_fixed`); no Rcpp boundary. The
+second increment (21-A.2, the Hannan-Rissanen initializer enabling the
+HannanRissanen/Multiple starts) is NOT in this commit.
+
+**Oracle.** The pinned computer is drivable through the rjd3 3.9.0 jars, so
+the oracle is the pinned `RegSarimaComputer.process` itself: the public-API
+observer `validation/reference/EstimationControlProbe.java` (builds a
+fixed-order `RegArimaModel<SarimaModel>` + pinned builder-default control, no
+estimation algorithm) driven by
+`validation/reference/capture-estimation-control.R`. The 17-case corpus is
+deterministic (re-run reproduces byte-identical cases.csv) and installed at
+`validation/evidence/native/estimation-control/` (standing policy: new
+evidence never enters `validation/fixtures/`).
+
+**Sign convention (probe-verified).** rjd3 stores the raw AR coefficients of
+`1 + phi(B)`; Kalos uses `1 - phi(B)`; MA is `1 + theta(B)` on both sides.
+Fixtures store the KALOS convention (AR signs flipped). The Default start
+(`SarimaModel.setDefault(-0.1, -0.2)` in pinned raw space) is Kalos
+ar/sar = +0.1, ma/sma = -0.2; Zero is all zero. Mean/drift enter only as
+explicit regression columns per the regression-likelihood contract; the
+pinned `meanCorrection(true)` column is not reproduced.
+
+**Pinned transcription.** The UR-cancellation gates and deflations reproduce
+the `tryUrpCancelling`/`tryUrmCancelling` bytecode branch by branch: the
+regular pass is gated on nonempty regular AR and MA blocks, `d > 0` and both
+raw polynomials within `UR_LIMIT = 0.1` at `B = 1`; the seasonal pass uses the
+same regular-block nonemptiness gates, `seasonal_d > 0` and the `B = -1`
+toggle accumulator (first entry negated), deflating only the regular blocks.
+A candidate is kept only on a strictly greater adjusted concentrated
+likelihood; equality or any candidate-side failure keeps the incumbent (the
+pinned passes swallow all exceptions). `mt` is a stored, never-read pinned
+field (bytecode-verified). `computeExactFinalDerivatives(v)` sets `fast = !v`.
+
+**Deliberate rejections (fail closed, not silent fallbacks).** The
+HannanRissanen-dependent starts (HannanRissanen, Multiple) and `ml = false`
+throw `invalid_argument` until 21-A.2 / a residual-variance kernel qualify
+them. `estimate_sarima_fixed` keeps every control field as required request
+data — no default-constructed control.
+
+**Tolerances.** Independent solvers (pinned Levenberg-Marquardt vs Kalos BFGS)
+agree at fit tolerance: 2e-3 coefficients / 5e-4 likelihood, bounded by the
+pinned side's own Zero-vs-Default run-to-run spread (worst 4e-4), not by the
+Kalos error (observed worst agreement 3.99e-4 / 3.12e-6). The three
+likelihood-only guard cases compare at 1e-9 with an added bit-equality check
+against the direct physical objective. Solver status strings are not asserted
+on fixtures — on flat near-unit-root directions the pinned function-precision
+stop and the qualified gradient criterion can disagree while outcomes agree;
+the near-threshold UR fixtures pin record consistency
+(`accepted == attempted && strictly-better`), not a boundary-dependent gate
+value.
+
+**Sanitizer fix.** ASan/UBSan caught the aggregate-initialized `estimate`
+pass record leaving `accepted` indeterminate; it is now explicitly the
+available-initial-candidate bit.
+
+**Gates.** `check-manifest.py` green (103 core, 112 fixture, 135 evidence);
+`verify-migration.py` green (406 historical files, no rebaseline); full ctest
+49/49 in Release OpenMP and in the serial build; ASan/UBSan
+`test_estimation_control` clean; `tools/verify_estimation_control` over the
+on-disk corpus 17 cases / 0 failures (worst 3.99e-4 coeff, 3.12e-6 likelihood,
+one gate firing, zero acceptances). Contract in
+[estimation-control-contract.md](docs/contracts/estimation-control-contract.md).
+
+**Maintainer-decision items held at pinned values (roadmap stage-E ledger,
+nothing promoted to configuration).** (1) `eps`/`feps` promotion: both stay
+caller-passed pinned values (builder defaults 1e-7/1e-4; PROCESSOR's 1e-9 not
+adopted anywhere). (2) Starting-point policy per call site: no default — the
+caller passes the policy; HannanRissanen/Multiple remain rejected pending
+21-A.2, so the pinned builder default (HannanRissanen) is not reproduced as
+a Kalos default either. (3) The `legacy`-style product-default question does
+not arise at this seam: the core keeps all control fields as required
+arguments (consistent with the 22b.3a resolution pattern).

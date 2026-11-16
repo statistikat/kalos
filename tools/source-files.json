@@ -21,6 +21,7 @@
     "include/kalos/detail/lapack.hpp",
     "include/kalos/detail/x11_pinned.hpp",
     "include/kalos/diffuse_state_space.hpp",
+    "include/kalos/estimation_control.hpp",
     "include/kalos/exact_history.hpp",
     "include/kalos/finite_state_factor.hpp",
     "include/kalos/forecast_information.hpp",
@@ -65,6 +66,7 @@
     "src/arma_parameters.cpp",
     "src/arma_residuals.cpp",
     "src/diffuse_state_space.cpp",
+    "src/estimation_control.cpp",
     "src/finite_state_factor.cpp",
     "src/forecast_arma_information.cpp",
     "src/forecast_information.cpp",
@@ -219,6 +221,10 @@
     "validation/fixtures/native/x11-trend-selection/weights.csv"
   ],
   "evidence": [
+    "validation/evidence/native/estimation-control/SHA256SUMS.csv",
+    "validation/evidence/native/estimation-control/cases.csv",
+    "validation/evidence/native/estimation-control/inputs.csv",
+    "validation/evidence/native/estimation-control/metadata.R",
     "validation/evidence/native/x11-bpass-cases.R",
     "validation/evidence/native/x11-bpass-log/SHA256SUMS.csv",
     "validation/evidence/native/x11-bpass-log/cases.csv",

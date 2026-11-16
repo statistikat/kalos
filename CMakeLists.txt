@@ -39,6 +39,7 @@ add_library(kalos STATIC
   src/arma_parameters.cpp
   src/arma_residuals.cpp
   src/diffuse_state_space.cpp
+  src/estimation_control.cpp
   src/finite_state_factor.cpp
   src/forecast_arma_information.cpp
   src/forecast_information.cpp
@@ -141,6 +142,7 @@ if(KALOS_BUILD_TESTS)
     test_arma_parameters
     test_arma_residuals
     test_diffuse_state_space
+    test_estimation_control
     test_forecast_arma_information
     test_forecast_information
     test_information
