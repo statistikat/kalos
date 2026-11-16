@@ -57,6 +57,7 @@
     "include/kalos/x11_sigma.hpp",
     "include/kalos/x11_trend_selection.hpp",
     "include/kalos/x13_allocation.hpp",
+    "include/kalos/x13_fit.hpp",
     "src/arma_identification.cpp",
     "src/arma_information.cpp",
     "src/arma_objective.cpp",
@@ -100,7 +101,8 @@
     "src/x11_selection_pass.cpp",
     "src/x11_sigma.cpp",
     "src/x11_trend_selection.cpp",
-    "src/x13_allocation.cpp"
+    "src/x13_allocation.cpp",
+    "src/x13_fit.cpp"
   ],
   "fixtures": [
     "validation/fixtures/backend/SHA256SUMS.csv",
