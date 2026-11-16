@@ -27,7 +27,9 @@ substituted. `trend_length` is an odd Henderson length >= 5 with
 endpoint region with a mean fallback that is not delivered) and
 `n >= 3*(frequency/2) + frequency`, which keeps every normalization span a
 full cycle plus the annual radius. The sigma policy is a required argument
-and nothing is promoted; the fixture was qualified with
+at this boundary (the maintainer made `legacy` the product default on
+2026-11-17, applied at the binding and product layers, not in the core);
+the fixture was qualified with
 `X11SigmaPolicy::legacy` and the bounds default to the pinned 1.5/2.5.
 
 ## Pinned oracle and exactness

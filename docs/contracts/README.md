@@ -303,8 +303,9 @@ the 2026-11-15 baseline qualification without touching any fixture.
 `test_x11_sigma.cpp` and the 125-case pinned fixture qualify the moving
 five-year dispersion windows and two-pass sigma weights of the default X-11
 extreme-value stage (item 22b.3a) for both delivered rules — the exact pinned
-legacy rules and the scale-limit alternative. The default remains an open
-maintainer decision and is not promoted; the policy is a required argument.
+legacy rules and the scale-limit alternative. The maintainer resolved the
+default on 2026-11-17: `legacy` is the product default, applied at the
+binding and product layers; the core keeps the policy a required argument.
 See [x11-sigma-contract.md](x11-sigma-contract.md).
 
 ## Same-phase replacements and correction factors

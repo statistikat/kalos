@@ -6,7 +6,8 @@ rq.input = series; rq.log = false; rq.frequency = 12; rq.first_period = 1;
 rq.variables = spec;                       // the allocation vocabulary
 rq.seasonal.assign(12, kalos::X11SeasonalRequest::s3x9);
 rq.trend_length = 13;
-rq.sigma = kalos::X11SigmaPolicy::legacy;  // required — no default
+rq.sigma = kalos::X11SigmaPolicy::legacy;  // required at this API; the
+                                           // product default is legacy
 rq.mode = kalos::X11DecompositionMode::additive;
 kalos::X13FitResult fit = kalos::x13_fit(rq);
 // fit.finalSA / finalTrend / finalIrregular, fit.finals.*, fit.preadjustment,

@@ -58,7 +58,7 @@ configuration probe and documented serial fallback; no bypass setting is used.
 
 | Item | Implementation | Acceptance / decision |
 | --- | --- | --- |
-| 22b.3a | Moving five-year dispersion and two-pass sigma weights; accurate and Java-free legacy rules | **Existing default decision remains pending.** A spike after zero dispersion regains full weight in JD+; the limiting formula gives zero. JD+ also gives full weight below 1e-5 dispersion. Qualify exact cutoffs, unit scaling, partial years, gaps and protected extensions before choosing the default. This does not block the repository split. |
+| 22b.3a | Moving five-year dispersion and two-pass sigma weights; accurate and Java-free legacy rules | **Resolved 2026-11-17: `legacy` is the product default** (the rule proven bit-exact against the pinned `DefaultExtremeValuesCorrector`), applied at the binding/product layers; the core keeps the policy a required argument and delivered both rules unchanged. |
 | 22b.3b | Same-phase replacement neighbors, endpoints and correction factors | Independent formulas, neighbor provenance, insufficient-neighbor cases, public getters, cancellation and serial/OpenMP equality. |
 | 22b.4 | Complete fixed additive B/C/D passes, then connect qualified selector stages | Preserve intermediate tables and correction history; validate decomposition identities and original/extended calendars. |
 | 22b.5 / 22c | Other decomposition modes, then a restricted fixed-model X-13 fit | Qualify multiplicative/log/pseudo-additive and deterministic-effect allocation before exposing a fit capability. |
@@ -220,7 +220,9 @@ that affects only the dispersion windows. `X11SigmaPolicy::accurate` applies
 the scale-limit rule (no cutoff, no slack, zero dispersion grants weight 1
 only to exactly zero deviations). The policy is a required argument; the
 spike-revival-versus-limit default decision stays open and **no capability or
-default has been promoted**.
+default has been promoted**. (Superseded 2026-11-17: the decision is resolved
+— `legacy` is the product default; see the dated entry below. The core
+behavior and every fixture above are unchanged by that resolution.)
 
 Evidence: `validation/reference/capture-x11-sigma.R` drives the pinned
 `DefaultExtremeValuesCorrector` (rjd3 3.9.0 jars, rJava) and captures 125
@@ -933,3 +935,29 @@ the missing `X11SelectionPass` mode echo cannot be fixed unilaterally
 documented with their agreed targets and flagged
 **coordinated-change-needed** in the selection contract. Tests unchanged:
 48/48.
+
+## Sigma-weight policy default resolved (22b.3a) — 2026-11-17
+
+**The long-open 22b.3a default decision is resolved. `X11SigmaPolicy::legacy`
+is the product default.** Rationale: legacy is the rule proven bit-exact
+against the pinned `DefaultExtremeValuesCorrector` — the JDemetra behavior —
+while the accurate rule is the scale-limit construction whose separation from
+legacy appears in seven of the 125 pinned sigma cases (`revive-*`,
+`tiny-*`, `zeroish-*`).
+
+The default is applied at the **binding and product layers**: the rkalos
+wrapper default is `legacy`, and a later Persephone spec default will carry
+it. The **layering design keeps the C++ core explicit** — the policy stays a
+required argument of `x11_sigma_weights`, the fixed passes, the selection
+pass and the fit, so an omitted policy is still refused exactly as before.
+
+What this decision does **not** change: no core signature, error message or
+status changes; no fixture, oracle, tolerance or captured expectation
+changes; no capability flips (`capabilities()` is untouched); the accurate
+rule stays delivered and qualified; the seven separation cases keep pinning
+the difference between the two rules. What it does change: the wording that
+recorded the choice as open — `docs/contracts/x11-sigma-contract.md` (the
+resolved section), `docs/contracts/README.md`, the sigma-policy wording in
+`x11-bpass-contract.md`, `x11-selection-pass-contract.md` and
+`x13-fit-contract.md`, the roadmap row above and a superseded-by marker on
+the 2026-11-15 delivery entry. Tests unchanged: 48/48.

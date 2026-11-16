@@ -83,13 +83,24 @@ bit-exactly. Year indexing of the window array is absolute over the full
 series, including excluded-projection years, so detection flags the full
 series even when the windows were trimmed.
 
-## The reserved default decision
+## The default decision (resolved) and the core's explicit policy
 
 The maintainer decision recorded in the 22b.3a scope note — spike behavior
-after a zero/tiny dispersion year versus the limiting formula — remains open
-and **no default is promoted**: the policy is a required argument of
-`x11_sigma_weights`. The captured evidence separates the two rules on exactly
-seven of the 125 fixture cases, all tiny-scale families:
+after a zero/tiny dispersion year versus the limiting formula — is
+**resolved (maintainer, 2026-11-17): `legacy` is the product default**
+(rationale: it is the rule proven bit-exact against the pinned
+`DefaultExtremeValuesCorrector`, i.e. JDemetra behavior). The default is
+applied at the **binding and product layers** (rkalos wrapper default
+`legacy`, later a Persephone spec default); the C++ core **keeps the policy
+a required argument** of `x11_sigma_weights`, so every core call states
+which rule it ran. The split exists because the core's qualification is a
+claim about a named rule, not about a default: a caller that inherits
+`legacy` from a wrapper still runs the bit-exact rule that this contract
+proves, and the core keeps failing closed on an omitted policy.
+
+The captured evidence that separates the two rules — and therefore the
+behavior the product default adopts — is seven of the 125 fixture cases, all
+tiny-scale families:
 
 - `revive-*`: a spike is zeroed in pass 1; excluding it makes the year
   dispersion `< 1e-5`, so the legacy rule revives every weight to 1 while the

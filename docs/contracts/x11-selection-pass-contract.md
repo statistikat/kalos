@@ -35,7 +35,9 @@ plus the four `X11TrendStage` records (`b7`, `c7`, `d7`, `final`), the
 `X11MsrStage` decision and the per-stage plans. `requests` are the pinned
 `SeasonalFilterOption` values; `trend_length` is an odd Henderson length
 >= 5 or 0 for the pinned automatic selection. The sigma policy is required
-and nothing is promoted; `msr_policy` selects the qualified iteration
+at this boundary (the maintainer made `legacy` the product default on
+2026-11-17, applied at the binding and product layers, not in the core);
+`msr_policy` selects the qualified iteration
 policy (default `jdplus`). Validation: complete observations (the pinned
 `X11Kernel.check` refuses missing values), frequency 4/12, 1-based
 first period, the fixed-pass arithmetic floors (`n >= 3*(frequency/2) +
