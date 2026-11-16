@@ -316,3 +316,17 @@ B pass exactly like the pinned X11Kernel (C1 = series - B20) and enforcing
 that coupling in the API. The D pass, automatic filter choice,
 cross-validation, multiplicative modes and ARIMA-regression inputs are not
 delivered or claimed. See [x11-cpass-contract.md](x11-cpass-contract.md).
+
+## Complete fixed additive D pass
+
+`test_x11_d_pass.cpp` and the 22-case pinned fixture qualify the complete
+fixed additive D pass of the default X-11 decomposition (item 22b.4 S3): all
+16 public tables bit-exact on their pinned spans, the final decomposition
+identities, the D9 MSRE diagnostic table and the original/extended calendar
+behavior (four hand-extended fixture cases pin the context horizons and the
+dropped-original-calendar diagnostic), composed from the item 22b.4 S2 C
+pass exactly like the pinned X11Kernel (D1 = series - C20) and enforcing
+that coupling in the API. The MSRE filter selection, the automatic Henderson
+choice, cross-validation, the period-specific corrector, multiplicative
+modes and ARIMA-regression inputs are not delivered or claimed. See
+[x11-dpass-contract.md](x11-dpass-contract.md).

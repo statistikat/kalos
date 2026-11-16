@@ -424,3 +424,55 @@ and the B unit spot-run under gcc 13.3 `-fsanitize=address,undefined`
 (`-DKALOS_SANITIZERS=ON`, `-DKALOS_OPENMP=OFF`, `detect_leaks=0`) passed
 with zero diagnostics. No default, capability or tolerance was promoted.
 The D pass remains undelivered and unclaimed.
+
+## Complete fixed additive D pass (22b.4 S3) — 2026-11-16
+
+Delivered `kalos::x11_d_pass` (item 22b.4 slice S3): the complete fixed
+additive D pass with all 16 pinned `X11DStep` tables and the D9 MSRE
+diagnostic, composed from the S2 C pass exactly like the pinned `X11Kernel`
+(D1 = series − C20, the initial-request seasonal stage at
+`getPosition(d2drop)` with the `iStart = d2drop` extension, the mmsre
+Henderson over D6 and D11bis, the final requests over D9bis at
+`getPosition(0)`, D11/D8 on the original reference series) and enforcing the
+finished-C-pass coupling in the API (status, first-period/trend/filter
+echoes, policy, series equality against `X11CPass::reference_series`). The
+sigma policy stays an explicit required argument and the D pass performs no
+new extreme-value analysis: its correction round is the C-pass round. The
+calendar gate of the 22b.4 acceptance text was qualified directly: the
+pinned D step never extends the series internally — only the MSRE diagnostic
+is calendar-sensitive, dropping the context horizon rows and indexing at
+`getPosition(backcast)` — so the pass takes explicit `backcast`/`forecast`
+echoes over the extended reference series and the fixture captures both
+calendars on the same inputs (four hand-extended cases). The pinned fixed
+`defaultMsrTable` additive branch is the plain subtract `x - mean` (the
++1-offset branch belongs to the other decomposition modes and quantizes
+tiny residuals around 1.0 — the revive cases pin the difference); the 7-MA
+is the zero-outer-tap-trimmed `makeSymmetricFilter(7)` with plain-average
+filtered-mean padding. `X11CPass` gained the `first_period` and
+`reference_series` echoes mirroring the pinned getters; the shared
+`detail/x11_pinned.hpp` gained the MSRE machinery and B and C were
+re-verified 18/18 bit-exact after the changes.
+
+Evidence: 22-case pinned JDemetra+ 3.9.0 fixture (18 zero-horizon cases with
+the consumed C13/C17/C20 linked against the installed x11-cpass fixture, 4
+hand-extended calendar cases; 16 tables, 24,800 rows plus the per-phase MSRE
+table; capture-side identities, trend-filter and endpoint recompositions and
+the pinned `defaultMsrTable` reproduction; `SHA256SUMS.csv` verified) is
+bit-exact through the native B+C+D composition in the Release OpenMP build,
+the true serial build and under `KALOS_NUM_THREADS=4`.
+`test_x11_d_pass.cpp` embeds five quarterly and one extended pinned cases
+verbatim and qualifies the decomposition identities, the MSRE diagnostics,
+the D9/C-round count linkage, the original/extended calendar behavior, the
+C-pass coupling and argument validation, serial/OpenMP bit equality and a
+full interruption boundary sweep. Fixture and core entries added to the
+export manifest.
+
+Validation on this machine, pinned OpenBLAS 0.3.34 provider,
+`env -u LD_LIBRARY_PATH`: Release OpenMP build **42/42**, true serial build
+**42/42**, zero warnings under `-Wall -Wextra -Wpedantic` in both; the new
+and both predecessor units spot-run under gcc 13.3
+`-fsanitize=address,undefined` (`-DKALOS_SANITIZERS=ON`,
+`-DKALOS_OPENMP=OFF`, `detect_leaks=0`) passed with zero diagnostics. No
+default, capability or tolerance was promoted. The selector-stage connection
+(S4), the mean-endpoint fallback below the trend length, multiplicative
+modes and ARIMA-regression inputs remain undelivered and unclaimed.

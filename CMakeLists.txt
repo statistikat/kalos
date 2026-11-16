@@ -60,6 +60,7 @@ add_library(kalos STATIC
   src/vector_jacobian.cpp
   src/x11_b_pass.cpp
   src/x11_c_pass.cpp
+  src/x11_d_pass.cpp
   src/x11_filters.cpp
   src/x11_initial.cpp
   src/x11_mean_endpoints.cpp
@@ -158,6 +159,7 @@ if(KALOS_BUILD_TESTS)
     test_vector_jacobian
     test_x11_b_pass
     test_x11_c_pass
+    test_x11_d_pass
     test_x11_filters
     test_x11_initial
     test_x11_mean_endpoints
