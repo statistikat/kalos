@@ -389,3 +389,38 @@ unit spot-run under gcc 13.3 `-fsanitize=address,undefined`
 zero diagnostics. No default, capability or tolerance was promoted. The C/D
 passes and the mean-endpoint fallback below the trend length remain
 undelivered and unclaimed.
+
+## Complete fixed additive C pass (22b.4 S2) — 2026-11-16
+
+Delivered `kalos::x11_c_pass` (item 22b.4 slice S2): the complete fixed
+additive C pass with all 14 pinned `X11CStep` tables and the final
+extreme-value analysis on C13 (sigma weights, replacements and correction
+history; C17/C20 are its delivered tables). The composition mirrors the
+pinned `X11Kernel` call sequence — C1 = series − B20, the trend-cycle
+interior C2 and C4, the pinned seasonal/normalization stages at
+`getPosition(c2drop)`/`getPosition(0)`, the fixed Henderson with mmsre
+endpoints over C6, C11/C13 on the original reference series — and the API
+enforces the pinned coupling by requiring the finished `X11BPass` of the
+same series, settings and policy. The S1 pinned machinery moved unchanged
+into the internal `detail/x11_pinned.hpp` shared by both passes (B
+re-qualified 18/18 bit-exact after the move); `X11BPass` gained the
+`first_period` echo used by the coupling check.
+
+Evidence: 18-case pinned JDemetra+ 3.9.0 fixture (14 tables, 17,320 rows,
+capture-side identities including an independent re-application of the
+pinned trend-cycle filter to C1; `SHA256SUMS.csv` verified) is bit-exact
+through the native B+C composition in the Release OpenMP build, the true
+serial build and under `KALOS_NUM_THREADS=4`. `test_x11_c_pass.cpp` embeds
+five quarterly pinned cases verbatim and qualifies the composition
+identities, the correction-history linkage and counts, the B-pass coupling
+and argument validation, default-versus-explicit bounds, serial/OpenMP bit
+equality and a full interruption boundary sweep. Fixture and core entries
+added to the export manifest.
+
+Validation on this machine, pinned OpenBLAS 0.3.34 provider,
+`env -u LD_LIBRARY_PATH`: Release OpenMP build **41/41**, true serial build
+**41/41**, zero warnings under `-Wall -Wextra -Wpedantic` in both; the new
+and the B unit spot-run under gcc 13.3 `-fsanitize=address,undefined`
+(`-DKALOS_SANITIZERS=ON`, `-DKALOS_OPENMP=OFF`, `detect_leaks=0`) passed
+with zero diagnostics. No default, capability or tolerance was promoted.
+The D pass remains undelivered and unclaimed.

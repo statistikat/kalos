@@ -48,8 +48,9 @@ assertions re-verify the pinned getters against each other.
 
 The B pass reproduces the pinned arithmetic row for row. Where the qualified
 primitives of items 22a/22b.2 deliberately document independent conventions
-(seasonal endpoint and mean handling), the pass carries the pinned-order
-computation file-locally instead of calling them:
+(seasonal endpoint and mean handling), the pinned-order computation lives in
+the internal `kalos/detail/x11_pinned.hpp` machinery shared with the C pass
+(item 22b.4 S2) instead of calling them:
 
 * Seasonal processing per phase (`X11SeasonalFilterProcessor.process`):
   `StableFilter` (finite-mean fill) when the request is stable, the phase
@@ -96,4 +97,4 @@ identities B8=B1-B7, B13=B11-B7, B6=B1-B5, B11=B1-B10, B4d=B3-B4anorm and
 B3=crop(B1)-B2 exactly, the correction-history linkage and counts, the
 argument validation, serial/OpenMP bit equality and the interruption
 boundary sweep; the full 18-case sweep is re-run against the fixture with
-the capture. `ctest` totals: 40/40 Release OpenMP, 40/40 true serial.
+the capture. `ctest` totals: 41/41 Release OpenMP, 41/41 true serial.

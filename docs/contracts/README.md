@@ -305,3 +305,14 @@ and the pinned seasonal processing conventions reproduced file-locally. The
 C/D passes, automatic filter choice, cross-validation, multiplicative and
 non-seasonal modes and the mean-endpoint fallback below the trend length are
 not delivered or claimed. See [x11-bpass-contract.md](x11-bpass-contract.md).
+
+## Complete fixed additive C pass
+
+`test_x11_c_pass.cpp` and the 18-case pinned fixture qualify the complete
+fixed additive C pass of the default X-11 decomposition (item 22b.4 S2): all
+14 public tables bit-exact on their pinned spans and the final extreme-value
+analysis on C13 with its correction history, composed from the item 22b.4 S1
+B pass exactly like the pinned X11Kernel (C1 = series - B20) and enforcing
+that coupling in the API. The D pass, automatic filter choice,
+cross-validation, multiplicative modes and ARIMA-regression inputs are not
+delivered or claimed. See [x11-cpass-contract.md](x11-cpass-contract.md).
