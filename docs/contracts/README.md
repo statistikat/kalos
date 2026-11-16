@@ -28,6 +28,29 @@ input and out-of-range active filter taps produce an explicit mask and `NA`
 outputs; zero-weight taps do not propagate missingness. No endpoint extension
 is performed. A nonfinite coefficient or arithmetic overflow is an error.
 
+## Integration conventions
+
+Two conventions resolve the boundary-friction items accumulated across
+M2–M3 (each contract states its own instances):
+
+* **Struct growth is contract surface.** The echo members of the pass and
+  fit result structs (`first_period`, `reference_series`, `mode`, the
+  provenance block) are part of the composition contract: a downstream
+  result view must rebuild companions faithfully, so adding, removing or
+  reordering a member is a **schema change** for every consumer, not
+  merely a new getter. Contracts state each growth event where it happened
+  (the S2→S3 C-pass growth, the mode echo of M3a) and proposed growths
+  carry the same warning (the fit-result fingerprint).
+* **Verbatim statuses and messages are pinned.** Unsupported statuses and
+  the pinned validation/error messages propagate verbatim through
+  downstream boundaries and are pinned by downstream tests; the core does
+  not reword them unilaterally. Improvements that would change a pinned
+  string (e.g. folding the pass label and mode into
+  `check_decomposition`'s message) or add a member to a pinned result
+  struct (e.g. the `X11SelectionPass` mode echo) are recorded in the
+  contract as **coordinated-change-needed** and applied only in a
+  coordinated change with the affected boundaries.
+
 ## Linear algebra (19b)
 
 `src/core/linear_algebra.hpp` owns column-major memory without Rcpp types.

@@ -73,6 +73,26 @@ sequence reads off `X11CStep` directly:
   Henderson selection disengaged exactly as in the B pass, so no CV table is
   produced or claimed.
 
+## Fixture and composition-schema notes
+
+The C fixture's `inputs.csv` is **bit-identical to the B fixture's** (the
+same 18 series and case ids, verified with `cmp`) — the capture reuses the
+B-pass case list — so C cases replay directly on the B fixture's case
+loader and no second input loader is warranted. (The D fixture's
+`inputs.csv` genuinely differs: its 22 cases include hand-extended
+calendars.)
+
+The `first_period` and `reference_series` members were added to
+`X11CPass` when slice S3 introduced the D-pass coupling that consumes them.
+Treat that growth as what it was: **the pass structs' echo members are part
+of the composition contract**, so any struct growth is a schema change for
+downstream result views (an R result shape, a serialization), not merely a
+new getter. The same rule reads back over the B pass: `first_period` and
+`mode` are echo members for exactly this reason — the C and D passes take
+no first-period or mode argument and inherit both solely through the
+finished companion, so a faithful downstream rebuild of a companion must
+carry the echoes.
+
 ## Determinism and interruption
 
 Every stage runs through `parallel_for`; the output is bit-identical between

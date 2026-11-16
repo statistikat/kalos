@@ -895,3 +895,41 @@ arimadiffreg/bty variables, quarterly fit cases, the general
 and unclaimed (docs/contracts/x13-fit-contract.md,
 docs/contracts/x13-allocation-scope-22c.md); no fixture, oracle, tolerance,
 default or capability was promoted.
+
+## Contract-doc friction consolidation (M4-S0) — 2026-11-16
+
+Resolved the twelve boundary-friction items rkalos accumulated verbatim
+across M2–M3 in its `IMPLEMENTATION_STATUS.md` upstream-feedback lists,
+documentation side only (no behavior, no struct, no message and no fixture
+file changed — fixture corpora are hash-pinned): the B9d table mapping
+(19 struct members + three rounds carry the 20 public tables; B9d is
+`rounds[1].detection`) and the plain B17/B20 round-duplication statement
+(B20 holds correction *factors*, replacements live only in the round
+history) plus the shadowed quarterly radii gate (the trend gate precedes
+`n >= 3*(frequency/2) + frequency`, so the n>=10 message is reachable only
+with `trend_length <= 9`) into `x11-bpass-contract.md`; the
+`x11-cpass/inputs.csv`-equals-`x11-bpass/inputs.csv` note and the S2→S3
+echo-member growth into `x11-cpass-contract.md`; the unsupported-run
+record semantics (records past the refused stage are default-constructed —
+only records up to and including it carry information), the `msr.csv`
+row-to-`X11MsrAttempt` mapping (per-attempt columns vs case-level
+`final_filter`/`using_default` restatements, `no_history` markers,
+standalone cross-check rows) and the mode-conditional fixture semantics
+(`b20nz` counts deviations from the mode-neutral B20 — 1 multiplicative /
+0 additive-and-log; `const-msr` flips from the refused degenerate control
+to available in the multiplicative family) into
+`x11-selection-pass-contract.md`; the per-corpus `out` comparison policy
+(seam corpus bit-exact, fit corpus at the exp boundary under a log model —
+extending seam expectations to the fit corpus fails 1 ulp on `f_log`) and
+the proposed deterministic regression-side fingerprint for
+`X13FitResult` (count, per-variable class/effect/coefficient/column
+shapes, FNV-1a over IEEE bit patterns in pinned consumption order;
+implementation deferred) into `x13-fit-contract.md`; and two canonical
+conventions into `docs/contracts/README.md` — **struct growth is contract
+surface** (schema change for every consumer) and **verbatim statuses and
+messages are pinned**. The `check_decomposition` label+mode message and
+the missing `X11SelectionPass` mode echo cannot be fixed unilaterally
+(downstream tests pin the message and the result shape): both are
+documented with their agreed targets and flagged
+**coordinated-change-needed** in the selection contract. Tests unchanged:
+48/48.

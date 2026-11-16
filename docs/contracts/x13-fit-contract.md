@@ -153,3 +153,39 @@ fixed path through `ExactArimaForecasts` for every nonzero horizon, exactly
 where the fit answers `unsupported:x13 fit requires zero horizons`. See
 [x13-allocation-scope-22c.md](x13-allocation-scope-22c.md) for what later
 slices must pin.
+
+## Integration notes
+
+**Per-corpus comparison policy for the shared `tables.csv` `out` column.**
+Both corpora carry an `out` column in `tables.csv`, but they pin different
+expectations, and the difference is real, not a tolerance accident: in the
+allocation-seam corpus the captured `out` is pinned **bit-exact in every
+mode** (its `backTransform(v26, true)` arguments happen to contain no
+libm-flip points, so exact equality is a qualified fact of that corpus),
+while in the fit corpus `out` is pinned at the transcendental boundary
+under a log model — the `f_log` case has one row where the native `exp`
+and Java's `Math.exp` genuinely disagree by 1 ulp, and the captured value
+is what the pinned kernel executed. Consequences for integrators: reuse
+the seam corpus's exact `out` assertions for non-log fits in any corpus,
+and under a log model judge `out` (and everything downstream of it —
+`d10..d13`, `c17`, the finals) at the corpus's own documented boundary
+(1e-15 relative for `out`), never by exact equality; extending the seam
+corpus's bit-exact expectation to the fit corpus produces a surprise
+1-ulp failure on `f_log`, and the boundary policy is sound on both
+corpora.
+
+**Proposed regression-side fingerprint for `X13FitResult`.** The result
+echoes the complete X-11 spec but consumes the regression side
+(`variables`) without an echo, so after the fact there is no way to audit
+which variable set a fit actually used. The agreed direction (documented
+here; **implementation deferred** to a coordinated slice, since adding
+members to `X13FitResult` is a struct growth = schema change for
+downstream result views): a cheap, deterministic, order-sensitive summary
+in the provenance — the variable count, per variable the
+(class, effect, coefficient count, column length), and one FNV-1a 64-bit
+checksum over the IEEE-754 bit patterns of every coefficient and every
+column value in pinned consumption order (variables in model order,
+coefficient *j* before its column, coefficients/columns ascending). No
+table contents, so the result stays auditable without carrying the
+design; the checksum exists to detect substituted or truncated variable
+sets at downstream pinning, not to identify them.

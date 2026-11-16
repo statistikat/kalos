@@ -81,6 +81,38 @@ the internal `kalos/detail/x11_pinned.hpp` machinery shared with the C pass
   round's weights and correction factors; unit-weight rows carry zero
   factors.
 
+## Table mapping and validation order
+
+The 20 *public* pinned tables B1..B20 are not 20 struct members: `X11BPass`
+holds 19 `MaskedSeries` and **B9d is not one of them**. It is the second
+round's detection series — `rounds[1].detection` — because `rounds` is
+pinned in the order of its detection series (B4d, B9d, B13) and round 2's
+detection is never exported as a table of its own. A downstream public view
+therefore exposes 19 member tables plus the three rounds (detection,
+analysis position, policy, sigma weights, replacements with their
+correction factors and replacement counts), which together carry all 20
+pinned tables without duplication.
+
+Read the round linkage in both directions: the final round's sigma weights
+are bit-identical to **B17** and its `replacements.correction_factors` are
+bit-identical to **B20**, so those two public tables are duplicates of
+round-3 content; and **B20 holds correction *factors*, not replacements** —
+the replacement values themselves exist only in the round history
+(`rounds[i].replacements`). Reading B20 as a replacement series yields zeros
+on unflagged rows instead of the replaced observations.
+
+Validation is ordered and the order is observable in the messages. The trend
+gate `series.values.size() >= trend_length` ("B pass requires at least the
+trend filter length") is checked *before* the normalization floor
+`n >= 3*(frequency/2) + frequency` ("B pass requires three annual radii plus
+one cycle"), so for quarterly requests the floor's own threshold (n >= 10)
+is **shadowed** by the trend gate whenever `trend_length > 10` — including
+this fixture family's default of 13. The radii message is therefore only
+reachable for quarterly input with `trend_length <= 9`; monthly (n >= 30
+against a minimum odd length of 5) surfaces it naturally. Downstream
+error-expectation tables should be written against the ordering, not against
+the arithmetic of either bound.
+
 ## Determinism and interruption
 
 Every stage runs through `parallel_for`; the output is bit-identical between

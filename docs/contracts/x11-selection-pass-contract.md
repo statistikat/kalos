@@ -121,6 +121,64 @@ first occurrence and the run stops with records only. The constant-series
 fixture cases pin both contrasts (pinned length 7, pinned MSR 3.844… → 3×5)
 as controls that the native pass deliberately does not claim.
 
+## Record and fixture semantics (integration notes)
+
+* **Unsupported-run records.** An `unsupported:<stage>` run keeps the stage
+  records and plans, but the records for stages **past** the refused stage
+  are default-constructed — an `X11TrendStage` of
+  `{fixed, length 0, NaN ic_ratio}` — so only the records up to and
+  including the refused stage carry information. The four per-stage plans
+  are resolved before the run starts and stay meaningful everywhere. The
+  nested `b`/`c`/`d` of an unsupported run are likewise default
+  (records-only, no tables).
+* **`msr.csv` rows map to `X11MsrAttempt` per attempt.** The fixture mixes
+  three kinds of rows: per-attempt kernel walk traces for engaged cases
+  (one row per attempt, `attempt` restarting per case), a `no_history`
+  termination marker (the walk's insufficient-history stop — integrators
+  map it to the corresponding zero-attempt status), and standalone
+  cross-check rows for cases whose walk never engaged (controls and refused
+  runs; these document the pinned decision, not an attempt). Per-attempt
+  comparison is exactly the columns `count`/`years_removed`/`global_msr`/
+  `band` onto `X11MsrAttempt{count, years_removed, global_msr, band}` (the
+  struct status is derivable from the band; `no_history` rows correspond to
+  zero-attempt statuses). The `final_filter`/`using_default` columns are
+  case-level decisions repeated on every row — restating the final
+  decision — and must not be compared per attempt.
+* **Mode-conditional fixture columns.** `b20nz` counts deviations of B20
+  from the **mode's neutral factor**, not from zero: the multiplicative and
+  pseudo-additive corpora count `!= 1` and the additive and log-additive
+  corpora count `!= 0`, under the identical column name. And the
+  constant-series `const-msr` control is mode-conditional: in the additive
+  and log-additive layers the degenerate NaN comparison ratio makes it the
+  unsupported pinned longest-filter choice (refused run), while in the
+  multiplicative family the ratio is finite (6.4797…) and the case runs
+  available with the pinned 3×9 decisions — same case id and spec, flipped
+  outcome.
+
+## Coordinated-change-needed items (documented, not applied)
+
+Two resolutions would change rkalos-pinned verbatim surfaces and are
+deliberately **not** applied unilaterally; both are recorded here as the
+agreed target for a coordinated change negotiated with the downstream
+boundaries at once:
+
+* `detail::check_decomposition` discards its pass-label argument and throws
+  the same pinned constant message
+  `"multiplicative decomposition of non positive series"` for both gated
+  modes (documented in x11-multiplicative-contract.md and
+  x11-log-additive-contract.md). Folding the pass label and mode into the
+  message would make verbatim propagation diagnostic, but the message is
+  pinned by downstream error tests — **coordinated-change-needed**.
+* `X11SelectionPass` is the only pass result without a top-level `mode`
+  echo member. In an available run the forced mode is recoverable through
+  the nested `b.mode` (the nested passes carry the echo, and the fixed-pass
+  contracts state that those echoes are composition-contract surface), but
+  an unsupported run returns default-constructed nested passes, so the mode
+  of a refused run is not recoverable from the result. Adding
+  `X11DecompositionMode mode` to `X11SelectionPass` would close both gaps;
+  by the composition-schema rule above that is a struct growth = schema
+  change for downstream result views — **coordinated-change-needed**.
+
 ## Oracle and exactness
 
 `validation/reference/capture-x11-selection.R` drives the pinned kernel
