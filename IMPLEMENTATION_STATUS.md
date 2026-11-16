@@ -341,3 +341,18 @@ Validation on this machine, pinned OpenBLAS 0.3.34 provider,
 **39/39**, zero warnings under `-Wall -Wextra -Wpedantic` in both. The values
 move at most 1 ULP toward the macOS-qualified baseline by construction; the
 rkalos downstream re-run is recorded in the rkalos repository.
+
+## Sanitizer re-qualification at cd004b0 — 2026-11-16
+
+Re-qualified the sanitizer configuration on the full 39-program suite at
+`cd004b0` (the M0 ASan/UBSan row above predates `0cbd012` and the 22b.3
+units and covered only 37 programs with three then-failing platform-numerics
+cases now fixed): a fresh Debug build with gcc 13.3 `-fsanitize=address,undefined`
+(`-DKALOS_SANITIZERS=ON`, `-DKALOS_OPENMP=OFF`, bare `-DOpenBLAS_ROOT`
+resolving to the pinned 0.3.34 provider, `env -u LD_LIBRARY_PATH`) passed
+**39/39** with **zero ASan/UBSan diagnostics** across all logs; leak
+detection stays disabled (`ASAN_OPTIONS=detect_leaks=0`) for the M0 reason —
+the uninstrumented provider would false-positive on its retained thread
+arenas. The Release OpenMP and true serial builds were rebuilt and re-run at
+this exact commit: **39/39** each, zero warnings. No source, fixture, oracle
+or tolerance changed for this qualification.
