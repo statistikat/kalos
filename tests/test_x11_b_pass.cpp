@@ -27,7 +27,7 @@ bool same(const std::vector<double>& a,const std::vector<double>& b) {
     return a.size()==b.size()&&std::equal(a.begin(),a.end(),b.begin(),same_nan);
 }
 // Pinned JDemetra+ 3.9.0 fixed additive B-pass cases (item 22b.4 S1) from
-// validation/fixtures/native/x11-bpass, embedded verbatim at 17 significant
+// validation/evidence/native/x11-bpass, embedded verbatim at 17 significant
 // digits: all 20 public tables in fixture label order
 // (B1, B2, B3, B4, B4a, B4anorm, B4d, B4g, B5, B6, B7, B8, B9, B9d, B9g,
 // B10, B11, B13, B17, B20) on their pinned spans, the fixed per-phase

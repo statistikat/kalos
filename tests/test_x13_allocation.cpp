@@ -1,7 +1,7 @@
 // Item 22c: the pinned X-13 deterministic-effect allocation staging of the
 // X13Kernel (pinned rjd3 3.9.0 jars) — the fixed-coefficient preadjust
 // (initialStep) and the finals restore — qualified bit-exactly against the
-// x13-allocation fixture corpus (validation/fixtures/native/x13-allocation,
+// x13-allocation fixture corpus (validation/evidence/native/x13-allocation,
 // captured through X13Kernel.of(spec, ctx).process on fully specified
 // fixed-coefficient models), embedded verbatim at 17 significant digits.
 // Every case records the pinned input, the model variables in pinned

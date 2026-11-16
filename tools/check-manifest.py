@@ -33,11 +33,15 @@ def main():
     if inventory["schema_version"] != 1:
         raise ValueError("Unsupported manifest schema")
     core, fixtures = inventory["core"], inventory["fixtures"]
-    for name in core + fixtures:
+    # Post-split evidence lives under validation/evidence/, never inside the
+    # historical roots scanned by verify-migration.py, and is tracked in its
+    # own sorted manifest key.
+    evidence = inventory["evidence"]
+    for name in core + fixtures + evidence:
         path = PurePosixPath(name)
         if path.is_absolute() or ".." in path.parts or str(path) != name:
             raise ValueError(f"Unsafe manifest path: {name}")
-    for label, entries in (("core", core), ("fixtures", fixtures)):
+    for label, entries in (("core", core), ("fixtures", fixtures), ("evidence", evidence)):
         if len(set(entries)) != len(entries):
             raise ValueError(f"Duplicate [{label}] manifest entries")
         if entries != sorted(entries):
@@ -64,8 +68,17 @@ def main():
     if stale:
         raise ValueError("tools/source-files.json [fixtures] lists untracked files: "
                          + ", ".join(sorted(stale)))
-    print(f"Export manifest covers {len(core)} core and {len(fixtures)} fixture "
-          f"files; every add_library source, public header and fixture is listed")
+    required_evidence = {f for f in files if f.startswith("validation/evidence/")}
+    missing = required_evidence - set(evidence)
+    if missing:
+        report("evidence", missing)
+    stale = set(evidence) - files
+    if stale:
+        raise ValueError("tools/source-files.json [evidence] lists untracked files: "
+                         + ", ".join(sorted(stale)))
+    print(f"Export manifest covers {len(core)} core, {len(fixtures)} fixture and "
+          f"{len(evidence)} evidence files; every add_library source, public "
+          f"header, fixture and evidence file is listed")
 
 
 if __name__ == "__main__":

@@ -206,7 +206,9 @@ per-model comparisons and runtime/thread metadata outside the frozen corpus;
 
 Run these entry points from Kalos. They now use installed `rkalos`; source-mode
 commands use sibling `../rkalos` or the explicit `RKALOS_SOURCE` override.
-The canonical corpus lives in `validation/fixtures`. The output-request inventory
+The recorded historical corpus lives in `validation/fixtures` (immutable;
+verify-migration.py scans it); post-split capture corpora live in
+`validation/evidence`. The output-request inventory
 is frozen in `validation/migration/output-requests.R`; reading it needs no
 Persephone application checkout. Original capture sources and bytes are preserved
 in `validation/migration/source-snapshot`. Capture audits use those originals,

@@ -40,7 +40,7 @@ zero horizons) over 18 monthly and quarterly cases and captures all 20
 public tables (24,352 rows, counting the B9d round-2 detection
 intermediate),
 the per-case metadata and the replacement counts of the three rounds at
-17 significant digits (`SHA256SUMS.csv` in `validation/fixtures/native/
+17 significant digits (`SHA256SUMS.csv` in `validation/evidence/native/
 x11-bpass`). Every delivered table is bit-exact against the capture for all
 18 cases in the Release OpenMP build, the true serial build and under
 `KALOS_NUM_THREADS=4`, with NaN matched to NaN; the capture-side identity

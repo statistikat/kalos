@@ -36,7 +36,7 @@ rejected rather than silently recomposed.
 toolkit through the X11Kernel composition over the same 18 fixed-additive
 cases as the B fixture and captures all 14 public C tables (17,320 rows)
 plus `getC2drop` at 17 significant digits (`SHA256SUMS.csv` under
-`validation/fixtures/native/x11-cpass`). The capture re-derives the
+`validation/evidence/native/x11-cpass`). The capture re-derives the
 composition identities from the captured input, the captured B20 and the
 captured tables themselves, and re-applies the pinned trend-cycle filter to
 C1 as an independent check of the C2 interior. Every delivered table is

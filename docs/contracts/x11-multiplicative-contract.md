@@ -130,7 +130,7 @@ appended last so the additive schemas stay byte-exact, and the capture
 `stopifnot` guards re-derive every table through the pinned ratio
 arithmetic, the `makePositivity` rebuild of the trend tables and the
 mode-aware MSR/ICR cross-checks on the pinned context (JVM 21). Installed
-fixtures: `validation/fixtures/native/x11-{bpass,cpass,dpass}-mult` (24/24/28
+fixtures: `validation/evidence/native/x11-{bpass,cpass,dpass}-mult` (24/24/28
 quarterly+monthly cases, 32,656/23,224/31,616 table rows: the nine additive
 fixture categories at positive levels plus `deep`, `spikeend` and
 `wideband`, the last two carrying the positivity repairs; the D fixture
@@ -138,7 +138,7 @@ additionally carries the same four `ext-` extended-calendar cases as the
 additive D fixture) and
 `x11-selection-mult` (the complete 15-case kernel inventory, 28,382 table
 rows, per-stage selection records and per-attempt MSR traces).
-`validation/fixtures/native/x11-bpass-mult-cases.R` defines the shared
+`validation/evidence/native/x11-bpass-mult-cases.R` defines the shared
 positive-valued case family.
 
 `test_x11_multiplicative.cpp` (ctest, `PASS: 32 pinned multiplicative-mode

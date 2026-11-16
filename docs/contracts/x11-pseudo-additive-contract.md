@@ -125,7 +125,7 @@ overrides against the pinned `PseudoAddUtility` statics (rjd3 3.9.0, JVM
 21). The standalone `MsrFilterSelectionPseudoAdd.doMSR` and a
 pinned-component attempt walk (`FilteredMeanEndPoints` + `MsrTable.of` with
 the pseudo irregular and flag `FALSE`) reproduce every global-MSR
-iteration. Installed fixtures: `validation/fixtures/native/
+iteration. Installed fixtures: `validation/evidence/native/
 x11-{bpass,cpass,dpass}-padd` (24/24/28 cases, 32,656/23,224/31,616 table
 rows, the shared positive multiplicative-shape inventory including the
 masked and four `ext-` extended-calendar cases, the D fixture with the

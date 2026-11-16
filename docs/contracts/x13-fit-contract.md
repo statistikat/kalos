@@ -124,10 +124,10 @@ with per-table diff reporting (528 comparisons, worst boundary deviation
 4.5e-16, identical at `KALOS_NUM_THREADS` 1/2/8). OMP, serial and
 ASan/UBSan builds all pass 48/48.
 
-Corpora: `validation/fixtures/native/x13-allocation` (the M3c seam cases,
+Corpora: `validation/evidence/native/x13-allocation` (the M3c seam cases,
 all four modes, quarterly and monthly, driven here with the uniform fixed
 S3X9/Henderson-5/legacy/1.5–2.5 specification) and
-`validation/fixtures/native/x13-fit`, captured end to end through the
+`validation/evidence/native/x13-fit`, captured end to end through the
 `x13_fast` entry point (`jdplus.x13.base.r.X13.process` —
 `X13Kernel.of(spec, ctx).process(ts.cleanExtremities(), null)`, exactly the
 pinned R fast path) on fully fixed monthly specifications: 11 cases — 9

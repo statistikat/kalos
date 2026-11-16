@@ -145,7 +145,7 @@ kalos::X11DecompositionMode mode_of(const std::string& s) {
 
 int main(int argc, char** argv) {
   const std::string dir =
-      argc > 1 ? argv[1] : "validation/fixtures/native/x13-allocation";
+      argc > 1 ? argv[1] : "validation/evidence/native/x13-allocation";
   std::vector<Case> cases;
   for (const auto& r : read_csv(dir + "/cases.csv")) {
     Case c;

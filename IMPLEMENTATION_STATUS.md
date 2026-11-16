@@ -226,7 +226,7 @@ behavior and every fixture above are unchanged by that resolution.)
 
 Evidence: `validation/reference/capture-x11-sigma.R` drives the pinned
 `DefaultExtremeValuesCorrector` (rjd3 3.9.0 jars, rJava) and captures 125
-deterministic fixture cases to `validation/fixtures/native/x11-sigma` with
+deterministic fixture cases to `validation/evidence/native/x11-sigma` with
 17-significant-digit round-trip exact CSVs of pass-1/final weights, pass-1/
 final dispersion arrays and pass counts; the private exclusion helper re-run
 confirms the second-pass rule bit-exactly. A throwaway harness compared all
@@ -273,7 +273,7 @@ projection-masking booleans → `getCorrectionFactors` → `applyCorrections`
 plus static `periodAverages`, and re-runs the private neighbor walk through
 JNI for provenance; the capture re-derives every factor and kind itself and
 refuses to write on disagreement. The 22-case fixture
-(`validation/fixtures/native/x11-replacement`, 17-significant-digit
+(`validation/evidence/native/x11-replacement`, 17-significant-digit
 round-trip exact) holds 1358 rows: 135 four-neighbor blends, 83 pinned
 null-walk fallbacks (218 flagged rows overall), 54 `outside_span` rows in the
 masking mode, plus NaN-poisoned, whole-phase, multiplicative and legacy-
@@ -512,7 +512,7 @@ kernel (rjd3 3.9.0, JVM 21) through `X11Kernel.process` for 15 cases
 (captured through the pinned kernel itself, with capture-side `stopifnot`
 per-stage `calcICR`/`selectFilter`, standalone `doMSR` and FMEND-7 +
 `MsrTable.of` attempt-walk cross-checks on the kernel context) into
-`validation/fixtures/native/x11-selection` (28,382 table rows, per-stage
+`validation/evidence/native/x11-selection` (28,382 table rows, per-stage
 selection records, per-attempt MSR traces, `SHA256SUMS.csv` verified).
 `test_x11_selection_pass` embeds all 15 decision-record cases and six full
 22-table selected-state cases verbatim, qualifies the inline-branch
@@ -577,7 +577,7 @@ all five selection CSVs included), append the mult-only `mode`/`b7_repair`/
 `c7_repair`/`d7_repair`/`d12_repair` columns last so additive schemas stay
 byte-exact, and cross-check the ratio arithmetic, the `makePositivity`
 rebuild and the mode-aware MSR/ICR facts on the pinned context (rjd3 3.9.0,
-JVM 21) into `validation/fixtures/native/x11-{bpass,cpass,dpass}-mult`
+JVM 21) into `validation/evidence/native/x11-{bpass,cpass,dpass}-mult`
 (24/24/28 cases, 32,656/23,224/31,616 table rows — nine additive
 categories at positive levels plus `deep`, repair-carrying `spikeend`/
 `wideband`; D carries the same four extended-calendar cases) and
@@ -784,7 +784,7 @@ raw step tables outside log-additive; the LA results-builder rescale
 (`ratioBiasCorrection`, the `X11Spec` default bias: D10=exp(d10)/avg(exp
 (d10)), D12=exp(d12)·v13, D11=out/D10, D13=(out/D10)/D12) is reconstructed
 **for verification only** (M3b-i export scope, not delivered). Fixtures:
-`validation/fixtures/native/x13-allocation` — 7 cases (full additive mix of
+`validation/evidence/native/x13-allocation` — 7 cases (full additive mix of
 11 variables incl. 6-column TD7, Easter and an Undefined outlier; empty
 model; forced Additive; log→Multiplicative; LogAdditive; PseudoAdditive;
 monthly), 154 in-pipeline recomposition checks, all CSVs at 17 significant
@@ -845,7 +845,7 @@ through the pinned engine and record only the deterministic route facts
 (`a1a_len`/`a1b_len` equal the requested lengths, `out_len = 126`,
 `d11a_len` non-null, `d11final_len` stays 120).
 
-Fixtures: `validation/fixtures/native/x13-fit` — 11 monthly cases executed
+Fixtures: `validation/evidence/native/x13-fit` — 11 monthly cases executed
 end to end through the **pinned fast entry point**
 `jdplus.x13.base.r.X13.process(ts, spec, ctx)`, exactly the method
 `rjd3x13::x13_fast` calls (`X13Kernel.of(spec, ctx).process(ts
@@ -988,3 +988,55 @@ regression tests/mean → 21-H integration (the 22c seams and the pinned
 evidence rows become its first cross-checks), and the roadmap carries the
 maintainer sign-off list (nine decision-boundary groups). No code, no
 fixtures, no defaults; planning-only commit.
+
+## Post-split evidence relocated to `validation/evidence` — 2026-11-17 (CI hotfix)
+
+**Root cause.** Since the fixtures relocation of slice `0d20d21`, post-split
+capture corpora (131 files under `validation/fixtures/native/`:
+x11-sigma*, x11-replacement*, x11-{bpass,cpass,dpass,selection}* including
+the -mult/-log/-padd variants, x13-allocation/ and x13-fit/) landed inside
+`validation/fixtures/`, which `tools/verify-migration.py` scans as the
+IMMUTABLE pre-split historical root. The scanner correctly raised
+`Unrecorded historical artifact` on every one of them, so the GitHub Actions
+"Historical evidence" step was red on every commit since `0d20d21`. The
+scanner logic, the pre-split manifest and every recorded historical byte are
+untouched — the files were simply in the wrong root.
+
+**Fix.** All 131 unrecorded files were relocated byte-identically
+(`git mv`, 131 `R100` rename records) to the new root
+`validation/evidence/`, preserving inner structure. `validation/fixtures/`
+now contains only files present in `validation/migration/pre-split-manifest.json`
+(112 fixture files), and `verify-migration.py` verifies the full historical
+set again (406 files across fixtures, source snapshot and reference reports)
+without rebaselining.
+
+**Relocation policy (forward-looking).** New evidence ALWAYS goes under
+`validation/evidence/`; the historical roots scanned by
+`tools/verify-migration.py` (`validation/fixtures/`,
+`validation/migration/source-snapshot/`, `validation/reference/{information,timings}/`)
+are immutable forever. `tools/source-files.json` gains a third sorted key
+`"evidence"` (131 entries, schema unchanged); `tools/check-manifest.py` was
+extended minimally to require, deduplicate, sort-check and stale-check the
+`validation/evidence/` tree like the fixture tree. The export allowlist in
+`tools/export-source.py` is deliberately unchanged: `inst/tinytest/fixtures`
+keeps exporting exactly the recorded historical fixtures, and post-split
+evidence is not part of the R/Python source snapshots.
+
+**Path updates (references only, no semantics).** The five capture scripts
+that read new-root case files (`capture-x11-{sigma,replacement,bpass,cpass,dpass}.R`),
+the five corpus sweeps (`tools/verify_x11_{bpass,cpass,dpass}.cpp`,
+`tools/verify_x13_{allocation,fit}.cpp` default roots), the corpus-path
+comments in `tests/test_x11_*.cpp`/`tests/test_x13_*.cpp` and in
+`src/x11_sigma.cpp`, `src/x11_replacement.cpp`,
+`include/kalos/{x13_allocation,x13_fit}.hpp`, the eleven contract documents
+under `docs/contracts/` that name the corpora, `validation/reference/README.md`
+and the live path mentions in this file now point at
+`validation/evidence/native/...`.
+
+**Gates.** `python3 tools/verify-migration.py` green (406 files);
+`python3 tools/check-manifest.py` green (101 core, 112 fixture, 131 evidence);
+full ctest 48/48 in the Release OpenMP build; and the moved corpora were
+swept from the new root — `tools/verify_x11_bpass` 18/18 cases and
+`tools/verify_x13_fit` 528 checks / 0 failures with the default
+`validation/evidence/...` roots. No fixture byte, oracle, tolerance,
+expectation or scanner rule changed.

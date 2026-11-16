@@ -57,10 +57,10 @@ if (!dir.exists(output) || length(list.files(output, all.files = TRUE, no.. = TR
 # The strictly positive multiplicative shapes are the only inventory with
 # the positivity the pinned kernel requires of the log-additive mode; the
 # pseudo-additive pipeline runs the ratio context too, so it reuses them.
-fixtures <- file.path(root, 'validation/fixtures/native',
+fixtures <- file.path(root, 'validation/evidence/native',
   if (mult || logadd || padd) 'x11-bpass-mult-cases.R' else 'x11-bpass-cases.R')
 for (fixture in fixtures) source(fixture)
-cpass <- read.csv(file.path(root, 'validation/fixtures/native',
+cpass <- read.csv(file.path(root, 'validation/evidence/native',
   switch(mode_name, Multiplicative = 'x11-cpass-mult',
     LogAdditive = 'x11-cpass-log', PseudoAdditive = 'x11-cpass-padd',
     'x11-cpass'), 'tables.csv'))
@@ -326,7 +326,7 @@ write.csv(fixtures_fmt(do.call(rbind, cases)), file.path(output, 'cases.csv'), r
 write.csv(fixtures_fmt(do.call(rbind, tables)), file.path(output, 'tables.csv'), row.names = FALSE)
 write.csv(fixtures_fmt(do.call(rbind, msrrows)), file.path(output, 'msr.csv'), row.names = FALSE)
 files <- c(normalizePath(script), fixtures,
-  file.path(root, 'validation/fixtures/native',
+  file.path(root, 'validation/evidence/native',
     switch(mode_name, Multiplicative = 'x11-cpass-mult',
       LogAdditive = 'x11-cpass-log', PseudoAdditive = 'x11-cpass-padd',
       'x11-cpass'), 'tables.csv'))

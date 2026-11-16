@@ -1,7 +1,7 @@
 // Full-sweep verification: native x11_c_pass against every pinned X11CStep
 // fixture case at exact double equality (NaN-aware). Run from the repository
 // root; an alternative fixture directory may be passed as the first argument
-// (the multiplicative sweeps run on validation/fixtures/native/x11-cpass-mult,
+// (the multiplicative sweeps run on validation/evidence/native/x11-cpass-mult,
 // whose optional cases.csv `mode` column selects the decomposition mode).
 // fixture (composed like X11Kernel: native B pass -> native C pass). Every
 // table of every case at exact double equality (NaN-aware).
@@ -94,7 +94,7 @@ struct Case {
 }  // namespace
 
 int main(int argc, char** argv) {
-  const std::string root = argc > 1 ? argv[1] : "validation/fixtures/native/x11-cpass/";
+  const std::string root = argc > 1 ? argv[1] : "validation/evidence/native/x11-cpass/";
   const auto cols = read_csv_header(root + "cases.csv");
   const auto mode_col = cols.find("mode");  // absent in the additive fixtures
   std::vector<Case> cases;

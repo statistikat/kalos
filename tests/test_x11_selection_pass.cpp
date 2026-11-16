@@ -55,7 +55,7 @@ char stage_of(const kalos::X11TrendStage& stage) {
     }
 }
 // Pinned JDemetra+ 3.9.0 additive selection cases (item 22b.4 S4) from
-// validation/fixtures/native/x11-selection, embedded verbatim at 17
+// validation/evidence/native/x11-selection, embedded verbatim at 17
 // significant digits. Every case records the pinned staged seasonal requests,
 // the four automatic-Henderson stage records (b7 with the pinned inline
 // ratio >= 1 -> period + 1 branch, c7, d7 and the D final step; 'f' fixed

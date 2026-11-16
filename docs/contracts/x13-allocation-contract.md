@@ -10,7 +10,7 @@ pinned X-13 pipeline — the preadjustment (`X13Kernel.initialStep`) that
 produces the series fed to X-11 and the restore (`X13Kernel.finals`) that
 returns the deterministic effects — decoded from the pinned rjd3 3.9.0
 bytecode and qualified bit-exactly against the pinned kernel on
-`validation/fixtures/native/x13-allocation`. The pinned kernel offers **no
+`validation/evidence/native/x13-allocation`. The pinned kernel offers **no
 fixed-coefficient entry point**: every `X13Kernel` run estimates the ARIMA
 part and the missing values, so the qualified contract is the exact seam the
 capture proves — given the complete input series and, as **inputs**, the

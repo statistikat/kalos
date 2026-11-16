@@ -52,7 +52,7 @@ plus the test/sweep table checks listed in the contract).
    M3-finale fit, not as a delivered route. The fit's fixed-path horizon
    domain is exactly `{0, 0}` and every nonzero request answers
    `unsupported:x13 fit requires zero horizons`; the pinned route facts are
-   recorded by evidence capture (`validation/fixtures/native/x13-fit`,
+   recorded by evidence capture (`validation/evidence/native/x13-fit`,
    `horizons.csv`: `a1a`/`a1b` take the requested lengths — negatives
    becoming `|h| · annualFreq` — `out` spans `n + backcast + forecast` and
    the split finals `d11a/d11b/...` appear). The route itself

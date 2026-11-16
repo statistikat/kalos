@@ -381,8 +381,8 @@ int main(int argc, char** argv) {
   std::vector<std::string> dirs;
   for (int i = 1; i < argc; ++i) dirs.emplace_back(argv[i]);
   if (dirs.empty())
-    dirs = {"validation/fixtures/native/x13-allocation",
-            "validation/fixtures/native/x13-fit"};
+    dirs = {"validation/evidence/native/x13-allocation",
+            "validation/evidence/native/x13-fit"};
   for (const auto& dir : dirs) sweep(dir, checks, bad, worst);
   std::printf("%ld checks, %ld failures, transcendental-boundary worst %.3g\n",
       checks, bad, worst);

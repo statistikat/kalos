@@ -1,6 +1,6 @@
 // Item 22b.5 M3b-i: the pinned log-additive decomposition mode, verified end
 // to end against the pinned rjd3 3.9.0 jars. Every embedded value comes
-// verbatim (17 significant digits) from validation/fixtures/native/
+// verbatim (17 significant digits) from validation/evidence/native/
 // x11-{bpass,cpass,dpass,selection}-log, captured by
 // validation/reference/capture-x11-{bpass,cpass,dpass,selection}.R
 // --mode=LogAdditive from the pinned X11BStep/X11CStep/X11DStep/X11Kernel.

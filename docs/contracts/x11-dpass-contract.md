@@ -50,7 +50,7 @@ B/C cases at zero horizon and 4 of them additionally hand-extended
 (deterministic linear back/forecast rows, context horizons and shifted first
 periods), capturing all 16 public D tables (24,800 rows) plus the D9 MSRE
 table at 17 significant digits (`SHA256SUMS.csv` under
-`validation/fixtures/native/x11-dpass`). The capture re-derives every
+`validation/evidence/native/x11-dpass`). The capture re-derives every
 additive identity from the captured input, the captured C20 and the captured
 tables themselves, re-applies the pinned trend-cycle filter to D1 for the D2
 interior, recomposes D7 and D12 through the pinned mmsre endpoint pipeline

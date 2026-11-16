@@ -17,7 +17,7 @@ if (length(args) != 1L || !startsWith(args, '--output='))
 output <- normalizePath(sub('^--output=', '', args), mustWork = TRUE)
 if (!dir.exists(output) || length(list.files(output, all.files = TRUE, no.. = TRUE)))
   stop('Output must be empty')
-fixtures <- file.path(root, 'validation/fixtures/native', 'x11-sigma-cases.R')
+fixtures <- file.path(root, 'validation/evidence/native', 'x11-sigma-cases.R')
 for (fixture in fixtures) source(fixture)
 suppressWarnings(suppressMessages({
   library(rjd3jars); library(rjd3toolkit); library(rjd3x13); library(rJava)

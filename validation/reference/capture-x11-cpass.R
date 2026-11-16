@@ -53,7 +53,7 @@ if (!dir.exists(output) || length(list.files(output, all.files = TRUE, no.. = TR
 # The strictly positive multiplicative shapes are the only inventory with
 # the positivity the pinned kernel requires of the log-additive mode; the
 # pseudo-additive pipeline runs the ratio context too, so it reuses them.
-fixtures <- file.path(root, 'validation/fixtures/native',
+fixtures <- file.path(root, 'validation/evidence/native',
   if (mult || logadd || padd) 'x11-bpass-mult-cases.R' else 'x11-bpass-cases.R')
 for (fixture in fixtures) source(fixture)
 suppressWarnings(suppressMessages({

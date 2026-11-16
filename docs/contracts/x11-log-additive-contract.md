@@ -108,7 +108,7 @@ which logs internally), the `inputs.csv` files keep the **raw** strictly
 positive values and every captured table is a log-domain step table; the
 capture-side `stopifnot` guards re-derive every identity in the additive
 form on the log-domain tables (rjd3 3.9.0, JVM 21). Installed fixtures:
-`validation/fixtures/native/x11-{bpass,cpass,dpass}-log` (24/24/28 cases,
+`validation/evidence/native/x11-{bpass,cpass,dpass}-log` (24/24/28 cases,
 32,656/23,224/31,616 table rows, the shared positive multiplicative-shape
 inventory including the masked and four `ext-` extended-calendar cases,
 the D fixture with the additive-form MSRE diagnostic) and

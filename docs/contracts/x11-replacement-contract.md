@@ -71,7 +71,7 @@ booleans → `getCorrectionFactors` → `applyCorrections`, plus public static
 `periodAverages`; the private neighbor walk is re-run through JNI purely for
 provenance. The capture itself re-derives every factor and kind from the
 recorded weights and refuses to write on disagreement. The 22-case fixture
-(`validation/fixtures/native/x11-replacement`, 17-significant-digit
+(`validation/evidence/native/x11-replacement`, 17-significant-digit
 round-trip exact) covers endpoint extension, flagged-neighbor skipping,
 whole-phase fallbacks, NaN-poisoned blends and averages, both masking modes
 (including `outside_span`), multiplicative division factors and the legacy

@@ -37,7 +37,7 @@ bool equal_nan(const std::vector<double>& left,const std::vector<double>& right)
     return true;
 }
 // Pinned JDemetra+ 3.9.0 replacement-stage cases from
-// validation/fixtures/native/x11-replacement (final weights from the pinned
+// validation/evidence/native/x11-replacement (final weights from the pinned
 // analyse pass, replacement values for both projection-masking modes, kind
 // provenance, neighbor positions, correction factors, the applyCorrections
 // identity and period averages; 17-significant-digit round-trip exact).

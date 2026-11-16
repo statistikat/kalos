@@ -41,7 +41,7 @@ bool equal_dispersion(const std::vector<kalos::X11SigmaWindow>& windows,
     return equal_nan(actual,dispersions);
 }
 // Pinned JDemetra+ 3.9.0 reference cases from
-// validation/fixtures/native/x11-sigma (legacy policy; weights and dispersion
+// validation/evidence/native/x11-sigma (legacy policy; weights and dispersion
 // windows after the final pass, captured through 17-significant-digit
 // round-trip exact CSV files; see docs/contracts/x11-sigma-contract.md).
 struct PinnedCase {

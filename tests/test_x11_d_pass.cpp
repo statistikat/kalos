@@ -26,7 +26,7 @@ bool same(const std::vector<double>& a,const std::vector<double>& b) {
     return a.size()==b.size()&&std::equal(a.begin(),a.end(),b.begin(),same_nan);
 }
 // Pinned JDemetra+ 3.9.0 fixed additive D-pass cases (item 22b.4 S3) from
-// validation/fixtures/native/x11-dpass, embedded verbatim at 17 significant
+// validation/evidence/native/x11-dpass, embedded verbatim at 17 significant
 // digits: all 16 public tables in fixture label order
 // (D1, D2, D4, D5, D6, D7, D8, D9, D9bis, D9_g_bis, D10, D10bis, D11, D11bis,
 // D12, D13) on their pinned spans, the D9 MSRE diagnostic table on the

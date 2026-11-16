@@ -31,7 +31,7 @@ artifacts — the class implementing the JDemetra+ default rules — driven
 through its public `analyse`/`getObservationWeights` API via rJava, with its
 pass primitives re-run for per-pass provenance
 (`validation/reference/capture-x11-sigma.R`). The fixtures
-(`validation/fixtures/native/x11-sigma`, 125 cases) store pass-1 and final
+(`validation/evidence/native/x11-sigma`, 125 cases) store pass-1 and final
 weights, pass-1 and final dispersion arrays, and pass counts through
 17-significant-digit round-trip exact CSV files. The native legacy policy
 reproduces every captured value with exact double equality: the implementation

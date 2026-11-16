@@ -26,7 +26,7 @@ bool same(const std::vector<double>& a,const std::vector<double>& b) {
     return a.size()==b.size()&&std::equal(a.begin(),a.end(),b.begin(),same_nan);
 }
 // Pinned JDemetra+ 3.9.0 fixed additive C-pass cases (item 22b.4 S2) from
-// validation/fixtures/native/x11-cpass, embedded verbatim at 17 significant
+// validation/evidence/native/x11-cpass, embedded verbatim at 17 significant
 // digits: all 14 public tables in fixture label order
 // (C1, C2, C4, C5, C5a, C6, C7, C9, C10, C10a, C11, C13, C17, C20) on their
 // pinned spans, the fixed per-phase seasonal requests, the Henderson length,
