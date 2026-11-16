@@ -1157,7 +1157,8 @@ int main() {
         int total=0;
         const Interrupt count=[&]{++total;};
         x11_b_pass(series,c.frequency,c.first_period,c.initial_filters,c.final_filters,
-            c.trend_length,X11SigmaPolicy::legacy,c.lower_sigma,c.upper_sigma,count);
+            c.trend_length,X11SigmaPolicy::legacy,c.lower_sigma,c.upper_sigma,
+            X11DecompositionMode::additive,count);
         assert(total>=20);
         int boundaries=0;
         for(int stop_at=1;stop_at<=total+1;++stop_at) {
@@ -1167,7 +1168,7 @@ int main() {
             try {
                 x11_b_pass(series,c.frequency,c.first_period,c.initial_filters,
                     c.final_filters,c.trend_length,X11SigmaPolicy::legacy,c.lower_sigma,
-                    c.upper_sigma,stop);
+                    c.upper_sigma,X11DecompositionMode::additive,stop);
             } catch(const std::runtime_error&) { thrown=true; }
             assert(thrown==(stop_at<=total));
             ++boundaries;

@@ -1,6 +1,8 @@
 // Full-sweep verification: native x11_b_pass against every pinned X11BStep
 // fixture case at exact double equality (NaN-aware). Run from the repository
-// root; an alternative fixture directory may be passed as the first argument.
+// root; an alternative fixture directory may be passed as the first argument
+// (the multiplicative sweeps run on validation/fixtures/native/x11-bpass-mult,
+// whose optional cases.csv `mode` column selects the decomposition mode).
 // Compile against the installed library headers, e.g.
 //   g++ -O2 -std=c++17 -fopenmp -Iinclude tools/verify_x11_bpass.cpp
 //       -L<build> -lkalos -lopenblas -o /tmp/verify_x11_bpass
@@ -56,6 +58,22 @@ std::vector<std::vector<std::string>> read_csv(const std::string& path) {
     if (!line.empty()) rows.push_back(split(line));
   return rows;
 }
+std::map<std::string, std::size_t> read_csv_header(const std::string& path) {
+  std::ifstream file(path);
+  if (!file) throw std::runtime_error("cannot open " + path);
+  std::string line;
+  std::getline(file, line);
+  std::map<std::string, std::size_t> out;
+  const auto fields = split(line);
+  for (std::size_t i = 0; i < fields.size(); ++i) out[unquote(fields[i])] = i;
+  return out;
+}
+kalos::X11DecompositionMode parse_mode(const std::string& raw) {
+  const auto s = unquote(raw);
+  if (s == "Multiplicative") return kalos::X11DecompositionMode::multiplicative;
+  if (s == "Additive") return kalos::X11DecompositionMode::additive;
+  throw std::runtime_error("unexpected fixture mode " + s);
+}
 bool equal_nan(const std::vector<double>& a, const std::vector<double>& b) {
   if (a.size() != b.size()) return false;
   for (std::size_t i = 0; i < a.size(); ++i) {
@@ -69,11 +87,14 @@ struct Case {
   int frequency = 0, n = 0, start_period = 0, trend = 13;
   double lsig = 1.5, usig = 2.5;
   std::vector<int> initial, final;
+  kalos::X11DecompositionMode mode = kalos::X11DecompositionMode::additive;
 };
 }  // namespace
 
 int main(int argc, char** argv) {
   const std::string root = argc > 1 ? argv[1] : "validation/fixtures/native/x11-bpass/";
+  const auto cols = read_csv_header(root + "cases.csv");
+  const auto mode_col = cols.find("mode");  // absent in the additive fixtures
   std::vector<Case> cases;
   for (const auto& f : read_csv(root + "cases.csv")) {
     Case c;
@@ -86,6 +107,7 @@ int main(int argc, char** argv) {
     c.usig = parse_double(f[7]);
     c.initial = parse_list(f[9]);
     c.final = parse_list(f[10]);
+    if (mode_col != cols.end()) c.mode = parse_mode(f[mode_col->second]);
     cases.push_back(c);
   }
   std::map<std::string, kalos::MaskedSeries> series;
@@ -129,9 +151,14 @@ int main(int argc, char** argv) {
     kalos::X11BPass pass;
     try {
       pass = kalos::x11_b_pass(y, c.frequency, c.start_period, c.initial,
-          c.final, c.trend, kalos::X11SigmaPolicy::legacy, c.lsig, c.usig);
+          c.final, c.trend, kalos::X11SigmaPolicy::legacy, c.lsig, c.usig, c.mode);
     } catch (const std::exception& e) {
       std::printf("FAIL %s: threw %s\n", c.id.c_str(), e.what());
+      ++failures;
+      continue;
+    }
+    if (pass.mode != c.mode) {
+      std::printf("FAIL %s: mode echo\n", c.id.c_str());
       ++failures;
       continue;
     }

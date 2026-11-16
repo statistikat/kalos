@@ -1,6 +1,7 @@
-# Pinned-reference capture for item 22b.4 S4: the selection flow of the pinned
-# X11Kernel (pinned rjd3 3.9.0 jars). Each case is captured by running the
-# kernel itself (X11Kernel.process on complete additive inputs with per-phase
+# Pinned-reference capture for item 22b.4 S4 (additive) and item 22b.5 M3a
+# (multiplicative): the selection flow of the pinned X11Kernel (pinned rjd3
+# 3.9.0 jars). Each case is captured by running the kernel itself
+# (X11Kernel.process on complete fixed-mode inputs with per-phase
 # SeasonalFilterOption requests and a fixed or automatic Henderson length), so
 # every automatic Henderson choice, I/C ratio, MSR filter decision, iteration
 # count and seasFilter fill is the pinned kernel's own. Captured evidence: the
@@ -16,8 +17,16 @@ script <- sub('^--file=', '', args[startsWith(args, '--file=')][[1L]])
 tooling <- dirname(normalizePath(script)); source(file.path(tooling, 'common.R'))
 root <- reference_root()
 args <- commandArgs(trailingOnly = TRUE)
+mode_name <- 'Additive'
+if (length(args) >= 1L && startsWith(args[[1L]], '--mode=')) {
+  mode_name <- sub('^--mode=', '', args[[1L]]); args <- args[-1L]
+}
 if (length(args) != 1L || !startsWith(args, '--output='))
-  stop('Usage: capture-x11-selection.R --output=<existing empty directory>')
+  stop('Usage: capture-x11-selection.R [--mode=Additive|Multiplicative] --output=<existing empty directory>')
+stopifnot(mode_name %in% c('Additive', 'Multiplicative'))
+mult <- mode_name == 'Multiplicative'
+dflt <- if (mult) 1 else 0 # the pinned mode default (DummyFilter/correction factor)
+rem <- function(a, b) if (mult) a / b else a - b # pinned ctx.remove
 output <- normalizePath(sub('^--output=', '', args), mustWork = TRUE)
 if (!dir.exists(output) || length(list.files(output, all.files = TRUE, no.. = TRUE)))
   stop('Output must be empty')
@@ -25,7 +34,7 @@ suppressWarnings(suppressMessages({
   library(rjd3jars); library(rjd3toolkit); library(rjd3x13); library(rJava)
 }))
 .jinit()
-mode_add <- J('jdplus.sa.base.api.DecompositionMode')$valueOf('Additive')
+mode_ref <- J('jdplus.sa.base.api.DecompositionMode')$valueOf(mode_name)
 option <- 'jdplus/x13/base/api/x11/SeasonalFilterOption'
 enames <- c('0' = 'Stable', '1' = 'S3X1', '3' = 'S3X3', '5' = 'S3X5', '9' = 'S3X9',
   '15' = 'S3X15', '-1' = 'X11Default', '-2' = 'Msr')
@@ -47,7 +56,9 @@ band_of <- function(msr) if (is.na(msr)) 's3x9' else if (msr < 2.5) 's3x3' else
   if (msr < 3.5) 'lower_gap' else if (msr < 5.5) 's3x5' else if (msr < 6.5) 'upper_gap' else 's3x9'
 fmend_pilot <- function(w, f) {
   # Pinned MsrFilterSelection.calcComponents: a seven-term symmetric filter
-  # with FilteredMeanEndPoints endpoints over each annual phase, additive.
+  # with FilteredMeanEndPoints endpoints over each annual phase; the
+  # irregular is the mode-aware ctx.remove of the seasonal (x - seas
+  # additive, x / seas multiplicative).
   filt <- .jcall('jdplus/x13/base/core/x11/filter/X11FilterFactory',
     'Ljdplus/toolkit/base/core/math/linearfilters/SymmetricFilter;', 'makeSymmetricFilter', 7L)
   fmend <- .jnew('jdplus/x13/base/core/x11/filter/endpoints/FilteredMeanEndPoints', filt)
@@ -65,15 +76,17 @@ fmend_pilot <- function(w, f) {
   }
   seas <- .jcall(dst, '[D', 'toArray')
   seas <- seas[seq_len(length(w))]
-  list(seasonal = seas, irregular = as.double(w) - seas)
+  list(seasonal = seas, irregular = rem(as.double(w), seas))
 }
 msr_table_global <- function(seas, irr, f, first0) {
+  # The pinned MsrTable.of relative-delta flag is the strict mode ==
+  # Multiplicative test (MsrFilterSelection passes exactly this).
   tab <- .jcall('jdplus/x13/base/api/x11/MsrTable', 'Ljdplus/x13/base/api/x11/MsrTable;',
     'of', .jcast(J('jdplus.toolkit.base.api.data.Doubles')$of(.jarray(seas)),
       'jdplus/toolkit/base/api/data/DoubleSeq'),
     .jcast(J('jdplus.toolkit.base.api.data.Doubles')$of(.jarray(irr)),
       'jdplus/toolkit/base/api/data/DoubleSeq'),
-    as.integer(f), as.integer(first0), FALSE)
+    as.integer(f), as.integer(first0), mult)
   .jcall(tab, 'D', 'getGlobalMsr')
 }
 tables <- list(); cases <- list(); inputs <- list(); selections <- list(); msrrows <- list()
@@ -83,11 +96,12 @@ grab <- function(obj, nm) {
   data.frame(table = nm, row = seq_along(v) - 1L, value = v, stringsAsFactors = FALSE)
 }
 capture <- function(id, values, f, first_period, requests, trend, back = 0L, fc = 0L) {
+  if (mult) stopifnot(all(is.finite(values) & values > 0)) # the pinned gate
   ts <- .jcall('jdplus/toolkit/base/r/timeseries/TsUtility',
     'Ljdplus/toolkit/base/api/timeseries/TsData;', 'of',
     as.integer(f), 2000L, as.integer(first_period), as.double(values))
   sb <- J('jdplus.x13.base.api.x11.X11Spec')$builder()
-  sb <- .jcall(sb, 'Ljdplus/x13/base/api/x11/X11Spec$Builder;', 'mode', mode_add)
+  sb <- .jcall(sb, 'Ljdplus/x13/base/api/x11/X11Spec$Builder;', 'mode', mode_ref)
   sb <- .jcall(sb, 'Ljdplus/x13/base/api/x11/X11Spec$Builder;', 'filters', en(requests))
   sb <- .jcall(sb, 'Ljdplus/x13/base/api/x11/X11Spec$Builder;', 'hendersonFilterLength', as.integer(trend))
   sb <- .jcall(sb, 'Ljdplus/x13/base/api/x11/X11Spec$Builder;', 'backcastHorizon', as.integer(back))
@@ -160,13 +174,15 @@ capture <- function(id, values, f, first_period, requests, trend, back = 0L, fc 
   # Case-level records.
   inputs <<- rbind(inputs, data.frame(case = id, row = seq_along(values) - 1L,
     value = as.double(values), stringsAsFactors = FALSE))
-  cases <<- rbind(cases, data.frame(case = id, frequency = f, first_period = first_period,
+  row <- data.frame(case = id, frequency = f, first_period = first_period,
     n = length(values), trend = trend, backcast = back, forecast = fc,
     requests = paste(requests, collapse = ','), d7len = d7len, finallen = finallen,
     icratio = d$getICRatio(), seas = paste(seas, collapse = ','),
     engaged = engaged, d9filter = if (is.null(d$getD9filter())) NA_integer_ else code_of(.jarray(list(d$getD9filter()))),
     d9msriter = d$getD9msriter(), d9default = d$isD9default(),
-    b20nz = sum(seq_of(b, 'B20')$toArray() != 0), stringsAsFactors = FALSE))
+    b20nz = sum(seq_of(b, 'B20')$toArray() != dflt), stringsAsFactors = FALSE)
+  if (mult) row$mode <- mode_name # multiplicative-only columns keep
+  cases <<- rbind(cases, row)                        # the additive schema byte-exact
   stages <- data.frame(stage = c('b7', 'c7', 'd7', 'final'),
     input = c('b6', 'c6', 'd6', 'd11bis'), ic_ratio = as.numeric(ics),
     select_filter = as.integer(sels), stringsAsFactors = FALSE)
@@ -244,14 +260,15 @@ java <- list(version = .jcall('java/lang/System', 'Ljava/lang/String;', 'getProp
   runtime_version = .jcall('java/lang/System', 'Ljava/lang/String;', 'getProperty', 'java.runtime.version'),
   vm_name = .jcall('java/lang/System', 'Ljava/lang/String;', 'getProperty', 'java.vm.name'),
   architecture = .jcall('java/lang/System', 'Ljava/lang/String;', 'getProperty', 'os.arch'),
-  oracle = 'rjd3 3.9.0/3.9.1 pinned jars via rjd3jars classpath; X11Kernel.process(TsData, X11Spec, ProcessingLog.dummy) with per-phase SeasonalFilterOption requests, fixed or automatic (0) Henderson length, additive mode, zero or hand-extended horizons; step getters B7/B13/B20, C7/C13/C20, D1..D13, getSeasFilter, getD9filter, getD9msriter, isD9default, getD7HendersonFilterLength, getFinalHendersonFilterLength, getICRatio; pinned AutomaticHenderson.calcICR/selectFilter and standalone MsrFilterSelection.doMSR cross-checks on the kernel context; pinned FilteredMeanEndPoints/MsrTable.of attempt walk reproducing every doMSR iteration')
+  oracle = paste0('rjd3 3.9.0/3.9.1 pinned jars via rjd3jars classpath; X11Kernel.process(TsData, X11Spec, ProcessingLog.dummy) with per-phase SeasonalFilterOption requests, fixed or automatic (0) Henderson length, ',
+    tolower(mode_name), ' mode, zero or hand-extended horizons; step getters B7/B13/B20, C7/C13/C20, D1..D13, getSeasFilter, getD9filter, getD9msriter, isD9default, getD7HendersonFilterLength, getFinalHendersonFilterLength, getICRatio; pinned AutomaticHenderson.calcICR/selectFilter and standalone MsrFilterSelection.doMSR cross-checks on the kernel context; pinned FilteredMeanEndPoints/MsrTable.of attempt walk reproducing every doMSR iteration'))
 metadata <- list(schema_version = 1L,
   captured_utc = format(Sys.time(), tz = 'UTC', usetz = TRUE),
   source_sha256 = setNames(reference_sha256(files), basename(files)),
   java = java, R = R.version.string, cases = nrow(cases),
-  public_scope = 'Pinned X11Kernel additive selection flow only: staged fixed/X11Default/MSR seasonal requests resolved by the pinned context, automatic Henderson length at B7 (with the pinned inline ratio >= 1 -> period + 1 branch), C7, D7 and the D final step (selectFilter thresholds), the always-computed D final iCRatio, the global-MSR D-final filter decision (doMSR attempts, iteration count, exhausted default and seasFilter fill) and the post-selection B/C/D tables of the same run. The constant-series cases pin the pinned degenerate choices (NaN I/C ratio -> longest filter, MSR 3.844... -> 3x5) as controls the qualified pass deliberately does not reproduce; cross-validation, multiplicative modes, the period-specific corrector and ARIMA-regression inputs are not claimed')
+  public_scope = if (mult) 'Pinned X11Kernel fixed multiplicative selection flow only: staged fixed/X11Default/MSR seasonal requests resolved by the pinned context, automatic Henderson length at B7 (with the pinned inline ratio >= 1 -> period + 1 branch), C7, D7 and the D final step (selectFilter thresholds), the always-computed D final iCRatio, the global-MSR D-final filter decision (doMSR attempts with the mode-aware calcComponents irregular x / seas and the MsrTable.of relative flag set exactly when the mode is Multiplicative, iteration count, exhausted default and seasFilter fill) and the post-selection B/C/D tables of the same run. The constant-series case pins the pinned degenerate choices (NaN I/C ratio -> longest filter, degenerate global MSR -> 3x5 default) as controls the qualified pass deliberately does not reproduce; cross-validation, log-additive and pseudo-additive modes, the period-specific corrector and ARIMA-regression inputs are not claimed' else 'Pinned X11Kernel additive selection flow only: staged fixed/X11Default/MSR seasonal requests resolved by the pinned context, automatic Henderson length at B7 (with the pinned inline ratio >= 1 -> period + 1 branch), C7, D7 and the D final step (selectFilter thresholds), the always-computed D final iCRatio, the global-MSR D-final filter decision (doMSR attempts, iteration count, exhausted default and seasFilter fill) and the post-selection B/C/D tables of the same run. The constant-series cases pin the pinned degenerate choices (NaN I/C ratio -> longest filter, MSR 3.844... -> 3x5) as controls the qualified pass deliberately does not reproduce; cross-validation, multiplicative modes, the period-specific corrector and ARIMA-regression inputs are not claimed')
 writeLines(sub('[[:blank:]]+$', '', capture.output(dput(metadata))), file.path(output, 'metadata.R'))
 captured <- file.path(output, c('inputs.csv', 'cases.csv', 'tables.csv', 'selections.csv', 'msr.csv', 'metadata.R'))
 write.csv(data.frame(file = basename(captured), sha256 = reference_sha256(captured)),
   file.path(output, 'SHA256SUMS.csv'), row.names = FALSE)
-cat('Captured', nrow(cases), 'pinned selection cases;', nrow(tables), 'table rows\n')
+cat('Captured', nrow(cases), 'pinned', tolower(mode_name), 'selection cases;', nrow(tables), 'table rows\n')

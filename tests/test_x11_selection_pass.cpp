@@ -3706,7 +3706,7 @@ int main() {
         const MaskedSeries series{c.input,std::vector<std::uint8_t>(c.input.size(),0)};
         x11_selection_pass(series,c.frequency,c.first_period,requests_of(c.requests),
             c.trend_length,X11SigmaPolicy::legacy,X11MsrIterationPolicy::jdplus,
-            1.5,2.5,c.backcast,c.forecast,count);
+            1.5,2.5,c.backcast,c.forecast,X11DecompositionMode::additive,count);
         assert(total>=20);
         int boundaries=0;
         for(int stop_at=1;stop_at<=total+1;++stop_at) {
@@ -3716,7 +3716,7 @@ int main() {
             try {
                 x11_selection_pass(series,c.frequency,c.first_period,requests_of(c.requests),
                     c.trend_length,X11SigmaPolicy::legacy,X11MsrIterationPolicy::jdplus,
-                    1.5,2.5,c.backcast,c.forecast,stop);
+                    1.5,2.5,c.backcast,c.forecast,X11DecompositionMode::additive,stop);
             } catch(const std::runtime_error&) { thrown=true; }
             assert(thrown==(stop_at<=total));
             ++boundaries;

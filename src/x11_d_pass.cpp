@@ -49,9 +49,15 @@ X11DPass x11_d_pass(const MaskedSeries& series,int frequency,int first_period,
         if(!series.missing[row] && c.reference_series.values[row]!=series.values[row])
             throw std::invalid_argument("D pass series differs from the C pass input");
     }
+    // The decomposition mode is inherited from the C pass (the pinned
+    // kernel runs the D step on the same context) and re-gated here.
+    const auto mode=c.mode;
+    check_decomposition("D pass",mode,series);
+    const auto mult=x11_mode_is_multiplicative(mode);
     checkpoint(interrupt);
     X11DPass pass;
     pass.d2drop=t;
+    pass.mode=mode;
     pass.backcast=backcast; pass.forecast=forecast;
     pass.initial_filters=initial_filters; pass.final_filters=final_filters;
     pass.seas_filter=final_filters; // the fixed requests; the pinned
@@ -61,7 +67,7 @@ X11DPass x11_d_pass(const MaskedSeries& series,int frequency,int first_period,
     pass.msr_iterations=0; // pinned constant: no MSRE filter selection
     // X11DStep.process(refSeries, C20, ctx, cvFilters): d1 = remove(refSeries, C20).
     const auto y=to_pinned(series);
-    pass.d1=minus_pinned(y,c.c20,interrupt);
+    pass.d1=remove_pinned(y,c.c20,mult,interrupt);
     // d2Step: X11TrendCycleFilterFactory.makeTrendFilter(period) over the
     // central span only (the pinned table has length n - 2*d2drop).
     const auto annual=x11_symmetric_filter(repo_view(pass.d1),X11FilterKind::trend,
@@ -71,30 +77,35 @@ X11DPass x11_d_pass(const MaskedSeries& series,int frequency,int first_period,
     MaskedSeries cropped;
     cropped.values.assign(pass.d1.values.begin()+t,pass.d1.values.begin()+n-t);
     cropped.missing.assign(pass.d1.missing.begin()+t,pass.d1.missing.begin()+n-t);
-    pass.d4=minus_pinned(cropped,pass.d2,interrupt);
+    pass.d4=remove_pinned(cropped,pass.d2,mult,interrupt);
     const auto first=static_cast<std::size_t>(first_period-1);
     const auto center_position=(first+t)%f; // pinned getPosition(d2drop)
     checkpoint(interrupt);
     // d5Step: the INITIAL requests over the cropped span at getPosition(
     // d2drop), normalized with iStart = d2drop (extension back to the span).
     const auto d5raw=process_pinned(pass.d4,frequency,center_position,initial_filters,interrupt);
-    pass.d5=normalize_pinned(d5raw,frequency,center_position,0,t,final_filters,interrupt);
-    pass.d6=minus_pinned(pass.d1,pass.d5,interrupt);
+    pass.d5=normalize_pinned(d5raw,frequency,center_position,0,t,final_filters,mult,interrupt);
+    pass.d6=remove_pinned(pass.d1,pass.d5,mult,interrupt);
     checkpoint(interrupt);
     // d7Step: the fixed Henderson filter with mmsre endpoints over D6.
     pass.d7=pinned_trend_filter(pass.d6,frequency,trend_length,interrupt);
-    pass.d8=minus_pinned(y,pass.d7,interrupt); // remove(refSeries, d7)
-    pass.d9bis=minus_pinned(pass.d1,pass.d7,interrupt);
+    // The pinned d7Step positivity repair under a multiplicative context.
+    if(mult) make_positivity(pass.d7.values);
+    pass.d8=remove_pinned(y,pass.d7,mult,interrupt); // remove(refSeries, d7)
+    pass.d9bis=remove_pinned(pass.d1,pass.d7,mult,interrupt);
     pass.d9=d9_mask_pinned(pass.d9bis,pass.d8,interrupt); // pinned dcmpg mask
     checkpoint(interrupt);
     // dFinalStep: the final requests over D9bis at getPosition(0), normalized
     // with iStart = 0; the final Henderson trend over D11bis.
     pass.d10bis=process_pinned(pass.d9bis,frequency,first,final_filters,interrupt);
-    pass.d10=normalize_pinned(pass.d10bis,frequency,first,0,0,final_filters,interrupt);
-    pass.d11bis=minus_pinned(pass.d1,pass.d10,interrupt);
+    pass.d10=normalize_pinned(pass.d10bis,frequency,first,0,0,final_filters,mult,interrupt);
+    pass.d11bis=remove_pinned(pass.d1,pass.d10,mult,interrupt);
     pass.d12=pinned_trend_filter(pass.d11bis,frequency,trend_length,interrupt);
-    pass.d11=minus_pinned(y,pass.d10,interrupt); // remove(refSeries, d10)
-    pass.d13=minus_pinned(pass.d11,pass.d12,interrupt);
+    // The pinned dFinalStep positivity repair of the final Henderson trend,
+    // before D13 composes it away (the second X11DStep makePositivity site).
+    if(mult) make_positivity(pass.d12.values);
+    pass.d11=remove_pinned(y,pass.d10,mult,interrupt); // remove(refSeries, d10)
+    pass.d13=remove_pinned(pass.d11,pass.d12,mult,interrupt);
     checkpoint(interrupt);
     // The pinned MSRE diagnostic runs on the dropped original calendar at
     // the original-calendar phase getPosition(backcast).
@@ -102,7 +113,8 @@ X11DPass x11_d_pass(const MaskedSeries& series,int frequency,int first_period,
         pass.d9bis.values.end()-static_cast<std::ptrdiff_t>(forecast));
     std::vector<double> ri,rs;
     std::vector<std::int64_t> counts;
-    pinned_msr_table(original,frequency,(first+static_cast<std::size_t>(backcast))%f,ri,rs,counts);
+    pinned_msr_table(original,frequency,(first+static_cast<std::size_t>(backcast))%f,
+        mult,ri,rs,counts);
     auto& msr=pass.msr_table;
     msr.mean_irregular_evolutions=std::move(ri);
     msr.mean_seasonal_evolutions=std::move(rs);

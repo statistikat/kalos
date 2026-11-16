@@ -9,18 +9,27 @@ script <- sub('^--file=', '', args[startsWith(args, '--file=')][[1L]])
 tooling <- dirname(normalizePath(script)); source(file.path(tooling, 'common.R'))
 root <- reference_root()
 args <- commandArgs(trailingOnly = TRUE)
+mode_name <- 'Additive'
+if (length(args) >= 1L && startsWith(args[[1L]], '--mode=')) {
+  mode_name <- sub('^--mode=', '', args[[1L]]); args <- args[-1L]
+}
 if (length(args) != 1L || !startsWith(args, '--output='))
-  stop('Usage: capture-x11-bpass.R --output=<existing empty directory>')
+  stop('Usage: capture-x11-bpass.R [--mode=Additive|Multiplicative] --output=<existing empty directory>')
+stopifnot(mode_name %in% c('Additive', 'Multiplicative'))
+mult <- mode_name == 'Multiplicative'
+dflt <- if (mult) 1 else 0 # the pinned mode default (DummyFilter/correction factor)
+rem <- function(a, b) if (mult) a / b else a - b # pinned ctx.remove
 output <- normalizePath(sub('^--output=', '', args), mustWork = TRUE)
 if (!dir.exists(output) || length(list.files(output, all.files = TRUE, no.. = TRUE)))
   stop('Output must be empty')
-fixtures <- file.path(root, 'validation/fixtures/native', 'x11-bpass-cases.R')
+fixtures <- file.path(root, 'validation/fixtures/native',
+  if (mult) 'x11-bpass-mult-cases.R' else 'x11-bpass-cases.R')
 for (fixture in fixtures) source(fixture)
 suppressWarnings(suppressMessages({
   library(rjd3jars); library(rjd3toolkit); library(rjd3x13); library(rJava)
 }))
 .jinit()
-mode_add <- J('jdplus.sa.base.api.DecompositionMode')$valueOf('Additive')
+mode_ref <- J('jdplus.sa.base.api.DecompositionMode')$valueOf(mode_name)
 option <- 'jdplus/x13/base/api/x11/SeasonalFilterOption'
 enums <- function(spec) .jarray(lapply(spec, function(x) .jfield(option,
   paste0('L', option, ';'), if (x == 0L) 'Stable' else paste0('S3X', x))),
@@ -39,7 +48,7 @@ for (ca in x11_bpass_cases()) {
   values <- y$values; values[y$missing] <- NaN
   seqi <- .jcast(J('jdplus.toolkit.base.api.data.Doubles')$of(.jarray(values)),
     'jdplus/toolkit/base/api/data/DoubleSeq')
-  ctx <- J('jdplus.x13.base.core.x11.X11Context')$builder()$mode(mode_add)$
+  ctx <- J('jdplus.x13.base.core.x11.X11Context')$builder()$mode(mode_ref)$
     period(as.integer(ca$frequency))$firstPeriod(as.integer(ca$start_period - 1L))$
     seasonal(TRUE)$trendFilterLength(as.integer(ca$trend))$
     initialSeasonalFilter(enums(ca$initial))$finalSeasonalFilter(enums(ca$final))$
@@ -74,18 +83,45 @@ for (ca in x11_bpass_cases()) {
   stopifnot(same(tab$B1, values), length(tab$B2) == n - 2 * drop,
     length(tab$B4a) == n - 2 * drop, length(tab$B5) == n, length(tab$B17) == n,
     length(tab$B20) == n,
-    same(tab$B3, cropped(tab$B1) - tab$B2),
-    same(tab$B4d, tab$B3 - tab$B4anorm),
+    same(tab$B3, rem(cropped(tab$B1), tab$B2)),
+    same(tab$B4d, rem(tab$B3, tab$B4anorm)),
     same(tab$B4g, ifelse(is.nan(tab$B4), tab$B3, tab$B4)),
-    same(tab$B6, tab$B1 - tab$B5),
-    same(tab$B8, tab$B1 - tab$B7),
+    same(tab$B6, rem(tab$B1, tab$B5)),
+    same(tab$B8, rem(tab$B1, tab$B7)),
     same(tab$B9g, ifelse(is.nan(tab$B9), tab$B8, tab$B9)),
-    same(tab$B11, tab$B1 - tab$B10),
-    same(tab$B13, tab$B11 - tab$B7))
+    same(tab$B11, rem(tab$B1, tab$B10)),
+    same(tab$B13, rem(tab$B11, tab$B7)))
   # The final-stage correction cancels on unit-weight rows and the last two
   # tables follow the pinned getter defaults there.
   unit <- tab$B17 == 1
-  stopifnot(all(tab$B20[unit] == 0))
+  stopifnot(all(tab$B20[unit] == dflt))
+  # Multiplicative only: rebuild the un-repaired B7 from the pinned filter
+  # parts (the same trendFilter/asymmetricTrendFilters/AsymmetricEndPoints
+  # calls the b7Step makes) and qualify the pinned makePositivity wiring:
+  # repairing the rebuild through the pinned static must equal the getter's
+  # B7 exactly, and the repair count records how many rows the guard fixed.
+  b7_repair <- 0L
+  if (mult) {
+    htf <- ctx$trendFilter()
+    r <- J('jdplus/x13/base/core/x11/filter/MusgraveFilterFactory')$findR(
+      as.integer(ca$trend), as.integer(ca$frequency))
+    afs <- ctx$asymmetricTrendFilters(htf, r)
+    ep <- .jnew('jdplus/x13/base/core/x11/filter/endpoints/AsymmetricEndPoints', afs, 0L)
+    p <- .jcall(htf, 'I', 'length') %/% 2L
+    a <- .jarray(rep(NaN, n))
+    blkv <- J('jdplus.toolkit.base.core.data.DataBlock')$of(a, p, n - p)
+    seq6 <- .jcall(b, 'Ljdplus/toolkit/base/api/data/DoubleSeq;', 'getB6')
+    .jcall(htf, 'V', 'apply', seq6, .jcast(blkv, 'jdplus/toolkit/base/api/data/DoubleSeq$Mutable'))
+    ep$process(seq6, J('jdplus.toolkit.base.core.data.DataBlock')$of(a))
+    if (!is.null(.jgetEx(TRUE))) stop('pinned B7 rebuild failed for case ', ca$id)
+    raw7 <- .jcall(J('jdplus.toolkit.base.core.data.DataBlock')$of(a), '[D', 'toArray')
+    fixed7 <- .jcall('jdplus/x13/base/core/x11/X11Context',
+      'Ljdplus/toolkit/base/api/data/DoubleSeq;', 'makePositivity',
+      .jcast(J('jdplus.toolkit.base.api.data.Doubles')$of(.jarray(raw7)),
+        'jdplus/toolkit/base/api/data/DoubleSeq'))$toArray()
+    b7_repair <- sum(!(raw7 == fixed7 | (is.nan(raw7) & is.nan(fixed7))))
+    stopifnot(same(fixed7, tab$B7))
+  }
   # Round-2 detection intermediate (pinned protected b9d semantics) rebuilt
   # on the public factory/normalizer/context APIs over the captured B8, so
   # the native correction history is qualified at table level too.
@@ -101,7 +137,7 @@ for (ca in x11_bpass_cases()) {
   d9 <- .jcall(ctx, 'Ljdplus/toolkit/base/api/data/DoubleSeq;', 'remove', seq8, seq9)
   if (is.null(d9)) stop('missing b9d in case ', ca$id)
   tab[["B9d"]] <- d9$toArray()
-  stopifnot(length(tab[["B9d"]]) == n, same(tab[["B9d"]], tab$B8 - n9))
+  stopifnot(length(tab[["B9d"]]) == n, same(tab[["B9d"]], rem(tab$B8, n9)))
   inputs[[ca$id]] <- data.frame(case = ca$id, row = seq_len(n) - 1L,
     value = y$values, missing = y$missing)
   tables[[ca$id]] <- do.call(rbind, lapply(c(names, 'B9d'), function(nm)
@@ -117,6 +153,8 @@ for (ca in x11_bpass_cases()) {
     resolved_final = paste(resolved_final, collapse = ' '),
     replacements_r1 = sum(!is.nan(tab$B4)), replacements_r2 = sum(!is.nan(tab$B9)),
     flagged_r3 = sum(!unit))
+  if (mult) cases[[ca$id]]$mode <- mode_name # multiplicative-only columns keep
+  if (mult) cases[[ca$id]]$b7_repair <- b7_repair # the additive schema byte-exact
 }
 # 17 significant digits round-trip IEEE doubles exactly; R's write.csv default
 # 15-digit format would silently quantize the pinned values.
@@ -133,15 +171,17 @@ java <- list(version = .jcall('java/lang/System', 'Ljava/lang/String;', 'getProp
   runtime_version = .jcall('java/lang/System', 'Ljava/lang/String;', 'getProperty', 'java.runtime.version'),
   vm_name = .jcall('java/lang/System', 'Ljava/lang/String;', 'getProperty', 'java.vm.name'),
   architecture = .jcall('java/lang/System', 'Ljava/lang/String;', 'getProperty', 'os.arch'),
-  oracle = 'rjd3 3.9.0/3.9.1 pinned jars via rjd3jars classpath; X11BStep.process with fixed per-phase SeasonalFilterOption arrays, fixed Henderson trendFilterLength, additive mode, zero horizons; all public B getters B1..B20')
+  oracle = paste0('rjd3 3.9.0/3.9.1 pinned jars via rjd3jars classpath; X11BStep.process with fixed per-phase SeasonalFilterOption arrays, fixed Henderson trendFilterLength, ',
+    tolower(mode_name), ' mode, zero horizons; all public B getters B1..B20',
+    if (mult) ' plus the pinned makePositivity rebuild cross-check of B7' else ''))
 metadata <- list(schema_version = 1L,
   captured_utc = format(Sys.time(), tz = 'UTC', usetz = TRUE),
   source_sha256 = setNames(reference_sha256(files), basename(files)),
   java = java, R = R.version.string, cases = length(cases),
-  public_scope = 'Pinned X11BStep fixed additive B-pass tables only (B1, B2, B3, B4, B4a, B4anorm, B4d, B4g, B5, B6, B7, B8, B9, B9g, B10, B11, B13, B17, B20) with fixed seasonal filters, fixed Henderson and additive mode; C/D passes, automatic filter choice, cross-validation, multiplicative modes and ARIMA-regression inputs are not claimed')
+  public_scope = if (mult) paste('Pinned X11BStep fixed multiplicative B-pass tables only (B1, B2, B3, B4, B4a, B4anorm, B4d, B4g, B5, B6, B7, B8, B9, B9g, B10, B11, B13, B17, B20) with fixed seasonal filters, fixed Henderson and multiplicative mode, including the b7Step makePositivity repair cross-check and repair counts; the C/D passes, automatic filter choice, cross-validation, log-additive and pseudo-additive modes and ARIMA-regression inputs are not claimed') else 'Pinned X11BStep fixed additive B-pass tables only (B1, B2, B3, B4, B4a, B4anorm, B4d, B4g, B5, B6, B7, B8, B9, B9g, B10, B11, B13, B17, B20) with fixed seasonal filters, fixed Henderson and additive mode; C/D passes, automatic filter choice, cross-validation, multiplicative modes and ARIMA-regression inputs are not claimed')
 writeLines(sub('[[:blank:]]+$', '', capture.output(dput(metadata))), file.path(output, 'metadata.R'))
 captured <- file.path(output, c('inputs.csv', 'cases.csv', 'tables.csv', 'metadata.R'))
 write.csv(data.frame(file = basename(captured), sha256 = reference_sha256(captured)),
   file.path(output, 'SHA256SUMS.csv'), row.names = FALSE)
-cat('Captured', length(cases), 'pinned fixed additive B-pass cases;',
+cat('Captured', length(cases), 'pinned fixed', tolower(mode_name), 'B-pass cases;',
   sum(vapply(tables, nrow, integer(1))), 'table rows\n')

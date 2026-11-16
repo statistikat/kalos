@@ -343,3 +343,21 @@ degenerate NaN choices stay explicit unsupported statuses instead of being
 reproduced. Cross-validation, multiplicative and non-seasonal modes, the
 period-specific corrector and ARIMA-regression inputs are not delivered or
 claimed. See [x11-selection-pass-contract.md](x11-selection-pass-contract.md).
+
+## Multiplicative decomposition mode
+
+`test_x11_multiplicative.cpp` and the 91-case pinned multiplicative fixtures
+qualify the multiplicative decomposition mode (item 22b.5 M3a) across the
+S1–S4 passes: the pinned ratio remove at every composition site, the
+`X11Kernel.check` positivity gate with the pinned message, the
+`makePositivity` repair of B7/C7/D7/D12 (fixture repair counts prove the
+branch live), the mode-default-1 sigma/corrector arithmetic, the
+relative-form `MsrTable.of` flag set exactly for `Multiplicative`, the
+mode-aware `doMSR` irregular and the new pinned `calcICR` fact that the
+flag makes the lag-1 variations relative in both windows (it decides the
+additive-NaN `const-msr` contrast at 3.515625). Log-additive and
+pseudo-additive fail every entry point with an explicit unsupported-mode
+argument error; their pinned pipelines (the log transform's export-stage
+`exp`, the `X11{B,C,D}StepPseudoAdd`/`PseudoAddUtility` classes) are
+decoded but not delivered (M3b). See
+[x11-multiplicative-contract.md](x11-multiplicative-contract.md).

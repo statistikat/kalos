@@ -43,16 +43,22 @@ X11CPass x11_c_pass(const MaskedSeries& series,int frequency,int first_period,
         if(!series.missing[row] && b.b1.values[row]!=series.values[row])
             throw std::invalid_argument("C pass series differs from the B pass input");
     }
+    // The decomposition mode is inherited from the B pass (the pinned
+    // kernel runs the C step on the same context) and re-gated here.
+    const auto mode=b.mode;
+    check_decomposition("C pass",mode,series);
+    const auto mult=x11_mode_is_multiplicative(mode);
     checkpoint(interrupt);
     X11CPass pass;
     pass.c2drop=t;
+    pass.mode=mode;
     pass.first_period=first_period;
     pass.initial_filters=initial_filters; pass.final_filters=final_filters;
     pass.trend_length=trend_length;
     // X11CStep.process(refSeries, B20, ctx): c1 = remove(refSeries, B20).
     const auto y=to_pinned(series);
     pass.reference_series=y;
-    pass.c1=minus_pinned(y,b.b20,interrupt);
+    pass.c1=remove_pinned(y,b.b20,mult,interrupt);
     // c2Step: X11TrendCycleFilterFactory.makeTrendFilter(period) over the
     // central span only (the pinned table has length n - 2*c2drop).
     const auto annual=x11_symmetric_filter(repo_view(pass.c1),X11FilterKind::trend,
@@ -62,34 +68,37 @@ X11CPass x11_c_pass(const MaskedSeries& series,int frequency,int first_period,
     MaskedSeries cropped;
     cropped.values.assign(pass.c1.values.begin()+t,pass.c1.values.begin()+n-t);
     cropped.missing.assign(pass.c1.missing.begin()+t,pass.c1.missing.begin()+n-t);
-    pass.c4=minus_pinned(cropped,pass.c2,interrupt);
+    pass.c4=remove_pinned(cropped,pass.c2,mult,interrupt);
     const auto first=static_cast<std::size_t>(first_period-1);
     const auto center_position=(first+t)%f; // pinned getPosition(c2drop)
     checkpoint(interrupt);
     // c5Step: the initial requests over the cropped span, normalized with
     // iStart = c2drop (the pinned extension back to the full span).
     pass.c5a=process_pinned(pass.c4,frequency,center_position,initial_filters,interrupt);
-    pass.c5=normalize_pinned(pass.c5a,frequency,center_position,0,t,final_filters,interrupt);
-    pass.c6=minus_pinned(pass.c1,pass.c5,interrupt);
+    pass.c5=normalize_pinned(pass.c5a,frequency,center_position,0,t,final_filters,mult,interrupt);
+    pass.c6=remove_pinned(pass.c1,pass.c5,mult,interrupt);
     checkpoint(interrupt);
     // c7Step: the fixed Henderson filter with mmsre endpoints over C6.
     pass.c7=pinned_trend_filter(pass.c6,frequency,trend_length,interrupt);
-    pass.c9=minus_pinned(pass.c1,pass.c7,interrupt);
+    // The pinned c7Step positivity repair of the trend table under a
+    // multiplicative context (the one X11CStep makePositivity site).
+    if(mult) make_positivity(pass.c7.values);
+    pass.c9=remove_pinned(pass.c1,pass.c7,mult,interrupt);
     checkpoint(interrupt);
     // cFinalStep: the final requests over C9, normalized with iStart = 0.
     pass.c10a=process_pinned(pass.c9,frequency,first,final_filters,interrupt);
-    pass.c10=normalize_pinned(pass.c10a,frequency,first,0,0,final_filters,interrupt);
-    pass.c11=minus_pinned(y,pass.c10,interrupt); // remove(refSeries, c10)
-    pass.c13=minus_pinned(pass.c11,pass.c7,interrupt);
+    pass.c10=normalize_pinned(pass.c10a,frequency,first,0,0,final_filters,mult,interrupt);
+    pass.c11=remove_pinned(y,pass.c10,mult,interrupt); // remove(refSeries, c10)
+    pass.c13=remove_pinned(pass.c11,pass.c7,mult,interrupt);
     checkpoint(interrupt);
     auto& round=pass.round;
     round.detection=pass.c13;
     round.analysis_position=static_cast<std::int64_t>(first);
     round.policy=policy;
     round.sigma=x11_sigma_weights(repo_view(pass.c13),frequency,
-        static_cast<int>(first)+1,policy,0,0,false,lower_sigma,upper_sigma,false,interrupt);
+        static_cast<int>(first)+1,policy,0,0,false,lower_sigma,upper_sigma,mult,interrupt);
     round.replacements=x11_replacements(repo_view(pass.c13),frequency,round.sigma.weights,
-        0,0,false,false,interrupt);
+        0,0,false,mult,interrupt);
     pass.c17=MaskedSeries{round.sigma.weights,missing_of(round.sigma.weights)};
     pass.c20=MaskedSeries{round.replacements.correction_factors,
         missing_of(round.replacements.correction_factors)};

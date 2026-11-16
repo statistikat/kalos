@@ -1,6 +1,8 @@
 // Full-sweep verification: native x11_c_pass against every pinned X11CStep
 // fixture case at exact double equality (NaN-aware). Run from the repository
-// root; an alternative fixture directory may be passed as the first argument.
+// root; an alternative fixture directory may be passed as the first argument
+// (the multiplicative sweeps run on validation/fixtures/native/x11-cpass-mult,
+// whose optional cases.csv `mode` column selects the decomposition mode).
 // fixture (composed like X11Kernel: native B pass -> native C pass). Every
 // table of every case at exact double equality (NaN-aware).
 #include <kalos/x11_c_pass.hpp>
@@ -55,6 +57,22 @@ std::vector<std::vector<std::string>> read_csv(const std::string& path) {
     if (!line.empty()) rows.push_back(split(line));
   return rows;
 }
+std::map<std::string, std::size_t> read_csv_header(const std::string& path) {
+  std::ifstream file(path);
+  if (!file) throw std::runtime_error("cannot open " + path);
+  std::string line;
+  std::getline(file, line);
+  std::map<std::string, std::size_t> out;
+  const auto fields = split(line);
+  for (std::size_t i = 0; i < fields.size(); ++i) out[unquote(fields[i])] = i;
+  return out;
+}
+kalos::X11DecompositionMode parse_mode(const std::string& raw) {
+  const auto s = unquote(raw);
+  if (s == "Multiplicative") return kalos::X11DecompositionMode::multiplicative;
+  if (s == "Additive") return kalos::X11DecompositionMode::additive;
+  throw std::runtime_error("unexpected fixture mode " + s);
+}
 bool equal_nan(const std::vector<double>& a, const std::vector<double>& b) {
   if (a.size() != b.size()) return false;
   for (std::size_t i = 0; i < a.size(); ++i) {
@@ -69,11 +87,14 @@ struct Case {
   double lsig = 1.5, usig = 2.5;
   std::vector<int> initial, final;
   long flagged_rc = 0, corrected_rc = 0;
+  kalos::X11DecompositionMode mode = kalos::X11DecompositionMode::additive;
 };
 }  // namespace
 
 int main(int argc, char** argv) {
   const std::string root = argc > 1 ? argv[1] : "validation/fixtures/native/x11-cpass/";
+  const auto cols = read_csv_header(root + "cases.csv");
+  const auto mode_col = cols.find("mode");  // absent in the additive fixtures
   std::vector<Case> cases;
   for (const auto& f : read_csv(root + "cases.csv")) {
     Case c;
@@ -88,6 +109,7 @@ int main(int argc, char** argv) {
     c.final = parse_list(f[10]);
     c.flagged_rc = std::stol(unquote(f[13]));
     c.corrected_rc = std::stol(unquote(f[14]));
+    if (mode_col != cols.end()) c.mode = parse_mode(f[mode_col->second]);
     cases.push_back(c);
   }
   std::map<std::string, kalos::MaskedSeries> series;
@@ -128,11 +150,16 @@ int main(int argc, char** argv) {
     kalos::X11CPass pass;
     try {
       const auto b = kalos::x11_b_pass(y, c.frequency, c.start_period, c.initial,
-          c.final, c.trend, kalos::X11SigmaPolicy::legacy, c.lsig, c.usig);
+          c.final, c.trend, kalos::X11SigmaPolicy::legacy, c.lsig, c.usig, c.mode);
       pass = kalos::x11_c_pass(y, c.frequency, c.start_period, c.initial,
           c.final, c.trend, kalos::X11SigmaPolicy::legacy, b, c.lsig, c.usig);
     } catch (const std::exception& e) {
       std::printf("FAIL %s: threw %s\n", c.id.c_str(), e.what());
+      ++failures;
+      continue;
+    }
+    if (pass.mode != c.mode) {
+      std::printf("FAIL %s: mode echo\n", c.id.c_str());
       ++failures;
       continue;
     }
@@ -170,8 +197,10 @@ int main(int argc, char** argv) {
       continue;
     }
     long flagged = 0, corrected = 0;
+    const double dflt =  // the pinned mode default (DummyFilter/correction factor)
+        c.mode == kalos::X11DecompositionMode::multiplicative ? 1. : 0.;
     for (const auto w : pass.c17.values) if (w != 1.) ++flagged;
-    for (const auto f : pass.c20.values) if (f != 0.) ++corrected;
+    for (const auto f : pass.c20.values) if (f != dflt) ++corrected;
     if (flagged != c.flagged_rc || corrected != c.corrected_rc) {
       std::printf("FAIL %s: counts flagged %ld/%ld corrected %ld/%ld\n", c.id.c_str(),
           flagged, c.flagged_rc, corrected, c.corrected_rc);

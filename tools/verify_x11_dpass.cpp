@@ -1,6 +1,8 @@
 // Full-sweep verification: native x11_d_pass against every pinned X11DStep
 // fixture case at exact double equality (NaN-aware). Run from the repository
-// root; an alternative fixture directory may be passed as the first argument.
+// root; an alternative fixture directory may be passed as the first argument
+// (the multiplicative sweeps run on validation/fixtures/native/x11-dpass-mult,
+// whose optional cases.csv `mode` column selects the decomposition mode).
 // fixture (composed like X11Kernel: native B pass -> native C pass -> native
 // D pass). Every table of every case, including the MSRE diagnostics and the
 // four hand-extended calendar cases, at exact double equality (NaN-aware).
@@ -58,6 +60,22 @@ std::vector<std::vector<std::string>> read_csv(const std::string& path) {
     if (!line.empty()) rows.push_back(split(line));
   return rows;
 }
+std::map<std::string, std::size_t> read_csv_header(const std::string& path) {
+  std::ifstream file(path);
+  if (!file) throw std::runtime_error("cannot open " + path);
+  std::string line;
+  std::getline(file, line);
+  std::map<std::string, std::size_t> out;
+  const auto fields = split(line);
+  for (std::size_t i = 0; i < fields.size(); ++i) out[unquote(fields[i])] = i;
+  return out;
+}
+kalos::X11DecompositionMode parse_mode(const std::string& raw) {
+  const auto s = unquote(raw);
+  if (s == "Multiplicative") return kalos::X11DecompositionMode::multiplicative;
+  if (s == "Additive") return kalos::X11DecompositionMode::additive;
+  throw std::runtime_error("unexpected fixture mode " + s);
+}
 bool equal_nan(const std::vector<double>& a, const std::vector<double>& b) {
   if (a.size() != b.size()) return false;
   for (std::size_t i = 0; i < a.size(); ++i) {
@@ -77,11 +95,14 @@ struct Case {
   int back = 0, fc = 0, orig_n = 0, orig_start = 0;
   double global_msr = 0;
   long d9_nonnan = 0, corrected_rc = 0;
+  kalos::X11DecompositionMode mode = kalos::X11DecompositionMode::additive;
 };
 }  // namespace
 
 int main(int argc, char** argv) {
   const std::string root = argc > 1 ? argv[1] : "validation/fixtures/native/x11-dpass/";
+  const auto cols = read_csv_header(root + "cases.csv");
+  const auto mode_col = cols.find("mode");  // absent in the additive fixtures
   std::vector<Case> cases;
   for (const auto& f : read_csv(root + "cases.csv")) {
     Case c;
@@ -101,6 +122,7 @@ int main(int argc, char** argv) {
     c.global_msr = parse_double(f[15]);
     c.d9_nonnan = std::stol(unquote(f[16]));
     c.corrected_rc = std::stol(unquote(f[17]));
+    if (mode_col != cols.end()) c.mode = parse_mode(f[mode_col->second]);
     cases.push_back(c);
   }
   std::map<std::string, kalos::MaskedSeries> series;
@@ -156,7 +178,7 @@ int main(int argc, char** argv) {
     kalos::X11DPass pass;
     try {
       const auto b = kalos::x11_b_pass(y, c.frequency, c.start_period, c.initial,
-          c.final, c.trend, kalos::X11SigmaPolicy::legacy, c.lsig, c.usig);
+          c.final, c.trend, kalos::X11SigmaPolicy::legacy, c.lsig, c.usig, c.mode);
       const auto cp = kalos::x11_c_pass(y, c.frequency, c.start_period, c.initial,
           c.final, c.trend, kalos::X11SigmaPolicy::legacy, b, c.lsig, c.usig);
       pass = kalos::x11_d_pass(y, c.frequency, c.start_period, c.initial, c.final,
@@ -169,7 +191,7 @@ int main(int argc, char** argv) {
     if (pass.status != "available" ||
         pass.d2drop != static_cast<std::size_t>(c.frequency) / 2 ||
         pass.backcast != c.back || pass.forecast != c.fc ||
-        pass.msr_iterations != 0 ||
+        pass.msr_iterations != 0 || pass.mode != c.mode ||
         pass.seas_filter != c.final) {
       std::printf("FAIL %s: status/echo\n", c.id.c_str());
       ++failures;
@@ -212,7 +234,7 @@ int main(int argc, char** argv) {
         const std::size_t f = static_cast<std::size_t>(c.frequency);
         const std::size_t pos =
             (static_cast<std::size_t>(c.start_period - 1) + static_cast<std::size_t>(c.back)) % f;
-        kalos::detail::pinned_msr_table(slice, c.frequency, pos, ri2, rs2, n2);
+        kalos::detail::pinned_msr_table(slice, c.frequency, pos, false, ri2, rs2, n2);
         std::printf("   fixture-input ri:");
         for (auto v : ri2) std::printf(" %.17g", v);
         std::printf("\n   fixture-input rs:");

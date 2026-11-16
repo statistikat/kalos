@@ -534,3 +534,79 @@ oracle, tolerance, default or capability was promoted. Cross-validation,
 multiplicative and non-seasonal modes, the period-specific corrector, the
 mean-endpoint fallback below the trend length and ARIMA-regression inputs
 remain undelivered and unclaimed.
+
+## Multiplicative decomposition mode (22b.5 M3a) — 2026-11-16
+
+Delivered the pinned **multiplicative decomposition mode** (item 22b.5
+slice M3a) across the S1–S4 passes. `kalos::X11DecompositionMode`
+(include/kalos/x11_decomposition.hpp) mirrors the pinned
+`DecompositionMode`; every pass entry point gained a last optional mode
+argument defaulting to `additive` (item 22b.4 surface byte-unchanged) and
+echoes it on the pass structs. The mode drives exactly the decoded sites:
+the `ctx.remove` ratio at every composition point, the `X11Kernel.check`
+positivity gate on present rows (pinned message
+`"multiplicative decomposition of non positive series"`; flagged-missing
+rows stay legal at the fixed-pass level, the selection completeness rule is
+separate), the `makePositivity` repair at its four decoded sites (B7/C7/
+D7/D12 — the delivered trend tables are the repaired pinned tables, every
+row strictly positive, fixture repair counts prove the branch live), the
+mode-default-1 sigma center and `x/(1+w(x−1))` corrector, the
+`defaultMsrTable` multiplicative branch `obs = x / mov` with the
+`MsrTable.of` **relative-delta flag set exactly when the mode is
+Multiplicative** (false under PseudoAdditive — one reason the pseudo path
+is not the ratio arithmetic), the mode-aware `doMSR` irregular, and the
+new pinned fact that `calcAbsMeanVariations` under the flag makes every
+lag-1 variation **relative in both** the pilot and the irregular window of
+`AutomaticHenderson.calcICR` (`detail::pinned_ic_ratio` mode-aware): this
+decides the additive-NaN `const-msr` degenerate at exactly 3.515625 in
+multiplicative mode, while `const-fixed` stays NaN and keeps the
+`unsupported:trend-b7` refusal. The D9 mask is mode-free (verified).
+`log_additive` and `pseudo_additive` are declared but fail every entry
+point with `"<pass>: decomposition mode is not delivered"` — the log
+transform's `exp` belongs to the `X11Kernel.fill` export stage (D10..D13)
+and the pseudo-additive pipeline runs the dedicated
+`X11{B,C,D}StepPseudoAdd`/`PseudoAddUtility` classes (decoded, two paths
+differing in the MSR flag, not qualified); `x11_mode_is_multiplicative`
+exposes the pinned predicate but passes gate on the full mode.
+
+Evidence: all four capture scripts take `--mode=Additive|Multiplicative`
+(default Additive; re-captured additive fixtures verified byte-identical,
+all five selection CSVs included), append the mult-only `mode`/`b7_repair`/
+`c7_repair`/`d7_repair`/`d12_repair` columns last so additive schemas stay
+byte-exact, and cross-check the ratio arithmetic, the `makePositivity`
+rebuild and the mode-aware MSR/ICR facts on the pinned context (rjd3 3.9.0,
+JVM 21) into `validation/fixtures/native/x11-{bpass,cpass,dpass}-mult`
+(24/24/28 cases, 32,656/23,224/31,616 table rows — nine additive
+categories at positive levels plus `deep`, repair-carrying `spikeend`/
+`wideband`; D carries the same four extended-calendar cases) and
+`x11-selection-mult` (complete 15-case kernel inventory, 28,382 rows).
+Capture-side catch: the dpass `cases[[id]]$col <-` inside `capture()`
+shadowed the global (plain `$<-` copies) — mult columns silently dropped
+until switched to `<<-`; the additive schema masked it.
+
+`test_x11_multiplicative.cpp` (ctest #44) embeds 32 pinned cases verbatim:
+5 B + 5 C + 7 D (both repair categories, masked case, two extended
+calendars) plus the full 15-case selection inventory with the mode-aware
+staged I/C ratios, relative-form MSRE tables and self-consistency, eight
+engaged MSR walks bit-exact, ratio decomposition identities recomputed with
+the same IEEE operations, the `const-msr` decided / `const-fixed` refused
+contrast, five-year-cap truncation, strict positivity of repaired tables,
+serial/OpenMP equality, the interruption boundary sweep and the mode/
+positivity gate messages. `tools/verify_x11_{bpass,cpass,dpass}` read the
+optional `mode` column by header name (additive behavior unchanged,
+mult correction-count checks use the mode default) and sweep the full
+mult fixtures.
+
+Validation on this machine, pinned OpenBLAS 0.3.34 provider,
+`env LD_LIBRARY_PATH=/tmp/opencode/openblas/lib`: Release OpenMP build
+**44/44**, true serial build **44/44**; mult sweeps **24/24, 24/24, 28/28**
+bit-exact beside the unchanged additive sweeps **18/18, 18/18, 22/22**;
+all six fixture directories re-swept at `KALOS_NUM_THREADS` 1 and 4
+(12/12 bit-exact); the mult unit and the B/C/D/selection units plus
+sanitizer-built mult and additive D sweeps (28/28, 22/22) are diagnostic-
+free under gcc 13.3 `-fsanitize=address,undefined` (`detect_leaks=0`).
+Rules and semantics: docs/contracts/x11-multiplicative-contract.md. No
+fixture, oracle, tolerance, default or capability was promoted.
+Cross-validation, the period-specific corrector, log-additive and
+pseudo-additive modes, the mean-endpoint fallback and ARIMA-regression
+inputs remain undelivered and unclaimed.

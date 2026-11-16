@@ -16,19 +16,29 @@ script <- sub('^--file=', '', args[startsWith(args, '--file=')][[1L]])
 tooling <- dirname(normalizePath(script)); source(file.path(tooling, 'common.R'))
 root <- reference_root()
 args <- commandArgs(trailingOnly = TRUE)
+mode_name <- 'Additive'
+if (length(args) >= 1L && startsWith(args[[1L]], '--mode=')) {
+  mode_name <- sub('^--mode=', '', args[[1L]]); args <- args[-1L]
+}
 if (length(args) != 1L || !startsWith(args, '--output='))
-  stop('Usage: capture-x11-dpass.R --output=<existing empty directory>')
+  stop('Usage: capture-x11-dpass.R [--mode=Additive|Multiplicative] --output=<existing empty directory>')
+stopifnot(mode_name %in% c('Additive', 'Multiplicative'))
+mult <- mode_name == 'Multiplicative'
+dflt <- if (mult) 1 else 0 # the pinned mode default (DummyFilter/correction factor)
+rem <- function(a, b) if (mult) a / b else a - b # pinned ctx.remove
 output <- normalizePath(sub('^--output=', '', args), mustWork = TRUE)
 if (!dir.exists(output) || length(list.files(output, all.files = TRUE, no.. = TRUE)))
   stop('Output must be empty')
-fixtures <- file.path(root, 'validation/fixtures/native', 'x11-bpass-cases.R')
+fixtures <- file.path(root, 'validation/fixtures/native',
+  if (mult) 'x11-bpass-mult-cases.R' else 'x11-bpass-cases.R')
 for (fixture in fixtures) source(fixture)
-cpass <- read.csv(file.path(root, 'validation/fixtures/native', 'x11-cpass', 'tables.csv'))
+cpass <- read.csv(file.path(root, 'validation/fixtures/native',
+  if (mult) 'x11-cpass-mult' else 'x11-cpass', 'tables.csv'))
 suppressWarnings(suppressMessages({
   library(rjd3jars); library(rjd3toolkit); library(rjd3x13); library(rJava)
 }))
 .jinit()
-mode_add <- J('jdplus.sa.base.api.DecompositionMode')$valueOf('Additive')
+mode_ref <- J('jdplus.sa.base.api.DecompositionMode')$valueOf(mode_name)
 option <- 'jdplus/x13/base/api/x11/SeasonalFilterOption'
 enums <- function(spec) .jarray(lapply(spec, function(x) .jfield(option,
   paste0('L', option, ';'), if (x == 0L) 'Stable' else paste0('S3X', x))),
@@ -68,7 +78,7 @@ capture <- function(ca, back, fc) {
   first0 <- (ca$start_period - 1L - back) %% ca$frequency
   seqi <- .jcast(J('jdplus.toolkit.base.api.data.Doubles')$of(.jarray(series_values)),
     'jdplus/toolkit/base/api/data/DoubleSeq')
-  ctx <- J('jdplus.x13.base.core.x11.X11Context')$builder()$mode(mode_add)$
+  ctx <- J('jdplus.x13.base.core.x11.X11Context')$builder()$mode(mode_ref)$
     period(as.integer(ca$frequency))$firstPeriod(as.integer(first0))$
     seasonal(TRUE)$trendFilterLength(as.integer(ca$trend))$
     initialSeasonalFilter(enums(ca$initial))$finalSeasonalFilter(enums(ca$final))$
@@ -117,18 +127,20 @@ capture <- function(ca, back, fc) {
   # Additive identities of the captured tables, checked exactly against the
   # captured input, the captured C20 and each other. The D9 mask is the
   # pinned onMapping pair with dcmpg semantics (a NaN difference keeps D9bis).
+  # The pinned d9 mask compares the raw pair (dcmpg on the plain difference
+  # in both modes - the d9Step carries no decomposition switch).
   m9 <- abs(tab$D9bis - tab$D8)
   d9want <- ifelse(is.na(m9) | m9 >= 1e-9, tab$D9bis, NaN)
-  stopifnot(same(tab$D1, series_values - c20),
-    same(tab$D4, cropped(tab$D1) - tab$D2),
-    same(tab$D6, tab$D1 - tab$D5),
-    same(tab$D8, series_values - tab$D7),
-    same(tab$D9bis, tab$D1 - tab$D7),
+  stopifnot(same(tab$D1, rem(series_values, c20)),
+    same(tab$D4, rem(cropped(tab$D1), tab$D2)),
+    same(tab$D6, rem(tab$D1, tab$D5)),
+    same(tab$D8, rem(series_values, tab$D7)),
+    same(tab$D9bis, rem(tab$D1, tab$D7)),
     same(tab$D9_g_bis, tab$D9bis),
     same(tab$D9, d9want),
-    same(tab$D11, series_values - tab$D10),
-    same(tab$D11bis, tab$D1 - tab$D10),
-    same(tab$D13, tab$D11 - tab$D12))
+    same(tab$D11, rem(series_values, tab$D10)),
+    same(tab$D11bis, rem(tab$D1, tab$D10)),
+    same(tab$D13, rem(tab$D11, tab$D12)))
   # The pinned D2 filter is the same annual trend-cycle filter re-applied
   # here independently through the toolkit's Mutable view convention.
   tf <- J('jdplus/x13/base/core/x11/filter/X11TrendCycleFilterFactory')$
@@ -147,6 +159,10 @@ capture <- function(ca, back, fc) {
   r <- J('jdplus/x13/base/core/x11/filter/MusgraveFilterFactory')$findR(
     as.integer(ca$trend), as.integer(f))
   afs <- ctx$asymmetricTrendFilters(htf, r)
+  # Under the multiplicative mode the delivered trend tables are the pinned
+  # makePositivity repair of the rebuild (d7Step and dFinalStep sites):
+  # repairing the rebuild through the pinned static must equal the getter
+  # and the counts record how many rows the guard fixed.
   recompose <- function(target, got) {
     ep <- .jnew('jdplus/x13/base/core/x11/filter/endpoints/AsymmetricEndPoints', afs, 0L)
     p <- .jcall(htf, 'I', 'length') %/% 2L
@@ -154,21 +170,30 @@ capture <- function(ca, back, fc) {
     blkv <- J('jdplus.toolkit.base.core.data.DataBlock')$of(a, p, n - p)
     .jcall(htf, 'V', 'apply', .jcast(J('jdplus.toolkit.base.api.data.Doubles')$of(
       .jarray(target)), 'jdplus/toolkit/base/api/data/DoubleSeq'),
-      .jcast(blkv, 'jdplus/toolkit/base/api/data/DoubleSeq$Mutable'))
+      .jcast(blkv, 'jdplus/toolkit.base/api/data/DoubleSeq$Mutable'))
     ep$process(.jcast(J('jdplus.toolkit.base.api.data.Doubles')$of(
-      .jarray(target)), 'jdplus/toolkit/base/api/data/DoubleSeq'),
+      .jarray(target)), 'jdplus/toolkit.base/api/data/DoubleSeq'),
       J('jdplus.toolkit.base.core.data.DataBlock')$of(a))
     if (!is.null(.jgetEx(TRUE))) stop('pinned endpoint recomposition failed for ', ca$id)
-    same(.jcall(J('jdplus.toolkit.base.core.data.DataBlock')$of(a), '[D', 'toArray'), got)
+    raw <- .jcall(J('jdplus.toolkit.base.core.data.DataBlock')$of(a), '[D', 'toArray')
+    if (!mult) return(same(raw, got))
+    fixed <- .jcall('jdplus/x13/base/core/x11/X11Context',
+      'Ljdplus/toolkit/base/api/data/DoubleSeq;', 'makePositivity',
+      .jcast(J('jdplus.toolkit.base.api.data.Doubles')$of(.jarray(raw)),
+        'jdplus/toolkit/base/api/data/DoubleSeq'))$toArray()
+    repair <<- sum(!(raw == fixed | (is.nan(raw) & is.nan(fixed))))
+    same(fixed, got)
   }
-  stopifnot(recompose(tab$D6, tab$D7), recompose(tab$D11bis, tab$D12))
+  repair <- 0L; ok7 <- recompose(tab$D6, tab$D7); repair7 <- repair
+  repair <- 0L; ok12 <- recompose(tab$D11bis, tab$D12); repair12 <- repair
+  stopifnot(ok7, ok12)
   # MSRE diagnostic table: computed on the dropped original calendar at the
   # original-calendar position, reproduced through the pinned factory.
   msr <- dstep$getD9msr()
   position <- (first0 + back) %% f
   mt <- J('jdplus.x13.base.core.x11.X11Utility')$defaultMsrTable(
     dstep$getD9_g_bis()$drop(as.integer(back), as.integer(fc)), as.integer(f),
-    as.integer(position), mode_add)
+    as.integer(position), mode_ref)
   ri <- msr$getMeanIrregularEvolutions(); rs <- msr$getMeanSeasonalEvolutions()
   msrphase <- vapply(seq_len(f) - 1L, function(p) msr$getMsr(as.integer(p)), double(1))
   ok <- function(a, b) all((a == b) | (is.na(a) & is.na(b)))
@@ -219,7 +244,12 @@ capture <- function(ca, back, fc) {
     fc = as.integer(fc), orig_n = as.integer(length(y$values)),
     orig_start_period = as.integer(ca$start_period),
     global_msr = msr$getGlobalMsr(), d9_nonnan = sum(!is.nan(tab$D9)),
-    corrected_rc = sum(c20 != 0))
+    corrected_rc = sum(c20 != dflt))
+  if (mult) { # multiplicative-only columns keep the additive schema byte-exact
+    cases[[id]]$mode <<- mode_name # <<- keeps the modification in the enclosing
+    cases[[id]]$d7_repair <<- repair7 # scope: plain $<- would only touch the
+    cases[[id]]$d12_repair <<- repair12 # function-local shadow copy
+  }
 }
 for (ca in x11_bpass_cases()) {
   capture(ca, 0L, 0L)
@@ -237,21 +267,23 @@ write.csv(fixtures_fmt(do.call(rbind, cases)), file.path(output, 'cases.csv'), r
 write.csv(fixtures_fmt(do.call(rbind, tables)), file.path(output, 'tables.csv'), row.names = FALSE)
 write.csv(fixtures_fmt(do.call(rbind, msrrows)), file.path(output, 'msr.csv'), row.names = FALSE)
 files <- c(normalizePath(script), fixtures,
-  file.path(root, 'validation/fixtures/native/x11-cpass/tables.csv'))
+  file.path(root, 'validation/fixtures/native',
+    if (mult) 'x11-cpass-mult' else 'x11-cpass', 'tables.csv'))
 java <- list(version = .jcall('java/lang/System', 'Ljava/lang/String;', 'getProperty', 'java.version'),
   vendor = .jcall('java/lang/System', 'Ljava/lang/String;', 'getProperty', 'java.vendor'),
   runtime_version = .jcall('java/lang/System', 'Ljava/lang/String;', 'getProperty', 'java.runtime.version'),
   vm_name = .jcall('java/lang/System', 'Ljava/lang/String;', 'getProperty', 'java.vm.name'),
   architecture = .jcall('java/lang/System', 'Ljava/lang/String;', 'getProperty', 'os.arch'),
-  oracle = 'rjd3 3.9.0/3.9.1 pinned jars via rjd3jars classpath; X11Kernel composition X11BStep.process(series, ctx) + X11CStep.process(series, B20, ctx, cv) + X11DStep.process(series, C20, ctx, cv) with fixed per-phase SeasonalFilterOption arrays, fixed Henderson trendFilterLength, additive mode; extended cases set backcastHorizon/forecastHorizon with a hand-extended series and shifted firstPeriod; all public D getters D1..D13 (D9g is null in the fixed corrector mode), getD9msr, getSeasFilter, getD2drop and the Henderson lengths')
+  oracle = paste0('rjd3 3.9.0/3.9.1 pinned jars via rjd3jars classpath; X11Kernel composition X11BStep.process(series, ctx) + X11CStep.process(series, B20, ctx, cv) + X11DStep.process(series, C20, ctx, cv) with fixed per-phase SeasonalFilterOption arrays, fixed Henderson trendFilterLength, ', tolower(mode_name), ' mode; extended cases set backcastHorizon/forecastHorizon with a hand-extended series and shifted firstPeriod; all public D getters D1..D13 (D9g is null in the fixed corrector mode), getD9msr, getSeasFilter, getD2drop and the Henderson lengths',
+    if (mult) ' plus the pinned makePositivity rebuild cross-checks of D7 and D12' else ''))
 metadata <- list(schema_version = 1L,
   captured_utc = format(Sys.time(), tz = 'UTC', usetz = TRUE),
   source_sha256 = setNames(reference_sha256(files), basename(files)),
   java = java, R = R.version.string, cases = length(cases),
-  public_scope = 'Pinned X11DStep fixed additive D-pass tables only (D1, D2, D4, D5, D6, D7, D8, D9, D9bis, D9_g_bis, D10, D10bis, D11, D11bis, D12, D13, the D9 MSRE diagnostic table and the seasFilter echo) composed from the fixed additive B and C passes exactly like X11Kernel, at zero horizon and on four hand-extended calendars with context backcast/forecast horizons; the MSRE filter selection, automatic Henderson (getICRatio is diagnostic-only and not captured), cross-validation, the period-specific corrector (D9g), multiplicative modes and ARIMA-regression inputs are not claimed')
+  public_scope = if (mult) 'Pinned X11DStep fixed multiplicative D-pass tables only (D1, D2, D4, D5, D6, D7, D8, D9, D9bis, D9_g_bis, D10, D10bis, D11, D11bis, D12, D13, the D9 MSRE diagnostic table and the seasFilter echo) composed from the fixed multiplicative B and C passes exactly like X11Kernel, at zero horizon and on four hand-extended calendars with context backcast/forecast horizons, including the d7Step and dFinalStep makePositivity repair cross-checks and repair counts; the MSRE filter selection, automatic Henderson (getICRatio is diagnostic-only and not captured), cross-validation, the period-specific corrector (D9g), log-additive and pseudo-additive modes and ARIMA-regression inputs are not claimed' else 'Pinned X11DStep fixed additive D-pass tables only (D1, D2, D4, D5, D6, D7, D8, D9, D9bis, D9_g_bis, D10, D10bis, D11, D11bis, D12, D13, the D9 MSRE diagnostic table and the seasFilter echo) composed from the fixed additive B and C passes exactly like X11Kernel, at zero horizon and on four hand-extended calendars with context backcast/forecast horizons; the MSRE filter selection, automatic Henderson (getICRatio is diagnostic-only and not captured), cross-validation, the period-specific corrector (D9g), multiplicative modes and ARIMA-regression inputs are not claimed')
 writeLines(sub('[[:blank:]]+$', '', capture.output(dput(metadata))), file.path(output, 'metadata.R'))
 captured <- file.path(output, c('inputs.csv', 'cases.csv', 'tables.csv', 'msr.csv', 'metadata.R'))
 write.csv(data.frame(file = basename(captured), sha256 = reference_sha256(captured)),
   file.path(output, 'SHA256SUMS.csv'), row.names = FALSE)
-cat('Captured', length(cases), 'pinned fixed additive D-pass cases;',
+cat('Captured', length(cases), 'pinned fixed', tolower(mode_name), 'D-pass cases;',
   sum(vapply(tables, nrow, integer(1))), 'table rows\n')
