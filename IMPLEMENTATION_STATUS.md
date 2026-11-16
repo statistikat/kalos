@@ -476,3 +476,61 @@ and both predecessor units spot-run under gcc 13.3
 default, capability or tolerance was promoted. The selector-stage connection
 (S4), the mean-endpoint fallback below the trend length, multiplicative
 modes and ARIMA-regression inputs remain undelivered and unclaimed.
+
+## Pass-level X-11 selection flow (22b.4 S4) — 2026-11-16
+
+Delivered `kalos::x11_selection_pass` (item 22b.4 slice S4): the pass-level
+additive selection flow connecting the qualified selector stages to the
+S1–S3 fixed-pass arithmetic without deciding anything new. The staged
+seasonal requests run on the qualified 22b.3d plan arrays (Msr/X11Default
+→ provisional 3×3/3×5, bytecode-mirroring the pinned context getters); the
+automatic Henderson stages reproduce the pinned selection points verbatim —
+the **inline B7 branch** (ratio ≥ 1 → period + 1, *not* `selectFilter`
+alone), `selectFilter` at C7/D7 and the D final step, and the always-
+computed D-final `iCRatio` — each consuming `detail::pinned_ic_ratio`, the
+row-exact `AutomaticHenderson.calcICR` replication (pilot period + 1 over
+the interior span, extension drops on both windows, divisor `count − 1`,
+pinned ×3/×6 multipliers). The global-MSR D-final decision runs the pinned
+`doMSR` loop (horizon drop, trailing partial-year trim at
+`getPosition(backcast)`, FMEND-7 pilot + qualified additive `MsrTable`
+over leading windows, trailing-edge year removal per ambiguous band) with
+the qualified 22b.3c band rule and both qualified iteration policies
+(jdplus default; the five-year cap checked by truncating the same pinned
+19-evaluation trace at the sixth), fills the D-local `seasFilter` copy
+leaving the normalizer on the context's provisional array (bytecode-
+verified), and echoes `getSeasFilter`/`getD9msriter` on the D pass; the
+captured `isD9default` fact (always false) keeps `using_default` on
+`MsrFilterSelection.isUsingDefault`. Pinned degenerate choices are **not**
+reproduced: a NaN I/C ratio (pinned takes the longest filter) and a NaN
+MSR table (pinned takes 3×9) yield explicit `unsupported:<stage>` statuses
+— the constant-series fixture cases pin the contrast.
+
+Evidence: `validation/reference/capture-x11-selection.R` drives the pinned
+kernel (rjd3 3.9.0, JVM 21) through `X11Kernel.process` for 15 cases
+(captured through the pinned kernel itself, with capture-side `stopifnot`
+per-stage `calcICR`/`selectFilter`, standalone `doMSR` and FMEND-7 +
+`MsrTable.of` attempt-walk cross-checks on the kernel context) into
+`validation/fixtures/native/x11-selection` (28,382 table rows, per-stage
+selection records, per-attempt MSR traces, `SHA256SUMS.csv` verified).
+`test_x11_selection_pass` embeds all 15 decision-record cases and six full
+22-table selected-state cases verbatim, qualifies the inline-branch
+contrast, the bit-exact attempt traces, the cap-policy truncation with the
+B..D9_g_bis-identical/D10-diverging invariant, decomposition and MSRE
+identities, serial/OpenMP/4-thread bit equality, argument validation and
+the full interruption boundary sweep. The capture script additionally
+guards its own CSV structure (header and row-count re-read) against
+matrix-coerced single-line serialization.
+
+Validation on this machine, pinned OpenBLAS 0.3.34 provider,
+`env LD_LIBRARY_PATH=/tmp/opencode/openblas/lib`: Release OpenMP build
+**43/43**, true serial build **43/43**, zero warnings in both; the shared
+header touch was regression-gated by re-running the B/C/D sweepers against
+the installed fixtures at 4 threads and serial (**18/18, 18/18, 22/22**
+bit-exact); the selection unit and all three fixed-pass units spot-ran
+under gcc 13.3 `-fsanitize=address,undefined` (`-DKALOS_SANITIZERS=ON`,
+`-DKALOS_OPENMP=OFF`, `detect_leaks=0`) with zero diagnostics. Rules and
+semantics: docs/contracts/x11-selection-pass-contract.md. No fixture,
+oracle, tolerance, default or capability was promoted. Cross-validation,
+multiplicative and non-seasonal modes, the period-specific corrector, the
+mean-endpoint fallback below the trend length and ARIMA-regression inputs
+remain undelivered and unclaimed.

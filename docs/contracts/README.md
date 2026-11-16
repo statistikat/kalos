@@ -330,3 +330,16 @@ that coupling in the API. The MSRE filter selection, the automatic Henderson
 choice, cross-validation, the period-specific corrector, multiplicative
 modes and ARIMA-regression inputs are not delivered or claimed. See
 [x11-dpass-contract.md](x11-dpass-contract.md).
+
+## Pass-level X-11 selection flow
+
+`test_x11_selection_pass.cpp` and the 15-case pinned fixture qualify the
+pass-level additive selection flow of the pinned X11Kernel (item 22b.4 S4):
+the staged seasonal requests through the qualified 22b.3d plan, the
+automatic Henderson choices with the pinned inline B7 branch, the global-
+MSR D-final decision with both qualified iteration policies and the full
+attempt trace, and the selected-state B/C/D tables — while the pinned
+degenerate NaN choices stay explicit unsupported statuses instead of being
+reproduced. Cross-validation, multiplicative and non-seasonal modes, the
+period-specific corrector and ARIMA-regression inputs are not delivered or
+claimed. See [x11-selection-pass-contract.md](x11-selection-pass-contract.md).

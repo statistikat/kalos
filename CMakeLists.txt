@@ -68,6 +68,7 @@ add_library(kalos STATIC
   src/x11_msr_selection.cpp
   src/x11_musgrave.cpp
   src/x11_normalization.cpp
+  src/x11_selection_pass.cpp
   src/x11_seasonal_endpoints.cpp
   src/x11_seasonal_plan.cpp
   src/x11_seasonal_processing.cpp
@@ -167,6 +168,7 @@ if(KALOS_BUILD_TESTS)
     test_x11_msr_selection
     test_x11_musgrave
     test_x11_normalization
+    test_x11_selection_pass
     test_x11_seasonal_endpoints
     test_x11_seasonal_plan
     test_x11_seasonal_processing

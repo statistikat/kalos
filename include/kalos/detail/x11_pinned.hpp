@@ -474,6 +474,44 @@ inline void pinned_msr_table(const std::vector<double>& x,int frequency,
         counts[phase]=n;
     }
 }
+// AutomaticHenderson.calcICR over one complete window: the pilot Henderson
+// filter of length period + 1 with the pinned symmetric weights applied to
+// the interior span only (the pinned NaN-filled table plus DataBlock.of view
+// leaves the outer `side` rows unwritten, so they never contribute), the
+// irregular as the aligned interior input minus the pilot, the explicit
+// extensions dropped from both windows, and the ratio of the lag-1 mean
+// absolute changes of the irregular over the same statistic of the pilot,
+// multiplied by 3.0 for quarterly and 6.0 for biannual (pinned constants).
+// calcAbsMeanVariation divides the plain sum by length - 1 with no missing
+// handling: degenerate dropped windows reproduce the pinned division
+// outcomes (NaN from 0/0, signed zero from 0/-1) unchanged.
+inline double pinned_ic_ratio(const std::vector<double>& values,int frequency,
+        std::size_t backcast,std::size_t forecast) {
+    const auto f=static_cast<std::size_t>(frequency),n=values.size();
+    const auto length=static_cast<std::size_t>(frequency)+1; // odd: period is even
+    const auto side=length/2;
+    const auto w=pinned_trend_weights(static_cast<int>(length));
+    const auto m=n>2*side?n-2*side:0;
+    std::vector<double> pilot(m),irregular(m);
+    for(std::size_t row=0;row<m;++row) {
+        pilot[row]=anchored_dot(w,values.data()+row);
+        irregular[row]=values[side+row]-pilot[row];
+    }
+    // DoubleSeq.drop(backcast, forecast) = dropFirst then dropLast.
+    const auto first=std::min(backcast,m);
+    const auto rest=m-first;
+    const auto count=rest>forecast?rest-forecast:0;
+    double pilot_change=0,irregular_change=0;
+    for(std::size_t row=1;row<count;++row) {
+        pilot_change=pilot_change+std::fabs(pilot[first+row]-pilot[first+row-1]);
+        irregular_change=irregular_change+std::fabs(irregular[first+row]-irregular[first+row-1]);
+    }
+    const auto divisor=static_cast<double>(count)-1.; // calcAbsMeanVariation's n - 1
+    auto ratio=(irregular_change/divisor)/(pilot_change/divisor);
+    if(f==4)ratio=ratio*3.;
+    else if(f==2)ratio=ratio*6.;
+    return ratio;
+}
 // The D9 mask pair of X11DStep.d9Step with the pinned dcmpg semantics: a NaN
 // difference keeps the D9bis value.
 inline MaskedSeries d9_mask_pinned(const MaskedSeries& d9bis,const MaskedSeries& d8,
