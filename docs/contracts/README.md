@@ -293,3 +293,15 @@ factors and apply-corrections identity of the default X-11 extreme-value stage
 (item 22b.3b) on top of the item 22b.3a weights. B17/B20 table placement and
 the CV correction variant are not delivered or claimed. See
 [x11-replacement-contract.md](x11-replacement-contract.md).
+
+## Complete fixed additive B pass
+
+`test_x11_b_pass.cpp` and the 18-case pinned fixture qualify the complete
+fixed additive B pass of the default X-11 decomposition (item 22b.4 S1): all
+20 public tables bit-exact on their pinned spans, the three correction rounds
+with their detection series and analysis positions, the pinned fixed
+Henderson trend filter (local-polynomial weights, mmsre asymmetric endpoints)
+and the pinned seasonal processing conventions reproduced file-locally. The
+C/D passes, automatic filter choice, cross-validation, multiplicative and
+non-seasonal modes and the mean-endpoint fallback below the trend length are
+not delivered or claimed. See [x11-bpass-contract.md](x11-bpass-contract.md).

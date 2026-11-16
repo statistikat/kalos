@@ -356,3 +356,36 @@ the uninstrumented provider would false-positive on its retained thread
 arenas. The Release OpenMP and true serial builds were rebuilt and re-run at
 this exact commit: **39/39** each, zero warnings. No source, fixture, oracle
 or tolerance changed for this qualification.
+
+## Complete fixed additive B pass (22b.4 S1) — 2026-11-16
+
+Delivered `kalos::x11_b_pass` (item 22b.4 slice S1): the complete fixed
+additive B pass with all 20 public pinned tables, the three extreme-value
+correction rounds (detection series, analysis positions, weights, correction
+history) and the fixed per-phase seasonal requests and Henderson length. The
+pinned arithmetic is reproduced bit for bit: the trend filter weights are the
+pinned `DiscreteKernel.henderson`/`LocalPolynomialFilters.of2_3` recomputation
+(the classic closed form differs by up to 16 ULP), the interior is the
+`IFiniteFilter` slow-path ascending dot, and the endpoints are the pinned
+`AsymmetricFiltersFactory.mmsreFilter2` closed scalar pipeline (the qualified
+`x11_musgrave_*` primitive documents the independent classic rule and is not
+used here); the seasonal phases and normalization use the pinned stable gate,
+classic decimal endpoint tables and restoration set file-locally.
+
+Evidence: 18-case pinned JDemetra+ 3.9.0 fixture (20 tables, 24,352 rows
+including the B9d round-2 detection intermediate; `SHA256SUMS.csv` verified)
+is bit-exact in the Release OpenMP build, the true serial build and under
+`KALOS_NUM_THREADS=4`. `test_x11_b_pass.cpp` embeds five quarterly pinned
+cases verbatim and qualifies the additive composition identities, the
+correction-history linkage and counts, argument validation, serial/OpenMP bit
+equality and a full interruption boundary sweep. The fixture and its source
+scripts are added to the export manifest.
+
+Validation on this machine, pinned OpenBLAS 0.3.34 provider,
+`env -u LD_LIBRARY_PATH`: Release OpenMP build **40/40**, true serial build
+**40/40**, zero warnings under `-Wall -Wextra -Wpedantic` in both; the new
+unit spot-run under gcc 13.3 `-fsanitize=address,undefined`
+(`-DKALOS_SANITIZERS=ON`, `-DKALOS_OPENMP=OFF`, `detect_leaks=0`) passed with
+zero diagnostics. No default, capability or tolerance was promoted. The C/D
+passes and the mean-endpoint fallback below the trend length remain
+undelivered and unclaimed.
