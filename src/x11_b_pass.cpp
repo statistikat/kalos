@@ -8,13 +8,19 @@ namespace {
 using namespace detail;
 } // namespace
 
-X11BPass x11_b_pass(const MaskedSeries& series,int frequency,int first_period,
+X11BPass x11_b_pass(const MaskedSeries& series_in,int frequency,int first_period,
         const std::vector<int>& initial_filters,const std::vector<int>& final_filters,
         int trend_length,X11SigmaPolicy policy,
         double lower_sigma,double upper_sigma,X11DecompositionMode mode,
         const Interrupt& interrupt) {
-    series.validate();
-    check_decomposition("B pass",mode,series);
+    series_in.validate();
+    check_decomposition("B pass",mode,series_in);
+    // The pinned X11Kernel.process input transform: the plain additive steps
+    // run on DoubleSeq.log() under LogAdditive (KERNEL.process, item 22b.5
+    // M3b-i), so every table below is a step-getter log-domain table and the
+    // gated positivity check above ran on the raw values.
+    const MaskedSeries series=mode==X11DecompositionMode::log_additive
+        ?log_domain(series_in):series_in;
     const auto mult=x11_mode_is_multiplicative(mode);
     if(frequency!=4 && frequency!=12)
         throw std::invalid_argument("B pass supports monthly and quarterly series");

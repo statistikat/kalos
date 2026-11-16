@@ -8,11 +8,20 @@ namespace {
 using namespace detail;
 } // namespace
 
-X11CPass x11_c_pass(const MaskedSeries& series,int frequency,int first_period,
+X11CPass x11_c_pass(const MaskedSeries& series_in,int frequency,int first_period,
         const std::vector<int>& initial_filters,const std::vector<int>& final_filters,
         int trend_length,X11SigmaPolicy policy,const X11BPass& b,
         double lower_sigma,double upper_sigma,const Interrupt& interrupt) {
-    series.validate();
+    series_in.validate();
+    // The decomposition mode is inherited from the B pass (the pinned
+    // kernel runs the C step on the same context), re-gated here on the raw
+    // values and re-transformed by the same kernel input transform
+    // (log(y) under LogAdditive, item 22b.5 M3b-i) so the B-pass input echo
+    // check below compares against the very sequence the B pass consumed.
+    const auto mode=b.mode;
+    check_decomposition("C pass",mode,series_in);
+    const MaskedSeries series=mode==X11DecompositionMode::log_additive
+        ?log_domain(series_in):series_in;
     if(frequency!=4 && frequency!=12)
         throw std::invalid_argument("C pass supports monthly and quarterly series");
     if(first_period<1 || first_period>frequency)
@@ -43,10 +52,6 @@ X11CPass x11_c_pass(const MaskedSeries& series,int frequency,int first_period,
         if(!series.missing[row] && b.b1.values[row]!=series.values[row])
             throw std::invalid_argument("C pass series differs from the B pass input");
     }
-    // The decomposition mode is inherited from the B pass (the pinned
-    // kernel runs the C step on the same context) and re-gated here.
-    const auto mode=b.mode;
-    check_decomposition("C pass",mode,series);
     const auto mult=x11_mode_is_multiplicative(mode);
     checkpoint(interrupt);
     X11CPass pass;

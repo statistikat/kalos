@@ -8,11 +8,19 @@ namespace {
 using namespace detail;
 } // namespace
 
-X11DPass x11_d_pass(const MaskedSeries& series,int frequency,int first_period,
+X11DPass x11_d_pass(const MaskedSeries& series_in,int frequency,int first_period,
         const std::vector<int>& initial_filters,const std::vector<int>& final_filters,
         int trend_length,X11SigmaPolicy policy,const X11CPass& c,
         int backcast,int forecast,const Interrupt& interrupt) {
-    series.validate();
+    series_in.validate();
+    // The decomposition mode is inherited from the C pass, re-gated here on
+    // the raw values and re-transformed by the same kernel input transform
+    // (log(y) under LogAdditive, item 22b.5 M3b-i) so the C-pass input echo
+    // check below compares against the very sequence the C pass consumed.
+    const auto mode=c.mode;
+    check_decomposition("D pass",mode,series_in);
+    const MaskedSeries series=mode==X11DecompositionMode::log_additive
+        ?log_domain(series_in):series_in;
     if(frequency!=4 && frequency!=12)
         throw std::invalid_argument("D pass supports monthly and quarterly series");
     if(first_period<1 || first_period>frequency)
@@ -49,10 +57,6 @@ X11DPass x11_d_pass(const MaskedSeries& series,int frequency,int first_period,
         if(!series.missing[row] && c.reference_series.values[row]!=series.values[row])
             throw std::invalid_argument("D pass series differs from the C pass input");
     }
-    // The decomposition mode is inherited from the C pass (the pinned
-    // kernel runs the D step on the same context) and re-gated here.
-    const auto mode=c.mode;
-    check_decomposition("D pass",mode,series);
     const auto mult=x11_mode_is_multiplicative(mode);
     checkpoint(interrupt);
     X11DPass pass;

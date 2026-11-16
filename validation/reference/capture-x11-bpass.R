@@ -14,16 +14,24 @@ if (length(args) >= 1L && startsWith(args[[1L]], '--mode=')) {
   mode_name <- sub('^--mode=', '', args[[1L]]); args <- args[-1L]
 }
 if (length(args) != 1L || !startsWith(args, '--output='))
-  stop('Usage: capture-x11-bpass.R [--mode=Additive|Multiplicative] --output=<existing empty directory>')
-stopifnot(mode_name %in% c('Additive', 'Multiplicative'))
+  stop('Usage: capture-x11-bpass.R [--mode=Additive|Multiplicative|LogAdditive] --output=<existing empty directory>')
+stopifnot(mode_name %in% c('Additive', 'Multiplicative', 'LogAdditive'))
+# The pinned truth table: isMultiplicative() is (mode == Multiplicative ||
+# mode == PseudoAdditive), so LogAdditive keeps the additive ctx.remove,
+# the 0-valued mode default and no makePositivity guards.
 mult <- mode_name == 'Multiplicative'
+logadd <- mode_name == 'LogAdditive'
+mode_label <- switch(mode_name, Additive = 'additive',
+  Multiplicative = 'multiplicative', LogAdditive = 'log-additive')
 dflt <- if (mult) 1 else 0 # the pinned mode default (DummyFilter/correction factor)
 rem <- function(a, b) if (mult) a / b else a - b # pinned ctx.remove
 output <- normalizePath(sub('^--output=', '', args), mustWork = TRUE)
 if (!dir.exists(output) || length(list.files(output, all.files = TRUE, no.. = TRUE)))
   stop('Output must be empty')
+# The strictly positive multiplicative shapes are the only inventory with
+# the positivity the pinned kernel requires of the log-additive mode.
 fixtures <- file.path(root, 'validation/fixtures/native',
-  if (mult) 'x11-bpass-mult-cases.R' else 'x11-bpass-cases.R')
+  if (mult || logadd) 'x11-bpass-mult-cases.R' else 'x11-bpass-cases.R')
 for (fixture in fixtures) source(fixture)
 suppressWarnings(suppressMessages({
   library(rjd3jars); library(rjd3toolkit); library(rjd3x13); library(rJava)
@@ -46,6 +54,13 @@ tables <- list(); cases <- list(); inputs <- list()
 for (ca in x11_bpass_cases()) {
   y <- x11_bpass_input(ca)
   values <- y$values; values[y$missing] <- NaN
+  if (mult || logadd) { # the pinned X11Kernel.check() positivity gate
+    stopifnot(all(values[!is.nan(values)] > 0))
+    # The pinned X11Kernel.process input transform for LogAdditive: the
+    # plain additive steps run on DoubleSeq.log(); inputs.csv keeps the raw
+    # values and every captured table is a log-domain step table.
+    if (logadd) values <- log(values)
+  }
   seqi <- .jcast(J('jdplus.toolkit.base.api.data.Doubles')$of(.jarray(values)),
     'jdplus/toolkit/base/api/data/DoubleSeq')
   ctx <- J('jdplus.x13.base.core.x11.X11Context')$builder()$mode(mode_ref)$
@@ -153,8 +168,8 @@ for (ca in x11_bpass_cases()) {
     resolved_final = paste(resolved_final, collapse = ' '),
     replacements_r1 = sum(!is.nan(tab$B4)), replacements_r2 = sum(!is.nan(tab$B9)),
     flagged_r3 = sum(!unit))
-  if (mult) cases[[ca$id]]$mode <- mode_name # multiplicative-only columns keep
-  if (mult) cases[[ca$id]]$b7_repair <- b7_repair # the additive schema byte-exact
+  if (mult || logadd) cases[[ca$id]]$mode <- mode_name # mode-carrying schemas
+  if (mult) cases[[ca$id]]$b7_repair <- b7_repair # keep the additive schema byte-exact
 }
 # 17 significant digits round-trip IEEE doubles exactly; R's write.csv default
 # 15-digit format would silently quantize the pinned values.
@@ -171,17 +186,22 @@ java <- list(version = .jcall('java/lang/System', 'Ljava/lang/String;', 'getProp
   runtime_version = .jcall('java/lang/System', 'Ljava/lang/String;', 'getProperty', 'java.runtime.version'),
   vm_name = .jcall('java/lang/System', 'Ljava/lang/String;', 'getProperty', 'java.vm.name'),
   architecture = .jcall('java/lang/System', 'Ljava/lang/String;', 'getProperty', 'os.arch'),
-  oracle = paste0('rjd3 3.9.0/3.9.1 pinned jars via rjd3jars classpath; X11BStep.process with fixed per-phase SeasonalFilterOption arrays, fixed Henderson trendFilterLength, ',
-    tolower(mode_name), ' mode, zero horizons; all public B getters B1..B20',
+  oracle = paste0('rjd3 3.9.0/3.9.1 pinned jars via rjd3jars classpath; X11BStep.process',
+    if (logadd) ' on DoubleSeq.log() of the strictly positive input (the pinned kernel input transform), with' else '',
+    ' fixed per-phase SeasonalFilterOption arrays, fixed Henderson trendFilterLength, ',
+    mode_label, ' mode, zero horizons; all public B getters B1..B20',
     if (mult) ' plus the pinned makePositivity rebuild cross-check of B7' else ''))
 metadata <- list(schema_version = 1L,
   captured_utc = format(Sys.time(), tz = 'UTC', usetz = TRUE),
   source_sha256 = setNames(reference_sha256(files), basename(files)),
   java = java, R = R.version.string, cases = length(cases),
-  public_scope = if (mult) paste('Pinned X11BStep fixed multiplicative B-pass tables only (B1, B2, B3, B4, B4a, B4anorm, B4d, B4g, B5, B6, B7, B8, B9, B9g, B10, B11, B13, B17, B20) with fixed seasonal filters, fixed Henderson and multiplicative mode, including the b7Step makePositivity repair cross-check and repair counts; the C/D passes, automatic filter choice, cross-validation, log-additive and pseudo-additive modes and ARIMA-regression inputs are not claimed') else 'Pinned X11BStep fixed additive B-pass tables only (B1, B2, B3, B4, B4a, B4anorm, B4d, B4g, B5, B6, B7, B8, B9, B9g, B10, B11, B13, B17, B20) with fixed seasonal filters, fixed Henderson and additive mode; C/D passes, automatic filter choice, cross-validation, multiplicative modes and ARIMA-regression inputs are not claimed')
+  public_scope = switch(mode_name,
+    Multiplicative = paste('Pinned X11BStep fixed multiplicative B-pass tables only (B1, B2, B3, B4, B4a, B4anorm, B4d, B4g, B5, B6, B7, B8, B9, B9g, B10, B11, B13, B17, B20) with fixed seasonal filters, fixed Henderson and multiplicative mode, including the b7Step makePositivity repair cross-check and repair counts; the C/D passes, automatic filter choice, cross-validation, log-additive and pseudo-additive modes and ARIMA-regression inputs are not claimed'),
+    LogAdditive = paste('Pinned X11BStep fixed log-additive B-pass tables only (B1, B2, B3, B4, B4a, B4anorm, B4d, B4g, B5, B6, B7, B8, B9, B9g, B10, B11, B13, B17, B20) with fixed seasonal filters, fixed Henderson and log-additive mode: the tables are the log-domain step tables of the pinned pipeline (additive arithmetic on DoubleSeq.log() of the strictly positive input, no makePositivity guards because isMultiplicative() is false); the results-builder exp of D10..D13 and the bias-correction skip are export-stage behaviour and are not claimed; the C/D passes, automatic filter choice, cross-validation, multiplicative and pseudo-additive modes and ARIMA-regression inputs are not claimed'),
+    paste('Pinned X11BStep fixed additive B-pass tables only (B1, B2, B3, B4, B4a, B4anorm, B4d, B4g, B5, B6, B7, B8, B9, B9g, B10, B11, B13, B17, B20) with fixed seasonal filters, fixed Henderson and additive mode; C/D passes, automatic filter choice, cross-validation, multiplicative modes and ARIMA-regression inputs are not claimed')))
 writeLines(sub('[[:blank:]]+$', '', capture.output(dput(metadata))), file.path(output, 'metadata.R'))
 captured <- file.path(output, c('inputs.csv', 'cases.csv', 'tables.csv', 'metadata.R'))
 write.csv(data.frame(file = basename(captured), sha256 = reference_sha256(captured)),
   file.path(output, 'SHA256SUMS.csv'), row.names = FALSE)
-cat('Captured', length(cases), 'pinned fixed', tolower(mode_name), 'B-pass cases;',
+cat('Captured', length(cases), 'pinned fixed', mode_label, 'B-pass cases;',
   sum(vapply(tables, nrow, integer(1))), 'table rows\n')

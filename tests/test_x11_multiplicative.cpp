@@ -17,9 +17,10 @@
 // two repair-carrying categories appended to the additive embedded selection
 // (the monthly inventory is re-verified by the tools/verify_x11_*pass
 // sweeps over the full fixture); the selection subset is the complete
-// 15-case pinned kernel inventory in multiplicative mode. Log-additive and
-// pseudo-additive modes and the non-positive multiplicative input fail
-// explicitly with the pinned messages. Contract:
+// 15-case pinned kernel inventory in multiplicative mode. The
+// pseudo-additive mode and the non-positive multiplicative input fail
+// explicitly with the pinned messages (log-additive is a delivered mode
+// since item 22b.5 M3b-i, qualified in tests/test_x11_log_additive.cpp). Contract:
 // docs/contracts/x11-multiplicative-contract.md.
 #include "kalos/x11_b_pass.hpp"
 #include "kalos/x11_c_pass.hpp"
@@ -9152,8 +9153,10 @@ int main() {
             assert(boundaries==total+1);
         }
     }
-    {   // The decomposition-mode gates. Log-additive and pseudo-additive fail
-        // explicitly on every delivered entry point; the multiplicative mode
+    {   // The decomposition-mode gates. Pseudo-additive fails explicitly on
+        // every delivered entry point (log-additive became a delivered mode
+        // with its own qualification in item 22b.5 M3b-i, see
+        // tests/test_x11_log_additive.cpp); the multiplicative mode
         // requires strictly positive present rows with the pinned kernel
         // message, while flagged-missing rows stay legal at the fixed-pass
         // level (the masked fixture cases above) and the selection pass keeps
@@ -9163,15 +9166,13 @@ int main() {
         const MaskedSeries y{values,std::vector<std::uint8_t>(values.size(),0)};
         const std::vector<int> q5{5,5,5,5},q9{9,9,9,9};
         const auto msr=requests_of({-2,-2,-2,-2});
-        for(const auto mode : {X11DecompositionMode::log_additive,
-                X11DecompositionMode::pseudo_additive}) {
-            invalid_message([&]{x11_b_pass(y,4,1,q5,q9,13,X11SigmaPolicy::legacy,
-                1.5,2.5,mode);},
-                "B pass: decomposition mode is not delivered");
-            invalid_message([&]{x11_selection_pass(y,4,1,msr,0,X11SigmaPolicy::legacy,
-                X11MsrIterationPolicy::jdplus,1.5,2.5,0,0,mode);},
-                "selection pass: decomposition mode is not delivered");
-        }
+        invalid_message([&]{x11_b_pass(y,4,1,q5,q9,13,X11SigmaPolicy::legacy,
+            1.5,2.5,X11DecompositionMode::pseudo_additive);},
+            "B pass: decomposition mode is not delivered");
+        invalid_message([&]{x11_selection_pass(y,4,1,msr,0,X11SigmaPolicy::legacy,
+            X11MsrIterationPolicy::jdplus,1.5,2.5,0,0,
+            X11DecompositionMode::pseudo_additive);},
+            "selection pass: decomposition mode is not delivered");
         assert(!x11_mode_is_multiplicative(X11DecompositionMode::additive));
         assert(x11_mode_is_multiplicative(X11DecompositionMode::multiplicative));
         assert(!x11_mode_is_multiplicative(X11DecompositionMode::log_additive));

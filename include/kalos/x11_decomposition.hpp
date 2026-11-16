@@ -9,10 +9,13 @@
 // corrector, the relative-form MSRE table) is documented with the evidence
 // in docs/contracts/x11-multiplicative-contract.md.
 //
-// Delivered and qualified: additive (items 22b.4 S1-S4) and multiplicative
-// (item 22b.5 M3a). log_additive and pseudo_additive are declared for
-// completeness only — every pass rejects them with an explicit unsupported
-// argument error until their own qualification (M3b).
+// Delivered and qualified: additive (items 22b.4 S1-S4), multiplicative
+// (item 22b.5 M3a) and log_additive (item 22b.5 M3b-i: the pinned kernel
+// transforms the input with Math.log before the plain additive steps; the
+// delivered tables are those step-level log-domain tables, the results-
+// builder exp of D10..D13 is not). pseudo_additive is declared for
+// completeness only — every pass rejects it with an explicit unsupported
+// argument error until its own qualification (item 22b.5 M3b-ii).
 #include <cstddef>
 namespace kalos {
 enum class X11DecompositionMode {

@@ -181,7 +181,13 @@ X11SelectionPass x11_selection_pass(const MaskedSeries& series,int frequency,int
     c.mode=mode;
     c.c2drop=t; c.first_period=first_period;
     c.initial_filters=c_initial.base_filters; c.final_filters=c_final.base_filters;
-    const auto y=to_pinned(series);
+    // The pinned kernel runs the whole pipeline on its (possibly log-
+    // transformed) input, so the manual C composition consumes the very
+    // sequence the steps see — log(y) under LogAdditive (item 22b.5 M3b-i);
+    // the internal fixed-pass calls keep the raw series because those
+    // entries apply the same kernel input transform themselves.
+    const auto y=to_pinned(mode==X11DecompositionMode::log_additive
+        ?log_domain(series):series);
     c.reference_series=y;
     c.c1=remove_pinned(y,b.b20,mult,interrupt);
     const auto annual_c=x11_symmetric_filter(repo_view(c.c1),X11FilterKind::trend,frequency,0,interrupt);

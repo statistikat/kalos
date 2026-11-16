@@ -21,19 +21,28 @@ if (length(args) >= 1L && startsWith(args[[1L]], '--mode=')) {
   mode_name <- sub('^--mode=', '', args[[1L]]); args <- args[-1L]
 }
 if (length(args) != 1L || !startsWith(args, '--output='))
-  stop('Usage: capture-x11-dpass.R [--mode=Additive|Multiplicative] --output=<existing empty directory>')
-stopifnot(mode_name %in% c('Additive', 'Multiplicative'))
+  stop('Usage: capture-x11-dpass.R [--mode=Additive|Multiplicative|LogAdditive] --output=<existing empty directory>')
+stopifnot(mode_name %in% c('Additive', 'Multiplicative', 'LogAdditive'))
+# The pinned truth table: isMultiplicative() is (mode == Multiplicative ||
+# mode == PseudoAdditive), so LogAdditive keeps the additive ctx.remove,
+# the 0-valued mode default and no makePositivity guards.
 mult <- mode_name == 'Multiplicative'
+logadd <- mode_name == 'LogAdditive'
+mode_label <- switch(mode_name, Additive = 'additive',
+  Multiplicative = 'multiplicative', LogAdditive = 'log-additive')
 dflt <- if (mult) 1 else 0 # the pinned mode default (DummyFilter/correction factor)
 rem <- function(a, b) if (mult) a / b else a - b # pinned ctx.remove
 output <- normalizePath(sub('^--output=', '', args), mustWork = TRUE)
 if (!dir.exists(output) || length(list.files(output, all.files = TRUE, no.. = TRUE)))
   stop('Output must be empty')
+# The strictly positive multiplicative shapes are the only inventory with
+# the positivity the pinned kernel requires of the log-additive mode.
 fixtures <- file.path(root, 'validation/fixtures/native',
-  if (mult) 'x11-bpass-mult-cases.R' else 'x11-bpass-cases.R')
+  if (mult || logadd) 'x11-bpass-mult-cases.R' else 'x11-bpass-cases.R')
 for (fixture in fixtures) source(fixture)
 cpass <- read.csv(file.path(root, 'validation/fixtures/native',
-  if (mult) 'x11-cpass-mult' else 'x11-cpass', 'tables.csv'))
+  switch(mode_name, Multiplicative = 'x11-cpass-mult',
+    LogAdditive = 'x11-cpass-log', 'x11-cpass'), 'tables.csv'))
 suppressWarnings(suppressMessages({
   library(rjd3jars); library(rjd3toolkit); library(rjd3x13); library(rJava)
 }))
@@ -76,6 +85,13 @@ capture <- function(ca, back, fc) {
     missing <- c(rep(FALSE, back), missing, rep(FALSE, fc))
   }
   first0 <- (ca$start_period - 1L - back) %% ca$frequency
+  raw_extended <- series_values # inputs.csv must keep the raw (extended) values
+  if (mult || logadd) { # the pinned X11Kernel.check() positivity gate
+    stopifnot(all(series_values[!is.nan(series_values)] > 0))
+    # The pinned X11Kernel.process input transform: all three steps run on
+    # DoubleSeq.log() of the hand-extended series under LogAdditive.
+    if (logadd) series_values <- log(series_values)
+  }
   seqi <- .jcast(J('jdplus.toolkit.base.api.data.Doubles')$of(.jarray(series_values)),
     'jdplus/toolkit/base/api/data/DoubleSeq')
   ctx <- J('jdplus.x13.base.core.x11.X11Context')$builder()$mode(mode_ref)$
@@ -224,10 +240,11 @@ capture <- function(ca, back, fc) {
   } else {
     # The original calendar of the extended capture is the untouched base input.
     vv <- y$values; vv[y$missing] <- NaN
+    if (logadd) vv <- log(vv) # the capture-side series is the log-domain one
     stopifnot(same(series_values[(back + 1L):(n - fc)], vv))
   }
   id <- if (back == 0L && fc == 0L) ca$id else paste0('ext-', ca$id)
-  stored <- series_values
+  stored <- raw_extended
   stored[missing] <- y$values[missing] # inputs.csv keeps finite placeholders with the flag
   inputs[[id]] <<- data.frame(case = id, row = seq_len(n) - 1L,
     value = stored, missing = missing)
@@ -245,11 +262,11 @@ capture <- function(ca, back, fc) {
     orig_start_period = as.integer(ca$start_period),
     global_msr = msr$getGlobalMsr(), d9_nonnan = sum(!is.nan(tab$D9)),
     corrected_rc = sum(c20 != dflt))
+  if (mult || logadd) cases[[id]]$mode <<- mode_name # mode-carrying schemas
   if (mult) { # multiplicative-only columns keep the additive schema byte-exact
-    cases[[id]]$mode <<- mode_name # <<- keeps the modification in the enclosing
-    cases[[id]]$d7_repair <<- repair7 # scope: plain $<- would only touch the
-    cases[[id]]$d12_repair <<- repair12 # function-local shadow copy
-  }
+    cases[[id]]$d7_repair <<- repair7 # <<- keeps the modification in the enclosing
+    cases[[id]]$d12_repair <<- repair12 # scope: plain $<- would only touch the
+  } # function-local shadow copy
 }
 for (ca in x11_bpass_cases()) {
   capture(ca, 0L, 0L)
@@ -268,22 +285,28 @@ write.csv(fixtures_fmt(do.call(rbind, tables)), file.path(output, 'tables.csv'),
 write.csv(fixtures_fmt(do.call(rbind, msrrows)), file.path(output, 'msr.csv'), row.names = FALSE)
 files <- c(normalizePath(script), fixtures,
   file.path(root, 'validation/fixtures/native',
-    if (mult) 'x11-cpass-mult' else 'x11-cpass', 'tables.csv'))
+    switch(mode_name, Multiplicative = 'x11-cpass-mult',
+      LogAdditive = 'x11-cpass-log', 'x11-cpass'), 'tables.csv'))
 java <- list(version = .jcall('java/lang/System', 'Ljava/lang/String;', 'getProperty', 'java.version'),
   vendor = .jcall('java/lang/System', 'Ljava/lang/String;', 'getProperty', 'java.vendor'),
   runtime_version = .jcall('java/lang/System', 'Ljava/lang/String;', 'getProperty', 'java.runtime.version'),
   vm_name = .jcall('java/lang/System', 'Ljava/lang/String;', 'getProperty', 'java.vm.name'),
   architecture = .jcall('java/lang/System', 'Ljava/lang/String;', 'getProperty', 'os.arch'),
-  oracle = paste0('rjd3 3.9.0/3.9.1 pinned jars via rjd3jars classpath; X11Kernel composition X11BStep.process(series, ctx) + X11CStep.process(series, B20, ctx, cv) + X11DStep.process(series, C20, ctx, cv) with fixed per-phase SeasonalFilterOption arrays, fixed Henderson trendFilterLength, ', tolower(mode_name), ' mode; extended cases set backcastHorizon/forecastHorizon with a hand-extended series and shifted firstPeriod; all public D getters D1..D13 (D9g is null in the fixed corrector mode), getD9msr, getSeasFilter, getD2drop and the Henderson lengths',
+  oracle = paste0('rjd3 3.9.0/3.9.1 pinned jars via rjd3jars classpath; X11Kernel composition X11BStep.process(series, ctx) + X11CStep.process(series, B20, ctx, cv) + X11DStep.process(series, C20, ctx, cv) on',
+    if (logadd) ' DoubleSeq.log() of the strictly positive input (the pinned kernel input transform) with' else '',
+    ' fixed per-phase SeasonalFilterOption arrays, fixed Henderson trendFilterLength, ', mode_label, ' mode; extended cases set backcastHorizon/forecastHorizon with a hand-extended series and shifted firstPeriod; all public D getters D1..D13 (D9g is null in the fixed corrector mode), getD9msr, getSeasFilter, getD2drop and the Henderson lengths',
     if (mult) ' plus the pinned makePositivity rebuild cross-checks of D7 and D12' else ''))
 metadata <- list(schema_version = 1L,
   captured_utc = format(Sys.time(), tz = 'UTC', usetz = TRUE),
   source_sha256 = setNames(reference_sha256(files), basename(files)),
   java = java, R = R.version.string, cases = length(cases),
-  public_scope = if (mult) 'Pinned X11DStep fixed multiplicative D-pass tables only (D1, D2, D4, D5, D6, D7, D8, D9, D9bis, D9_g_bis, D10, D10bis, D11, D11bis, D12, D13, the D9 MSRE diagnostic table and the seasFilter echo) composed from the fixed multiplicative B and C passes exactly like X11Kernel, at zero horizon and on four hand-extended calendars with context backcast/forecast horizons, including the d7Step and dFinalStep makePositivity repair cross-checks and repair counts; the MSRE filter selection, automatic Henderson (getICRatio is diagnostic-only and not captured), cross-validation, the period-specific corrector (D9g), log-additive and pseudo-additive modes and ARIMA-regression inputs are not claimed' else 'Pinned X11DStep fixed additive D-pass tables only (D1, D2, D4, D5, D6, D7, D8, D9, D9bis, D9_g_bis, D10, D10bis, D11, D11bis, D12, D13, the D9 MSRE diagnostic table and the seasFilter echo) composed from the fixed additive B and C passes exactly like X11Kernel, at zero horizon and on four hand-extended calendars with context backcast/forecast horizons; the MSRE filter selection, automatic Henderson (getICRatio is diagnostic-only and not captured), cross-validation, the period-specific corrector (D9g), multiplicative modes and ARIMA-regression inputs are not claimed')
+  public_scope = switch(mode_name,
+    Multiplicative = 'Pinned X11DStep fixed multiplicative D-pass tables only (D1, D2, D4, D5, D6, D7, D8, D9, D9bis, D9_g_bis, D10, D10bis, D11, D11bis, D12, D13, the D9 MSRE diagnostic table and the seasFilter echo) composed from the fixed multiplicative B and C passes exactly like X11Kernel, at zero horizon and on four hand-extended calendars with context backcast/forecast horizons, including the d7Step and dFinalStep makePositivity repair cross-checks and repair counts; the MSRE filter selection, automatic Henderson (getICRatio is diagnostic-only and not captured), cross-validation, the period-specific corrector (D9g), log-additive and pseudo-additive modes and ARIMA-regression inputs are not claimed',
+    LogAdditive = 'Pinned X11DStep fixed log-additive D-pass tables only (D1, D2, D4, D5, D6, D7, D8, D9, D9bis, D9_g_bis, D10, D10bis, D11, D11bis, D12, D13, the D9 MSRE diagnostic table and the seasFilter echo) composed from the fixed log-additive B and C passes exactly like X11Kernel, at zero horizon and on four hand-extended calendars with context backcast/forecast horizons: the tables are the log-domain step tables of the pinned pipeline (additive arithmetic on DoubleSeq.log() of the strictly positive input, no makePositivity guards because isMultiplicative() is false); the results-builder exp of D10..D13 and the bias-correction skip are export-stage behaviour and are not claimed; the MSRE filter selection, automatic Henderson (getICRatio is diagnostic-only and not captured), cross-validation, the period-specific corrector (D9g), multiplicative and pseudo-additive modes and ARIMA-regression inputs are not claimed',
+    'Pinned X11DStep fixed additive D-pass tables only (D1, D2, D4, D5, D6, D7, D8, D9, D9bis, D9_g_bis, D10, D10bis, D11, D11bis, D12, D13, the D9 MSRE diagnostic table and the seasFilter echo) composed from the fixed additive B and C passes exactly like X11Kernel, at zero horizon and on four hand-extended calendars with context backcast/forecast horizons; the MSRE filter selection, automatic Henderson (getICRatio is diagnostic-only and not captured), cross-validation, the period-specific corrector (D9g), multiplicative modes and ARIMA-regression inputs are not claimed'))
 writeLines(sub('[[:blank:]]+$', '', capture.output(dput(metadata))), file.path(output, 'metadata.R'))
 captured <- file.path(output, c('inputs.csv', 'cases.csv', 'tables.csv', 'msr.csv', 'metadata.R'))
 write.csv(data.frame(file = basename(captured), sha256 = reference_sha256(captured)),
   file.path(output, 'SHA256SUMS.csv'), row.names = FALSE)
-cat('Captured', length(cases), 'pinned fixed', tolower(mode_name), 'D-pass cases;',
+cat('Captured', length(cases), 'pinned fixed', mode_label, 'D-pass cases;',
   sum(vapply(tables, nrow, integer(1))), 'table rows\n')

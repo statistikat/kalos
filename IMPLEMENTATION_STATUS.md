@@ -610,3 +610,67 @@ fixture, oracle, tolerance, default or capability was promoted.
 Cross-validation, the period-specific corrector, log-additive and
 pseudo-additive modes, the mean-endpoint fallback and ARIMA-regression
 inputs remain undelivered and unclaimed.
+
+## Log-additive decomposition mode (22b.5 M3b-i) — 2026-11-16
+
+Delivered the pinned **log-additive decomposition mode** (item 22b.5
+slice M3b-i) across the S1–S4 passes. Pinned decode (KERNEL.txt/
+DoubleSeq bytecode in /tmp/opencode/jdprobe): `X11Kernel.check()` gates
+positivity on `mode == Multiplicative || mode == LogAdditive` with one
+pinned constant message; `X11Kernel.process` applies `DoubleSeq.log()`
+(`fn(Math::log)`, bytecode-verified) to the input before the plain
+(non-pseudo) steps; `isMultiplicative()` is false under LogAdditive, so
+the whole additive-form context (difference removes, centre-0 sigma, 0
+mode default, absolute-form MSRE/MSR flag, no `makePositivity` sites)
+runs on the log-domain sequence and the step getters are log-domain
+tables. The export-stage `exp` of D10..D13 and the `LogAdditive &&
+seasonal && bias == None` bias-skip live in the results builder only —
+not delivered, not claimed. A probe over all 6,701 fixture input values
+confirmed Java `Math.log` is bit-identical to C `log` on this machine
+(the precondition for bit-level qualification). Implementation: the mode
+gate accepts log_additive with the shared positivity message on the raw
+present rows; `detail::log_domain` transforms present rows only; every
+fixed-pass entry shadows its series parameter with the log-domain copy
+after the gate (so the C/D predecessor-echo checks compare against the
+transformed tables) and the selection pass's manual C-stage composition
+consumes `log_domain(series)` while the internal fixed-pass calls keep
+the raw series plus mode (single transform). All four capture scripts
+take `--mode=LogAdditive`: they feed `log(values)` to the steps (raw ts
+to the kernel), keep raw values in `inputs.csv`, keep `rem`/`dflt`/
+repair columns at the additive forms (the mode is not multiplicative)
+and re-derive every identity in the additive form on the log-domain
+tables (rjd3 3.9.0, JVM 21). Fixtures: `x11-{bpass,cpass,dpass}-log`
+(24/24/28 cases, 32,656/23,224/31,616 rows, masked + four extended
+calendars, additive-form MSRE) and `x11-selection-log` (15-case kernel
+inventory, 28,382 rows; the dpass capture cross-links C13/C17/C20
+against the installed cpass-log fixture). In the log domain both
+constant-series controls degenerate like the additive fixture (zero
+deltas → NaN I/C → `unsupported:trend-b7`) — the documented contrast
+with the multiplicative decided `const-msr`.
+
+`test_x11_log_additive.cpp` (ctest #45) embeds 32 pinned cases verbatim:
+5 B + 5 C + 7 D (masked, two extended calendars) + the 15-case selection
+inventory with additive-form staged I/C ratios, absolute-form MSRE
+tables, difference decomposition identities over the `Math.log` input,
+the `B1 = log(input)` transform identity, the five-year-cap truncation
+of the 19-attempt walk, mode echoes through B→C→D, both degenerate
+refusals, serial/OpenMP equality and the interruption boundary sweep.
+`test_x11_multiplicative.cpp` gate block updated: `pseudo_additive`
+alone refuses with the not-delivered message; the pinned
+`isMultiplicative()` truth table is asserted for all four modes (log
+false, pseudo true). `tools/verify_x11_{bpass,cpass,dpass}` parse the
+`LogAdditive` mode name.
+
+Validation on this machine, pinned OpenBLAS 0.3.34 provider,
+`env LD_LIBRARY_PATH=/tmp/opencode/openblas/lib`: Release OpenMP build
+**45/45**, true serial build **45/45**; log sweeps **24/24, 24/24, 28/28**
+bit-exact beside the unchanged additive **18/18, 18/18, 22/22** and mult
+**24/24, 24/24, 28/28** sweeps (OMP and serial binaries); the three log
+fixture directories re-swept at `KALOS_NUM_THREADS` 1, 2 and 8 (9/9
+bit-exact); the log and mult units are diagnostic-free under gcc 13.3
+`-fsanitize=address,undefined` with leak detection. Rules and semantics:
+docs/contracts/x11-log-additive-contract.md. No fixture, oracle,
+tolerance, default or capability was promoted. Cross-validation, the
+period-specific corrector, the pseudo-additive mode, the log-additive
+export stage (`exp` of D10..D13, bias-skip), the mean-endpoint fallback
+and ARIMA-regression inputs remain undelivered and unclaimed.

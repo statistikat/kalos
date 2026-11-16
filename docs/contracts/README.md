@@ -355,9 +355,28 @@ branch live), the mode-default-1 sigma/corrector arithmetic, the
 relative-form `MsrTable.of` flag set exactly for `Multiplicative`, the
 mode-aware `doMSR` irregular and the new pinned `calcICR` fact that the
 flag makes the lag-1 variations relative in both windows (it decides the
-additive-NaN `const-msr` contrast at 3.515625). Log-additive and
-pseudo-additive fail every entry point with an explicit unsupported-mode
-argument error; their pinned pipelines (the log transform's export-stage
-`exp`, the `X11{B,C,D}StepPseudoAdd`/`PseudoAddUtility` classes) are
-decoded but not delivered (M3b). See
+additive-NaN `const-msr` contrast at 3.515625). Pseudo-additive fails
+every entry point with an explicit unsupported-mode argument error (its
+pinned `X11{B,C,D}StepPseudoAdd`/`PseudoAddUtility` pipeline is decoded
+but not delivered until M3b-ii); log-additive became a delivered mode
+with its own qualification in item 22b.5 M3b-i (see below). See
 [x11-multiplicative-contract.md](x11-multiplicative-contract.md).
+
+## Log-additive decomposition mode
+
+`test_x11_log_additive.cpp` and the 91-case pinned log-additive fixtures
+qualify the log-additive decomposition mode (item 22b.5 M3b-i) across the
+S1–S4 passes: the pinned `X11Kernel.process` input transform
+(`DoubleSeq.log()` = `fn(Math::log)`, bit-identical to C `log` on every
+fixture value), the additive-composed step arithmetic on the log-domain
+input (`isMultiplicative()` is false: difference removes, centre-0 sigma,
+0 mode default, absolute-form MSRE/MSR, no `makePositivity` guards), the
+positivity gate shared with `Multiplicative` through the pinned constant
+message on the raw present rows, log-domain step tables verified bit-exact
+through the fixed passes, the extended calendars and the complete 15-case
+kernel-selection inventory (both constant-series controls degenerate like
+the additive fixture, the documented contrast with the decided
+multiplicative `const-msr`). The results-builder `exp` of D10..D13 and the
+LogAdditive bias-correction skip are export-stage behaviour and are not
+delivered or claimed. See
+[x11-log-additive-contract.md](x11-log-additive-contract.md).

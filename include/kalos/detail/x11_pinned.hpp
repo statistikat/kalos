@@ -75,22 +75,39 @@ inline MaskedSeries remove_pinned(const MaskedSeries& left,const MaskedSeries& r
     return out;
 }
 // The pass-level mode gate. Unqualified modes fail explicitly: the pinned
-// pseudo-additive pipeline and the log-additive export stage decode to
-// their own classes (item 22b.5 M3b) and are not reproducible from the
-// ratio arithmetic alone. The positivity requirement mirrors the pinned
-// X11Kernel.check() predicate dcmpg(x, 0) > 0 on the present rows (the
-// pinned missing-value error is a kernel-level rule the selection pass
-// applies separately; the steps themselves carry masked rows through the
-// ratio as NaN).
+// The pass-level mode gate. Pseudo-additive fails explicitly until its own
+// qualification (item 22b.5 M3b-ii): the pinned pseudo-additive pipeline
+// runs the dedicated X11{B,C,D}StepPseudoAdd classes whose overrides
+// decode to PseudoAddUtility forms the ratio arithmetic alone does not
+// reproduce. The positivity requirement mirrors the pinned
+// X11Kernel.check() predicate dcmpg(x, 0) > 0 on the present rows, gated
+// on mode == Multiplicative || mode == LogAdditive (the pinned message is
+// the constant string for BOTH gated modes; PseudoAdditive has no
+// requirement at all). The pinned missing-value error is a kernel-level
+// rule the selection pass applies separately; the steps themselves carry
+// masked rows through the ratio as NaN.
 inline void check_decomposition(const char* what,X11DecompositionMode mode,
         const MaskedSeries& series) {
-    if(mode!=X11DecompositionMode::additive&&mode!=X11DecompositionMode::multiplicative)
+    if(mode==X11DecompositionMode::pseudo_additive)
         throw std::invalid_argument(std::string(what)+": decomposition mode is not delivered");
-    if(!x11_mode_is_multiplicative(mode)) return;
+    if(mode!=X11DecompositionMode::multiplicative&&mode!=X11DecompositionMode::log_additive)
+        return;
     for(std::size_t row=0;row<series.values.size();++row)
         if(!series.missing[row]&&!(series.values[row]>0.))
             throw std::invalid_argument(
                 "multiplicative decomposition of non positive series");
+}
+// The pinned X11Kernel.process input transform for LogAdditive: the steps
+// run the plain additive arithmetic on DoubleSeq.log() = fn(Math::log) of
+// the input (natural log). Masked rows keep their finite placeholders —
+// the internal passes only ever read flagged rows as NaN through
+// to_pinned, mirroring the pinned NaN-carrying sequence where log(NaN) is
+// never consumed by a present-row computation.
+inline MaskedSeries log_domain(const MaskedSeries& series) {
+    auto out=series;
+    for(std::size_t row=0;row<out.values.size();++row)
+        if(!out.missing[row]) out.values[row]=std::log(out.values[row]);
+    return out;
 }
 // X11Context.makePositivity over the raw pinned values: every row with a
 // non-positive value (NaN comparisons are false, so NaN rows are skipped,
