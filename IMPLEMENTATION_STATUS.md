@@ -961,3 +961,30 @@ resolved section), `docs/contracts/README.md`, the sigma-policy wording in
 `x11-bpass-contract.md`, `x11-selection-pass-contract.md` and
 `x13-fit-contract.md`, the roadmap row above and a superseded-by marker on
 the 2026-11-15 delivery entry. Tests unchanged: 48/48.
+
+## Item-21 roadmap decomposition (M4-S1) — 2026-11-16
+
+Delivered the planning decomposition for item 21 (automatic X-13
+preprocessing and selection): `docs/item21-roadmap.md`. The pinned master
+pipeline was enumerated from the rjd3 3.9.0 bytecode —
+`RegArimaKernel.process`/`calc` (model build, `calcCv` critical-value
+defaulting, the fully-specified short-circuit, the round structure,
+`pass2`/`redoEstimation`/`checkUnitRoots`/`checkMA`, the 2.5/2.8 final
+rules), `X13ModelBuilder`, the `X13SpecDecoder` module assembly, and the
+decision modules (`LogLevelModule`, `OutliersDetectionModule` →
+`ExactOutliersDetector`/`ExactSingleOutlierDetector` with the
+`CriticalValueComputer` forms, `DifferencingModule`, `ArmaModule`,
+`AutoModellingModule`, `RegressionVariablesTest`, `MeanController`,
+`FinalEstimator`, `RegSarimaComputer` with its `DEF_EPS`/`DEF_INTERNAL_EPS`
+and UR-cancellation passes) — each stage cited class::method with its
+observed threshold constants, mapped to the qualified Kalos units it
+consumes (likelihoods, `optimize_arma_objective`, `arma_identification`,
+`arma_residuals`, `arma_information`, `preparation`) and the new
+primitives it needs. The recommended slice sequence runs
+21-A estimation control → 21-B transformation → 21-C outlier scoring →
+21-D differencing → 21-E/21-F ARMA identification and refinement → 21-G
+regression tests/mean → 21-H integration (the 22c seams and the pinned
+{0,0} horizon boundary are its downstream contract; the `horizons.csv`
+evidence rows become its first cross-checks), and the roadmap carries the
+maintainer sign-off list (nine decision-boundary groups). No code, no
+fixtures, no defaults; planning-only commit.

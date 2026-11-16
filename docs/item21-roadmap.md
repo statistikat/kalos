@@ -1,0 +1,279 @@
+# Item 21 roadmap — automatic X-13 preprocessing and selection
+
+Planning decomposition of item 21 (automatic preprocessing: transformation
+decision, outlier detection, differencing, ARMA identification, estimation
+control, regression-variable tests) into deliverable slices on top of the
+qualified Kalos kernels. Every stage below is grounded in the pinned rjd3
+3.9.0 bytecode (`jdplus-x13-base-core`, `jdplus-toolkit-base-core`,
+`jdplus-sa-base-core` 3.9.0, `javap -p -c` dumps under the analysis tree);
+evidence is cited as class::method. Nothing here is implemented — this is
+the plan, its dependency order, its per-slice commit boundaries, and the
+decision boundaries that need maintainer sign-off before their slices
+start. The pinned reference for end-to-end checks remains the fast entry
+`jdplus.x13.base.r.X13.process` already used by the 22c fit captures.
+
+## The pinned master pipeline
+
+`jdplus.x13.base.core.x13.regarima.RegArimaKernel.process(TsData,
+ProcessingLog)` is the master sequence:
+
+1. `IModelBuilder.build` (`X13ModelBuilder.build`): spec decoding into a
+   `ModelDescription` — `initializeArima` (d/D from spec), `initializeMean`,
+   `initializeTradingDays`/`initializeHolidays`/`initializeEaster`/
+   `initializeOutliers`/`initializeUsers`/`initializeInterventions`/
+   `initializeRamps` (AO/LS/TC/SO factories registered with the `regeffect`
+   attributes the 22c M3c seam already consumes), `AverageInterpolator`
+   missing handling, `initializeTransformation` (Log/None + LoP adjust).
+   A null result is the log's `initialization failed`.
+2. Critical value defaulting (`process`): `AmiOptions.getVa() == 0` →
+   `X13Utility.calcCv(n)` = `max(2.8, CriticalValueComputer.
+   advancedComputer()(n))`; stored as `va0`/`curva`.
+3. `calc(RegSarimaModelling)`, the automatic-identification driver
+   (log `regarima` → `automatic model identification` → `round 0`):
+   - log-transform sanity: `isLogTransformation` and any value ≤ 0 →
+     error `can't apply log transformation 'some obs. are <= 0'`;
+   - **fully-specified short-circuit** (`isFullySpecified`: no
+     transformation, outliers, auto-model, checkMu or calendar/easter test
+     modules) → `FinalEstimator.estimate` + `build` only — this is the path
+     the restricted fit (22c) qualified around;
+   - `ILogLevelModule.process` (log/level decision, stage T below);
+   - `regAIC` record, `checkMu(m, 1.96)` (mean test);
+   - `IOutliersDetectionModule.process(m, va)` (stage O),
+     `RegSarimaModelling.estimate(precision)`;
+   - `RegressionVariablesTest.process(m)` (stage R);
+   - auto-modelling branch: `ModelController(0.95)` snapshot compare,
+     `IAutoModellingModule.process` (stage M), `removeVariable` +
+     `clearEstimation` + re-estimate, second `regAIC` and second
+     `outliers.process`;
+   - `pass2` gate (ModelController measures: `getLjungBoxTest().
+     getPvalue()`, `getRvr()`, `getRTval()`; bytecode threshold constants
+     0.95, 0.75, 1.0126582278481011, -0.82 on `phi(1)`), `redoEstimation`,
+     `checkUnitRoots`, `checkMA`;
+   - final mean rule (log `2.5` branch on `isMean`) and the `2.8` floor
+     re-entering the outlier critical value (`Math.max(2.8, ...)` before
+     the final `FinalEstimator.estimate`);
+   - `lastSolution` + `RegSarimaModelling.build()` → `RegSarimaModel`.
+
+Modules are assembled by `X13SpecDecoder` from the `RegArimaSpec`
+(LogLevelModule/DifferencingModule/ArmaModule/AutoModellingModule/
+OutliersDetectionModule/MeanController/FinalEstimator + the sa-core
+calendar/easter/automatic-TD modules). Kalos' job for item 21 is to
+reproduce this decision pipeline natively. The 22c seams
+(`x13_preadjust`/`x13_restore`) and `x13_fit` already sit at its output:
+whatever `calc` produces as the final `ModelDescription` + estimation
+feeds the qualified allocation and X-11 stages unchanged.
+
+## Stages
+
+Stage ids are stable names for the slice sequence below. "Consumes" lists
+qualified Kalos units; "new" lists primitives this stage needs that do not
+exist yet.
+
+### T — transformation decision (log vs level)
+
+Pinned: `jdplus.sa.base.core.regarima.LogLevelModule.process` (+ its
+generic twin `jdplus.toolkit.base.core.regsarima.ami.
+GenericLogLevelModule`). Inputs: series + current `ModelDescription`.
+Sequence: any value ≤ 0 → levels (`negative values, levels are chosen`);
+optional outlier preadjustment through `RobustOutliersDetector` and LoP
+`setPreadjustment` (Builder `preadjust`, `outliersCorrection`, precision
+default 1.0E-7); estimate the level model (`ModelDescription.estimate`
+with `DemetraUtility.processor(false, precision)`), then the log model
+(`copyOf` + `setLogTransformation(true)`), remove `lp` when adjusting;
+record `LogLevelModule$Info(aiccLevel, aiccLog, diff)`; choose log iff
+`aiccLog − aiccLevel ≤ thr` with Builder default `aiccdiff = -2.0`
+(`isChoosingLog` compares the stored `aiccDiff`); failure path `log/level
+failed` keeps levels. Outputs: log flag + both estimations (the chosen one
+stays in the modelling).
+Consumes: `sarima_regression_likelihood`, `sarima_innovations`/
+`diffuse_innovations`/`stationary_innovations` (fixed likelihoods),
+`optimize_arma_objective`, `preparation` (windows/transform). New: AICC
+derivation from the concentrated likelihood statistics (the
+`LikelihoodStatistics.getAICC` form), a level-vs-log compare driver, and
+(if the preadjust variant is in scope) `RobustOutliersDetector` staging.
+Sign-off: promote −2.0 as the comparison threshold; whether the default
+`rsa*` product behavior pre-adjusts before the comparison.
+
+### O — outlier detection scoring and the TsOO loop
+
+Pinned: `jdplus.x13.base.core.x13.regarima.OutliersDetectionModule.process`
+(log `outliers selection`, `make(desc, cv)` →
+`jdplus.toolkit.base.core.regsarima.ami.ExactOutliersDetector`; selected
+outliers re-added as `Variable`s with `attributes()` — the `regeffect`
+vocabulary the M3c seam already pins — then `clearEstimation`). The loop
+(`ExactOutliersDetector.process` = `estimateModel` + `execute`):
+`SingleOutlierDetector.process` scans candidates; `|getMaxTStat()| > cv` →
+`addNewOutlier(getMaxOutlierType(), getMaxOutlierPosition())` +
+re-estimate; else drop the last added outlier and re-estimate; bounded by
+`round < maxRound` and `outliers.size() < maxOutliers`; `verifymodel`
+failure forces an extra re-estimate. The scanner is
+`jdplus.toolkit.base.core.regarima.outlier.ExactSingleOutlierDetector
+(RobustStandardDeviationComputer, ArmaFilter, ResidualsComputer)` over
+`PeriodicOutlierFactory` (AO/LS/SO) + `TransitoryChangeFactory(rate)`
+(TC; `OutlierSpec.DEF_TCRATE` — the 0.7 seen in the api bytecode);
+`setBounds`/`exclude` implement the span window; `OutlierSpec` carries
+`lsRun`, `method`, `defaultCriticalValue`, `maxIter`. Critical values:
+`CriticalValueComputer.advancedComputer` (constants 1.96, 2.0,
+12.566370614359172, −0.5, 0.05, 3.3, 0.0025, 4.3) clamped by `calcCv =
+max(2.8, ·)`.
+Consumes: `sarima_regression_likelihood`, `arma_residuals` /
+`sarima_complete_residuals`, the state-space likelihoods,
+`optimize_arma_objective` (re-estimation inside the loop). New: robust
+standard deviation computer; residual `ArmaFilter` staging (exact-residual
+t-statistic machinery); outlier column factories for AO/LS/TC/SO (the
+22c fit vocabulary, generator side); single-outlier scan with candidate
+t-values; the TsOO loop driver; both critical-value computer forms.
+Sign-off: `method` (RegARIMA vs simplified), TC rate default, `lsRun`,
+`maxIter`/max-outliers policy, and the default critical-value rule
+(spec `defaultCriticalValue` vs `calcCv(n)` floor 2.8).
+
+### E — estimation control
+
+Pinned: `jdplus.toolkit.base.core.regsarima.RegSarimaComputer` (implements
+`IRegArimaComputer`; `PROCESSOR` constant, `DEF_EPS`, `DEF_INTERNAL_EPS`,
+Builder defaults `eps = 1.0E-7`, `feps = 1.0E-4`, `ml`/`mt`/`cdf`/`fast`
+flags, `StartingPoint`, `SsqFunctionMinimizer`; `tryUrpCancelling`/
+`tryUrmCancelling` unit-root-cancellation passes with `UR_LIMIT`;
+`finalProcessing`). Initializations:
+`jdplus.toolkit.base.core.sarima.estimation.HannanRissanen` (+
+`internal.HannanRissanenInitializer`, 1.0E-9 guard) and the Sarima
+mappings (`SarimaMapping`, `SarimaMapping2`, `MultiPeriodicAirlineMapping`
+for balanced/mixed options).
+Consumes: the qualified fixed/diffuse likelihoods, `arma_objective` +
+`optimize_arma_objective` (bounded fixed-order optimizer),
+`arma_identification` (rank/degeneracy screening),
+`arma_information`. New: the Sarima parameter mapping (free/balanced/
+mixed factor sets), the SSQ minimizer driver with the two precisions, the
+UR-cancellation passes, convergence/status records.
+Sign-off: `ml`/`mt`/`cdf`/`fast` promotion (the promoted product
+combination), `eps`/`feps` promotion, starting-point policy.
+
+### F — differencing decision (d/D) and seasonality
+
+Pinned: `jdplus.x13.base.core.x13.regarima.DifferencingModule` (Builder
+`cancel`; unit-root tests via `Polynomial.mirror`/`roots` and
+`Complex.abs`, `IRegArimaComputer.optimize/process` trial fits; threshold
+constants 0.9, 0.16, 0.88, 0.17, 0.91, 0.89, 0.869, 0.136, 1.02, 0.002),
+supported by `SeasonalityDetector`. `AutoModellingModule` re-enters this
+stage through `IDifferencingModule$Info` (cancellation afterwards).
+Consumes: `preparation` (differencing), the likelihoods (trial fits),
+`arma_optimizer`. New: `SeasonalityDetector` reproduction, the d/D test
+battery with its thresholds, cancellation rules.
+Sign-off: this is a dense decision-threshold stage — the whole constant
+set above is a spec-comparison-threshold sign-off before the slice.
+
+### M — ARMA identification and refinement
+
+Pinned: initial identification `ArmaModule` (`RegArimaUtility.
+olsResiduals` + candidate enumeration through `ArmaModule$RegArmaBic`
+(`getBIC`/`getSpecification`/`mergeInto`/`sort`), regularity/significance
+constants 0.003, 0.0025, 0.0075, 0.01, 0.03, 0.0625, 0.25, sentinel
+99999.0; Builder `balanced`/`mixed`/`estimationPrecision`) and refinement
+`AutoModellingModule` (`SarimaComponent` add/remove steps with the −0.2/
+−0.1 concentrated-likelihood thresholds, `UnitRoots.D`/`BackFilter`
+residual recomputation, `RegArimaUtility.linearizedData`, comparison via
+`jdplus.toolkit.base.core.regsarima.ami.AICcComparator`).
+Consumes: stage E's estimation control, `arma_identification`,
+`sarima_complete_residuals`, Hannan-Rissanen (stage E). New: the BIC
+candidate search, the hill-climbing step engine (`SarimaComponent` form),
+AICc model comparator, `ModelController` measure set (`LjungBox` with
+`autoCorrelationsCount`/`hyperParametersCount`, `PeriodicLjungBox`
+(0.5), rvr, rTval) feeding `RegArimaKernel.pass2`/`redoEstimation`/
+`checkUnitRoots` (−0.82 `phi(1)`, 1.0126582278481011, 0.95/0.75)/`checkMA`.
+Sign-off: the BIC/likelihood threshold sets and the pass2/checkUnitRoots
+gates are decision boundaries; balanced/mixed promotion.
+
+### R — regression-variable tests, mean, calendar
+
+Pinned: `jdplus.toolkit.base.core.regsarima.regular.
+RegressionVariablesTest` (Builder fields `tmu`, `ttd`, `tmh`, `ftd`,
+`derived` — t-statistic and F-test cutoffs over the final estimation),
+`MeanController.test` (1.0E-5 guard; `RegArimaKernel.checkMu` at 1.96 in
+round 0; the final mean rule at 2.5 before `FinalEstimator`), and the
+sa-core calendar modules (`CalendarEffectsDetectionModule`,
+`EasterDetectionModule`, `AutomaticTradingRegressionModule` with
+`AutomaticTradingDaysRegressionTest`/`...WaldTest`, the x13
+`UserVariablesDetectionModule`).
+Consumes: `arma_information` / asymptotic covariance (the
+`LogLikelihoodFunction$Point.asymptoticCovariance` form the final
+estimator already exposes), the qualified variable-column algebra of the
+22c allocation contract. New: t/F decision records from covariance; the
+trading-day/easter comparison drivers (later sub-slices).
+Sign-off: p-value/t-statistic cutoffs (`RegressionTestSpec` defaults),
+the 1.96/2.5 mean rules, whether calendar-detection modules are in
+item-21 scope or a separate item.
+
+### Z — integration and qualification
+
+Pinned: the `calc` round structure itself (round steps, `pass2`,
+`lastSolution`), `X13SpecDecoder` module assembly, and the seam into the
+qualified downstream: final `ModelDescription` → `x13_preadjust` →
+`x11_selection_pass`/`x13_fit` → `x13_restore`. The forecast side is
+already boundary-pinned (the {0,0} fixed-path domain and the
+`ExactArimaForecasts` route of the fit contract): item 21 is exactly what
+makes nonzero horizons reachable natively, and the M3-finale evidence rows
+(`horizons.csv`) become the first cross-checks.
+Deliverable: end-to-end captures replacing the fit's fixed coefficients
+with the automatic decisions (full rsa0–rsa5c spec corpus), decision-trace
+fixtures (stage records like the selection pass's), and the OLS/final
+estimation through `FinalEstimator` (exact final derivatives +
+asymptotic covariance + `FilterUtility.checkRoots`).
+
+## Dependency order and recommended slice sequence
+
+E is the numerical spine (T, O, F, M, R all re-estimate), so the
+recommended sequence front-loads it even though the pinned pipeline *runs*
+T/O first. One slice = one commit pair at most, following the standing
+house gates (ctest growth, sweeps, OMP/serial/sanitized, manifest, status):
+
+1. **21-A — estimation control core (stage E)**: Sarima mappings, Hannan-
+   Rissanen initializer, SSQ driver with both precisions, UR-cancellation
+   passes, status records. Largest single reuse of existing kernels.
+2. **21-B — transformation decision (stage T)**: AICC forms + level/log
+   driver (no preadjust variant yet). Needs E; sign-off list is small.
+3. **21-C — outlier scoring (stage O)**: robust sd, residual t-statistic
+   scan, factories, critical values; TsOO loop driver over a *given*
+   estimation. Fixture: pinned `OutliersDetectionModule` outcomes.
+4. **21-D — differencing decision (stage F)**: seasonality + d/D tests +
+   cancellation.
+5. **21-E — initial ARMA identification (stage M part 1)**: OLS-residual
+   BIC candidates (ArmaModule).
+6. **21-F — refinement and model comparison (stage M part 2)**:
+   SarimaComponent hill-climb, AICcComparator, ModelController/pass2/
+   checkUnitRoots/checkMA measures.
+7. **21-G — regression tests + mean rules (stage R)**.
+8. **21-H — integration (stage Z)**: round structure, decoder-equivalent
+   spec plumbing, final estimator, end-to-end qualification against
+   `x13_fast` captures, then the nonzero-horizon fit extension as the
+   first consumer.
+
+Calendar/easter/automatic-TD detection modules and user-variable
+detection (`UserVariablesDetectionModule`) are deferred behind 21-H as an
+optional 21-I: they are separable modules in the pinned decoder and do
+not block the preprocessing spine.
+
+## Maintainer decision list (sign-off before the owning slice)
+
+| # | Decision | Stage |
+|---|---|---|
+| 1 | `RegSarimaComputer` flag promotion (`ml`/`mt`/`cdf`/`fast`) and `eps`/`feps` promotion | E |
+| 2 | Starting-point policy (Hannan-Rissanen vs defaults) per call site | E |
+| 3 | Log/level AICC threshold −2.0; pre-adjustment on/off for the decision | T |
+| 4 | Outlier method (RegARIMA vs simplified), type set, TC rate 0.7, `lsRun`, `maxIter`/max-outliers, critical-value default (spec vs `calcCv` floor 2.8) | O |
+| 5 | d/D test thresholds (0.9/0.88/0.91/0.869 + 0.16/0.17/0.136 + 1.02/0.002) promotion | F |
+| 6 | ARMA BIC thresholds (0.0025…0.25) and balanced/mixed promotion | M |
+| 7 | pass2/checkUnitRoots gates (0.95, 0.75, 1.0126582278481011, −0.82) and Ljung-Box lag policy | M |
+| 8 | t/F cutoffs for regression tests; mean rules 1.96/2.5 | R |
+| 9 | Scope: calendar-detection and user-variable modules inside item 21 or separate | R/21-I |
+
+The resolved 22b.3a sigma default (`legacy`, 2026-11-17) applies to every
+re-estimation path that reaches the X-11 stages; no open default remains
+there.
+
+## Non-goals
+
+No TRAMO/SEATS (items 23/24), no benchmarking/diagnostics (item 25), no
+exact `rsa3` promotion until its full pipeline exists (roadmap acceptance
+rule), and no unilateral change to any pinned verbatim surface — the two
+coordinated-change-needed items recorded in
+contracts/x11-selection-pass-contract.md stay coordinated.
