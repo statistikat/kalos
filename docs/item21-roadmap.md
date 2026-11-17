@@ -303,6 +303,19 @@ basins through the discrete Multiple alternate-start sign; the decision bit
 stays pinned there and the landing is qualified — a future 21-A replay-
 fidelity pass should start from those fixtures.
 
+Stage O position recorded with 21-C (2026-11-17): the scoring/selection layer
+is delivered as the qualified units `scan_outlier_candidates` and
+`detect_outliers` over the new warm re-entry `optimize_sarima_from`
+(contracts/outlier-scoring-contract.md). The slice stays inside the "score
+and select over a given estimation" boundary: outlier fixing into specs and
+the preadjust staging remain with 21-H. The pinned call-site values
+(`X13Utility.processor(true, 1e-7)`, cv via `calcCv(n)`, monthly tcrate 0.7,
+decoder maxRound/maxOutliers 50/30) are captured corpus facts, still not
+promoted to configuration. One behavioral deviation is documented and swept
+(the `getMaxTStat` sentinel escape); driver final fits are qualified inside
+a flat-valley basin band whose noise was verified as basin, not surface,
+difference.
+
 ## Non-goals
 
 No TRAMO/SEATS (items 23/24), no benchmarking/diagnostics (item 25), no

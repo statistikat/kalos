@@ -1259,3 +1259,57 @@ required argument; the preadjust-on-decision question stays open and this
 slice pins only the `preadjust = None` call site. Next per the roadmap:
 21-C (outlier scoring, stage O) or the 21-A replay-fidelity pass on the two
 basin fixtures.
+
+## Outlier scoring and forward selection (21-C) — 2026-11-17
+
+**Deliverable.** Stage-O scoring/selection units
+`include/kalos/outlier_scoring.hpp` + `src/outlier_scoring.cpp` +
+`src/outlier_scan_engine.cpp`/`src/outlier_detail.hpp`: the pinned critical-
+value chain (`intProbability`/`getProbabilityInverse` Cody transcription,
+`calcCv` three-anchor interpolation with the `calcVAL` operand-stack fix —
+`d11/d7 + (d7 − d9)`, LULinearSystemSolver2 at 1e-13, floor 2.8), the four
+x13 factories (fills, zones, `transitory_change_rate(freq, monthly)`),
+`regression_t_statistics` (the `tstats(0, false)` vector path over the
+`"available"` status string, `llround(ssq/var)` dimension recipe), the
+`ExactSingleOutlierDetector` scan (`scan_outlier_candidates`: Ansley with
+the pinned `cnt − 1` `lcholesky` update bound, MaLjungBox `calcg(int)` with
+the pinned column-*overwrite* recursion — not a decrement, verified bit for
+bit against `m_G` —, `ljungBox(true)` ML residuals (`block[q..n+q)`),
+Mad(50), pivoted-QR initialization, `Polynomial` trailing-zero stripping of
+the expanded stationary polynomials, permanent exclusions, `searchMax`), and
+the `ExactOutliersDetector` driver (`detect_outliers`: full-chain re-estimation
+on open/add, warm rollback/verifymodel via the new `optimize_sarima_from`
+core entry, `changed` never reset, pinned stop reasons, exclusion feedback).
+The pinned `estimateModel` gate is *null estimation*, not convergence: a
+stalled-but-finite fit is adopted and its tstats drive the decisions, and the
+callback contract mirrors exactly that. One documented deviation: the
+`getMaxTStat` sentinel escape (Kalos reports sentinel + 0 where the pinned
+code indexes `T(−1,−1)` and throws).
+
+**Qualification.** New corpus `validation/evidence/native/outlier-scoring/`
+(7 files) through the new observer `OutlierScoringProbe.java` +
+`capture-outlier-scoring.R`, double captured across two JVM processes
+(byte-identical case files; the observer carries no algorithm). The sweep
+`tools/verify_outlier_scoring.cpp` passes 98/98: grids 77 exact + 7 pinned
+throws; 6 scan cases with exact winners and the sentinel deviation asserted;
+8 driver cases with exact selections/stop reasons/rounds and final fits
+inside the flat-valley basin band (t `1e−2 + 1e−4·|t|`, worst 0.37; params
+`2e−3`, worst 0.61) — verified basin-not-surface noise: warm re-entry from
+the JVM's own final parameters converges back to the Kalos fixed point at an
+identical log-likelihood.
+
+**Deliverables.** `tests/test_outlier_scoring.cpp` (ctest suite 51→52:
+bit-level cdf/quantile/calccv reuse, factory fills/zones, t-stats guard and
+NaN/zero propagation, scan request validation and scripted whitening status,
+driver mechanics over scripted callbacks, warm-start record identity).
+Gates: ctest 52/52 in the Release OpenMP and serial builds; ASan/UBSan clean
+for `test_outlier_scoring`; manifest 111 core / 112 fixture / 150 evidence;
+`verify-migration.py` unchanged at 406. Contract:
+[outlier-scoring-contract.md](docs/contracts/outlier-scoring-contract.md).
+
+**Maintainer-decision ledger (stage O).** Nothing promoted: cv stays required
+request data (with `default_critical_value` exposed as the pinned formula,
+floor 2.8 a transcription constant), the monthly tcrate 0.7, `eps = 1e-7`,
+maxRound/maxOutliers 50/30 are captured call-site facts for 21-H, and the
+`ZERO`/THRSH constants stay pinned. Next per the roadmap: 21-D (differencing
+decision, stage F) or the 21-A replay-fidelity pass on the basin fixtures.

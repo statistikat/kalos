@@ -51,6 +51,8 @@ add_library(kalos STATIC
   src/linear_algebra.cpp
   src/numerics.cpp
   src/optimizer.cpp
+  src/outlier_scan_engine.cpp
+  src/outlier_scoring.cpp
   src/prediction_arma_information.cpp
   src/preparation.cpp
   src/prediction_moments.cpp
@@ -156,6 +158,7 @@ if(KALOS_BUILD_TESTS)
     test_linear_algebra
     test_numerics
     test_optimizer
+    test_outlier_scoring
     test_parallel
     test_preparation
     test_prediction_moments
