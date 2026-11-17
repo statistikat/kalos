@@ -43,4 +43,31 @@ int main() {
     assert(callbacks > 0);
     rejects([&] { qr_least_squares(wide, b, 1e-10, [] { throw std::runtime_error("interrupted"); }); });
     assert(qr_least_squares(wide, b).rank == 2);
+    assert(polynomial_roots({}).empty());
+    assert(polynomial_roots({2.5}).empty());
+    assert(polynomial_roots({1, -2, 0, 0}).size() == 1); // trailing zeros trimmed
+    assert(std::abs(polynomial_roots({1, -2})[0].real - 0.5) < 1e-14);
+    assert(polynomial_roots({1, -2})[0].imag == 0.0);
+    assert(polynomial_roots({0, 2})[0].real == 0.0);
+    assert(polynomial_roots({0, 0}).empty());
+    const auto quad = polynomial_roots({1, -5, 6}); // (1 - 2x)(1 - 3x)
+    assert(quad.size() == 2);
+    const auto root_near = [&](double value) {
+        for (const auto& root : quad) {
+            if (std::abs(root.imag) < 1e-12 && std::abs(root.real - value) < 1e-9) return true;
+        }
+        return false;
+    };
+    assert(root_near(0.5) && root_near(1.0 / 3.0));
+    const auto pair = polynomial_roots({1, 1, 1}); // complex pair exp(+-2 pi i / 3)
+    assert(pair.size() == 2);
+    for (const auto& root : pair) {
+        assert(std::abs(std::hypot(root.real, root.imag) - 1.0) < 1e-9);
+        assert(std::abs(root.real + 0.5) < 1e-9);
+    }
+    assert(std::abs(pair[0].imag + pair[1].imag) < 1e-9);
+    const auto zero_lead = polynomial_roots({1, -1.5, 0.5, 0}); // (1 - x)(1 - x/2)
+    assert(zero_lead.size() == 2);
+    rejects([] { polynomial_roots({1, std::numeric_limits<double>::quiet_NaN()}); });
+    rejects([] { polynomial_roots({1, std::numeric_limits<double>::infinity()}); });
 }

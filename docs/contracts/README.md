@@ -487,19 +487,26 @@ and sanitized builds 48/48. See
 
 ## Fixed-order estimation control
 
-`test_estimation_control.cpp`, the 17-case pinned estimation-control corpus
-and `tools/verify_estimation_control.cpp` qualify `estimate_sarima_fixed`,
-the estimation-CONTROL layer of the pinned `RegSarimaComputer` (item 21-A.1)
-over the qualified 20b.2 objective/optimizer kernels: the pinned Zero/Default
+`test_estimation_control.cpp`, the pinned estimation-control corpora
+(17 Zero/Default cases plus 10 HannanRissanen/Multiple cases) and
+`tools/verify_estimation_control.cpp` qualify `estimate_sarima_fixed`, the
+estimation-CONTROL layer of the pinned `RegSarimaComputer` (item 21-A) over
+the qualified 20b.2 objective/optimizer kernels: the pinned Zero/Default
 starting-point fills on the probe-verified sign convention (rjd3 raw
-`1 + phi(B)` versus Kalos `1 - phi(B)`), the `eps`-precision pass, the
-pinned likelihood-only guard, the `ur_regular`/`ur_seasonal` unit-root
-cancellation gates, deflations and strict-improvement acceptance with per-pass
-decision records. Control fields are required request data (no defaults); the
-HannanRissanen-dependent starts and the `ml = false` form are explicit
-rejections. Agreement with the pinned Levenberg-Marquardt oracle is at fit
-tolerance (2e-3 coefficients, 5e-4 likelihood, guards at 1e-9; measured
-agreement 3.99e-4/3.12e-6). The Hannan-Rissanen initializer, the score and
-information, the Rcpp boundary and any promotion of pinned values to
-configuration are not delivered or claimed. See
-[estimation-control-contract.md](estimation-control-contract.md).
+`1 + phi(B)` versus Kalos `1 - phi(B)`), the transcribed
+`HannanRissanenInitializer` (item 21-A.2, qualified separately by
+`test_hannan_rissanen.cpp`), the pinned `Multiple` two-pass
+internal-precision policy and its strict-likelihood selection, the
+`eps`-precision pass, the pinned likelihood-only guard, the
+`ur_regular`/`ur_seasonal` unit-root cancellation gates, deflations and
+strict-improvement acceptance with the chronological per-pass decision
+records (chain shape and selection bit asserted per starting point, bit-exact
+record reuse per thread count). Control fields are required request data (no
+defaults); the Hannan-Rissanen scope limits (masked series, fixed design
+coefficients) and the `ml = false` form are explicit rejections. Agreement
+with the pinned Levenberg-Marquardt oracle is at fit tolerance (2e-3
+coefficients, 5e-4 likelihood, guards at 1e-9; measured agreement over the
+27 cases 6.2e-4/7.25e-6). The score and information, the Rcpp boundary, any
+promotion of pinned values to configuration and qualification of the pinned
+behaviour on degenerate unbounded-likelihood inputs are not delivered or
+claimed. See [estimation-control-contract.md](estimation-control-contract.md).

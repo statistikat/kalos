@@ -1,11 +1,19 @@
 #!/usr/bin/env python3
-"""Generate tests/test_estimation_control.cpp from the pinned corpus."""
+"""Generate tests/test_estimation_control.cpp from the pinned corpora.
+
+The 21-A.1 corpus (Zero/Default starts) lives in
+validation/evidence/native/estimation-control and the 21-A.2 corpus
+(HannanRissanen/Multiple starts, per-case eps/feps) lives in
+validation/evidence/native/estimation-control-hr. Both are embedded verbatim.
+"""
 import csv
 
+import os
 import sys
 
 ROOT = sys.argv[1] if len(sys.argv) > 1 else "."
 CORPUS = ROOT + "/validation/evidence/native/estimation-control"
+CORPUS_HR = ROOT + "/validation/evidence/native/estimation-control-hr"
 
 def split(v):
     return [] if v == "" else v.split(";")
@@ -20,43 +28,62 @@ def iis(v):
         return "{}"
     return "{" + ", ".join(x for x in v) + "}"
 
-with open(CORPUS + "/cases.csv") as f:
-    cases = {r["id"]: r for r in csv.DictReader(f)}
-with open(CORPUS + "/inputs.csv") as f:
-    inputs = {r["id"]: r for r in csv.DictReader(f)}
+def read(directory):
+    with open(directory + "/cases.csv") as f:
+        cases = {r["id"]: r for r in csv.DictReader(f)}
+    with open(directory + "/inputs.csv") as f:
+        inputs = {r["id"]: r for r in csv.DictReader(f)}
+    return cases, inputs
 
-ORDER = list(cases)
+def emit(rows, directory):
+    cases, inputs = read(directory)
+    for cid in cases:
+        c, i = cases[cid], inputs[cid]
+        params = split(c["params"])
+        cols = [] if i["columns"] == "" else [r.split(";") for r in i["columns"].split("|")]
+        missing = [int(x) - 1 for x in split(i["missing"]) if x != ""]
+        eps = c.get("eps") or "1e-07"
+        feps = c.get("feps") or "1e-04"
+        rows.append(
+            '  Case{"%s", "%s", %s, %s, %s, %s, %s, %s, %d, %d,\n'
+            '       %s,\n       %s,\n       {%s},\n       {%s}, %s},\n'
+            % (cid, i["start"], "%.17g" % float(eps), "%.17g" % float(feps),
+               i["p_ar"], i["p_ma"], i["p_sar"], i["p_sma"],
+               int(i["d"]), int(i["D"]),
+               cvals(split(i["y"])), iis([str(x) for x in missing]),
+               ", ".join("{" + ", ".join("%.17g" % float(x) for x in col) + "}" for col in cols),
+               ", ".join("%.17g" % float(x) for x in params), c["loglik"]))
+    return list(cases)
+
 rows = []
-for cid in ORDER:
-    c, i = cases[cid], inputs[cid]
-    params = split(c["params"])
-    cols = [] if i["columns"] == "" else [r.split(";") for r in i["columns"].split("|")]
-    missing = [int(x) - 1 for x in split(i["missing"]) if x != ""]
-    rows.append(
-        '  Case{"%s", "%s", %s, %s, %s, %s, %d, %d,\n'
-        '       %s,\n       %s,\n       {%s},\n       {%s}, %s},\n'
-        % (cid, i["start"], i["p_ar"], i["p_ma"], i["p_sar"], i["p_sma"],
-           int(i["d"]), int(i["D"]),
-           cvals(split(i["y"])), iis([str(x) for x in missing]),
-           ", ".join("{" + ", ".join("%.17g" % float(x) for x in col) + "}" for col in cols),
-           ", ".join("%.17g" % float(x) for x in params), c["loglik"]))
-
+base_order = emit(rows, CORPUS)
+hr_order = emit(rows, CORPUS_HR) if os.path.isdir(CORPUS_HR) else None
+if hr_order is None:
+    sys.exit("missing HR corpus " + CORPUS_HR)
+ORDER = base_order + hr_order
 body = "\n".join(rows)
 
 source = """// Item 21-A estimation control: the fixed-order estimation-CONTROL layer over
 // the qualified objective and optimizer. Expected values are the pinned jdplus
 // RegSarimaComputer outcomes captured by
-// validation/reference/capture-estimation-control.R (rjd3 3.9.0) and installed
-// under validation/evidence/native/estimation-control (embedded verbatim at 17
-// significant digits; the sweep over the on-disk corpus is
-// tools/verify_estimation_control.cpp). Because the pinned Levenberg-Marquardt
+// validation/reference/capture-estimation-control.R (Zero/Default starts) and
+// validation/reference/capture-estimation-control-hr.R (HannanRissanen and
+// Multiple starts, per-case eps/feps), both rjd3 3.9.0, installed under
+// validation/evidence/native/estimation-control{,-hr} and embedded verbatim at
+// 17 significant digits; the sweep over the on-disk corpora is
+// tools/verify_estimation_control.cpp. Because the pinned Levenberg-Marquardt
 // and the Kalos BFGS solvers are independent, agreement is asserted at fit
 // tolerance; the measured run-to-run spread of the pinned side (Zero against
 // Default start on identical targets) bounds the coefficient tolerance at
-// 2e-3 and the likelihood tolerance at 5e-4. See
+// 2e-3 and the likelihood tolerance at 5e-4. The pass-record shape and the
+// selection bits are asserted structurally per starting point. The pinned
+// rms < 1e-9 variance guard is qualified in test_hannan_rissanen.cpp instead:
+// it fires only where the likelihood is unbounded, and the pinned landing
+// point there is process-dependent (see the capture script note). See
 // docs/contracts/estimation-control-contract.md.
 #include "kalos/estimation_control.hpp"
 
+#include <algorithm>
 #include <cassert>
 #include <cmath>
 #include <cstdio>
@@ -69,6 +96,8 @@ namespace {
 struct Case {
     const char* id;
     const char* start;
+    double eps, feps;             // Pinned precisions (builder defaults except
+                                  // the pinned PROCESSOR case at 1e-9).
     int p_ar, p_ma, p_sar, p_sma;
     int d, D;
     std::vector<double> y;
@@ -82,6 +111,12 @@ const Case cases[] = {
 %s
 };
 
+const Case& find_case(const char* id) {
+    for (const auto& c : cases)
+        if (std::string(c.id) == id) return c;
+    assert(false);
+}
+
 void threads(const char* value) {
 #ifdef _WIN32
     assert(_putenv_s("PERSEPHONE_NUM_THREADS", value) == 0);
@@ -90,18 +125,21 @@ void threads(const char* value) {
 #endif
 }
 
-kalos::EstimationControl control(const char* start) {
-    kalos::EstimationControl c;
-    c.eps = 1e-7;                       // Pinned DEF_EPS (builder default).
-    c.feps = 1e-4;                      // Pinned DEF_INTERNAL_EPS.
-    c.maximum_likelihood = true;        // Pinned ml.
-    c.unit_root_search = false;         // Pinned mt.
-    c.corrected_degrees_of_freedom = true;  // Pinned cdf.
-    c.fast_derivatives = true;          // Pinned fast.
-    c.starting_point = std::string(start) == "Zero"
-        ? kalos::EstimationStartingPoint::Zero
-        : kalos::EstimationStartingPoint::Default;
-    return c;
+kalos::EstimationControl control(const Case& c) {
+    kalos::EstimationControl k;
+    k.eps = c.eps;                        // Pinned DEF_EPS (or PROCESSOR).
+    k.feps = c.feps;                      // Pinned DEF_INTERNAL_EPS.
+    k.maximum_likelihood = true;          // Pinned ml.
+    k.unit_root_search = false;           // Pinned mt.
+    k.corrected_degrees_of_freedom = true;  // Pinned cdf.
+    k.fast_derivatives = true;            // Pinned fast.
+    const std::string start = c.start;
+    k.starting_point = start == "Zero"      ? kalos::EstimationStartingPoint::Zero
+                       : start == "Default" ? kalos::EstimationStartingPoint::Default
+                       : start == "HannanRissanen"
+                           ? kalos::EstimationStartingPoint::HannanRissanen
+                           : kalos::EstimationStartingPoint::Multiple;
+    return k;
 }
 
 kalos::SarimaEstimationRequest request(const Case& c) {
@@ -124,11 +162,50 @@ kalos::SarimaEstimationRequest request(const Case& c) {
     r.period = 12;
     r.d = c.d;
     r.seasonal_d = c.D;
-    r.control = control(c.start);
+    r.control = control(c);
     return r;
 }
 
 double abs_diff(double a, double b) { return std::abs(a - b); }
+
+// Chronological record vocabulary (21-A.2): the final eps chain is always
+// estimate, ur_regular, ur_seasonal; the HannanRissanen family prepends
+// "initialize" and the Multiple policy inserts its two internal-precision
+// chains, each estimate, ur_regular, ur_seasonal.
+void check_shape(const kalos::SarimaEstimationResult& result, const Case& c) {
+    const std::string start = c.start;
+    const auto& p = result.passes;
+    const std::size_t n = p.size();
+    const auto chain = [&](std::size_t base, const char* prefix) {
+        assert(p[base].stage == std::string(prefix) + "estimate");
+        assert(p[base + 1].stage == std::string(prefix) + "ur_regular");
+        assert(p[base + 2].stage == std::string(prefix) + "ur_seasonal");
+    };
+    assert(n >= 3);
+    chain(n - 3, "");
+    if (start == "Zero" || start == "Default") {
+        assert(n == 3);
+        return;
+    }
+    assert(p[0].stage == "initialize");
+    assert(!p[0].detail.empty());
+    assert(p[0].detail ==
+        std::string(std::string(c.id) == "hrs_near_unit" ? "fitted,stabilized" : "fitted"));
+    if (start == "HannanRissanen") {
+        assert(n == 4);
+        assert(p[0].accepted); // The initialized start is the final start.
+        chain(1, "");
+        return;
+    }
+    // Multiple: the pinned selection retains exactly one of the initialized
+    // start and the two internal-precision estimates as the final seed.
+    assert(n == 10);
+    chain(1, "multiple_first.");
+    chain(4, "multiple_second.");
+    const int retained = (p[0].accepted ? 1 : 0) + (p[1].accepted ? 1 : 0) +
+        (p[4].accepted ? 1 : 0);
+    assert(retained == 1);
+}
 
 void check_case(const Case& c) {
     const auto result = kalos::estimate_sarima_fixed(request(c), {});
@@ -155,25 +232,32 @@ void check_case(const Case& c) {
     if (result.status != "converged") {
         std::printf("  %%s: status %%s (outcome still qualified)\\n", c.id, result.status.c_str());
     }
-    assert(result.passes.size() == 3);
-    assert(result.passes[0].stage == "estimate" && result.passes[0].accepted);
-    assert(result.passes[1].stage == "ur_regular");
-    assert(result.passes[2].stage == "ur_seasonal");
-    for (std::size_t k = 1; k < 3; ++k) {
-        const auto& pass = result.passes[k];
-        assert(!pass.accepted || pass.attempted);
-        if (pass.attempted) {
-            // The pinned acceptance rule, checked against the record itself:
-            // kept exactly when the candidate likelihood is strictly better.
-            assert(pass.accepted == (pass.log_likelihood > result.passes[0].log_likelihood));
+    check_shape(result, c);
+    // Every chain: a restart is kept exactly when its candidate likelihood is
+    // strictly better than the current incumbent (transitively, better than
+    // the chain's own estimate record).
+    std::vector<std::size_t> bases{result.passes.size() - 3};
+    if (result.passes[0].stage == "initialize" && result.passes.size() == 10) {
+        bases.push_back(1);
+        bases.push_back(4);
+    }
+    for (const std::size_t base : bases) {
+        for (std::size_t k = base + 1; k <= base + 2; ++k) {
+            const auto& pass = result.passes[k];
+            assert(!pass.accepted || pass.attempted);
+            if (pass.attempted)
+                assert(pass.accepted ==
+                    (pass.log_likelihood > result.passes[base].log_likelihood));
         }
     }
     // Far-from-cancellation fixtures miss the gates on both sides by a wide
     // margin; the near-unit fixtures sit close to the 0.1 boundary, so only
     // the record consistency above is asserted there.
-    const bool near_unit_fixture = id.rfind("urp_", 0) == 0 || id.rfind("urm_", 0) == 0;
+    const bool near_unit_fixture = id.rfind("urp_", 0) == 0 || id.rfind("urm_", 0) == 0 ||
+        id == "hrs_near_unit";
+    const std::size_t n = result.passes.size();
     if (!near_unit_fixture) {
-        assert(!result.passes[1].gates_passed && !result.passes[2].gates_passed);
+        assert(!result.passes[n - 2].gates_passed && !result.passes[n - 1].gates_passed);
     }
     const std::vector<double> pinned = c.params;
     std::vector<double> actual;
@@ -190,8 +274,8 @@ void check_case(const Case& c) {
     assert(abs_diff(result.log_likelihood, c.log_likelihood) < 5e-4);
     std::printf("  %%s: ok (worst coeff %%.3g, ll delta %%.3g, urp gates %%d accepted %%d)\\n",
         c.id, worst, abs_diff(result.log_likelihood, c.log_likelihood),
-        static_cast<int>(result.passes[1].gates_passed),
-        static_cast<int>(result.passes[1].accepted));
+        static_cast<int>(result.passes[n - 2].gates_passed),
+        static_cast<int>(result.passes[n - 2].accepted));
 }
 
 } // namespace
@@ -201,40 +285,48 @@ int main() {
     for (const auto& c : cases) check_case(c);
 
     // Structural controls: invalid fields fail before any work.
-    auto good = control("Zero");
+    auto good = control(find_case("zero_r11"));
     try { auto bad = good; bad.eps = 0.0; bad.validate(); assert(false); }
     catch (const std::invalid_argument&) {}
     try { auto bad = good; bad.feps = std::nan(""); bad.validate(); assert(false); }
     catch (const std::invalid_argument&) {}
     try { auto bad = good; bad.maximum_likelihood = false; bad.validate(); assert(false); }
     catch (const std::invalid_argument&) {}
-    // The Hannan-Rissanen-dependent starts are explicit rejections, not
-    // silent fallbacks, until item 21-A.2 qualifies the initializer.
-    try {
-        auto bad = good;
-        bad.starting_point = kalos::EstimationStartingPoint::HannanRissanen;
-        bad.validate();
-        assert(false);
-    } catch (const std::invalid_argument& e) {
-        assert(std::string(e.what()).find("Hannan-Rissanen") != std::string::npos);
+    // The HannanRissanen initializer runs on the differenced linear model, so
+    // its starts reject masked series and fixed regression coefficients
+    // explicitly instead of approximating the pinned behaviour (contract).
+    {
+        auto r = request(find_case("hrs_r11"));
+        r.series.missing[0] = 1;
+        try {
+            kalos::estimate_sarima_fixed(r, {});
+            assert(false);
+        } catch (const std::invalid_argument& e) {
+            assert(std::string(e.what()).find("complete series") != std::string::npos);
+        }
     }
-    try {
-        auto bad = good;
-        bad.starting_point = kalos::EstimationStartingPoint::Multiple;
-        bad.validate();
-        assert(false);
-    } catch (const std::invalid_argument&) {}
+    {
+        auto r = request(find_case("multiple_r11"));
+        r.design.fixed[0] = 1;
+        try {
+            kalos::estimate_sarima_fixed(r, {});
+            assert(false);
+        } catch (const std::invalid_argument& e) {
+            assert(std::string(e.what()).find("fully free regression designs") !=
+                   std::string::npos);
+        }
+    }
 
     // Fixed coefficients survive exactly (the pinned SarimaFixedMapping
     // seam): the free MA factor is estimated around the frozen value.
     {
-        auto r = request(cases[3]); // zero_r11
+        auto r = request(find_case("zero_r11"));
         r.blocks[1].fixed[0] = 1;
         r.blocks[1].initial[0] = 0.25;
         const auto result = kalos::estimate_sarima_fixed(r, {});
         assert(result.coefficients[1][0] == 0.25);
         assert(result.coefficients[1][0] != 0.0);
-        assert(result.log_likelihood <= cases[3].log_likelihood + 5e-4);
+        assert(result.log_likelihood <= find_case("zero_r11").log_likelihood + 5e-4);
         std::printf("  fixed_seam: ok\\n");
     }
 
@@ -242,7 +334,7 @@ int main() {
     // only branch even when design columns exist; the result must match the
     // direct physical objective exactly (no solver involved).
     {
-        auto r = request(cases[0]); // guard_regular
+        auto r = request(find_case("guard_regular"));
         const std::array<std::vector<double>, 4> empty_coefficients;
         const auto direct = kalos::evaluate_arma_physical_objective(
             r.series, r.design, kalos::ArmaParameterMap(r.blocks),
@@ -255,26 +347,33 @@ int main() {
 
     // Mismatched coefficient states are static input errors.
     {
-        auto r = request(cases[3]);
+        auto r = request(find_case("zero_r11"));
         r.blocks[0].fixed.pop_back();
         bool caught = false;
         try { kalos::estimate_sarima_fixed(r, {}); } catch (const std::invalid_argument&) { caught = true; }
         assert(caught);
     }
 
-    // Deterministic reuse and thread-count invariance over a cancellation case.
-    {
-        threads("1");
-        const auto a = kalos::estimate_sarima_fixed(request(cases[11]), {});
-        const auto b = kalos::estimate_sarima_fixed(request(cases[11]), {});
-        threads("2");
-        assert(a.status == b.status && a.log_likelihood == b.log_likelihood);
-        for (std::size_t blk = 0; blk < 4; ++blk) assert(a.coefficients[blk] == b.coefficients[blk]);
-        for (std::size_t i = 0; i < a.passes.size(); ++i) {
-            assert(a.passes[i].accepted == b.passes[i].accepted);
-            assert(a.passes[i].gates_passed == b.passes[i].gates_passed);
+    // Deterministic reuse at each thread count, over a cancellation case and
+    // over the ten-record Multiple chain (selection bits included). Bit-level
+    // equality is only asserted within one thread count: cross-thread BLAS
+    // reduction order legitimately changes roundoff.
+    for (const char* id : {"urp_near_unit_zero", "multiple_full"}) {
+        for (const char* count : {"1", "2"}) {
+            threads(count);
+            const auto a = kalos::estimate_sarima_fixed(request(find_case(id)), {});
+            const auto b = kalos::estimate_sarima_fixed(request(find_case(id)), {});
+            assert(a.status == b.status && a.log_likelihood == b.log_likelihood);
+            for (std::size_t blk = 0; blk < 4; ++blk) assert(a.coefficients[blk] == b.coefficients[blk]);
+            assert(a.passes.size() == b.passes.size());
+            for (std::size_t i = 0; i < a.passes.size(); ++i) {
+                assert(a.passes[i].stage == b.passes[i].stage);
+                assert(a.passes[i].accepted == b.passes[i].accepted);
+                assert(a.passes[i].gates_passed == b.passes[i].gates_passed);
+                assert(a.passes[i].detail == b.passes[i].detail);
+            }
         }
-        std::printf("  reuse: ok\\n");
+        std::printf("  reuse %%s: ok\\n", id);
     }
     std::printf("test_estimation_control: all checks passed\\n");
     return 0;

@@ -1120,3 +1120,69 @@ caller passes the policy; HannanRissanen/Multiple remain rejected pending
 a Kalos default either. (3) The `legacy`-style product-default question does
 not arise at this seam: the core keeps all control fields as required
 arguments (consistent with the 22b.3a resolution pattern).
+
+## Hannan-Rissanen initializer and the HR-family starts (21-A.2) — 2026-11-17
+
+**Scope.** Item 21 stage E, second and last planned 21-A increment: the
+bytecode-pinned transcription of `HannanRissanenInitializer` and its
+`HannanRissanen` three-stage pipeline (new unit
+`include/kalos/hannan_rissanen.hpp` + `src/hannan_rissanen.cpp`) and the
+`HannanRissanen`/`Multiple` starting policies of `estimate_sarima_fixed`
+(the pinned two-pass `feps` internal-precision chains, the pinned alternate
+start and the strict-likelihood `dcmpg` selection). Supporting qualified
+primitives: `polynomial_roots` (companion matrix + DGEEV) in the
+linear-algebra unit and the `dgeev` provider adapter. NONE of the nine
+maintainer-decision items was promoted: `feps` becomes numerically active
+(read by the Multiple chains) but remains required request data with no
+default; the initializer's `stabilize`/`useDefaultIfFailed`/`failifunstable`
+and `biascorrection`/`finalcorrection` settings stay pinned call-site values,
+not configuration.
+
+**Oracle.** The 10-case HannanRissanen/Multiple corpus
+(`validation/evidence/native/estimation-control-hr/`) reuses the same
+public-API observer through
+`validation/reference/capture-estimation-control-hr.R`: complete responses,
+fully free designs, builder-default 1e-7/1e-4 plus the pinned `PROCESSOR`
+case at 1e-9, order-shape coverage (regular-only, MA-only, seasonal-only,
+full seasonal, extra regressors) and an over-differenced near-unit-root case
+whose pinned outcome exercises the stabilization branch
+(`initialize.detail = "fitted,stabilized"`). The capture was run twice in
+independent JVM processes and is byte-identical. The rms < 1e-9 variance-guard
+branch is deliberately NOT a corpus case: the guard fires only where the ML
+variance is zero and the likelihood unbounded, and the pinned landing point
+there proved process-dependent (measured: same input in two pinned processes
+landed at `[-0, -0.9]`/ll 1869.854 and `[-9.7e-10, -3.6e-9]`/ll 1841.836); the
+branch is qualified at the unit level (`Source::ZeroVariance`, zero blocks)
+instead.
+
+**Qualification catches.** The bit-exact reuse assertion (new in this
+increment, also over the 10-record Multiple chain) exposed an out-of-bounds
+design read in the first HR transcription: the pinned regression warmup is
+the largest design LAG `max(p + P*bp, q + P*bq)`, not the parameter count —
+with seasonal blocks the initial version indexed `warmup - lag` below zero.
+Fixed before install; the initializer is now bit-deterministic across calls,
+processes and thread counts. The HR block-order seam (`[ar, sar, ma, sma]`
+returned by the initializer, `[ar, ma, sar, sma]` request blocks) is an
+explicit permutation at the control layer.
+
+**Deliverables.** `tests/test_hannan_rissanen.cpp` (new ctest, deterministic
+LCG fixtures: AR(1)/MA(1) recovery, explosive-root stabilization,
+zero-variance guard, defaulted fill, design-residual recovery, interrupt
+propagation, input contract); `tests/test_estimation_control.cpp` regenerated
+from both corpora (27 embedded cases, chronological record vocabulary, chain
+shapes, selection bit, HR scope rejections); generator archived at
+`validation/reference/generate-estimation-control-test.py`;
+`tools/verify_estimation_control.cpp` sweeps both corpora (27/27, worst 6.2e-4
+coefficient / 7.25e-6 likelihood — tolerances unchanged at 2e-3/5e-4);
+`test_linear_algebra` extended for `polynomial_roots`. Gates: ctest 50/50 OMP
+and serial; ASan/UBSan clean for `test_estimation_control` (906 s),
+`test_hannan_rissanen` and `test_linear_algebra`; manifest 105/112/139;
+`verify-migration.py` unchanged at 406.
+
+**Maintainer-decision ledger (stage E, 21-A.2).** (1) `feps`: activated as
+data for the Multiple chains; still no core default, promotion undecided.
+(2) Starting-point policy: the pinned builder default (HannanRissanen) is
+now a fully supported request value but remains caller-passed; no default is
+introduced. (3) The initializer's boolean settings and the guard tolerance
+1e-9 stay pinned transcription constants; adding them to a future options
+struct is undecided. Next: 21-B (transformation decision) per the roadmap.

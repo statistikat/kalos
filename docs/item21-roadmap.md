@@ -279,6 +279,16 @@ HannanRissanen-dependent starts are explicit rejections until 21-A.2. The
 PROCESSOR singleton (`eps = 1e-9`) is not adopted anywhere. No promotion
 without a maintainer ruling.
 
+Stage E completed with 21-A.2 (2026-11-17): all four starting policies are
+delivered, still strictly as request data — `feps` is now numerically active
+(the Multiple chains) but has no core default, the HannanRissanen builder
+default is a supported value rather than a Kalos default, and the
+initializer's `stabilize`/`useDefaultIfFailed`/`failifunstable`,
+`biascorrection`/`finalcorrection` and the 1e-9 guard constant remain pinned
+transcription constants, not configuration. The PROCESSOR `eps = 1e-9` is
+qualified as a captured case value, still not adopted. Stage E is closed;
+21-B consumes this seam.
+
 ## Non-goals
 
 No TRAMO/SEATS (items 23/24), no benchmarking/diagnostics (item 25), no

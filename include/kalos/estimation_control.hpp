@@ -13,12 +13,14 @@
 
 namespace kalos {
 
-// The starting-point policy of the pinned jdplus RegSarimaComputer. The
-// Hannan-Rissanen and Multiple starts require the Hannan-Rissanen
-// initializer, which is separate item-21 work; selecting them is a rejected
-// request, not a silent fallback. Promotion of any pinned value into
-// configuration is held by the maintainer decision list of
-// docs/item21-roadmap.md.
+// The starting-point policy of the pinned jdplus RegSarimaComputer. All four
+// starts are qualified: Zero and Default are the pinned fills, HannanRissanen
+// runs the transcribed HannanRissanenInitializer and Multiple adds the two
+// internal-precision passes with the pinned selection. The two initializer
+// starts require a complete response and a fully free regression design (see
+// estimate_sarima_fixed); selecting them otherwise is a rejected request, not
+// a silent fallback. Promotion of any pinned value into configuration is held
+// by the maintainer decision list of docs/item21-roadmap.md.
 enum class EstimationStartingPoint { Zero, Default, HannanRissanen, Multiple };
 
 // Pinned RegSarimaComputer control fields, kept as required request data:
@@ -31,7 +33,7 @@ struct EstimationControl {
     // function tolerance; the solver keeps its qualified gradient criterion.
     double eps;
     // Pinned internal precision (DEF_INTERNAL_EPS 1e-4) of the Multiple-start
-    // passes. Positive and finite; inert while the Multiple start is refused.
+    // passes. Positive and finite; read only by the Multiple starting policy.
     double feps;
     // Pinned ml: objective in maximum-likelihood form. Only true is qualified
     // by the existing objective; false is rejected rather than approximated.
@@ -73,16 +75,25 @@ struct SarimaEstimationRequest {
     OptimizerControl optimizer;
 };
 
-// One decision record of the control layer: the final estimation pass and
-// each pinned unit-root-cancellation restart attempt.
+// One decision record of the control layer: the starting-point provenance,
+// each pinned estimate() chain (internal-precision Multiple-start chains when
+// the Multiple policy runs, then the final eps chain) and the final chain's
+// two unit-root-cancellation restart attempts.
 struct EstimationPassRecord {
-    std::string stage;   // estimate, ur_regular or ur_seasonal.
+    // estimate | ur_regular | ur_seasonal, prefixed by "multiple_first." or
+    // "multiple_second." for the internal-precision chains, plus "initialize"
+    // for the HannanRissanen/Multiple starting point.
+    std::string stage;
     bool attempted;      // The pinned gates fired and an optimization ran.
     bool gates_passed;   // Both declared polynomials fell within UR_LIMIT 0.1.
-    bool accepted;       // A candidate strictly improved the likelihood.
+    bool accepted;       // Retained (estimate/initialize) or strictly improved (ur_*).
     std::string optimizer_status; // Empty when no optimization ran.
     std::size_t evaluations; // Objective evaluations of this pass.
     double log_likelihood; // Adjusted concentrated ML; NaN when unavailable.
+    // Provenance of the initialize record: the HannanRissanen start source
+    // ("fitted", "zerovariance" or "defaulted") plus ",stabilized" when the
+    // pinned stabilization rewrote a block. Empty for every other stage.
+    std::string detail;
 };
 
 struct SarimaEstimationResult {
@@ -92,17 +103,25 @@ struct SarimaEstimationResult {
     // Final coefficients, Kalos convention; fixed entries preserved exactly.
     std::array<std::vector<double>, 4> coefficients;
     double log_likelihood; // NaN when the retained candidate is unavailable.
+    // Chronological decision records: initialize (HannanRissanen starts
+    // only), the internal-precision multiple_first./multiple_second. chains
+    // (Multiple only), then the final eps chain estimate, ur_regular,
+    // ur_seasonal.
     std::vector<EstimationPassRecord> passes;
 };
 
 // Fixed-order estimation control over the qualified objective and optimizer:
-// the pinned Zero/Default starting points, the eps-precision pass and the
-// pinned unit-root-cancellation restart passes (regular pass gated on
-// p, q, d and |1 + phi(B)|, |1 + theta(B)| at B = 1; seasonal pass gated on
-// p, q, seasonal_d and the same polynomials at B = -1; a deflated restart is
-// kept only when its likelihood is strictly better, and any candidate
-// failure keeps the incumbent, mirroring the pinned exception branches). The
-// pinned Point score/information are not produced by this unit. Invalid
+// the pinned Zero/Default starting fills, the transcribed HannanRissanen
+// initializer (item 21-A.2) for the HannanRissanen and Multiple starts, the
+// pinned Multiple selection between its two internal-precision chains and the
+// eps-precision final pass, and the pinned unit-root-cancellation restart
+// passes (regular pass gated on p, q, d and |1 + phi(B)|, |1 + theta(B)| at
+// B = 1; seasonal pass gated on p, q, seasonal_d and the same polynomials at
+// B = -1; a deflated restart is kept only when its likelihood is strictly
+// better, and any candidate failure keeps the incumbent, mirroring the pinned
+// exception branches). The HannanRissanen-dependent starts require a complete
+// response and a fully free regression design, and fail explicitly otherwise;
+// the pinned Point score/information are not produced by this unit. Invalid
 // static inputs throw; unqualified controls fail explicitly.
 SarimaEstimationResult estimate_sarima_fixed(
     const SarimaEstimationRequest& request, const Interrupt& interrupt = {});

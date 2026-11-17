@@ -25,6 +25,7 @@
     "include/kalos/exact_history.hpp",
     "include/kalos/finite_state_factor.hpp",
     "include/kalos/forecast_information.hpp",
+    "include/kalos/hannan_rissanen.hpp",
     "include/kalos/information.hpp",
     "include/kalos/interpolation_information.hpp",
     "include/kalos/linear_algebra.hpp",
@@ -70,6 +71,7 @@
     "src/finite_state_factor.cpp",
     "src/forecast_arma_information.cpp",
     "src/forecast_information.cpp",
+    "src/hannan_rissanen.cpp",
     "src/information.cpp",
     "src/interpolation_arma_information.cpp",
     "src/interpolation_information.cpp",
@@ -221,6 +223,10 @@
     "validation/fixtures/native/x11-trend-selection/weights.csv"
   ],
   "evidence": [
+    "validation/evidence/native/estimation-control-hr/SHA256SUMS.csv",
+    "validation/evidence/native/estimation-control-hr/cases.csv",
+    "validation/evidence/native/estimation-control-hr/inputs.csv",
+    "validation/evidence/native/estimation-control-hr/metadata.R",
     "validation/evidence/native/estimation-control/SHA256SUMS.csv",
     "validation/evidence/native/estimation-control/cases.csv",
     "validation/evidence/native/estimation-control/inputs.csv",
