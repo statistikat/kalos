@@ -289,6 +289,20 @@ transcription constants, not configuration. The PROCESSOR `eps = 1e-9` is
 qualified as a captured case value, still not adopted. Stage E is closed;
 21-B consumes this seam.
 
+Stage T position recorded with 21-B (2026-11-17): the log/level decision is
+delivered as the qualified unit `decide_transformation`
+(contracts/transformation-decision-contract.md). Decision 3 stays open — the
+AICC comparison value arrives as required request data (the decoder-pinned
+`-2.0` is a captured call-site value, never a core default), and the default
+`rsa*` pre-adjustment-on-decision stays undecided: this slice transcribes
+only the pinned `preadjust = None, outliersCorrection = false` call site
+(the preadjust/outlier pre-fit staging belongs to stage O's slice). No
+fit seam is wired. Two corpus fixtures (`reflected_level`, `seasgrowth_log`)
+show the pinned LM and the qualified replay selecting different local
+basins through the discrete Multiple alternate-start sign; the decision bit
+stays pinned there and the landing is qualified — a future 21-A replay-
+fidelity pass should start from those fixtures.
+
 ## Non-goals
 
 No TRAMO/SEATS (items 23/24), no benchmarking/diagnostics (item 25), no
