@@ -1394,3 +1394,71 @@ accepts any period; the estimation seams are qualified there), and the
 decoder reciprocals of `DEF_UB1/DEF_UB2` are captured call-site facts.
 `SeasonalityDetector` and the fit-seam wiring stay with 21-H. Next per the
 roadmap: 21-E (initial ARMA identification, stage M part 1).
+
+## Initial ARMA identification, BIC candidates (21-E) — 2026-11-18
+
+**Deliverable.** Stage-M decision unit `include/kalos/initial_arma_identification.hpp`
++ `src/initial_arma_identification.cpp`: the pinned `ArmaModule` initial-
+identification machine — the `RegArimaUtility.olsResiduals` cursor (pinned
+differencing + back-filter, fresh ones column, column-ascending residual
+projection through the bit-exact `detail::pinned_ols_1col` and the DGELSY
+rcond-1e-9 `qr_least_squares` for multi-column designs, a documented deviation
+agreed at 1e-9), the Hannan-Rissanen start policy (`stabilize`,
+`useDefaultIfFailed`, the single pinned-LM chain of 21-D.2), the three-stage
+grid enumeration, the design-free candidates (21-C estimator with
+`design.columns = 0` on the cursor, `BIC2 = (-2 · logLikelihood + k · log
+n)/n`, `k = parameters + 1`, using the FdLibm log
+of 21-D.2), the `mergeInto` panel of `models_count` slots with the pinned
+`Double.compare` ordering, and the eleven `regARIMARefine` selection rules plus
+the mixed-design grids. `acceptWhiteNoise` is transcription data the pinned
+module stores and never reads. Pinned aborts (short differenced cursor,
+zero-norm OLS response, unfilled estimations slot, rejected start/landing)
+surface as `std::runtime_error`, request validation as `std::invalid_argument`,
+and an interruption always propagates — the JVM exception-equivalence table is
+in the contract.
+
+**Qualification.** New corpus `validation/evidence/native/initial-arma-
+identification/` (72 case ids `<series>/u{0,1,2}.o{d}{bd}.{m|n}`, the user-
+kind explicit after an id collision on the two-user-kind series silently
+overwrote cursors in early captures) through `InitialArmaIdentificationProbe.
+java` + `capture-initial-arma-identification.R`: the observer builds the
+module through the pinned package-private `Builder` exactly as
+`X13SpecDecoder.readAutoModel` (panel 5, max orders 2/2/1/1, balanced false,
+mixed true, `acceptWhiteNoise` false, eps 1.0E-7; variants vary the fields to
+exercise the refinement rule groups and the panel-eviction path) and reads
+`olsResiduals` cursors, per-candidate `RegArmaBic.sort` results with the
+private fitted `SarimaModel` reflectively, the `processor(true, eps)`
+likelihood statistics and the `select` outcome plus `getPreferedModels` panel.
+72 cursors, 1,908 candidates, 288 selects, **double capture** byte-identical
+(OpenJDK 21.0.11, `_dexp/_dlog` intrinsics pinned off). Sweep
+`tools/verify_initial_arma_identification.cpp`: 4,368 checks, **0 failures**
+(1,858 exact, 29 cells in the documented basin/iteration-drift/panel-reorder
+classes, 1 documented skip); all 288 select decisions and panel memberships
+exact, cursors bit-exact on single-column designs and within 2.13e-14 on the
+multi-column ones, landings in the tight band (1e-5 BIC2 / 5e-4·n loglik /
+2e-3 coefficients) except the basin-class cell (worst 0.097 BIC2, `wn36/
+u0.o00.n/m2,2,0,0`) and the 8 drift cells; `ar120/u2.o11.n` (differencing
+annihilates the design, cursor dev 0.588) is the counted skip. The C++
+Hannan-Rissanen starts agree with the JVM probe's `hr` output to ≤1 ulp, and
+the shared smoke battery is 37/48 bit-exact (worst 5.18e-07 in BIC2).
+
+**Deliverables.** `tests/test_initial_arma_identification.cpp` adds the 54th
+ctest suite: the smoke replay (JVM cursor bit-exact, 15-evaluation grid
+enumeration, 14-order oracle table, panel and winner (1,1,0,1)), request
+validation, the pinned abort equivalences, interrupt propagation, the
+stored-never-read `acceptWhiteNoise` bit-identity both ways, determinism.
+Gates: ctest 54/54 in the Release OpenMP and serial builds; ASan/UBSan clean
+for `test_initial_arma_identification`; sweeps 4368-checks/0 + 27/27 + 11/11
++ 98/98 + 39/39; manifest 124 core / 112 fixture / 162 evidence;
+`verify-migration.py` unchanged at 406. Contract:
+[initial-arma-identification-contract.md](docs/contracts/initial-arma-
+identification-contract.md).
+
+**Maintainer-decision ledger (stage M).** Nothing promoted: decision 6 stays
+open — the BIC refinement thresholds (0.0025…0.25) and the balanced/mixed
+switches are transcription constants, and the decoder call-site state (panel
+5, max orders 2/2/1/1, eps 1.0E-7) stays required request data rather than a
+config default. The period domain {4, 12} is a qualification scope (the pinned
+grid builder takes any period). The `SarimaComponent` hill-climb, AICc
+comparison and the round structure stay with 21-F/21-H. Next per the roadmap:
+21-F (refinement and model comparison, stage M part 2).

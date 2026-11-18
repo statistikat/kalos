@@ -333,6 +333,25 @@ the only measured drift is the step0 root-scan pair in `m_i2_144` (3.2e-5 /
 1.31e-4, banded at 2e-4). `SeasonalityDetector` and the fit-seam wiring stay
 with 21-H.
 
+Stage M part 1 position recorded with 21-E (2026-11-18): the initial ARMA
+identification is delivered as the qualified unit `identify_initial_arma`
+(contracts/initial-arma-identification-contract.md) — the OLS-residual cursor,
+the three-stage (bp, bq)/(p, q)/(bp, bq) RegArmaBic enumeration with the mixed
+gate and the bd clamp, the pinned sort/merge, and the eleven-rule BIC-margin
+refinement, composed on the 21-C candidate chain (design-free HR +
+PinnedLevenbergMarquardt, BIC2 with k = parameters + 1, no mean: the pinned
+`RegArimaModel$Builder` never stores its mean field). Decision 6 stays open —
+the decoder call-site module state (modelsCount 5, maxP/maxQ 2, maxBp/maxBq 1,
+balanced false, mixed true, eps 1.0E-7, the stored-never-read
+acceptWhiteNoise) stays transcription constants and required request data.
+Evidence for the sign-off: the double-captured JVM corpus (72 cursors, 1908
+candidate cells, 288 select runs, byte-identical across two JVM processes)
+replays with 0 failures — every decision, enumeration slot, cursor and panel
+set exact; 1858 checks bit-exact; the 29 banded checks are the documented
+basin/drift classes around the 21-A.2 HR 1-ulp start band, none of which
+moved a decision. The refinement hill-climb, SarimaComponent/AICc comparison
+and the round-structure wiring stay with 21-F/21-H.
+
 ## Non-goals
 
 No TRAMO/SEATS (items 23/24), no benchmarking/diagnostics (item 25), no
