@@ -1462,3 +1462,80 @@ config default. The period domain {4, 12} is a qualification scope (the pinned
 grid builder takes any period). The `SarimaComponent` hill-climb, AICc
 comparison and the round structure stay with 21-F/21-H. Next per the roadmap:
 21-F (refinement and model comparison, stage M part 2).
+
+## ARMA refinement and comparison, AutoModellingModule (21-F) — 2026-11-18
+
+**Deliverable.** Stage-M part-2 decision unit `include/kalos/arma_refinement.
+hpp` + `src/arma_refinement.cpp`: the pinned `AutoModellingModule.process`
+machine — `RegArimaUtility.linearizedData` (user regressors removed with the
+concentrated-likelihood coefficients in the pinned ascending-column order, the
+mean coefficient skipped so the mean stays in the series), the
+`DifferencingModule.process` re-entry on the linearized response (21-D unit,
+verbatim), the module's own re-differencing with the pinned `UnitRoots.D`
+**one-tap** polynomials — `(1 - B^d)(1 - B^period)^bd`, genuinely different
+from the 21-E cursor filter at `d = 2` (transcribed as the local
+`automod_unitroot_polynomial`) — the `ArmaModule.select` machine on that
+sequence, and the `SarimaOrders.equals`/mean-flag comparison producing
+`specification_changed`/`mean_changed`/`changed`. The whole guarded region sits
+inside the pinned `RuntimeException` catch whose handler is the
+`SarimaOrders.airline(period)` fallback (mean off, records stopped at the
+failed stage, `fallback_stage` naming it); the interrupt contract arms on the
+first callback firing so post-fire exceptions rethrow instead of converting
+into the fallback. 21-E was refactored to expose the clean seam
+`select_arma_orders` (semantics and records unchanged); the unit consumes the
+current estimation's `cl.coefficients()` as request data — the ARMA landing
+provably never enters the machine. The roadmap's `SarimaComponent` hill-climb
+/`AICcComparator` vocabulary is dead or stage-R code in the pinned 3.9.0
+bytecode (zero `SarimaComponent` users; `AICcComparator` only in the
+calendar/TD modules) — resolved in the pinning ledger and the contract.
+
+**Qualification.** New corpus `validation/evidence/native/arma-refinement/`
+through `ArmaRefinementProbe.java` + `capture-arma-refinement.R` (public
+pinned API plus the reflection-built `ArmaModule`, no decision rule in the
+observer): 23 cases — white noise/AR/random-walk/seasonal-walk/doubly-
+integrated series, n in [16, 144], period {4, 12}, mean on/off, 0–2 user
+regressors, current specs driving `d → 2` — 21 normal runs and 2 genuine
+airline-fallback runs (`m_sw20`, `m_sw16`). Double capture from independent
+JVM processes: byte-identical, `SHA256SUMS.csv` pins the bytes.
+`tools/verify_arma_refinement.cpp` replays **423 checks with 0 failures**:
+linearized data, re-differencing filter (incl. the `d = 2` one-tap cases),
+differencing quadruple, all 21 `tmean`s, every decision/flag and all 105 panel
+slot orders bit-exact; panel cells 86 exact + 16 tight-band + 3 basin/drift-
+class (two drift `(2,2,1,0)` slots in the `m_i2_d2a`/`m_i2_d2b` pair, one
+converged basin cell `m_i2_s7/4`; worst dBIC2 7.9e-06, dcoef 1.5e-2 — no
+decision affected). The 21-E tight/basin/drift ceilings are reused unchanged.
+
+**Defect finds (both fixed here).** (1) `ArmaRefinement::fallback` was read
+before assignment on the normal path (uninitialized `bool`): the first corpus
+sweep run landed every case in the fallback through the garbage flag; fixed
+with default member initializers in the result struct. (2) The 21-D
+`DifferencingIterationRecord` left `trial_fit`/`hr_stabilized` uninitialized
+whenever the healthy path skipped the writing branches: UBSan caught the
+invalid-bool load during this slice's sanitizer gate, and the 21-D sweep's
+trial-fit band selection had been riding on that indeterminate value. Fixed
+by default-initializing the record (reads only, zero decision effect — 55/55
+both lanes, 21-D sweep `39/0` with `tmean`/params drifts still 0), making the
+sweep classify a run into the step0 root-scan tier from any round's trial fit
+(the contract's own tier text), and correcting the 21-D contract wording: six
+cases take the 2e-4 root-scan tier (`m_i2_144` worst at 3.2e-5/1.31e-4, the
+other five ≤1.5e-6), disclosed in both contracts.
+
+**Deliverables.** `tests/test_arma_refinement.cpp` adds the 55th ctest suite:
+the validation battery, the `m_wn96_a`/`m_walk96_trend`/`m_i2_d2a`/`m_sw20`
+replays (panel BICs, `tmean`s, linearized data and filtered heads bit-exact),
+the interrupt contract on both paths, the stored-never-read `acceptWhiteNoise`
+bit-identity and determinism. Gates: ctest 55/55 in the Release OpenMP and
+serial builds; ASan/UBSan clean for `test_arma_refinement` and
+`test_differencing_decision`; sweeps 423/0 + 4368/0 + 27/27 + 11/11 + 98/98 +
+39/39; manifest 126 core / 112 fixture / 170 evidence; `verify-migration.py`
+unchanged at 406. Contracts: [arma-refinement-contract.md](docs/contracts/
+arma-refinement-contract.md) plus the 21-D tier-correction note.
+
+**Maintainer-decision ledger (stage M part 2).** Nothing promoted: decision 6
+stays open — both decoder-built module states (differencing clamps/boundaries
+and the ArmaModule panel/grid/policy scalars) stay transcription constants
+arriving as required request data; the qualified period domain stays {4, 12};
+the re-differencing `d` clamp rides the request `max_d` (decoder 2). The
+round-structure wiring (and with it the first fit-seam consumer of
+`refine_arma_model`) stays with 21-H. Next per the roadmap: 21-G (regression
+tests + mean rules, stage R) or the 21-H round structure, per priority.

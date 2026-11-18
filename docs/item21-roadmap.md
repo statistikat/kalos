@@ -239,8 +239,10 @@ house gates (ctest growth, sweeps, OMP/serial/sanitized, manifest, status):
 5. **21-E — initial ARMA identification (stage M part 1)**: OLS-residual
    BIC candidates (ArmaModule).
 6. **21-F — refinement and model comparison (stage M part 2)**:
-   SarimaComponent hill-climb, AICcComparator, ModelController/pass2/
-   checkUnitRoots/checkMA measures.
+   `AutoModellingModule.process` (linearizedData, differencing re-entry,
+   one-tap re-differencing, ArmaModule.select, spec/mean comparison, airline
+   fallback) — the roadmap's `SarimaComponent`/`AICcComparator` vocabulary is
+   dead or stage-R code in the pinned 3.9.0 bytecode (see 21-F ledger).
 7. **21-G — regression tests + mean rules (stage R)**.
 8. **21-H — integration (stage Z)**: round structure, decoder-equivalent
    spec plumbing, final estimator, end-to-end qualification against
@@ -351,6 +353,28 @@ set exact; 1858 checks bit-exact; the 29 banded checks are the documented
 basin/drift classes around the 21-A.2 HR 1-ulp start band, none of which
 moved a decision. The refinement hill-climb, SarimaComponent/AICc comparison
 and the round-structure wiring stay with 21-F/21-H.
+
+Stage M part 2 position recorded with 21-F (2026-11-18): the refinement and
+comparison stage is delivered as the qualified unit `refine_arma_model`
+(contracts/arma-refinement-contract.md). Bytecode resolution first: the
+planned `SarimaComponent` hill-climb + `AICcComparator` -0.2/-0.1 margins are
+dead or stage-R code in the pinned 3.9.0 jars (`SarimaComponent` has zero
+users; `AICcComparator` is used only by the calendar/TD modules) - the live
+stage is `x13.regarima.AutoModellingModule.process`, transcribed here on the
+21-D decision unit and the 21-E `select_arma_orders` seam (21-E refactored to
+expose it). Key pinning finding: `UnitRoots.D(n)` is the single tap
+`1 - B^n`, not `(1 - B)^n`, so the module re-differences the linearized data
+with `(1 - B^d)(1 - B^P)^bd` - genuinely different from the 21-E cursor
+filter at d = 2 (exercised by the `m_i2_d2*` corpus cases). Decision 6 stays
+open: both module states arrive as required request data (decoder
+`readAutoModel` values). Evidence for the sign-off: the double-captured JVM
+corpus (23 cases - 21 normal, 2 genuine airline-fallback runs - byte-
+identical across two JVM processes) replays with 0 failures: linearized data,
+re-differencing filter, differencing quadruple and all 21 t-statistics bit-
+identical, every spec/mean/changed decision and panel slot exact, 86/105
+panel cells bit-exact with the 22 remaining in the documented 21-E
+tight/basin/drift bands (worst dBIC2 7.9e-06, none moving a decision). The
+round-structure wiring stays with 21-H.
 
 ## Non-goals
 

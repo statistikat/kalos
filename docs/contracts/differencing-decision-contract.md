@@ -217,11 +217,19 @@ table records the measured residual drift (bands are stated as
   (no trial fit) qualified at 1e-9 (measured 0.0).
 * *Step0 root-scan tier* (trial-fit cases only): `rmax/rsmax` are computed
   from the step0 model landing when a step0 trial fit ran from the default
-  fill. One case drifts: `m_i2_144` measures 3.2e-5 on `rmax` and 1.31e-4 on
-  the small `rsmax` (the pinned LM and the replay leave the same basin at a
-  ulp offset through the near-rank-deficient interior steps); the tier uses a
+  fill. Six cases take this tier (`m_i2_144`, `qtr_rw`, `m_ar9995`,
+  `m_double_rw`, `m_trend_seasonal`, `m_n231_rw`); the largest drifts are
+  `m_i2_144` at 3.2e-5 on `rmax` and 1.31e-4 on the small `rsmax` (the
+  pinned LM and the replay leave the same basin at a ulp offset through the
+  near-rank-deficient interior steps), the other five measure ≤1.5e-6 at
+  -O2; the tier uses a
   2e-4 absolute floor with the 5e-5 relative term, and the decisions
-  downstream of these two quantities are still compared exactly.
+  downstream of these two quantities are still compared exactly. The sweep
+  classifies a run into this tier when any round recorded a trial fit (the
+  step0 pass qualifies, as the tier text says); since 21-F the iteration
+  records are default-initialized, so the step0 `trial_fit` flag is
+  deterministic — earlier sweep runs relied on an indeterminate value here
+  (disclosed with item 21-F).
 * Measurement caveat: the bands are defined for the pinned -O3 provider
   build. Sanitizer-instrumented compilation shifts the root-algebra ulps by
   up to ~2.1e-6 (observed on five no-trial cases under ASan/UBSan); the

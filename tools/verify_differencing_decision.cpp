@@ -189,8 +189,16 @@ int main(int argc, char** argv) {
     // stMean is pure pinned algebra (the response enters directly); the
     // nstMean statistic is an ML landing inside the mean-test fit.
     const bool st_mean = pinned_d == 0 && (pinned_bd == 0 || request.period == 1);
+    // The estimation-landing band is a property of the RUN: a trial fit in
+    // any round (the step0 default-fill ML pass as in m_i2_144, qtr_rw,
+    // m_ar9995, m_double_rw, m_trend_seasonal, m_n231_rw) warms every later
+    // landing, and it is exactly the class the contract's root_floor (2e-4)
+    // describes for the step0-derived rmax/rsmax pair.
     const bool trial_fit = decision.ml_used ||
-                           (!decision.trace.empty() && decision.trace.back().trial_fit);
+                           std::any_of(decision.trace.begin(), decision.trace.end(),
+                                       [](const kalos::DifferencingIterationRecord& r) {
+                                           return r.trial_fit;
+                                       });
     const Band band = band_for(!st_mean, trial_fit);
     const double stat_band = st_mean ? 1e-12 : band.stat;
     const double tdiff = band_error(decision.t_mean, pinned_tmean, stat_band, stat_band);
