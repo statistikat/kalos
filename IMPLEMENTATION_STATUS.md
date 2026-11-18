@@ -1313,3 +1313,84 @@ floor 2.8 a transcription constant), the monthly tcrate 0.7, `eps = 1e-7`,
 maxRound/maxOutliers 50/30 are captured call-site facts for 21-H, and the
 `ZERO`/THRSH constants stay pinned. Next per the roadmap: 21-D (differencing
 decision, stage F) or the 21-A replay-fidelity pass on the basin fixtures.
+
+## Differencing decision, d/D selection and the mean test (21-D) — 2026-11-18
+
+**Deliverable.** Stage-F decision unit `include/kalos/differencing_decision.hpp`
++ `src/differencing_decision.cpp`: the pinned `DifferencingModule` machine —
+`calc/step0/initstep` (raw Hannan-Rissanen seam, 1.02 unstable gate, whole-
+block stabilization, `setDefault` fill, trial fit on the filtered uncentered
+response), `searchur` (mirrored quadratic roots, `ComplexType.abs` scaled
+norm), `maincondition`/`cond1` (with its A-then-B fallthrough)/`allcond`/
+`finalcond`, and `calcMean` (algebraic `stMean`, `nstMean` as the pinned
+`meanCorrection` = constant regressor over the differenced surface with the
+spec orders carried in new `spec_d`/`spec_bd` request fields). Every threshold
+(0.9/0.88/0.91/0.89/0.869/0.136/0.15/0.16/0.17/0.19/0.25/1.02/1.12/1.005/
+0.002, the 2.55/2.0/1.96 and 1.96/1.98/2.1/2.3/2.5 tables, the −0.1/−0.2 fill)
+is a transcription constant; the module scalars are required request data.
+New `EstimationSolver::PinnedLevenbergMarquardt` seam in estimation control
+(21-D.2): the transcribed `RegArmaSsqFunction` deviances machine —
+Yule-Walker `AutoCovarianceFunction` + internal `KalmanFilter` (`sfilter`/
+`mfilter` + 1-column HWP/QRLeastSquares) + `DeterminantalTerm` +
+`ConcentratedLikelihoodWithMissing` deviances `·sqrt(exp(ldet/n))` — under the
+transcribed QR-LM (`detail/ssq_levmar`), qualified **bit-exact** against the
+pinned JVM at both seam classes (0/131-entry residual mismatches, `ssq/ldet/
+factor/ll` bit-identical), with `detail/fdlibm` (FdLibm Exp/Log bytecode
+kernels, 230k-input fuzz bit-exact) and an MXCSR FTZ/DAZ guard reproducing the
+JVM default FP environment. BFGS stays the default solver; only this unit
+selects the pinned machine.
+
+**Hannan-Rissanen refactor (support cluster).** The 21-D A/B isolation against
+JVM probe vectors exposed four transcription bugs in the 21-A.2 pipeline, all
+fixed in `src/hannan_rissanen.cpp` and now pinned by four new double-captured
+JVM goldens (~1e-13): the `LevinsonAlgorithm` middle-slot temporary
+(P·(1+k), not P·(1+2k)), `npi()` = `max((int)(log n)², max(p+P·bp, 2(q+P·bq)))`
+(two `Math.max`, not a product), `updatemodel`'s btheta section start
+`nP + q + block·(1+q)`, and the `finalcorrection` `BackFilter.apply` causal
+layout. The pipeline's OLS now runs the bit-exact `fastLeastSquares`
+transcription (DGELSY agreed only at full rank and steered the Multiple chains
+by ulps), plus the OlsComputer epsilon-norm guard (defaulted start on near-zero
+responses) and the `pinned_ols_1col`/`pinned_backfilter_apply`/FdLibm-`log`
+transcriptions; the raw pipeline moved to `detail::hannan_rissanen_pipeline`
+(no guard/stabilize/fill — the pinned `calc()` never soft-fails) and
+`stabilize_block` to `detail/sarima_stabilization`, both shared with 21-D.
+This changes existing 21-A.2 HR numerics toward the pinned JVM; all
+pre-existing HR goldens stay in their bands and `verify_estimation_control` is
+**27/27 unchanged** (worst coefficient 6.2e-4, worst likelihood 7.25e-06),
+21-B 11/11, 21-C 98/98 — the corpora do not move.
+
+**Qualification.** New corpus `validation/evidence/native/differencing-
+decision/` (39 cases) through `DifferencingDecisionProbe.java` + `capture-
+differencing-decision.R`: the observer builds the module exactly as
+`X13SpecDecoder.readAutoModel` (cancel 0.1, `1/1.0309278350515465`,
+`1/1.1363636363636365`, precision 1e-7, maxd/maxbd 2/1, ml never set) and
+reads the end state (`iter, mlused, useml, rmax, rsmax, c_`, final orders and
+parameters) reflectively. **Double capture** verified: the second independent
+JVM process (OpenJDK 21.0.11, `_dexp/_dlog` intrinsics disabled with the
+in-process guard — the contract fixes the bytecode FdLibm semantics as ground
+truth) reproduced the csv files byte-identically. Three short-series cases are
+pinned-crash rows (`NegativeArraySize`/`AIOOBE` in the pinned short-window HR)
+and require a Kalos throw. Sweep `tools/verify_differencing_decision.cpp`:
+39/39, decisions/flags/counters/`c_` exact, all 39 t-statistics and all
+final-round parameters measured **bit-identical**; the only landing drift is
+the step0 root-scan pair of `m_i2_144` (3.2e-5/1.31e-4), banded at 2e-4 as the
+documented trial-fit basin tier.
+
+**Deliverables.** `tests/test_differencing_decision.cpp` adds ctest suite 53:
+Schur stability NaN flavours, mirrored-root/quadratic/`ComplexType.abs` bit
+patterns, `searchur`, threshold tables, `finalcond` clamps, `cond1`
+fallthrough, clamped-module mean-test replays solved for exact target
+t-values, the JVM-invalid spike case, validation rejections, corpus replays,
+determinism. Gates: ctest 53/53 in the Release OpenMP and serial builds;
+ASan/UBSan clean for `test_differencing_decision`; sweeps 39/39 + 27/27 +
+11/11 + 98/98; manifest 122 core / 112 fixture / 154 evidence;
+`verify-migration.py` unchanged at 406. Contract:
+[differencing-decision-contract.md](docs/contracts/differencing-decision-
+contract.md).
+
+**Maintainer-decision ledger (stage F).** Nothing promoted: decision 5 stays
+open, the period domain {4, 12} is a qualification scope (the pinned JVM
+accepts any period; the estimation seams are qualified there), and the
+decoder reciprocals of `DEF_UB1/DEF_UB2` are captured call-site facts.
+`SeasonalityDetector` and the fit-seam wiring stay with 21-H. Next per the
+roadmap: 21-E (initial ARMA identification, stage M part 1).

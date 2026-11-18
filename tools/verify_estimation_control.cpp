@@ -179,7 +179,8 @@ int sweep(const std::string& root, long& checks, long& bad, double& worst_coeffi
     double eps = 1e-7, feps = 1e-4;
     if (c.size() >= 8) { eps = real(c[6]); feps = real(c[7]); }
     const kalos::EstimationStartingPoint start = parse_start(unquote(i[7]));
-    r.control = kalos::EstimationControl{eps, feps, true, false, true, true, start};
+    r.control = kalos::EstimationControl{eps, feps, true, false, true, true, start,
+        kalos::EstimationSolver::Bfgs};
     std::vector<double> want;
     if (!c[4].empty())
       for (const auto& t : split(unquote(c[4]), ';')) want.push_back(real(t));

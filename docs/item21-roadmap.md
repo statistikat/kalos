@@ -316,6 +316,23 @@ promoted to configuration. One behavioral deviation is documented and swept
 a flat-valley basin band whose noise was verified as basin, not surface,
 difference.
 
+Stage F position recorded with 21-D (2026-11-18): the d/D decision is
+delivered as the qualified unit `decide_differencing`
+(contracts/differencing-decision-contract.md). Decision 5 stays open — the
+whole threshold set (0.9/0.88/0.91/0.89/0.869 + 0.136/0.15/0.16/0.17/0.19/
+0.25 + 1.02/1.12/1.005/0.002 and the two t-tables) stays pinned transcription
+constants and every module scalar is required request data (the decoder
+call-site values, including the JVM-computed reciprocals of `DEF_UB1/DEF_UB2`,
+arrive from the call site). The slice consumed two new pinned seams: the raw
+Hannan-Rissanen pipeline (whose 21-A.2 public wrapper is unchanged in shape)
+and the `EstimationSolver::PinnedLevenbergMarquardt` solver seam over the
+bit-exact deviances machine — BFGS stays the default and the 21-A/B/C corpora
+are untouched by it. Evidence for the sign-off: the corpus replay reproduces
+all 39 decisions exactly and every banded landing quantity bit-identically;
+the only measured drift is the step0 root-scan pair in `m_i2_144` (3.2e-5 /
+1.31e-4, banded at 2e-4). `SeasonalityDetector` and the fit-seam wiring stay
+with 21-H.
+
 ## Non-goals
 
 No TRAMO/SEATS (items 23/24), no benchmarking/diagnostics (item 25), no

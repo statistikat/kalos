@@ -235,6 +235,7 @@ kalos::EstimationControl control(const Case& c) {
                        : start == "HannanRissanen"
                            ? kalos::EstimationStartingPoint::HannanRissanen
                            : kalos::EstimationStartingPoint::Multiple;
+    k.solver = kalos::EstimationSolver::Bfgs;  // The 21-A/B/C corpus baseline.
     return k;
 }
 
