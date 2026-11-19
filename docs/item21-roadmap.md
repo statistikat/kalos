@@ -464,6 +464,41 @@ slice sequence for the remainder: 21-H.0 (final-information unit),
 21-H.1 (driver), 21-H.2 (end-to-end oracle). Decision 7 stays open on
 the pass2/checkUnitRoots constants (request data); nothing promoted.
 
+Stage Z position, 21-H.0 recorded 2026-11-19: **G1 closed** - the
+final-information producer landed qualified as
+`kalos::final_information` (contract
+[final-information-contract.md](contracts/final-information-contract.md)).
+The double-JVM corpus (27 cases / 362 distinct stencil nodes, byte-identical
+across two intrinsic-disabled JVM processes; the probe replays the pinned
+tail at the estimator's own Point and aborts on any bit deviation, so est
+rows certify tail == estimator) replays bit-exactly through ctest
+`test_final_information` (#60): the deviance callback is the raw-bit node
+table itself, so a lookup miss or an uncovered node is stencil drift, and
+status, fx, the post-checkepsilon epsilons, gradient, hessian, score,
+information, covariance and diagonal match bit for bit in the OMP and
+serial lanes; ASan/UBSan clean. The sweep
+(`tools/verify_final_information.cpp`) re-verifies the corpus from the csv
+files: 266 checks, 0 failures, plus kernel gates on the qualified domain
+(est-row converged-point ssq 8/8 bit-exact, rejected-point rejections 5/5)
+with node-level kernel agreement tallied (283/376). Pinning findings: the
+stencil branch is `NumericalDerivatives(point, false)` (`checkAll` from the
+`IFunctionPoint` default), whose `checkepsilon` probes the whole vector
+through `checkBoundaries` (explaining eps-zeroing at points sitting on a
+limit and the all-zero-eps single-node rows); `SymmetricMatrix.inverse`
+deep-clones for Cholesky and its MatrixException catch decomposes the
+ORIGINAL argument (`CroutDoolittle.decompose` mutates only its `toArray`
+copy, so neither branch touches the caller's matrix); `lcholesky` at
+tol = 0 throws iff `!(s > -tol)` (NaN passes the guard, the `s < tol`
+branch is dead), and `Constants.getEpsilon = 1.1102230246251565E-16`
+governs the Crout pivot with the same NaN-passthrough. Recorded for
+follow-up (outside the 21-D.2 kernel domain, not gated): the pinned deviance
+kernel drifts 1-2 ulp from the corpus stencil values at some +/-sqrt(eps)
+nodes of the (0,1,1)(0,1,1)12 rows and structurally for the single bq = 2
+row - the producer surface is bit-pinned against the capture regardless
+(the replay table replaces the deviance source). Remaining: 21-H.1 (driver:
+`CompoundMapping` design columns, round wiring onto
+`final_estimator_test`), 21-H.2 (end-to-end oracle), G3.
+
 ## Non-goals
 
 No TRAMO/SEATS (items 23/24), no benchmarking/diagnostics (item 25), no

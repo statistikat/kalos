@@ -1763,3 +1763,81 @@ ctest in both lanes re-run from the final tree unchanged at 59/59; the
 seven sweeps and the sanitizer surface are unchanged by construction (no
 code path exists to alter) — re-proven at the next code commit.
 
+
+## 21-H.0 Final-information producer, gap G1 closed — 2026-11-19
+
+**Unit.** `kalos::final_information` (`include/kalos/final_information.hpp`,
+`src/final_information.cpp`) transcribes the final-point tail —
+base deviance → `SarimaMapping2` epsilon domain (`STEP =
+Math.sqrt(2.220446E-16)`, `final_information_step()`) →
+`NumericalDerivatives(point, false)` (`checkepsilon` halving/flip over the
+whole-vector `checkBoundaries`, eager forward nodes, `calcgrad` with the
+`fp == fx` guard, `calch` diagonals over `sqrt(|eps|)` and four-corner
+cross terms, all Java comparison flavours literal) → the
+`RegArmaProcessor.compute` scalings → `SymmetricMatrix.inverse`
+(`lapack_Cholesky.lcholesky` tol 0 → `LowerTriangularMatrix.inverse` →
+`LtL`, Crout–Doolittle fallback at `Constants.getEpsilon`). The request
+carries the raw-convention point, the literal `nobs` (the JVM passes ≤ 0),
+the limits and the deviance callback; `nullopt` models "the pinned
+evaluation threw" (catch → fx inside the stencil, base rejection before
+it). Statuses: available / inverse_failed / final_point_rejected. Design
+columns stay with 21-H.1. Contract:
+`docs/contracts/final-information-contract.md`.
+
+**Qualification (the 21-C sweep recipe as the standing standard, per the
+maintainer ruling of this date — double JVM capture, byte-identical
+processes, bit-exact tiers, no relaxed tolerances).** Corpus
+`validation/evidence/native/final-information/` (27 cases / 362 deduped
+nodes; 13 available, 9 inverse-failed, 5 rejected — the probe
+(`validation/reference/FinalInformationProbe.java` +
+`capture-final-information.R`) replays the whole tail at the estimator's
+own Point and aborts on any bit mismatch, so the 8 est rows certify
+tail == estimator bit for bit). ctest #60 `test_final_information` replays
+all 27 cases bit-exactly through a raw-bit node-table oracle (misses and
+uncovered nodes are stencil drift; THROW nodes exercise the catch) plus
+structural cases; the generator is
+`tools/gen_final_information_golden.py` → `tests/jvm_final_information.h`
+(base node injected: `fx_hex`, or the THROW for rej rows). Sweep
+`tools/verify_final_information.cpp`: 266 bit-exact checks, 0 failures,
+with the kernel gated on its qualified domain (est converged points 8/8
+bit, rejected points 5/5) and node-level kernel agreement tallied (283
+agree / 93 outside-domain).
+
+**Pinning findings.** `inverse` deep-clones for the Cholesky branch and
+its catch decomposes the ORIGINAL argument (`CroutDoolittle.decompose`
+mutates only its `toArray` copy); `lcholesky` tol 0 throws iff
+`!(s > -tol)` — NaN passes, the `s < tol` branch is dead; the Crout pivot
+guard (`|p| < 1.1102230246251565E-16`, `dcmpg`) also lets NaN through, and
+`solveUx`/`solveLx` singularity guards exclude NaN rhs via `dcmpl`. The
+stencil's `checkepsilon` checks the WHOLE vector through
+`SarimaMapping2.checkBoundaries` — that is why points sitting exactly on
+a limit zero their eps and why an all-zero-eps row collapses to a single
+base node (its forward `newval(i, 0)` dedups onto the base key). Recorded
+for follow-up (outside the 21-D.2 kernel qualification domain, explicitly
+not gated by the sweep): the pinned deviance kernel drifts 1–2 ulp from
+the corpus stencil values at some ±√eps nodes of the (0,1,1)(0,1,1)12
+rows and structurally for the single bq = 2 row (i_dim6); the producer
+surface is bit-pinned against the capture independently of the deviance
+source.
+
+**Rulings recorded (maintainer, 2026-11-19).** (1) 21-H.0 lands before
+21-H.1 — the driver never composes an unqualified covariance producer
+(closes the decision request in the slice-2 entry). (2) The 21-C sweep
+recipe is the standing qualification standard for every future double-JVM
+unit. (3) Scratch root: the orchestrator moved all scratch from
+`/tmp/opencode` (left to die) to
+`/data/home/kowa/seasonaladjustment/tmp_opencode` — provider, builds,
+dumps and pinning notes live there now; successors must never write to
+`/tmp`. Build trees at this boundary: `kalos-build2` (Release, OpenMP),
+`kalos-build2-serial`, `kalos-build2-san`, all configured with
+`-DOpenBLAS_ROOT=<scratch>/openblas`; runs need
+`LD_LIBRARY_PATH=<scratch>/openblas/lib`.
+
+**Gates (final tree).** Fresh clean configure; ctest 60/60 in the OpenMP
+lane and 60/60 serial (59 pre-existing + #60); ASan/UBSan clean on the new
+unit (0 findings); the seven existing sweeps unchanged — differencing 39,
+transformation 11, estimation-control 27 (+ hr 10), initial-ARMA 4368,
+arma-refinement 423, outlier-scoring 98, regression-tests 494;
+`check-manifest.py` green at 138 core / 112 fixture / 184 evidence;
+`verify-migration.py` unchanged at 406; the 406-root historical corpus
+untouched.

@@ -45,6 +45,7 @@ add_library(kalos STATIC
   src/estimation_control.cpp
   src/fdlibm.cpp
   src/final_estimator.cpp
+  src/final_information.cpp
   src/finite_state_factor.cpp
   src/forecast_arma_information.cpp
   src/forecast_information.cpp
@@ -162,6 +163,7 @@ if(KALOS_BUILD_TESTS)
     test_diffuse_state_space
     test_estimation_control
     test_final_estimator
+    test_final_information
     test_forecast_arma_information
     test_forecast_information
     test_hannan_rissanen
