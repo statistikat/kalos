@@ -93,6 +93,7 @@ add_library(kalos STATIC
   src/x11_sigma.cpp
   src/x11_trend_selection.cpp
   src/x13_allocation.cpp
+  src/x13_automatic.cpp
   src/x13_fit.cpp
   backends/openblas.cpp)
 add_library(kalos::kalos ALIAS kalos)
@@ -210,6 +211,7 @@ if(KALOS_BUILD_TESTS)
     test_x11_sigma
     test_x11_trend_selection
     test_x13_allocation
+    test_x13_automatic
     test_x13_fit)
     add_executable(${test_name} tests/${test_name}.cpp)
     target_link_libraries(${test_name} PRIVATE kalos::kalos)
@@ -222,6 +224,12 @@ if(KALOS_BUILD_TESTS)
     add_test(NAME ${test_name} COMMAND ${test_name})
     set_tests_properties(${test_name} PROPERTIES ENVIRONMENT
       "KALOS_NUM_THREADS=2;OMP_NUM_THREADS=2;OPENBLAS_NUM_THREADS=1")
+    if(test_name STREQUAL "test_x13_automatic")
+      # One full automatic search with outlier detection on the probe corpus
+      # shape runs ~250 s (suite wall time ~5 min single-process); the
+      # sanitizer lane multiplies this several-fold.
+      set_tests_properties(${test_name} PROPERTIES TIMEOUT 3600)
+    endif()
   endforeach()
 endif()
 include(GNUInstallDirs)

@@ -499,6 +499,29 @@ row - the producer surface is bit-pinned against the capture regardless
 `CompoundMapping` design columns, round wiring onto
 `final_estimator_test`), 21-H.2 (end-to-end oracle), G3.
 
+Stage Z position, 21-H.1 recorded 2026-11-19: **the driver landed** as
+`kalos::x13_automatic_fit` (`src/x13_automatic.cpp`, contract
+[x13-automatic-pipeline-contract.md](contracts/x13-automatic-pipeline-contract.md)
+with its "Implementation-actual deltas at landing" section). **G3 closed**
+by direct probe: `SaVariable.defaultComponentTypeOf` maps AO/TC/SwitchOutlier
+-> Irregular, LevelShift -> Trend, SO -> Seasonal (pinning notes SECTION
+15.1; the contract's LS/SO expectations superseded by the probe). The suite
+`test_x13_automatic` (#60, 140 checks) gates the fail-closed matrix with
+gate precedence, the throw matrix, the chain vocabulary/payload-mirror law,
+the downstream composition, the final-record echo and bit-exact run-to-run
+determinism; the full outlier search on the probe corpus (~230 s, ctest
+timeout raised to 3600) runs once, its twin on the cheap shape carries
+determinism. Engine fix found by the suite under ASan: the JVM
+`MaLjungBox.calcg` psi-window bound (`q >= m_n + 2` ->
+ArrayIndexOutOfBoundsException in the JVM, UB natively) now traps as a
+`std::runtime_error` in `src/mlj_engine.hpp` and maps onto `failed:<stage>`
+exactly where the JVM run returns null; no corpus case sits in range.
+Gates: 61/61 ctest OpenMP + serial, 61/61 ASan/UBSan with the new suite
+foreground-clean, all seven sweeps unchanged (39/11/27+10/4368/423/98/494)
+plus final_information 266, manifest 140/112/184, migration 406. Remaining:
+**21-H.2** (the end-to-end JVM oracle on the chain vocabulary, slice-3
+boundary removals via the unitroots margins) — the single open stage-Z item.
+
 ## Non-goals
 
 No TRAMO/SEATS (items 23/24), no benchmarking/diagnostics (item 25), no

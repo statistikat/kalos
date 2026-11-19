@@ -1841,3 +1841,86 @@ arma-refinement 423, outlier-scoring 98, regression-tests 494;
 `check-manifest.py` green at 138 core / 112 fixture / 184 evidence;
 `verify-migration.py` unchanged at 406; the 406-root historical corpus
 untouched.
+
+## 21-H.1 Automatic-spec X-13 pipeline driver (stage Z) — 2026-11-19
+
+**Delivered.** `src/x13_automatic.cpp` + `include/kalos/x13_automatic.hpp`:
+the pinned `RegArimaKernel.calc` transcription composed on the qualified
+stage-Z units (21-B transformation decision, 21-G mean controller /
+regression-variable tests / final mean rule, 21-C outlier rounds on the
+isOutlier(v, true) vocabulary, 21-F refinement, slice-1 model_controller
+accept, the seven-filter pass2 gate, checkUnitRoots/checkMA/redoEstimation/
+lastSolution, and the FinalEstimator cascade on `final_estimator_test` +
+the 21-H.0 final_information producer). The result reuses the restricted
+fit's `X13FitResult` verbatim as its downstream composition block
+(preadjust -> `x11_selection_pass` over the decoder X-11 surface ->
+results-builder -> finals); the fixed path is untouched by construction
+and `x13_fit.{hpp,cpp}` carry no change. `X13FitSpecKind` lives on the
+automatic header so the fixed header stays byte-identical. `tests/
+test_x13_automatic.cpp` lands with the driver (140 checks).
+
+**Gaps closed at landing.** G3 resolved by direct JVM probe (jshell,
+`SaVariable.defaultComponentTypeOf`): AO/TC/SwitchOutlier -> Irregular,
+LevelShift -> Trend, SO -> Seasonal — the earlier LS/SO expectations were
+wrong (pinning notes SECTION 15.1). G1 fed through the 21-H.0 producer;
+G2 stands as the 21-C landing recipe (never bit-claimed).
+
+**Engine fix found by the suite (ASan).** The JVM `MaLjungBox.calcg` reads
+`psi[m_n − j]` for `j < q` from an `m_n`-length window — the JVM throws an
+ArrayIndexOutOfBoundsException (failing the run) when `q ≥ m_n + 2`; the
+native read was undefined behaviour. `src/mlj_engine.hpp` now traps both
+this and the window-below-AR-degree case as `std::runtime_error` (the
+driver maps them to `failed:<stage>`, matching the JVM null); no
+corpus-qualified case sits in range — all eight sweeps bit-identical.
+C++ gotcha recorded: `std::out_of_range` is a `logic_error` (a sibling of
+`runtime_error`, not derived) — it would NOT be caught by the driver's
+`catch (const std::runtime_error&)` that models the JVM catch.
+
+**Driver fixes applied during the session** (audit of the recovered
+draft, adjudicated against `cur/RegArimaKernel_full.txt`): pass-2 continue
+rule and curva guard restored to their bytecode NaN flavours (`plbox <=
+pcr` under dcmpg; dcmpl skip at 2.8) with `java_max` floors; cascade
+`dim == 0` now checks the ARMA parameter count (`SarimaMapping2` getDim is
+ARMA-only) instead of the regression design; the refinement `Changed`
+branch clears the retained candidate before the round re-estimates; the
+frequency refusal precedes the monthly-shape throws; dead code and an
+inverted dcmpg/dcmpl comment removed. Pinning-note 12.4 pseudocode
+corrections in SECTION 15.3.
+
+**Test design (no oracle before H.2).** The suite gates the fail-closed
+status matrix with the gate precedence pinned, the shape-throw matrix, the
+stage-chain record vocabulary (every entry's tag in vocabulary, exactly the
+payload the contract pins for the tag, recorded scalars equal to the
+payload fields bit for bit), the final-description shape and downstream
+composition (tables, triplet identity, pinned mode forcing), the
+final-record echo against the public fields, the JVM variable vocabulary
+(name format, G3 regeffect, factory column), and run-to-run bit-exact
+determinism (cheap-shape twin). Cost policy: the full outlier search on
+the probe corpus (~230 s) runs exactly once, everything rides on it; the
+outlier-free twin (~20 s each) carries determinism. Pinned observations on
+the probe corpus (LCG 12345, n = 96, AO +15 @ index 48, decoder 12.1
+defaults): quick shape available / log / mean / (1,0,1)(0,1,1) / chain 12;
+full case available / (3,0,0)(0,1,1) / one AO "AO (1994-01-01)" at 48 /
+chain 24; `estimation_status` "converged". CMake raises this test's ctest
+timeout to 3600 s (suite wall ~250 s at the test thread env).
+
+**Gates (final tree).** ctest 61/61 in the OpenMP lane (new #60, 260 s)
+and 61/61 serial (248 s); ASan/UBSan lane 61/61 with the new suite clean
+in the foreground (677 s, zero findings); the seven sweeps unchanged —
+differencing 39, transformation 11, estimation-control 27 (+ hr 10),
+initial-ARMA 4368, arma-refinement 423, outlier-scoring 98,
+regression-tests 494 — and final_information 266; `check-manifest.py`
+green at 140 core / 112 fixture / 184 evidence; `verify-migration.py`
+unchanged at 406; warning-free across lanes (cxx_std_17).
+
+**21-H.2 cold-resume pointer.** The end-to-end JVM oracle per the
+contract's slice plan item 3: automatic-modelling captures under
+`validation/evidence/native/` (double-JVM byte identity, `jdprobe`/
+`jarcache` infra), decisions diffed bit-exact against the driver's chain
+record vocabulary (contract chain section + the landing deltas section —
+which also supersedes the contract's G3 text), slice-3 boundary removals
+fed by the `AutoUnitRootsRecord` margins. The restricted fit stays green
+unchanged throughout; the suite data reproduces the probe corpus bit for
+bit, so its pinned observations transfer to corpus cases directly. The
+two untracked files (`src/kalos_write_probe.cpp`, `cpp-out.txt`) remain
+user-pending, never `git add`.

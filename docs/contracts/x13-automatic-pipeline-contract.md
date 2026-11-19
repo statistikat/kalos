@@ -293,3 +293,76 @@ boundary commit); this contract; the pinning notes SECTION 12 and the
 tail sections; the slice-1 contracts; the roadmap stage-Z ledger. The two
 untracked files (`src/kalos_write_probe.cpp`, `cpp-out.txt`) are
 user-pending, not part of the manifest, never `git add`.
+
+## Implementation-actual deltas at landing (21-H.1)
+
+What the driver shipped against, recorded where the transcription above
+and the bytecode/probe evidence differ or sharpen it (the pinning notes
+SECTION 15 carries the probe evidence):
+
+* **G3 CLOSED by JVM probe (jshell, `SaVariable.defaultComponentTypeOf`
+  bytecode + live call).** AO/TransitoryChange/SwitchOutlier →
+  `Irregular`, **LevelShift → `Trend`**, **PeriodicOutlier(SO) →
+  `Seasonal`**. The "LS pairing (LevelShift expected)" note above was
+  wrong twice over: `LevelShift` is not a `ComponentType`, and SO is not
+  Irregular. `AutoVariableRecord.regeffect` carries the probed names; no
+  LS fail-closed gate was needed. The suite pins AO → Irregular; LS/SO
+  ride on the probe.
+* **The estimation-domain and concentrated-deviance laws are
+  byte-verified** (`cur/RegArimaKernel_full.txt`, `FinalEstimator`):
+  the estimator's effective count is `domainLength − xcols − armaDim`
+  (cdf default true counts the innovation variance), sigma2 rides the raw
+  estimation-domain length, and the cascade objective is the concentrated
+  deviance `ssq · exp(Σ log var / dim)` (= `LLPoint`/`cl.ssq() ·
+  exp(ldet/dim)`).
+* **`desc.mapping()` is `SarimaMapping2.of(orders)` — ARMA-only getDim.**
+  The cascade's `dim == 0` early-true therefore fires on a zero ARMA
+  parameter count, never on an empty regression design.
+* **Pass-2 NaN flavours** (the pinning note 12.4 pseudocode was corrected
+  by the full bytecode): the continue rule is `plbox <= pcr` under
+  `dcmpg` (a NaN operand takes the *false* path, i.e. the round body
+  continues), the `curva > 2.8` reduction guard is `dcmpl`-based (a NaN
+  curva skips the reduction) and the floor uses `Math.max` NaN
+  propagation (`java_max`); the tail `needOutliers = true` escalation is
+  unconditional at bytecode 640.
+* **The refinement `Changed` branch clears the retained candidate**
+  before calc's removal branch runs (21-F semantics: specification-or-
+  mean change drives clearEstimation; a stale candidate at old orders
+  must never reach the round's `estimate_if_needed`).
+* **Chain vocabulary extensions** (beyond the record-kind table): the
+  redoEstimation sub-machines re-enter the mean controller, the outlier
+  machine and the accept refresh as repeated base tags with round
+  context and the note `"redo"`; plain accept refreshes carry the note
+  `"regtest"` (regtest-Changed branch) or nothing; the pass-2 record
+  notes are `"last chance model"` and `"curva reduction"`; a refinement
+  fallback notes `"fallback:<stage>"`; outlier removal after a failed
+  refinement annotates the previous entry with `"outliers removed"`; the
+  refusal path ends the chain with a `"final"` entry noting `"downstream
+  refused" + status`, the success path with `"final"` noting `"downstream
+  composed", "available"`, and the caught-throw path ends with a
+  `"failed"` entry whose first note is the machine message.
+* **Entry-point gate order** (pinned by the suite): the empty-series
+  `invalid_argument` throw first, then the monthly-status refusal (it
+  answers for every non-monthly request before anything interprets its
+  shape), then the shape throws (`first_period`, one-seasonal-entry-per-
+  period, `size <= 13`, outliers-without-type), then the status gates in
+  order finite-data, zero-horizons, explicit-sigma, deferred-modules,
+  full-series-span. A refused request carries an empty chain; a caught
+  machine throw maps to `"failed:<stage>"` with the chain kept plus the
+  `"failed"` tail entry.
+* **ML-window bounds (new trap, slice-found).** The JVM
+  `MaLjungBox.calcg` indexes `psi[m_n − j]` for every `j < q` with
+  `psi = RationalFunction(1, ma).coefficients(m_n)`: `q ≥ m_n + 2` raises
+  an `ArrayIndexOutOfBoundsException` (a RuntimeException — the JVM run
+  fails the same shape natively). The transcription reproduces the trap
+  as a `std::runtime_error` from `MaLjungBox::prepare` (and the
+  `ModifiedLjungBox` window-below-AR-degree case) instead of performing
+  the out-of-range read, so the driver answers `failed:<stage>` exactly
+  where the JVM returns null. No corpus-qualified case sits in-range of
+  the boundary (all eight sweeps unchanged).
+* **The landing estimator's status string passes through verbatim**
+  (`"converged"` for the corpus shapes) — `estimation_status` is the row-4
+  landing recipe's status, not the fit status; AICC/log-likelihood are
+  the G2 landing statistics (never bit-claimed).
+* `X13FitSpecKind` lives in `x13_automatic.hpp` (the fixed header stays
+  byte-identical; the fit contract's schema-change note).

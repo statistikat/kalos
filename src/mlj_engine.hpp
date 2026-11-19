@@ -141,6 +141,16 @@ public:
         ma_ = ma;
         n_ = n;
         q_ = ma.size() - 1;
+        // The JVM bounds semantics of calcg(int): psi has m_n coefficients
+        // and the pinned column recursion reads psi[m_n - j] for every
+        // j < q, so a ma degree beyond n + 1 raises an
+        // ArrayIndexOutOfBoundsException in the JVM (propagating out of
+        // prepare). Transcribe the trap instead of performing the read
+        // (21-H.1: an out-of-range read here is undefined behaviour).
+        if (q_ >= n_ + 2) {
+            throw std::runtime_error(
+                "MaLjungBox: ma degree exceeds the ml residual window");
+        }
         v1_.assign(q_ * q_, 0.0);
         if (q_ > 0) {
             for (std::size_t k = 0; k < q_; ++k) { // diagonal + subDiagonal(k)
@@ -272,6 +282,13 @@ public:
         : ar_(std::move(ar)), ma_(std::move(ma)), acvf_(acvf), psi_(std::move(psi)), n_(n) {
         p_ = ar_.size() - 1;
         q_ = ma_.size() - 1;
+        // The JVM operand n - p is passed as a Java int: a negative value
+        // raises a NegativeArraySizeException inside MaLjungBoxFilter.
+        // Transcribe the trap (size_t arithmetic would otherwise wrap).
+        if (n_ < p_) {
+            throw std::runtime_error(
+                "ModifiedLjungBox: window below the ar degree");
+        }
         if (q_ > 0) malb_.prepare(ma_, n_ - p_);
         if (p_ == 0) return;
         const auto gamma = acvf_.values(p_);
