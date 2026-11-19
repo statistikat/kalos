@@ -376,6 +376,38 @@ panel cells bit-exact with the 22 remaining in the documented 21-E
 tight/basin/drift bands (worst dBIC2 7.9e-06, none moving a decision). The
 round-structure wiring stays with 21-H.
 
+Stage R position recorded with 21-G (2026-11-19): the live stage-R decision
+machines are delivered as the qualified unit trio `run_regression_variable_tests`,
+`run_mean_controller` and `final_mean_rule_adds_mean` with the bit-exact
+statistics machine behind them (contracts/regression-tests-contract.md).
+Scope resolution first - the slice NOTE's two candidates are both not stage R
+in the pinned 3.9.0 bytecode: user-variable elimination never enters
+`RegressionVariablesTest.process` (its three filters are isTradingDays/
+isLengthOfPeriod/isMovingHoliday; user detection is the separate
+`UserVariablesDetectionModule`, dead on the default decoder path and deferred
+to 21-I), and the outlier-fix integration is stage O/round structure (21-H);
+what is live and is qualified here is the decoder-built
+`RegressionVariablesTest` (both `regressionTest0`/`regressionTest1` shapes),
+the `MeanController` checkMu machine and the kernel's final mean rule. Key
+pinning findings: the decoder never calls `tdJointTest`, so the
+`FRegressionTest` constructor branch is dead at every pinned call site (the
+unit rejects it fail-closed); the final meanTest runs at 1.0 while the initial
+runs at 1.96; the TD pass gives failing multi-column variables a derived
+second life (`DerivedRegressionTest(t, ml = true)`) and both passes gate the
+batch removal on all-fail-or-none, with the preadjustment reset firing only
+inside that gated branch on adjusted descriptions; `MeanController` constants
+1.96/1.6/2.5 and the 1.0E-5 mean-added guard are transcription constants, the
+estimations themselves are request data at the 21-H boundary. Decision 6
+stays open - every cutoff and module scalar is required request data.
+Evidence for the sign-off: the double-captured JVM corpus (18 cases,
+byte-identical CSVs across two OpenJDK 21 processes) replays 494 checks with
+0 failures and no tolerance tiers - every statistic bit-identical, every
+decision exact - and the 56th ctest suite isolates the gate, reset and
+derived-rescue branches the corpus reaches only in combination; ASan/UBSan
+clean on both the unit and the sweep. The round-structure wiring, the
+`ModelController` rtval computation and the mean-added estimation stay with
+21-H; user-variable detection stays with 21-I.
+
 ## Non-goals
 
 No TRAMO/SEATS (items 23/24), no benchmarking/diagnostics (item 25), no

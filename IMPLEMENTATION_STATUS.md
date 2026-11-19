@@ -1539,3 +1539,84 @@ the re-differencing `d` clamp rides the request `max_d` (decoder 2). The
 round-structure wiring (and with it the first fit-seam consumer of
 `refine_arma_model`) stays with 21-H. Next per the roadmap: 21-G (regression
 tests + mean rules, stage R) or the 21-H round structure, per priority.
+
+## Regression variable tests and mean rules, stage R (21-G) — 2026-11-19
+
+**Deliverable.** Stage-R decision unit `include/kalos/
+regression_variable_tests.hpp` + `src/regression_variable_tests.cpp`: a
+literal transcription of the three live stage-R machines —
+`RegressionVariablesTest.process` (the trading-days pass with the
+`DerivedRegressionTest(t, ml = true)` second life, the width-1 LoP pass, the
+immediate-removal moving-holiday pass, the all-fail-or-none batch gate with
+the adjusted-only preadjustment reset and the meanTest removal),
+`MeanController.test` (the checkMu machine, strict `|tstat(0, 0, false)| >
+cval`) and the kernel's final mean rule (`automodelling && !mean && checkMu
+&& rtval > CVALFINAL 2.5`) — on top of the bit-exact concentrated-likelihood
+statistics machine (`tstats(0, false)` with no zero guards, the scalar
+`tstat(0, 0, false)` with its two pinned NaN guards, the derived joint
+statistic on the pinned left-fold summations, the `TRegressionTest` accept
+counting).
+
+**Scope resolution (the slice NOTE).** Both NOTE candidates are not stage-R
+code in the pinned 3.9.0 bytecode: user-variable elimination never enters
+`RegressionVariablesTest.process` (filters: isTradingDays/
+isLengthOfPeriod/isMovingHoliday, never isUser; user detection is the
+separate `UserVariablesDetectionModule`, dead on the default decoder path,
+deferred to 21-I), and the outlier-fix integration is stage O/round
+structure (`OutliersDetectionModule.process` re-adds the variables; the
+kernel's `isOutlier(v, true)` sweep is 21-H round logic). The live stage R —
+the two decoder-built `RegressionVariablesTest` runs, the `checkMu` call
+sites and the final mean rule — is what this unit qualifies.
+
+**Pinning.** `FRegressionTest` is a dead decoder path (the builder defaults
+`ftd = 0` and the decoder never calls `tdJointTest`) — rejected fail-closed.
+Call-site cutoffs: initial test `tmu = ttd = tmh = 1.96`, derived on; the
+final test re-uses the builder with `meanTest(1.0)`; `MeanController`
+constants 1.96 (round-0 `checkMu`), 1.6 (per-round `redoEstimation`), 2.5
+(`CVALFINAL`, strict) and the 1.0E-5 mean-added guard; `checkMu =
+usingAutoModel || MeanSpec.isTest()`. The estimations the machines consume
+(current / mean-added through `processor(true, 1.0E-5)`; the
+`ModelController` rtval) are required request data at the 21-H boundary —
+no estimation runs inside the unit.
+
+**Qualification.** New corpus `validation/evidence/native/regression-tests/`
+through `RegressionTestsProbe.java` + `capture-regression-tests.R` (public
+pinned API; variables built exactly as `X13ModelBuilder` builds them; no
+decision rule in the observer, the OBS accept rows are direct pinned-form
+calls for observation only): 18 cases — period {4, 12}, TD4/TD2, LoP,
+one/two Easter windows, user columns, mean on/off, log/preadjusted states —
+double capture byte-identical across two independent OpenJDK 21.0.11
+processes, `SHA256SUMS.csv` pins the bytes.
+`tools/verify_regression_variable_tests.cpp` replays **494 checks with 0
+failures and no tolerance tiers**: the `tstats(0, false)` vector, the mean
+`tstat(0, 0, false)` on all 36 MEANSTAT rows (both estimation states) and
+the derived value/statistic on the 8 OBS derived rows bit-identical; every
+pass accept, every `process` outcome (changed/mean/preadjustment/remaining
+variables, four builder shapes per case) and every MeanController decision
+(cutoffs 1.96 and 1.6) exact; the strict-`>` final rule on the 18 captured
+rtvals. Coverage includes the all-fail batch (m_allfail, m_derived), the
+b-gate with an immediate MH removal (m_tdpass), the adjusted preadjustment
+reset firing and not firing (m_adj), user-variable inertness, mean
+add/keep/remove, and the nx = 0 zero-regression description (m_meanadd,
+m_log_meanoff). All captured derived tests reject; the derived-rescue branch
+is qualified by the unit test.
+
+**Deliverables.** `tests/test_regression_variable_tests.cpp` adds the 56th
+ctest suite: the bit-exact `m_allfail` statistics/decision and `m_meanadd`
+mean-added replays, the strict-cutoff boundary, both NaN guards, the
+isolated b-gate/c-gate/derived-rescue/preadjustment-reset branches, the
+fail-closed validation battery and determinism. Gates: ctest 56/56 in the
+Release OpenMP and serial builds; ASan/UBSan clean for
+`test_regression_variable_tests` and the corpus sweep; sweeps 494/0 + 423/0
++ 4368/0 + 27/27 + 11/11 + 98/98 + 39/39; manifest 128 core / 112 fixture /
+179 evidence; `verify-migration.py` unchanged at 406. Contract:
+[regression-tests-contract.md](docs/contracts/regression-tests-contract.md).
+
+**Maintainer-decision ledger (stage R).** Nothing promoted: decision 6 stays
+open — the builder cutoffs (1.96/1.0/1.6/2.5), the dead-path rejection and
+the qualified period domain {4, 12} stay transcription constants; every
+module scalar, statistics block and variable layout is required request
+data. The round-structure wiring — when each machine fires, the
+re-estimations, the mean-added estimation and the `ModelController` rtval
+computation — stays with 21-H; user-variable detection with 21-I. Next per
+the roadmap: 21-H (integration, stage Z).
