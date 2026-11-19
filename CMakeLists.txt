@@ -32,6 +32,7 @@ endif()
 file(MAKE_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/generated/kalos")
 file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/generated/kalos/revision.hpp" "${KALOS_REVISION_HEADER}")
 add_library(kalos STATIC
+  src/arma_diagnostics.cpp
   src/arma_identification.cpp
   src/arma_information.cpp
   src/arma_objective.cpp
@@ -43,6 +44,7 @@ add_library(kalos STATIC
   src/diffuse_state_space.cpp
   src/estimation_control.cpp
   src/fdlibm.cpp
+  src/final_estimator.cpp
   src/finite_state_factor.cpp
   src/forecast_arma_information.cpp
   src/forecast_information.cpp
@@ -65,6 +67,7 @@ add_library(kalos STATIC
   src/residual_information.cpp
   src/sarima_stabilization.cpp
   src/sparse_history.cpp
+  src/special_functions.cpp
   src/ssq_levmar.cpp
   src/ssq_deviances.cpp
   src/state_space.cpp
@@ -147,6 +150,7 @@ endif()
 if(KALOS_BUILD_TESTS)
   enable_testing()
   foreach(test_name IN ITEMS
+    test_arma_diagnostics
     test_arma_identification
     test_arma_information
     test_arma_objective
@@ -157,6 +161,7 @@ if(KALOS_BUILD_TESTS)
     test_differencing_decision
     test_diffuse_state_space
     test_estimation_control
+    test_final_estimator
     test_forecast_arma_information
     test_forecast_information
     test_hannan_rissanen
@@ -177,6 +182,7 @@ if(KALOS_BUILD_TESTS)
     test_regression_likelihood
     test_regression_variable_tests
     test_residual_information
+    test_special_functions
     test_state_space
     test_transformation_decision
     test_transforms

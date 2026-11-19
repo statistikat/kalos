@@ -244,10 +244,10 @@ house gates (ctest growth, sweeps, OMP/serial/sanitized, manifest, status):
    fallback) — the roadmap's `SarimaComponent`/`AICcComparator` vocabulary is
    dead or stage-R code in the pinned 3.9.0 bytecode (see 21-F ledger).
 7. **21-G — regression tests + mean rules (stage R)**.
-8. **21-H — integration (stage Z)**: round structure, decoder-equivalent
-   spec plumbing, final estimator, end-to-end qualification against
-   `x13_fast` captures, then the nonzero-horizon fit extension as the
-   first consumer.
+8. **21-H — integration (stage Z)** — partial (slice 1: decision units):
+   round structure, decoder-equivalent spec plumbing, final estimator,
+   end-to-end qualification against double-JVM-captured full-process
+   evidence, then the nonzero-horizon fit extension as the first consumer.
 
 Calendar/easter/automatic-TD detection modules and user-variable
 detection (`UserVariablesDetectionModule`) are deferred behind 21-H as an
@@ -407,6 +407,38 @@ derived-rescue branches the corpus reaches only in combination; ASan/UBSan
 clean on both the unit and the sweep. The round-structure wiring, the
 `ModelController` rtval computation and the mean-added estimation stay with
 21-H; user-variable detection stays with 21-I.
+
+Stage Z position, slice 1 recorded 2026-11-19: the three remaining JVM
+decision units are delivered qualified - `special_functions` (the JVM's
+chi-square p-values: `SpecialFunctions`' regularized incomplete gamma with
+its continued-fraction / asymptotic-expansion split at x = 150 and the
+positive-termination rule, plus `ChiSquareTest`; 2261 JVM-pinned rows
+replay with 0 failures, all bit-exact, including the 46 rows where the JVM
+throws), `arma_diagnostics` (regres's acf via `AutoCovariances`,
+`LjungBox.calcLbLength`/`test`, `TestsUtility.calcResidualStatistics` and
+the `ModelController.accept` rule; 1637 JVM-pinned rows exact, the 58
+`df <= 0` JVM throw cases pinned as throws) and `final_estimator`
+(regres's test cascade with the checkRoots promotion rules; `check_roots`
+pinned verbatim from `FilterUtility` into `kalos::detail`, 584 JVM-pinned
+rows exact, plus the 16-case cascade truth-table suite). Pinning findings:
+`AutoCovariances.autoCovarianceNoMissing` divides by n (not n - lag) -
+the acf and the Ljung-Box variance therefore use `sum/n` and
+`gamma[k]/n`, both confirmed bit-exact against the JVM; the JVM's
+`Polynomial.getCheckRoots`/`getComplexRoots` are Random-seeded
+nondeterministic upstream (documented in
+contracts/regression-tests-contract.md) while `FilterUtility.checkRoots`
+is the deterministic surface and is what the decision machines route
+through; `Polynomial.checkRoots` at degree >= 3 is Random-seeded and is
+guarded fail-closed in the wrapper. The shared mlj evaluation engine
+(Hannan-Rissanen ACVF and the two Ljung-Box recursions, the ARMA filter
+utilities and the sarima polynomial expansion extracted verbatim from
+`SarimaItem.computeAuto`) moved from `outlier_scoring.cpp` into
+`src/mlj_engine.hpp` unchanged - 21-C's sweep re-verified 98/98 and its
+suite 24/24 after the move. The round structure (`ModelController`/
+`OutliersDetectionModule` loops, `ar_autom`/`regtest`/`mod_arma`), the
+final `estimate()` loop and the end-to-end qualification against the
+double-JVM-captured full-process evidence continue in the following
+slices of 21-H.
 
 ## Non-goals
 

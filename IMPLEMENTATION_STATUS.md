@@ -1620,3 +1620,86 @@ data. The round-structure wiring — when each machine fires, the
 re-estimations, the mean-added estimation and the `ModelController` rtval
 computation — stays with 21-H; user-variable detection with 21-I. Next per
 the roadmap: 21-H (integration, stage Z).
+
+## 21-H integration slice 1: decision units for p-values, diagnostics and the test cascade — 2026-11-19
+
+**Scope.** 21-H's stage-Z composition needs three JVM decision machines
+that no earlier item qualified: the chi-square p-value path behind
+`ModelController`/`LjungBox`/regres's diagnostics, the ARMA diagnostic
+statistics themselves (regres's acf, Ljung-Box test length and test, the
+residual t-statistic and the accept rule), and the estimation-time
+significance-test cascade with its root-promotion rules. This slice
+delivers all three as qualified units — pure decision units with
+deterministic inputs; the round driver that calls them is the next slice.
+
+**Units.** `special_functions` (`include/kalos/detail/special_functions.hpp`)
+transcribes `jdplus.toolkit.base.core.dstats.SpecialFunctions` —
+`logGamma` (Stirling with the six-term correction polynomial; Lanczos
+below 150), `IGSeries`, `IGContFract` (10000 iterations, 1e-10 exit, the
+negative-terminator exception) and `incGamma` (series below x = 150,
+continued fraction above) — plus `ChiSquareTest`'s statistics;
+`arma_diagnostics` (`include/kalos/arma_diagnostics.hpp`) transcribes
+regres's `AutoCovariance.autoCorrelation`, `LjungBox.calcLbLength`/`test`,
+`TestsUtility.calcResidualStatistics` and the `ModelController.accept`
+rule (NaN rtval accepts; NaN p never reaches the gate because the JVM
+throws on NaN statistics first); `final_estimator`
+(`include/kalos/final_estimator.hpp`) transcribes regres's test cascade —
+`checkRoots` promotion, the AR/MA loop with the `sig2` 150-boundary and
+`ar[1] == -1` rules and the takeover semantics — with `check_roots`
+pinned verbatim from `FilterUtility` into `kalos::detail::check_roots`
+(`src/ssq_levmar.cpp`'s local copy promoted without byte change).
+The shared mlj evaluation engine (Hannan-Rissanen ACVF, both Ljung-Box
+recursions, the ARMA filter utilities, rational coefficients, and the
+sarima polynomial expansion extracted verbatim from
+`SarimaItem.computeAuto` as `mlj::expand_sarima_polynomials`) moved
+byte-preserved from `src/outlier_scoring.cpp` into `src/mlj_engine.hpp`;
+`outlier_scoring.cpp` now includes it. All fdlibm bit-rep operations use
+multiplication by 0x100000 (shift-form was signed-shift UB; bit-identical,
+UBSan-clean).
+
+**Evidence.** Three JVM-pinned goldens, captured twice (the captures are
+byte-identical across processes, built with the `_dexp`/`_dlog` intrinsics
+disabled): `validation/reference/special_functions_golden.txt` (2261 rows;
+the 46 continued-fraction throw rows pinned as throws; all 2261 bit-exact),
+`arma_diagnostics_golden.txt` (1637 rows + 9 exact-recurrence Ljung-Box
+series across the MA1/ARMA(1,1)/ARMA(2,1)/SARIMA(1,1,1)(0,1,1)[12] models;
+the 58 `df <= 0` throw cases pinned; all exact), and
+`check_roots_golden.txt` (584 polynomials; all bit-exact). New ctest
+suites `test_special_functions`, `test_arma_diagnostics` and
+`test_final_estimator` replay them with 0 failures; the final-estimator
+suite adds the 16-case cascade truth table.
+
+**Pinning findings.** `AutoCovariances.autoCovarianceNoMissing` divides
+covariances AND variance by n (not n − lag) — `AutoCorrelation`'s extra
+n/(n − lag) factor applies only to its PACF/se output; a corrected
+`acfDivisor` test against the JVM confirms this bit-exactly (the 21-C
+engine's `dot/ssq` helpers were already on this basis). `Polynomial`'s
+root enumeration (`getCheckRoots`, hence `getComplexRoots`) is
+`Random`-seeded nondeterministic upstream — already documented for
+`Polynomial.checkRoots` at degree >= 3 in the 21-G contract; the decision
+machines route only through the deterministic `FilterUtility.checkRoots`,
+which the goldens pin directly, and the degree >= 3 path is guarded
+fail-closed in `kalos::detail::check_roots` (verified against bytecode
+that negative limits always accept there). `logGamma(0.5)` and
+`logGamma(8)` match `lgamma` exactly; the general form is pinned via the
+golden rows.
+
+**Deliverables and gates.** 3 new headers, 3 new sources, 1 moved engine
+header, 1 shared header, 3 new test suites (ctest now 59), 3 golden
+capture generators + 3 golden files, `tools/source-files.json` [core] at
+136. Gates: ctest 59/59 in the Release OpenMP and serial builds; ASan/
+UBSan clean on all three new suites; sweeps 494/0 + 423/0 + 4368/0 + 27/27
++ 11/11 + 98/98 + 39/39 unchanged after the engine move and the
+`check_roots` promotion (the 21-C sweep re-proven at 98/98); manifest and
+`verify-migration.py` unchanged at 406. Contracts:
+[special-functions-contract.md](docs/contracts/special-functions-contract.md),
+[arma-diagnostics-contract.md](docs/contracts/arma-diagnostics-contract.md),
+[final-estimator-contract.md](docs/contracts/final-estimator-contract.md).
+
+**Maintainer-decision ledger (stage Z, slice 1).** Nothing promoted: the
+iteration counts and epsilons (10000/1e-10/8e-11, 50/1e-10, 1.25/0.1, the
+calcLbLength table) are transcription constants; the Ljung-Box `nhp`, the
+cascade `tsig` and the significance levels arrive as request data exactly
+as the JVM call sites pass them. The round-structure wiring — when these
+units fire inside `ModelController`/`OutliersDetectionModule` rounds — is
+the subject of the next 21-H slice.
