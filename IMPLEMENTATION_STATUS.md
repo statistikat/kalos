@@ -1703,3 +1703,63 @@ cascade `tsig` and the significance levels arrive as request data exactly
 as the JVM call sites pass them. The round-structure wiring — when these
 units fire inside `ModelController`/`OutliersDetectionModule` rounds — is
 the subject of the next 21-H slice.
+
+## 21-H integration slice 2: pipeline contract and design boundary — 2026-11-19
+
+**Scope.** The stage-Z integration contract for the automatic-spec
+pipeline: the seam design (an `x13_automatic_fit` request/result pair
+composed on the qualified fit downstream — preadjust, the selection pass
+on the decoder X-11 surface, the results-builder stage, the finals — with
+the restricted fixed fit untouched and the Bfgs solver default and the
+explicit sigma policy preserved), the current-jar `RegArimaKernel.calc`
+composition order with the per-step map onto the qualified units (21-B
+transformation, 21-G mean/regression tests, 21-C outlier rounds with the
+forward-add and `isOutlier(v, true)` fixing vocabulary, 21-F refinement
+wrapping the 21-D/21-E differencing/identification, the slice-1
+`ModelController` accept machine and `final_estimator_test`, the pinned
+pass2/`lastSolution`/`checkUnitRoots`/`checkMA`/`redoEstimation` round
+machinery), the estimation adapter call-site table, the chained
+decision-record provenance vocabulary, the scope envelope (monthly,
+horizons {0, 0}, the four modes, the 21-I deferrals) and its fail-closed
+matrix, and the slice-3 tier policy per the 21-B/21-C/21-F basin
+precedent. Contract:
+[x13-automatic-pipeline-contract.md](docs/contracts/x13-automatic-pipeline-contract.md).
+
+**Pinning resolutions this slice.** `SeasonalityDetector` is dead in the
+current jar: the interface has zero callers and zero implementors across
+the `cur/` dumps of the live pipeline (grep of every dumped class), the
+same resolution as the 21-F `SarimaComponent` finding — the roadmap's
+stage-F "backed by SeasonalityDetector" dependency is void and the
+driver builds no seam for it. The landing CL-statistics producer for the
+round driver is the 21-C-sweep recipe (`sarima_regression_likelihood` +
+`regression_t_statistics` at the retained candidate; basin tiers, not
+bit-exact — the bit-exact `detail::ssq_deviances` CLWM covers only the
+design-free/single-column machines); recorded as gap G2 with the
+maintainer's alternative (a general bit-exact CLWM unit) kept on the
+table. The LS `regeffect` pairing (AO capture-pinned Irregular; LS
+expected LevelShift) stays unverified until the first LS-selected
+capture (G3).
+
+**Boundary.** The driver code did NOT land at this boundary. The final
+cascade of the pinned `FinalEstimator.estimate` loop consumes the final
+point's asymptotic-covariance diagonal, and its producer (the pinned
+`NumericalDerivatives` stencil → information → `SymmetricMatrix.inverse`
+path behind `final_estimator_test`) is not implemented and not qualified
+(gap G1; the pinning notes recorded it as the remaining gap and the file
+`src/final_information.cpp` was never created). Landing the driver around
+an unqualified covariance producer would invent numerics at the product
+seam, so the slice plan is extended per the contract: **21-H.0** the
+final-information unit (double-JVM-captured golden qualification),
+**21-H.1** the driver (`src/x13_automatic.cpp`, the modelling state, the
+adapter, the decision chain, the fail-closed matrix, `test_x13_automatic`),
+**21-H.2** the end-to-end oracle. A maintainer decision request on G1
+(build the unit) vs a deferred final cascade (an explicit fail-closed
+status while the automatic kind ships restricted) is outstanding.
+
+**Gates.** Docs-only commit (contract, roadmap stage-Z ledger, this
+entry): no source, CMake or manifest file changed, so the manifest stays
+at 136 core and `verify-migration.py` at 406 by inspection (re-run green);
+ctest in both lanes re-run from the final tree unchanged at 59/59; the
+seven sweeps and the sanitizer surface are unchanged by construction (no
+code path exists to alter) — re-proven at the next code commit.
+

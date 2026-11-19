@@ -440,6 +440,30 @@ final `estimate()` loop and the end-to-end qualification against the
 double-JVM-captured full-process evidence continue in the following
 slices of 21-H.
 
+Stage Z position, slice 2 recorded 2026-11-19: the integration contract
+landed - [x13-automatic-pipeline-contract.md](contracts/
+x13-automatic-pipeline-contract.md) pins the automatic-spec seam (a
+distinct `x13_automatic_fit` request/result pair reusing the qualified
+fit composition downstream, the fixed path untouched), the current-jar
+`RegArimaKernel.calc` order with its per-step unit map, the estimation
+adapter call-site table (Bfgs stays the core default; the pinned-LM
+footprints stay inside the qualified units), the chained
+decision-record vocabulary, the outlier round vocabulary and the scope
+envelope with its fail-closed matrix (monthly, horizons {0,0}, four
+modes, 21-I deferrals). Pinning resolutions: `SeasonalityDetector` is
+dead in the current jar - the interface has zero callers and zero
+implementors in the `cur/` dumps of the live pipeline (same resolution
+as the 21-F `SarimaComponent` finding), so the roadmap's "backed by
+SeasonalityDetector" dependency is void; the landing CL-statistics
+producer is the 21-C-sweep recipe (basin tiers, gap G2 recorded). Two
+gates ahead of the driver code: **G1** the final-information producer
+(`NumericalDerivatives` stencil -> information -> pinned inverse behind
+`final_estimator_test`, golden qualification required, never
+implemented) and **G3** the LS `regeffect` pairing pin-verify. The
+slice sequence for the remainder: 21-H.0 (final-information unit),
+21-H.1 (driver), 21-H.2 (end-to-end oracle). Decision 7 stays open on
+the pass2/checkUnitRoots constants (request data); nothing promoted.
+
 ## Non-goals
 
 No TRAMO/SEATS (items 23/24), no benchmarking/diagnostics (item 25), no
