@@ -366,3 +366,68 @@ SECTION 15 carries the probe evidence):
   the G2 landing statistics (never bit-claimed).
 * `X13FitSpecKind` lives in `x13_automatic.hpp` (the fixed header stays
   byte-identical; the fit contract's schema-change note).
+
+## Oracle qualification (21-H.2)
+
+The end-to-end JVM oracle observes the pinned automatic pipeline
+(`validation/reference/X13AutomaticProbe.java` running
+`X13Kernel.of(spec, ctx).process(ts.cleanExtremities(), log)` against the
+rjd3/rjd3x13 3.9.0 jars, captured by
+`validation/reference/capture-x13-automatic.R` under the
+intrinsic-disable `_JAVA_OPTIONS` convention). Evidence:
+`validation/evidence/native/x13-automatic/` (cases, inputs,
+oracle-events, oracle-facts, metadata, SHA256SUMS); the double-capture
+byte-identity gate passed (two fresh JVM runs, the four data files
+byte-identical). `tools/gen_x13_automatic_golden.py` renders the golden
+header `tests/jvm_x13_automatic.h`;
+`tests/test_x13_automatic_oracle.cpp` diffs the driver's chain
+vocabulary and landing surfaces case-by-case (argv selects case ids;
+ctest registers the qualified subset); `tools/verify_x13_automatic.cpp`
+sweeps the full corpus with the family report.
+
+Corpus: 13 cases (monthly n=96 start 1990-1; single-AO, LS,
+multi-outlier, all-reject, SO-set, detection-off, d=2,
+random-walk-with-drift, seasonal-only and the three decomposition
+forcings, all four modes effective on the mode series). The planned
+14th case ("plain") was removed pre-capture under the slice-3 policy -
+its round-0 ODM sits on the TC@69-versus-AO@63 knife edge inside the
+documented G2 basin seam.
+
+Tiers (decisions are always bit-exact; no tier is ever applied to a
+decision bit):
+
+| family | band | basis |
+|---|---|---|
+| decision bits, chain counts/scalars, model facts | bit-exact | this contract |
+| diff-search tmean | 1e-3 | 21-D trial-fit class |
+| panel BIC | 1e-5 | 21-E band |
+| AICC display pair (observer `%.6g`) | 1e-5 | display round-trip |
+| landing coefficients/stats | 2e-3 | adapter row-4 basin tier |
+| downstream tables | 1e-9 rel | measured on the qualified subset |
+
+Landing verdict (final sweep of this slice): ten cases carry
+bit-exact decision chains end to end (quick, seas, ls, so, ao_nodet,
+d2, rw and the three forcing cases); quick and seas are bit-identical
+across every family and form the ctest-registered pair. The four
+display-class deviations of those ten are recorded with their
+mechanism in the pinning notes 16.4/16.5 (selection-coefficient sign,
+panel-BIC and AICC display scales, the 2e-7 a8 drift class in so) -
+none of them carries a decision bit. Two cases (ao, noout) keep
+decision-bit divergences at the round-0 ODM's first-entry state: the
+driver's scan accepts candidates the JVM rejects. The JVM's
+rejected-candidate t is not in the capture schema, so the follow-up's
+first move - extend the probe's odm event with the best rejected
+abs(t) against cv, recapture, re-pin the 21-C entry state with the
+measured delta - is pinned in the pinning notes 16.5. Multi's residual
+is the 21-E stage-grid (bp,bq) selection on its four-variable
+linearization; its ODM machine itself reproduces the JVM's four-pick
+rounds exactly.
+
+Driver bugs found by the oracle and fixed with this slice: the ODM
+retained-coefficient carrier, the Ansley p=0 loop underflow (segfault
+on pure-MA models), the checkMu mean-on design mismatch (the estimation
+carrier now records whether it was fitted with the mean column), and
+the ODM estimate-before-detect seeding. The restricted fit
+(`test_x13_fit`) and the 21-C corpus (`test_outlier_scoring`) stay
+green unchanged throughout - the shared-engine fix is exercised by
+both suites.

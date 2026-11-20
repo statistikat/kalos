@@ -518,9 +518,25 @@ ArrayIndexOutOfBoundsException in the JVM, UB natively) now traps as a
 exactly where the JVM run returns null; no corpus case sits in range.
 Gates: 61/61 ctest OpenMP + serial, 61/61 ASan/UBSan with the new suite
 foreground-clean, all seven sweeps unchanged (39/11/27+10/4368/423/98/494)
-plus final_information 266, manifest 140/112/184, migration 406. Remaining:
-**21-H.2** (the end-to-end JVM oracle on the chain vocabulary, slice-3
-boundary removals via the unitroots margins) — the single open stage-Z item.
+plus final_information 266, manifest 140/112/184, migration 406.
+
+**21-H.2 (2026-11-20) — the oracle machine landed; stage Z keeps one
+open item.** The end-to-end JVM automatic oracle is in the tree
+(probe + capture under `validation/reference/`, thirteen-case double-
+captured evidence under `validation/evidence/native/x13-automatic/`,
+generated golden header, oracle test #62 (ctest registers the
+bit-identical pair quick+seas), full-corpus sweep tool). First
+qualification run: ten of thirteen cases with bit-exact decision
+chains, four measured display classes, and two cases (ao, noout) whose
+round-0 ODM over-accepts at the scan's first-entry state — the JVM's
+rejected-candidate t is not yet captured, so the next move is pinned
+in the pinning notes 16.5: extend the probe event with the best
+rejected |t| vs cv, recapture, re-pin the 21-C entry state against the
+measured delta, then widen the registered set and close stage Z. The
+oracle also found and this slice fixed four driver bugs (ODM retained
+carrier, Ansley p=0 underflow, checkMu mean-on design mismatch, ODM
+estimate-before-detect). See the contract's qualification section for
+the tier tables and removal record.
 
 ## Non-goals
 

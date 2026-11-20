@@ -1924,3 +1924,57 @@ unchanged throughout; the suite data reproduces the probe corpus bit for
 bit, so its pinned observations transfer to corpus cases directly. The
 two untracked files (`src/kalos_write_probe.cpp`, `cpp-out.txt`) remain
 user-pending, never `git add`.
+
+## End-to-end JVM oracle: slice 21-H.2 lands the machine, the first qualification run, four driver fixes — 2026-11-20
+
+The contract's slice-plan item 3 landed: `X13AutomaticProbe.java` +
+`capture-x13-automatic.R` observe the real decoder-equivalent JVM
+automatic pipeline (`X13Kernel.of(spec, ctx).process(...)`) with a
+ProcessingLog observer, 13 cases captured under
+`validation/evidence/native/x13-automatic/` with the double-JVM
+byte-identity gate, golden header generated
+(`tools/gen_x13_automatic_golden.py` -> `tests/jvm_x13_automatic.h`),
+oracle test (`tests/test_x13_automatic_oracle.cpp`, ctest #62 with the
+qualified subset quick+seas as registered args, timeout 1800, evidence
+dir as argv) and the full-corpus sweep tool
+(`tools/verify_x13_automatic.cpp`, argv case filters,
+`KALOS_DUMP_ODM=1` diagnostic). The planned "plain" case was removed
+pre-capture under the slice-3 boundary policy (TC@69-vs-AO@63 knife
+edge, G2 seam - recorded in the contract's qualification section).
+
+**Driver fixes (oracle-found).** (1) `process_outliers` passes the
+RETAINED estimation's coefficients to the ODM, never the stale
+spec-change-surviving carrier. (2) `Ansley::apply` unsigned underflow
+at `p_ == 0` (pure-MA models) - the scan engine segfaulted the oracle
+run; Java int-loop semantics restored (the 21-C corpus stays green -
+both suites exercise the engine). (3) `checkMu` mean-on design
+mismatch: the retained estimation now carries whether it was fitted
+with the mean column (`estimation_has_mean_`), and a mean-on test
+without a mean-included estimation runs the mean-added trial (the JVM
+estimate-if-needed-before-the-mean-test machine) instead of reading
+statistics from a mean-free carrier. (4) the ODM estimates first when
+the model holds no estimation (the pinned `mod.estimate` before
+`estimation.getArima()`), replacing the zero-block fallback. Fixes
+3+4 gate latent states and left the corpus numbers unchanged; 1+2
+changed results.
+
+**Sweep verdict (contract qualification section).** Ten cases carry
+bit-exact decision chains (quick, seas, ls, so, ao_nodet, d2, rw,
+mode x3); quick+seas bit-identical across every family; 3730/68815
+total check deviations are all in the measured display classes
+(selection-coefficient sign, panel-BIC/AICC display scales, 2e-7 a8
+drift) except the two over-accepting cases (ao, noout) whose round-0
+ODM acceptance divergence is root-caused to the scan's first-entry
+state with the follow-up's first move pinned (pinning notes 16.4-16.5:
+the probe must record the JVM's best REJECTED |t|, then the 21-C entry
+state gets re-pinned against the measured delta). Stage Z keeps this
+single open item.
+
+**Gates (this tree).** ctest 62/62 OpenMP lane and 62/62 serial lane
+(new #62 at 19 s); ASan/UBSan oracle subset (quick+seas, 698 checks)
+clean, exit 0; all nine sweeps unchanged; `check-manifest.py` green at
+140 core / 112 fixture / 190 evidence (six x13-automatic files);
+`verify-migration.py` unchanged at 406; `test_x13_fit` and
+`test_outlier_scoring` green with the shared-engine fix; warning-free
+(cxx_std_17). The two untracked files (`src/kalos_write_probe.cpp`,
+`cpp-out.txt`) remain user-pending, never `git add`.

@@ -396,6 +396,13 @@ class AutomaticPipeline {
   std::vector<double> y_;  // the transformed (level or log) working series
   double transitory_rate_ = 0.;
 
+  // Whether the retained estimation was fitted with the mean column in the
+  // design. The transformation prepass retains the CHOSEN-branch estimation,
+  // which is always a mean-free fit; a mean-on description paired with it is
+  // design-mismatched (JVM estimate-if-needed semantics re-fit before the
+  // mean controller reads the cl statistics).
+  bool estimation_has_mean_ = false;
+
   // The JVM differenced-model surface (RegArmaModel.of, current jar, probed
   // 21-H.1): the response is the unit-root-filtered series and the mean is a
   // GRIFFIES mean - the differenced design's FIRST column carries raw 1.0
@@ -580,6 +587,7 @@ class AutomaticPipeline {
     model_.last_coefficients = estimation.coefficients;
     model_.has_coefficients = true;
     model_.estimation = std::move(estimation);
+    estimation_has_mean_ = model_.desc.mean;  // build_design carries the mean
   }
 
   void estimate_if_needed() {
@@ -588,7 +596,10 @@ class AutomaticPipeline {
     }
   }
 
-  void clear_estimation() { model_.estimation.reset(); }
+  void clear_estimation() {
+    model_.estimation.reset();
+    estimation_has_mean_ = false;
+  }
 
   // The retained candidate must exist wherever the JVM dereferences the
   // estimation (its NPE maps onto our failed: status).
@@ -707,6 +718,7 @@ class AutomaticPipeline {
         model_.last_coefficients = estimation.coefficients;
         model_.has_coefficients = true;
         model_.estimation = std::move(estimation);
+        estimation_has_mean_ = false;  // the branch fit is always mean-free
       }
     }
   }
@@ -720,7 +732,14 @@ class AutomaticPipeline {
       return false;  // Unchanged, the machine never runs
     }
     MeanControllerRequest controller;
-    if (model_.desc.mean) {
+    if (model_.desc.mean && model_.estimation && estimation_has_mean_) {
+      // JVM checkMu reads the CURRENT estimation's cl. The retained
+      // estimation exists exactly where the landing composition is
+      // 21-G-qualified to reproduce it (redoEstimation's checkMu(1.6),
+      // the final mean rule); elsewhere — the round-0 test precedes the
+      // first estimate — the JVM's "current estimation" is the mean-included
+      // differenced-design fit, which the mean-on landing surface cannot
+      // express (the Griffies column is inexpressible there).
       controller.statistics = landing_statistics();
     } else {
       // RegArimaUtility.processor(true, 1e-5) on the mean-added
@@ -748,6 +767,12 @@ class AutomaticPipeline {
     MeanControllerResult controller_result = run_mean_controller(controller);
     if (controller_result.changed) {
       model_.desc.mean = controller_result.mean;
+      clear_estimation();
+    } else if (model_.desc.mean && !estimation_has_mean_) {
+      // The mean stayed on and the retained estimation is design-mismatched
+      // (mean-free branch fit): the JVM's estimate-if-needed re-fit replaced
+      // it before the machine read the cl; drop the stale carrier so the
+      // next estimate_if_needed rebuilds the current-design estimation.
       clear_estimation();
     }
     AutoDecisionRecord entry;
@@ -781,9 +806,13 @@ class AutomaticPipeline {
     scoring.base = raw_request(request_.precision,
                                EstimationStartingPoint::Multiple, true,
                                &base_design);
-    if (model_.has_coefficients) {
-      scoring.initial_coefficients = model_.last_coefficients;
-    }  // else: the default-constructed zero blocks
+    // The pinned ODM chain estimates first when the model holds no
+    // estimation (mod.estimate before the detector reads estimation.getArima()),
+    // so the whitening parameters are the RETAINED estimation - never the
+    // spec-change-surviving desc.arima() carrier (which may carry stale
+    // block shapes after a refinement changed the orders).
+    estimate_if_needed();
+    scoring.initial_coefficients = estimation_required().coefficients;
     scoring.types = request_.outlier_types;
     scoring.critical_value = cv;
     scoring.transitory_rate = transitory_rate_;
@@ -1607,6 +1636,7 @@ class AutomaticPipeline {
         model_.last_coefficients = estimation.coefficients;
         model_.has_coefficients = true;
         model_.estimation = std::move(estimation);
+        estimation_has_mean_ = model_.desc.mean;
         record.estimation_status = std::move(fit_result.status);
         record.estimation_ok = true;
 

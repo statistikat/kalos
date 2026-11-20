@@ -105,10 +105,15 @@ public:
             }
             return a;
         }
+        // Pinned loop (Java ints, n-1 down to p inclusive). p_ == 0 is legal
+        // (a pure MA model reaches here with a trivial AR block), so the
+        // descending size_t loop must break on the inclusive bound instead of
+        // testing i >= p_ (which never ends at p_ == 0).
         for (std::size_t i = n_ - 1; i >= p_; --i) {
             double s = 0.0;
             for (std::size_t k = 1; k <= p_; ++k) s += ar_[k] * a[i - k];
             a[i] += s;
+            if (i == p_) break;
         }
         rsolve(a);
         return a;
