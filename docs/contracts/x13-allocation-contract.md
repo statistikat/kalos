@@ -18,10 +18,14 @@ pinned model-description variable order with each variable's pinned
 regression columns and its coefficient values, the staging is pure algebra
 and this header reproduces it. Everything upstream of the seam (coefficient
 and ARIMA estimation, outlier detection, trading-day tests) and everything
-the fixed-model path with zero horizons and `LengthOfPeriodType.None` never
-reaches (ARIMA backcast/forecast extension, missing-row interpolation, the
-length-of-period transform, benchmarking, diagnostics) is outside this
-contract; see [x13-allocation-scope-22c.md](x13-allocation-scope-22c.md) for
+the `LengthOfPeriodType.None` staging never reaches (missing-row
+interpolation, the length-of-period transform, benchmarking, diagnostics) is
+outside this contract; the ARIMA backcast/forecast extension that a nonzero
+X-11 horizon triggers was delivered here with item 21-H.4 (the
+`X13PreadjustInput.backcast/forecast/arima` and
+`X13RestoreInput.backcast/forecast` fields, qualified by
+[arima-forecasts-contract.md](arima-forecasts-contract.md) and the automatic
+horizon captures). See [x13-allocation-scope-22c.md](x13-allocation-scope-22c.md) for
 the scoping memo.
 
 ## Capture and evidence
@@ -84,7 +88,8 @@ qualifies them at relative 1e-15, everything else bit-exactly.
 `X13Kernel.updateSpec` forces the X-11 mode: a non-log model is forced
 `Additive`; a log model becomes `Multiplicative` unless `LogAdditive` or
 `PseudoAdditive` was requested (`PseudoAdditive` is never forced); the
-horizons stay zero under this contract. The rule is asserted from the case
+horizons arrive through the request and drive the 21-H.4 extension route.
+The rule is asserted from the case
 metadata in the test and sweep.
 
 ## Restore (finals)

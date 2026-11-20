@@ -48,16 +48,23 @@ plus the test/sweep table checks listed in the contract).
    cursor order (`Estimation.getCoefficients()`), outlier/auto model
    selection and the `PreliminaryChecks` refusals (no data, fewer than
    `max(8, 3*freq)` observations, >80% identical values, >33% NaN).
-2. **Backcast/forecast extension**: LANDED as a pinned boundary in the
-   M3-finale fit, not as a delivered route. The fit's fixed-path horizon
-   domain is exactly `{0, 0}` and every nonzero request answers
-   `unsupported:x13 fit requires zero horizons`; the pinned route facts are
-   recorded by evidence capture (`validation/evidence/native/x13-fit`,
-   `horizons.csv`: `a1a`/`a1b` take the requested lengths — negatives
-   becoming `|h| · annualFreq` — `out` spans `n + backcast + forecast` and
-   the split finals `d11a/d11b/...` appear). The route itself
-   (`ExactArimaForecasts` over `linv − v27`, `v27 = v26 + a9u`) stays
-   undelivered until a slice pins its values.
+2. **Backcast/forecast extension**: DELIVERED for the automatic driver
+   (item 21-H.4) — the allocation seam takes `backcast`/`forecast` and the
+   landing model, runs the pinned route (`ExactArimaForecasts` over
+   `linv − v27`, `v27 = v26 + a9u`; unit `kalos::arima_forecasts`) and
+   fills `a1a`/`a1b`, the extended `out` calendar and the split finals,
+   with the JVM reading semantics (month counts, negatives becoming
+   `|h| · annualFreq`). The evidence route facts of the M3-finale fit
+   capture (`validation/evidence/native/x13-fit`, `horizons.csv`:
+   `a1a`/`a1b` take the requested lengths, `out` spans
+   `n + backcast + forecast`, the split finals `d11a/d11b/...` appear) are
+   reproduced by the automatic horizon captures
+   (`validation/evidence/native/x13-horizon`). The FIXED fit keeps refusing
+   nonzero horizons (`unsupported:x13 fit requires zero horizons`): its
+   regression design can carry TD/Easter/user variables whose extended
+   columns are not representable at that seam; the automatic driver defers
+   those modules anyway (21-I), so its extended design is outlier columns
+   only.
 3. **Missing-value interpolation**: `interpolatedSeries(arima)` and the
    `MissingValueEstimation` semantics (`mv + pred` vs `mv·exp(pred)` under
    log), which make `a1` differ from the input.
@@ -83,7 +90,8 @@ claims.
 
 No estimation entry point, no spec object, no exception-free error channel:
 shape violations throw `std::invalid_argument` (fail closed), missing rows,
-non-positive inputs under a log model, non-zero horizons and
+non-positive inputs under a log model and
 `lengthOfPeriod != None` are simply outside the represented domain. The
-`a`/`b` extension fields and benchmarking fields are not represented at all,
-so no caller can mistake a zero-horizon result for the general one.
+`a`/`b` extension fields landed with 21-H.4 (empty under zero horizons);
+benchmarking fields are not represented, so no caller can mistake a
+zero-horizon result for the general one.

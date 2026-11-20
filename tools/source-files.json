@@ -12,6 +12,7 @@
     "dependencies/README.md",
     "dependencies/lapack-netlib-LICENSE.txt",
     "dependencies/openblas.lock.json",
+    "include/kalos/arima_forecasts.hpp",
     "include/kalos/arma_diagnostics.hpp",
     "include/kalos/arma_identification.hpp",
     "include/kalos/arma_information.hpp",
@@ -77,6 +78,7 @@
     "include/kalos/x13_allocation.hpp",
     "include/kalos/x13_automatic.hpp",
     "include/kalos/x13_fit.hpp",
+    "src/arima_forecasts.cpp",
     "src/arma_diagnostics.cpp",
     "src/arma_identification.cpp",
     "src/arma_information.cpp",
@@ -447,6 +449,11 @@
     "validation/evidence/native/x13-fit/metadata.R",
     "validation/evidence/native/x13-fit/tables.csv",
     "validation/evidence/native/x13-fit/vars.csv",
-    "validation/evidence/native/x13-fit/x13fast.csv"
+    "validation/evidence/native/x13-fit/x13fast.csv",
+    "validation/evidence/native/x13-horizon/SHA256SUMS.csv",
+    "validation/evidence/native/x13-horizon/cases.csv",
+    "validation/evidence/native/x13-horizon/inputs.csv",
+    "validation/evidence/native/x13-horizon/metadata.R",
+    "validation/evidence/native/x13-horizon/oracle-facts.csv"
   ]
 }

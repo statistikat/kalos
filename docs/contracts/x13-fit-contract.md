@@ -72,6 +72,12 @@ to a nonzero horizon: the pinned fixed-path horizon domain is exactly
 `{backcast 0, forecast 0}`, and the fit fails closed on every other
 request (`unsupported:x13 fit requires zero horizons`) — including negative
 values, which for the pinned kernel are not "auto" but `|h| · freq`. The
+extension route itself landed with item 21-H.4 on the AUTOMATIC driver
+composition, where the landing model is estimated in-run (see
+[x13-automatic-pipeline-contract.md](x13-automatic-pipeline-contract.md)
+"Horizon extension" and [arima-forecasts-contract.md](arima-forecasts-contract.md));
+the fixed fit keeps the refusal because its design can carry regression
+variables whose extended columns are not representable at that seam. The
 capture corpus pins this boundary by executing the pinned engine on the
 same fixed specification with nonzero horizons and recording the route
 taken (`horizons.csv`, see the qualification section).

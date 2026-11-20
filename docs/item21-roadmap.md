@@ -561,6 +561,34 @@ the full oracle at 390 s). Oracle 4637 checks 0 failures; full sweep
 71401 checks 0 bad; double capture byte-identical; sanitizer subset
 clean. The pinning notes SECTION 18 carries the session record.
 
+**21-H.4 (2026-11-20) — the nonzero-horizon route landed; the automatic
+driver now drives arbitrary X-11 backcast/forecast horizons.** The
+`initialStep` extension branch was ported as a faithful unit,
+`kalos::arima_forecasts` (the `ExactArimaForecasts` consumer stack:
+CkmsFilter steady-state filtering with the diffuse fast initializer, the
+mean-correction fold and the JVM surface conventions; new
+contracts/arima-forecasts-contract.md): the diffuse INIT state reproduces
+the JVM post-initialize state ulp-for-ulp, the pinned unit probe lands the
+airline forecasts within 3.3e-13 and an MA(1) bit. A reuse of
+`forecast_information` was ruled out and rejected (different machine:
+conditional endpoint prediction, not the CKMS filter trajectory). The
+allocation seam takes the horizons (`X13PreadjustInput`,
+`X13RestoreInput`): `a1a`/`a1b`, the extended `out` calendar with the
+zero-ended outlier-column fills (LS/SO backward, TC forward with the
+1e-15 cutoff — reg-column probe), the shifted first period into the X-11
+pass and the split finals `d11a/.../d18b`. The horizon gate left the
+automatic driver; the fixed fit keeps refusing (extended design not
+representable at that seam). Four horizon captures (quick_h6, ao_b3,
+multi_b3h6, so_h6; validation/evidence/native/x13-horizon, repro
+byte-identical) qualify the route: decisions, `a1` and `d18`/`d18a`/`d18b`
+bit-exact on all four cases (AR sign fix verified through the driver),
+`a1a`/`out` ~1e-6, split finals ~1e-7, c17 ~1e-3, e2 at outlier positions
+~2e-2 — the floor is the oracle's own landing-coefficient basin band
+(measured 1.2e-4 at zero horizon), not the route. New ctest
+`test_x13_automatic_horizon` (6459 checks, 0 failures) and
+`test_arima_forecasts`; zero-horizon lanes untouched (oracle 4637/0). The
+pinning notes kalos-21h4-pinning.md sections A–J carry the decode.
+
 ## Non-goals
 
 No TRAMO/SEATS (items 23/24), no benchmarking/diagnostics (item 25), no

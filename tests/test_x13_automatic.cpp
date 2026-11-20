@@ -594,7 +594,8 @@ void t01_status_matrix() {
                "series",
                "finite gate first among status gates");
   }
-  // zero horizons (backcast, then forecast)
+  // the horizons are not a gate (item 21-H.4): the matrix flows through to
+  // the sigma gate exactly as it would for zero horizons
   {
     kalos::X13AutomaticRequest r = baseline(24);
     r.backcast = 1;
@@ -602,12 +603,14 @@ void t01_status_matrix() {
     r.use_easter_detection = true;
     r.outlier_span = std::make_pair(2, 5);
     check_eq_s(kalos::x13_automatic_fit(r).status,
-               "unsupported:x13 fit requires zero horizons",
-               "horizon gate beats sigma gate");
+               "unsupported:x13 fit requires an explicit sigma policy",
+               "horizon is no gate; sigma gate next");
     r = baseline(24);
     r.forecast = 2;
+    r.sigma.reset();
     check_eq_s(kalos::x13_automatic_fit(r).status,
-               "unsupported:x13 fit requires zero horizons", "forecast gate");
+               "unsupported:x13 fit requires an explicit sigma policy",
+               "forecast is no gate either");
   }
   // explicit sigma policy
   {

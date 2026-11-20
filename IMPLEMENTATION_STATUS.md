@@ -2069,3 +2069,66 @@ final-information 266); `check-manifest.py` 140/112/190;
 `verify-migration.py` 406; evidence `SHA256SUMS.csv` verifies (5/5).
 The two untracked files (`src/kalos_write_probe.cpp`, `cpp-out.txt`)
 remain user-pending, never `git add`.
+
+## Nonzero-horizon route: slice 21-H.4 lands `kalos::arima_forecasts` and wires the horizons — 2026-11-20
+
+The `initialStep` extension branch is delivered: the automatic driver now
+accepts arbitrary X-11 backcast/forecast horizons (month counts, negative
+meaning |h| annual frequencies, normalized exactly as the pinned process
+reads them) and drives the extension downstream — estimation and the
+decision chain stay horizon-invariant (the horizon captures' orders/arma
+facts are byte-identical to the zero-horizon oracle captures). Reusing
+`forecast_information` was measured against the JVM stack and **rejected**:
+a different machine (conditional endpoint prediction, not the CKMS filter
+trajectory). Delivered instead as the faithful port of the pinned
+`ExactArimaForecasts` consumer stack, unit `kalos::arima_forecasts`
+(new contract arima-forecasts-contract.md; pinning notes
+kalos-21h4-pinning.md sections A–J): stationary/diffuse CKMS
+initializations, the 1e-15 steady rule, the mean-correction fold and the
+JVM polynomial surface. The diffuse INIT state reproduces the JVM
+post-initialize state to 1–2 ulp (probe11/12); the airline unit probe
+lands forecasts within 3.3e-13, an MA(1) bit-identical.
+
+The allocation seam takes the horizons (`X13PreadjustInput`
+`backcast/forecast/arima`, `X13RestoreInput` `backcast/forecast`):
+`a1a`/`a1b` on the forecast/backcast windows (pinned backcasts + v27 /
+forecasts + v27, backTransform'ed), the extended `out` calendar with the
+zero-ended outlier-column fills over n + nb + nf rows (reg-column probe:
+LS −1 backward incl. back window, SO backward periodic, TC rate^k forward
+with the 1e-15 write cutoff), the shifted first period into the X-11 pass,
+the split finals `d11a/.../d18b` as fitToDomain slices over the a1a/a1b
+domains. The horizon gate left the automatic driver's fail-closed matrix;
+the fixed fit keeps `unsupported:x13 fit requires zero horizons` (extended
+design not representable at that seam — recorded in the fit contract). A
+driver-side fix landed with the route: the estimation block layout is
+[ar, ma, sar, sma] and the AR blocks sign-flip onto the JVM surface (the
+first end-to-end AR-bearing confirmation, a1 bit-exact in ao/multi).
+
+**Capture.** Four horizon cases over the zero-horizon oracle series
+(quick_h6, ao_b3, multi_b3h6, so_h6; horizons {0,6},{3,0},{3,6},{0,6}),
+`validation/reference/X13AutomaticHorizonProbe.java` +
+`capture-x13-automatic-horizon.R`, two independent JVM processes
+byte-identical (repro gate 3/3), facts identical to the session probes.
+`validation/evidence/native/x13-horizon/` (5 files, SHA256SUMS verified).
+
+**Tiers (measured, `test_x13_automatic_horizon` 6459 checks 0 failures +
+`test_arima_forecasts`).** Decisions and `a1` (all four cases) and
+`d18`/`d18a`/`d18b` BIT; `a1a`/`a1b`/`out` ≤1.1e-6, split finals ~1e-7,
+d13-class 2e-4, c17 7e-4, e2-at-outliers 1.7e-2. The floor is NOT the
+route: the zero-horizon control proves the oracle's landing-coefficient
+basin drift (measured 1.2e-4, banded family since H.2) is what the route
+inherits and amplifies once into the extended tables; the route's own
+trajectory matches the JVM filter state ulp-for-ulp at initialize and
+≤3.3e-13 at the pinned forecasts.
+
+**Gates (this tree, all fresh builds).** OpenMP lane 64/64 (412 s),
+serial lane 64/64 (443 s) — both with the two new tests; ASan/UBSan
+unit + oracle subset (quick+seas, 698 checks) + horizon quick_h6
+(1616 checks) clean; full automatic sweep 71401 checks 0 bad, 13/13
+(decisions untouched by the slice); nine sweeps unchanged (differencing
+39, transformation 11, estimation-control 27, initial-ARMA 4368,
+arma-refinement 423, outlier-scoring 98, regression-tests 494,
+final-information 266); evidence SHA256SUMS verifies. `check-manifest.py`
+and `verify-migration.py` 406 after staging. The two untracked files
+(`src/kalos_write_probe.cpp`, `cpp-out.txt`) remain user-pending, never
+`git add`.

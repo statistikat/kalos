@@ -35,7 +35,9 @@ struct X13AutomaticRequest {
     // derived flag; tsig cutoffs arrive, never literals at the seam
     // X-11 block as in X13FitRequest: seasonal requests (Msr allowed),
     // trend_length (0 = automatic allowed), REQUIRED sigma policy,
-    // sigma cuttings, mode, horizons {0,0}
+    // sigma cuttings, mode, X-11 horizons (21-H.4: month counts, a negative
+    // value meaning |h| annual frequencies, exactly as the pinned process
+    // reads them; they route the initialStep extension path downstream)
     ...
 };
 
@@ -192,7 +194,10 @@ pairing at the seam — recorded below).
 
 ## Scope envelope and fail-closed matrix
 
-Delivered: frequency 12 only; horizons {0, 0}; the four decomposition
+Delivered: frequency 12 only; arbitrary integer X-11 backcast/forecast
+horizons (21-H.4 — month counts, negative meaning |h| annual frequencies;
+the nonzero route is specified under "Horizon extension" below); the four
+decomposition
 modes through the pinned forcing; a complete, finite input (missing-value
 interpolation is not part of the automatic description build); outlier
 span = full estimation domain, no exclusions; `transform.function=Auto`
@@ -207,7 +212,6 @@ promoted — decisions 1-9 stay open per the roadmap ledger).
 |---|---|
 | frequency != 12 | `unsupported:x13 automatic fit monthly series only` |
 | missing/non-finite observations | `unsupported:x13 automatic fit requires a complete finite series` |
-| backcast/forecast != 0 | `unsupported:x13 fit requires zero horizons` (shared with the fit) |
 | sigma policy unset | `unsupported:x13 fit requires an explicit sigma policy` (shared) |
 | calendar/easter-detection/automatic-TD/user detection requested | `unsupported:x13 automatic fit defers calendar/easter/TD/user detection (21-I)` |
 | outlier span narrower than the series | `unsupported:x13 automatic fit spans the full series only` |
@@ -217,6 +221,50 @@ promoted — decisions 1-9 stay open per the roadmap ledger).
 Shape violations throw `std::invalid_argument` exactly as the seams below
 do. Estimation non-convergence is not a refusal: the pinned kernel drives
 on whatever the processor retained (the 21-C "available" semantics).
+
+## Horizon extension (21-H.4)
+
+The X-11 spec horizons are month counts and a negative value means |h|
+annual frequencies, exactly as the pinned `X13AutomaticProcess` reads them;
+the driver normalizes both request fields the same way. The horizons feed
+the downstream composition ONLY — estimation, the decision chain and the
+landing coefficients are horizon-invariant (verified: the horizon captures'
+orders/arma facts are byte-identical to the zero-horizon oracle captures of
+the same series). The composition extension is:
+
+* **preadjust** (`X13PreadjustInput.backcast/forecast`, `arima`): with a
+  nonzero horizon the landing SarimaModel point (blocks [ar, ma, sar, sma]
+  with the two AR blocks sign-flipped onto the JVM surface, plus the
+  mean-correction flag) drives the pinned `initialStep` route — the
+  ExactArimaForecasts stack over the preadjusted linearized series
+  (`r = v30 − v27`; unit `kalos::arima_forecasts`, its own contract).
+  `a1a`/`a1b` carry the extended raw series on the forecast/backcast windows
+  (backTransform'ed; pinned backcasts + v27 / forecasts + v27), `a6..a9u`
+  and `out` span the extended calendar (n + nb + nf rows) and the outlier
+  columns are the zero-ended factory fills over that calendar (the LS/SO
+  patterns reach back across the position, the TC ramp runs forward with
+  the pinned 1e-15 write cutoff). The extended det design carries outlier
+  columns only — calendar/easter/TD/user effects stay fail-closed (21-I),
+  so no extended determinant-column extension is needed at this seam.
+* **X-11**: the selection pass runs on the extended `out` calendar with the
+  shifted first period ((first_period − 1 − nb) mod 12) + 1 and the request
+  horizons passed through; the log-additive fold is untouched.
+* **finals** (`X13RestoreInput.backcast/forecast`): the restored tables are
+  fitted to the a1 calendar and `d11a/d12a/d16a/d18a`/`d11b/d12b/d16b/d18b`
+  carry the pinned `fitToDomain` slices over the a1a (forecast) and a1b
+  (backcast) domains; all stay empty under zero horizons.
+
+Tier envelope (measured, `tests/test_x13_automatic_horizon.cpp` against the
+pinned captures in `validation/evidence/native/x13-horizon/`): the
+decisions and `a1` (all four cases, AR-bearing ones included) and `d18`,
+`d18a`, `d18b` are BIT claims; `a1a`/`a1b`/`out` land at ~1e-6 relative and
+the split finals/X-11 tables at ~1e-7..1e-5, with the d13 class at ~2e-4,
+`c17` at ~1e-3 and the `e2` outlier-position entries at ~2e-2. That floor
+is not the route: the route itself reproduces the JVM filter trajectory to
+≤1e-13 on pinned unit probes (arima-forecasts contract); the extension
+inherits the native landing-coefficient basin drift (G2 seam) the oracle
+test already bands at zero horizon (worst 1.2e-4) and it propagates once through
+the extended route into every table that rides on `out`/`a1a`.
 
 ## Non-determinism and tier envelope (slice-3 policy)
 
@@ -346,7 +394,7 @@ SECTION 15 carries the probe evidence):
   answers for every non-monthly request before anything interprets its
   shape), then the shape throws (`first_period`, one-seasonal-entry-per-
   period, `size <= 13`, outliers-without-type), then the status gates in
-  order finite-data, zero-horizons, explicit-sigma, deferred-modules,
+  order finite-data, explicit-sigma, deferred-modules,
   full-series-span. A refused request carries an empty chain; a caught
   machine throw maps to `"failed:<stage>"` with the chain kept plus the
   `"failed"` tail entry.
