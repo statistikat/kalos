@@ -1978,3 +1978,44 @@ clean, exit 0; all nine sweeps unchanged; `check-manifest.py` green at
 `test_outlier_scoring` green with the shared-engine fix; warning-free
 (cxx_std_17). The two untracked files (`src/kalos_write_probe.cpp`,
 `cpp-out.txt`) remain user-pending, never `git add`.
+
+## CI red root-caused and fixed: the pinned FP-contraction semantics — 2026-11-20
+
+CI has never been green (all 14 runs since the workflow's creation failed);
+the diagnosis agent reproduced the exact 17-test CI set locally under
+`-march=x86-64-v3` (the ubuntu-latest image migration of Oct-Nov 2026 moved
+the label onto x86-64-v3/amd64v3 toolchain defaults, AVX2+FMA; macos-latest
+arm64 has FMA architecturally). One root cause: the JVM golden corpus and
+the vendored fdlibm transcription encode UNFUSED IEEE arithmetic - every
+`a*b+c` rounds twice, and the split-precision Horner kernels depend on the
+discarded low word staying discarded - while GCC/Clang default to
+`-ffp-contract=fast` and fuse wherever the target exposes FMA (1-8 ULP
+drift, occasional boundary flips: the IGContFract guard rows, the
+differencing `threw` threshold, anchored_dot tables, the fdlibm 480/2261
+special-function rows reproducing the CI counts bit-identically). Not a
+regression, not the provider (the pinned OpenBLAS 0.3.34 is LAPACKE-complete
+and provably outside every bit-pin path: OPENBLAS_CORETYPE sweeps all pass),
+not a locator issue (goldens are embedded headers).
+
+Fix: `target_compile_options(kalos PUBLIC -ffp-contract=off)` (GNU/Clang/
+AppleClang; `/fp:precise` for MSVC) - PUBLIC because the inline kernels in
+the shipped headers (`x11_pinned.hpp`, `parallel.hpp`, ...) compile into
+consumer translation units. Evidence (this machine, gcc 13.3, pinned
+provider): flag-off is bit-neutral (both lanes fully green, all nine sweeps
+unchanged); the proof tree (`-march=x86-64-v3` + fix) passes the
+previously-failing bit-pin subset (special_functions, parallel, x11_sigma,
+final_information, arma_refinement), where without the fix exactly the CI's
+17 tests fail. The optional workflow extras (ubuntu-24.04 pin, provider
+sanity step) await maintainer decision and are NOT applied.
+
+Evidence (this session): fix trees configured fresh - OpenMP lane ctest
+62/62, serial lane ctest 62/62 (both zero warnings, -ffp-contract=off in
+every kalos and test compile line); proof tree
+`CMAKE_CXX_FLAGS=-march=x86-64-v3` + fix: the previously-failing bit-pin
+subset (test_special_functions, test_parallel, test_x11_sigma,
+test_final_information, test_arma_refinement) 5/5 green, where the same
+ISA without the fix fails 480/2261 special-function rows and aborts on
+`m.bic == bic[k]` - the CI texts bit-identically. Bit-neutrality
+spot-checks vs the pre-fix library: verify_final_information 266/0,
+verify_outlier_scoring 98/0, x11-bpass sweep 18/18 (counts identical).
+`check-manifest.py` 140/112/190; `verify-migration.py` 406.

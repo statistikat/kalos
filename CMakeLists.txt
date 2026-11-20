@@ -99,6 +99,19 @@ add_library(kalos STATIC
 add_library(kalos::kalos ALIAS kalos)
 set_target_properties(kalos PROPERTIES POSITION_INDEPENDENT_CODE ON)
 target_compile_features(kalos PUBLIC cxx_std_17)
+# The qualified JVM numerics are unfused IEEE: a*b+c must round twice.
+# GCC/Clang contract by default whenever the target exposes FMA (arm64
+# baseline, x86-64-v3/amd64v3 distro defaults), which flips last bits in
+# the fdlibm Horner kernels and every dot product on those machines.
+# Keep the semantic pinned, independent of the build machine's ISA.
+# PUBLIC: the inline kernels in the shipped headers (x11_pinned.hpp,
+# parallel.hpp, ...) compile in consumer translation units too.
+if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang|AppleClang")
+  target_compile_options(kalos PUBLIC -ffp-contract=off)
+elseif(MSVC)
+  # MSVC /fp:precise (the default) never contracts; make the intent explicit.
+  target_compile_options(kalos PUBLIC /fp:precise)
+endif()
 target_include_directories(kalos PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
   $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/generated>

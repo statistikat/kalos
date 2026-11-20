@@ -537,6 +537,12 @@ oracle also found and this slice fixed four driver bugs (ODM retained
 carrier, Ansley p=0 underflow, checkMu mean-on design mismatch, ODM
 estimate-before-detect). See the contract's qualification section for
 the tier tables and removal record.
+- Build semantics (2026-11-20, dated IMPLEMENTATION_STATUS entry): the
+  kalos target now pins `-ffp-contract=off` (PUBLIC; `/fp:precise` on
+  MSVC) - the bit-exact JVM goldens are unfused IEEE and FMA-capable CI
+  images (x86-64-v3, arm64) contracted by default; CI was never green
+  (the same 17 tests red at every run since the workflow exists), the
+  fix is bit-neutral locally and proven under `-march=x86-64-v3`.
 
 ## Non-goals
 
