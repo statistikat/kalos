@@ -990,8 +990,13 @@ void t06_quick_twin() {
 //
 // The contract's worked search: all four outlier types on the spiked corpus.
 // Pinned observations (the probe corpus run): available, log, mean, orders
-// (3,0,0)(0,1,1), one AO variable at 1994-01, a 24-entry chain.  All chain
-// and variable assertions ride on this single run.
+// (0,0,0)(0,1,1), one AO variable at 1994-01, a 20-entry chain.  All chain
+// and variable assertions ride on this single run.  21-H.3 re-pin: the
+// airline-start fix (the X13ModelBuilder (0,1,1)(0,1,1) init, contract delta
+// list) shifts the search trajectory - the pre-fix pins were the landed
+// (3,0,0)(0,1,1) 24-entry path.  The landed decisions themselves carry the
+// JVM verification (the oracle corpus, all 13 cases decision-bit exact);
+// these unit pins guard the driver-internal trajectory regression.
 
 const kalos::X13AutomaticFitResult& full_case() {
   static const kalos::X13AutomaticFitResult result =
@@ -1005,13 +1010,13 @@ void t08_full_case() {
   if (r.status != "available") return;
   check(r.log, "full case: log chosen");
   check(r.mean, "full case: mean on");
-  check_eq_i(r.p, 3, "full case: p pinned");
+  check_eq_i(r.p, 0, "full case: p pinned");
   check_eq_i(r.d, 0, "full case: d pinned");
   check_eq_i(r.q, 0, "full case: q pinned");
   check_eq_i(r.bp, 0, "full case: bp pinned");
   check_eq_i(r.bd, 1, "full case: bd pinned");
   check_eq_i(r.bq, 1, "full case: bq pinned");
-  check_eq_i(static_cast<int>(r.chain.size()), 24,
+  check_eq_i(static_cast<int>(r.chain.size()), 20,
              "full case: chain size pinned");
   check_available_shape(r, shock_request(), "full case");
 
@@ -1084,14 +1089,17 @@ void t08_full_case() {
   check(mr != nullptr && mr->meanrule.has_value(),
         "full case: mean rule recorded");
   // the pass-2 law: a fired filter restores the reference (filter > 0 <->
-  // restored), and the last pass-2 entry of the run is the last-chance
-  // model or a keep (no restore after the final accepted state)
+  // restored), checked over the whole chain in check_chain_scalars.  21-H.3
+  // re-pin: on the airline-start trajectory the single pass-2 gate (round1)
+  // fires filter 5 and restores the reference model (pre-fix the gate kept);
+  // the landed model is pinned by the orders/variable checks above.
   const kalos::AutoDecisionRecord* last_p2 = nullptr;
   for (std::size_t i = r.chain.size(); i-- > 0 && last_p2 == nullptr;) {
     if (stage_suffix(r.chain[i].stage) == "pass2") last_p2 = &r.chain[i];
   }
-  check(last_p2 != nullptr && last_p2->pass2 && last_p2->pass2->filter == 0,
-        "full case: last pass-2 gate kept the model");
+  check(last_p2 != nullptr && last_p2->pass2 && last_p2->pass2->filter == 5 &&
+            last_p2->pass2->restored && !last_p2->pass2->last_solution,
+        "full case: last pass-2 gate restores the reference");
 
   check_composition(r, 96, "full case");
 }

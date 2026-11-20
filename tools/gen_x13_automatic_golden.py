@@ -95,7 +95,13 @@ def parse_events(rows):
         elif d.startswith("odm "):
             head = d[4:]
             types = head[:head.index(" ")]  # "AO,LS,TC,SO" or "" (no picks)
-            picks = [(int(a), int(b)) for a, b in
+            # The Info picks carry the FACTORY index into this case's type
+            # list (IOutliersDetectionModule.Info.getOutliers), not the
+            # global AO/LS/TC/SO code the driver and the gate speak; the
+            # full AO,LS,TC,SO list hides the difference, an "SO"-only case
+            # does not (21-H.3 find, gate extension).
+            names = [t for t in types.split(",") if t]
+            picks = [(int(a), TYPE[names[int(b)]]) for a, b in
                      re.findall(r"\[(\d+);(\d+)\]", d)]
             va = d.split()[-1]
             tt = tuple(sorted(TYPE[t] for t in types.split(",") if t))

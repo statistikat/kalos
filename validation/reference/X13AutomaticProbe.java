@@ -23,7 +23,11 @@ import jdplus.toolkit.base.api.timeseries.calendars.LengthOfPeriodType;
 import jdplus.toolkit.base.api.timeseries.regression.ModellingContext;
 import jdplus.toolkit.base.api.timeseries.regression.Variable;
 import jdplus.toolkit.base.core.regsarima.regular.IOutliersDetectionModule;
+import jdplus.toolkit.base.core.regsarima.regular.IAutoModellingModule;
 import jdplus.toolkit.base.core.regsarima.regular.IDifferencingModule;
+import jdplus.toolkit.base.core.regsarima.regular.ModelDescription;
+import jdplus.toolkit.base.core.regsarima.regular.ProcessingResult;
+import jdplus.toolkit.base.core.regsarima.regular.RegSarimaModelling;
 import jdplus.toolkit.base.core.regsarima.regular.RegSarimaModel;
 import jdplus.toolkit.base.core.stats.likelihood.LikelihoodStatistics;
 import jdplus.x13.base.api.regarima.AutoModelSpec;
@@ -88,6 +92,293 @@ public final class X13AutomaticProbe {
     return csv(x.getValues().toArray());
   }
 
+  // ---- 21-H.3 measurement wrappers ------------------------------------------
+  // The two RegArimaKernel module fields the decision trace cannot reach are
+  // instrumented WITHOUT changing pipeline behavior: each wrapper measures on
+  // a private deep copy, then delegates to the decoder-built module untouched.
+  // No decision rule is re-implemented; every measured quantity is produced
+  // by the pinned machinery itself (the module's own private make(...) + the
+  // detector it returns, RegArimaUtility.linearizedData at the module's own
+  // entry state). The measurement lines are emitted as extra fact lines
+  // ("odmscan", "refinestate"); the event stream stays byte-identical.
+
+  // OutliersDetectionModule: after running a fresh ExactOutliersDetector (the
+  // module's own private make on a snapshot of the entry description), report
+  // the exit scan's max t (SingleOutlierDetector.getMaxTStat - the JVM's best
+  // candidate |t| at stop, the quantity that decides the |t| > cv gate), the
+  // detector's own changed/round/picks (a self-check against the Info event),
+  // and the entry-state echo (log/mean/spec, estimation presence, parameters,
+  // regression coefficients) that defines the whitened input state.
+  private static final class OdmInstrumented implements IOutliersDetectionModule {
+    private final IOutliersDetectionModule real;
+    private final Observer obs;
+    private int idx = 0;
+
+    OdmInstrumented(IOutliersDetectionModule real, Observer obs) {
+      this.real = real;
+      this.obs = obs;
+    }
+
+    public ProcessingResult process(RegSarimaModelling m, double cv) {
+      StringBuilder sb = new StringBuilder();
+      sb.append("odmscan ").append(idx++);
+      try {
+        ModelDescription desc = m.getDescription();
+        var so = desc.specification();
+        sb.append(" spec ").append(so.getP()).append(' ').append(so.getD())
+            .append(' ').append(so.getQ()).append(' ').append(so.getBp())
+            .append(' ').append(so.getBd()).append(' ').append(so.getBq())
+            .append(" log ").append(desc.isLogTransformation() ? 1 : 0)
+            .append(" mean ").append(desc.isMean() ? 1 : 0)
+            .append(" needest ").append(m.needEstimation() ? 1 : 0);
+        var est = m.getEstimation();
+        sb.append(" pars ");
+        if (est == null) {
+          sb.append('-');
+        } else {
+          sb.append(csv(est.getModel().arima().parameters().toArray()));
+        }
+        sb.append(" coef ");
+        if (est == null) {
+          sb.append('-');
+        } else {
+          sb.append(csv(est.getConcentratedLikelihood().coefficients().toArray()));
+        }
+        sb.append(" cv ").append(fmt(cv));
+        ModelDescription snap = ModelDescription.copyOf(desc);
+        java.lang.reflect.Method make = real.getClass().getDeclaredMethod(
+            "make", ModelDescription.class, double.class);
+        make.setAccessible(true);
+        jdplus.toolkit.base.core.regsarima.ami.ExactOutliersDetector det
+            = (jdplus.toolkit.base.core.regsarima.ami.ExactOutliersDetector)
+                make.invoke(real, snap, cv);
+        boolean changed = det.process(snap.regarima(), snap.mapping());
+        java.lang.reflect.Field sodF = det.getClass().getDeclaredField("sod");
+        sodF.setAccessible(true);
+        Object sod = sodF.get(det);
+        java.lang.reflect.Method mts = sod.getClass().getMethod("getMaxTStat");
+        mts.setAccessible(true);
+        double tmax = (Double) mts.invoke(sod);
+        java.lang.reflect.Field roundF = det.getClass().getDeclaredField("round");
+        roundF.setAccessible(true);
+        int argp = (Integer) sod.getClass().getMethod("getMaxOutlierPosition").invoke(sod);
+        int argt = (Integer) sod.getClass().getMethod("getMaxOutlierType").invoke(sod);
+        sb.append(" t ").append(fmt(tmax))
+            .append(" argmax ").append(argp).append(';').append(argt)
+            .append(" changed ").append(changed ? 1 : 0)
+            .append(" rounds ").append(roundF.getInt(det))
+            .append(" picks");
+        for (int[] o : det.getOutliers()) {
+          sb.append('[').append(o[0]).append(';').append(o[1]).append(']');
+        }
+        // Whitened scan state of the replayed detector (ExactSingleOutlier-
+        // Detector internals): the differenced/Ansley-filtered response, the
+        // whitened design and QR state, the candidate numerators - every
+        // input of the per-cell t arithmetic. Facts only; the pipeline never
+        // sees these objects (the snapshot is discarded after measuring).
+        StringBuilder wb = new StringBuilder();
+        wb.append("odmw ").append(idx - 1);
+        wb.append(" yl ").append(dblField(sod, "yl"));
+        wb.append(" b ").append(dblField(sod, "b"));
+        wb.append(" z ").append(dblField(sod, "z"));
+        wb.append(" piv ").append(intField(sod, "pivot"));
+        wb.append(" xl ").append(matField(sod, "Xl"));
+        wb.append(" u ").append(matField(sod, "U"));
+        obs.emitFact(wb.toString());
+      } catch (Throwable t) {
+        Throwable c = t.getCause() != null ? t.getCause() : t;
+        sb.append(" error ").append(c.getClass().getName());
+      }
+      obs.emitFact(sb.toString());
+      ProcessingResult res = real.process(m, cv);
+      // Exit-state re-measure: the module may have estimated internally
+      // (needest=1 on first entry), so the decision scan the JVM actually
+      // stopped on is only observable after the delegate. Rebuilding the
+      // detector from the exit description re-runs exactly the scan whose
+      // argmax |t| < cv terminates the module - the quantity the native
+      // round-0 accept/reject decision is qualified against.
+      StringBuilder pb = new StringBuilder();
+      pb.append("odmscanpost ").append(idx - 1);
+      try {
+        ModelDescription desc = m.getDescription();
+        var so = desc.specification();
+        pb.append(" spec ").append(so.getP()).append(' ').append(so.getD())
+            .append(' ').append(so.getQ()).append(' ').append(so.getBp())
+            .append(' ').append(so.getBd()).append(' ').append(so.getBq())
+            .append(" log ").append(desc.isLogTransformation() ? 1 : 0)
+            .append(" mean ").append(desc.isMean() ? 1 : 0)
+            .append(" needest ").append(m.needEstimation() ? 1 : 0);
+        var est = m.getEstimation();
+        pb.append(" pars ");
+        if (est == null) {
+          pb.append('-');
+        } else {
+          pb.append(csv(est.getModel().arima().parameters().toArray()));
+        }
+        pb.append(" cv ").append(fmt(cv));
+        ModelDescription snap = ModelDescription.copyOf(desc);
+        java.lang.reflect.Method make = real.getClass().getDeclaredMethod(
+            "make", ModelDescription.class, double.class);
+        make.setAccessible(true);
+        jdplus.toolkit.base.core.regsarima.ami.ExactOutliersDetector det
+            = (jdplus.toolkit.base.core.regsarima.ami.ExactOutliersDetector)
+                make.invoke(real, snap, cv);
+        boolean changed = det.process(snap.regarima(), snap.mapping());
+        java.lang.reflect.Field sodF = det.getClass().getDeclaredField("sod");
+        sodF.setAccessible(true);
+        Object sod = sodF.get(det);
+        double tmax = (Double) sod.getClass().getMethod("getMaxTStat").invoke(sod);
+        int argp = (Integer) sod.getClass().getMethod("getMaxOutlierPosition").invoke(sod);
+        int argt = (Integer) sod.getClass().getMethod("getMaxOutlierType").invoke(sod);
+        pb.append(" t ").append(fmt(tmax))
+            .append(" argmax ").append(argp).append(';').append(argt)
+            .append(" changed ").append(changed ? 1 : 0)
+            .append(" picks");
+        for (int[] o : det.getOutliers()) {
+          pb.append('[').append(o[0]).append(';').append(o[1]).append(']');
+        }
+      } catch (Throwable t) {
+        Throwable c = t.getCause() != null ? t.getCause() : t;
+        pb.append(" error ").append(c.getClass().getName());
+      }
+      obs.emitFact(pb.toString());
+      return res;
+    }
+  }
+
+  // AutoModellingModule: report the entry state (log/mean/spec, estimation
+  // presence, parameters, regression coefficients) and the sequence the
+  // module itself feeds to its differencing machine - the pinned
+  // RegArimaUtility.linearizedData(model, cl) at the entry estimation -
+  // so the linearization input of every refine round is oracle data.
+  private static final class RefineInstrumented implements IAutoModellingModule {
+    private final IAutoModellingModule real;
+    private final Observer obs;
+    private int idx = 0;
+
+    RefineInstrumented(IAutoModellingModule real, Observer obs) {
+      this.real = real;
+      this.obs = obs;
+    }
+
+    public ProcessingResult process(RegSarimaModelling m) {
+      StringBuilder sb = new StringBuilder();
+      sb.append("refinestate ").append(idx++);
+      try {
+        ModelDescription desc = m.getDescription();
+        var so = desc.specification();
+        sb.append(" spec ").append(so.getP()).append(' ').append(so.getD())
+            .append(' ').append(so.getQ()).append(' ').append(so.getBp())
+            .append(' ').append(so.getBd()).append(' ').append(so.getBq())
+            .append(" log ").append(desc.isLogTransformation() ? 1 : 0)
+            .append(" mean ").append(desc.isMean() ? 1 : 0)
+            .append(" needest ").append(m.needEstimation() ? 1 : 0);
+        var est = m.getEstimation();
+        sb.append(" pars ");
+        if (est == null) {
+          sb.append("- coef - x -");
+        } else {
+          sb.append(csv(est.getModel().arima().parameters().toArray()));
+          sb.append(" coef ").append(csv(est.getConcentratedLikelihood().coefficients().toArray()));
+          DoubleSeq x = est.linearizedSeries();
+          sb.append(" x ").append(csv(x.toArray()));
+        }
+      } catch (Throwable t) {
+        Throwable c = t.getCause() != null ? t.getCause() : t;
+        sb.append(" error ").append(c.getClass().getName());
+      }
+      obs.emitFact(sb.toString());
+      return real.process(m);
+    }
+  }
+
+  // Swap the kernel's decoder-built outliers/autoModel modules for the
+  // measuring wrappers through the private final fields (classpath classes,
+  // unnamed module: setAccessible is permitted). A missing module (disabled
+  // spec section) is skipped exactly as the kernel sees it.
+  private static void instrument(X13Kernel kernel, Observer obs) throws Exception {
+    java.lang.reflect.Field rkF = X13Kernel.class.getDeclaredField("regarima");
+    rkF.setAccessible(true);
+    Object rk = rkF.get(kernel);
+    if (rk == null) {
+      return;
+    }
+    java.lang.reflect.Field oF = rk.getClass().getDeclaredField("outliers");
+    oF.setAccessible(true);
+    Object odm = oF.get(rk);
+    if (odm instanceof IOutliersDetectionModule mod) {
+      oF.set(rk, new OdmInstrumented(mod, obs));
+    }
+    java.lang.reflect.Field aF = rk.getClass().getDeclaredField("autoModel");
+    aF.setAccessible(true);
+    Object am = aF.get(rk);
+    if (am instanceof IAutoModellingModule mod) {
+      aF.set(rk, new RefineInstrumented(mod, obs));
+    }
+  }
+
+  // Reflection dump helpers for the measurement wrappers: ";"-joined %.17g
+  // lists ("-" for a null/absent field), matrices row-major.
+  private static java.lang.reflect.Field anyField(Class<?> c, String name)
+      throws NoSuchFieldException {
+    for (; c != null; c = c.getSuperclass()) {
+      try {
+        return c.getDeclaredField(name);
+      } catch (NoSuchFieldException e) {
+        // keep walking
+      }
+    }
+    throw new NoSuchFieldException(name);
+  }
+
+  private static String dblField(Object o, String name) throws Exception {
+    java.lang.reflect.Field f = anyField(o.getClass(), name);
+    f.setAccessible(true);
+    double[] v = (double[]) f.get(o);
+    if (v == null) {
+      return "-";
+    }
+    return csv(v);
+  }
+
+  private static String intField(Object o, String name) throws Exception {
+    java.lang.reflect.Field f = anyField(o.getClass(), name);
+    f.setAccessible(true);
+    int[] v = (int[]) f.get(o);
+    if (v == null) {
+      return "-";
+    }
+    StringBuilder s = new StringBuilder();
+    for (int i = 0; i < v.length; ++i) {
+      if (i != 0) {
+        s.append(',');
+      }
+      s.append(v[i]);
+    }
+    return s.toString();
+  }
+
+  private static String matField(Object o, String name) throws Exception {
+    java.lang.reflect.Field f = anyField(o.getClass(), name);
+    f.setAccessible(true);
+    Object m = f.get(o);
+    if (m == null) {
+      return "-";
+    }
+    jdplus.toolkit.base.core.math.matrices.FastMatrix mat
+        = (jdplus.toolkit.base.core.math.matrices.FastMatrix) m;
+    StringBuilder s = new StringBuilder();
+    for (int i = 0; i < mat.getRowsCount(); ++i) {
+      for (int j = 0; j < mat.getColumnsCount(); ++j) {
+        if (i != 0 || j != 0) {
+          s.append(';');
+        }
+        s.append(fmt(mat.get(i, j)));
+      }
+    }
+    return s.length() == 0 ? "-" : s.toString();
+  }
+
   private static double[] parseValues(String s) {
     String[] parts = s.split(";", -1);
     double[] v = new double[parts.length];
@@ -100,11 +391,17 @@ public final class X13AutomaticProbe {
   // The observer log. Records every callback (kind, nesting depth, message,
   // serialized detail) in call order. The detail payload is serialized per
   // pinned machine-info class; anything else falls back to a deterministic
-  // string form (never an identity hash).
+  // string form (never an identity hash). The `facts` sink carries the
+  // measurement-wrapper lines (21-H.3); they are facts, never events.
   private static final class Observer implements ProcessingLog {
     final StringBuilder sb = new StringBuilder();
+    final StringBuilder facts = new StringBuilder();
     int depth = 0;
     long seq = 0;
+
+    void emitFact(String line) {
+      facts.append(line).append('\n');
+    }
 
     static String detail(Object d) {
       if (d == null) {
@@ -367,9 +664,12 @@ public final class X13AutomaticProbe {
       ModellingContext ctx = ModellingContext.getActiveContext();
       X13Spec spec = buildSpec(c);
       Observer obs = new Observer();
-      X13Results results = X13Kernel.of(spec, ctx).process(ts.cleanExtremities(), obs);
+      X13Kernel kernel = X13Kernel.of(spec, ctx);
+      instrument(kernel, obs);
+      X13Results results = kernel.process(ts.cleanExtremities(), obs);
       out.append("status ").append(results.isValid() ? "ok" : "invalid").append('\n');
       out.append(obs.sb);
+      out.append(obs.facts);
       if (!results.isValid()) {
         return out.toString();
       }

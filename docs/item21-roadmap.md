@@ -544,6 +544,23 @@ the tier tables and removal record.
   (the same 17 tests red at every run since the workflow exists), the
   fix is bit-neutral locally and proven under `-march=x86-64-v3`.
 
+**21-H.3 (2026-11-20) — stage Z closes: all thirteen oracle cases are
+decision-bit qualified and ctest registers the full set.** The two H.2
+residuals (ao/noout round-0 ODM over-accept, multi stage-grid) shared
+one root cause, found by the H.3 probe scan-replay facts and fixed:
+the driver's specification start was not the X13ModelBuilder airline
+(0,1,1)(0,1,1). Three further transcription fixes landed with the
+slice (JVM-surface AR/SAR export sign, the adjusted-log-likelihood
+AICC with the transformation Jacobian over the estimation domain, the
+golden generator's factory-index ODM pick translation), the measured
+tier bands were re-qualified on all thirteen cases (contract tier
+table), the scan-replay diagnostic family was recorded as
+informational (probe-replay artifacts, root causes in the contract),
+and the gate's `add_test` lost its case filter (62/62 both lanes with
+the full oracle at 390 s). Oracle 4637 checks 0 failures; full sweep
+71401 checks 0 bad; double capture byte-identical; sanitizer subset
+clean. The pinning notes SECTION 18 carries the session record.
+
 ## Non-goals
 
 No TRAMO/SEATS (items 23/24), no benchmarking/diagnostics (item 25), no

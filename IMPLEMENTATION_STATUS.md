@@ -2019,3 +2019,53 @@ ISA without the fix fails 480/2261 special-function rows and aborts on
 spot-checks vs the pre-fix library: verify_final_information 266/0,
 verify_outlier_scoring 98/0, x11-bpass sweep 18/18 (counts identical).
 `check-manifest.py` 140/112/190; `verify-migration.py` 406.
+
+## Automatic oracle fully qualified: slice 21-H.3 closes stage Z — 2026-11-20
+
+Stage Z's last open item is closed: the automatic-pipeline JVM oracle
+now carries **all thirteen cases decision-bit exact** and ctest
+registers the full set (case filter removed, timeout 3600, full
+in-lane run 390 s). The two H.2 residuals — ao/noout's round-0 ODM
+over-accept and multi's (bp,bq) stage-grid — had the single root cause
+that H.3's scan-replay probe facts exposed: the driver's `Description`
+started at zero stationary orders instead of the `X13ModelBuilder`
+airline (0,1,1)(0,1,1) the ODM entry spec carries, so the round-0
+whitening ran on the wrong model. Three further transcription fixes
+landed with the slice: the export sign convention (the JVM surface is
+`SarimaSpec.parameters()`, all-plus AR/SAR signs — the export negates
+the φ-blocks, the estimation keeps them), the landing AICC's adjusted
+log-likelihood (the transformation Jacobian subtracts `sum(log y)`
+over the estimation domain, the last `n − d − 12·bd` values, pinned by
+the ao/rw stats facts), and the golden generator's factory-index
+translation of the `Info` outlier picks (the SO-only case exposed it).
+
+**Capture (this slice's owned double capture).** Fresh javac of the
+probe (wrapper: the H.3 `odmscan`/`odmw`/`odmscanpost`/`refinestate`
+measurement families); two independent JVM processes, four data files
+byte-identical, `oracle-facts.csv` sha256 `798c81ac…` both; events and
+all golden-relevant facts byte-identical to the H.2 capture (the
+instrumentation is purely additive — the golden header diff is exactly
+the four so-pick factory codes). The `KALOS_DUMP_ODM` src dumps used
+during the diagnosis were all stripped (`outlier_scan_engine.cpp` back
+at its pre-slice hot loop); the functional `ScanRecord` carrier stays.
+
+**Tiers re-qualified on the full corpus** (contract tier table): panel
+BIC2 1e-2 (measured 8.1e-3, membership bit), ARMA landing coefficients
+1e-2 (measured 9.8e-3), tables 1e-6 (measured 5.0e-7), c17 1e-4 and
+refine-x 1e-6 as sweep-only measured families, the scan-replay family
+recorded informational (probe re-runs diverge legitimately at cv/
+argmax near-ties — root causes in the contract; the real selections
+are the bit-exact odm-decisions). T08's driver-internal trajectory
+pins re-pinned to the airline-start path (contract 21-H.3 resolution).
+
+**Gates (this tree, all fresh builds).** Oracle all-thirteen: 4637
+checks 0 failures; full sweep 71401 checks 0 bad, 13/13 cases ok
+(+13 informational); OpenMP lane 62/62 (433 s), serial lane 62/62
+(569 s), ASan/UBSan oracle subset (quick+seas, 698 checks) exit 0 zero
+findings; nine sweeps unchanged (differencing 39, transformation 11,
+estimation-control 27 incl. hr 10, initial-ARMA 4368,
+arma-refinement 423, outlier-scoring 98, regression-tests 494,
+final-information 266); `check-manifest.py` 140/112/190;
+`verify-migration.py` 406; evidence `SHA256SUMS.csv` verifies (5/5).
+The two untracked files (`src/kalos_write_probe.cpp`, `cpp-out.txt`)
+remain user-pending, never `git add`.
