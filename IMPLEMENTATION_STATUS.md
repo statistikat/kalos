@@ -2132,3 +2132,73 @@ final-information 266); evidence SHA256SUMS verifies. `check-manifest.py`
 and `verify-migration.py` 406 after staging. The two untracked files
 (`src/kalos_write_probe.cpp`, `cpp-out.txt`) remain user-pending, never
 `git add`.
+
+## TRAMO/SEATS open slice: roadmap for items 23/24 with live probe evidence — 2026-11-21
+
+Planning + pinning slice (docs/probes only, no `src/` changes): the item-23/24
+decomposition lands as `docs/tramo-seats-roadmap.md`, grounded in LIVE probes of
+the pinned rjd3 3.9.0 TRAMO/SEATS stack (the `jdplus-tramoseats-base-{api,core,
+r,protobuf}-3.9.0.jar` family enters the probe closure for the first time; core
+sha256 f919fda9f88dcae01bc122f049889ba1ac37747cc409a1f9fdf793ac4bb09db9, full
+hashes in the pinning notes). Session record: `tmp_opencode/kalos-m5-pinning.md`
+(new SIBLING file, sections 1–6 — M5 numbering restarts there, the 21-H notes
+stay frozen). Live harness `tmp_opencode/m5probe/` (plain `java -cp`, no rJava,
+G2 intrinsic recipe; seven artifacts — reach, specs, tramo tr3/trfull, seats,
+pipeline rsa3/rsafull — double-captured BYTE-IDENTICAL across two independent
+OpenJDK 21 processes, hashes in the notes §1); `javap -p -c` dumps, 63 files /
+42,926 lines under `tmp_opencode/jdprobe/m5/` (`dump.sh` regenerable); an
+`-Xlog:class+load` liveness matrix (120 classes on rsa3 / 125 on rsafull, the
+facts re-emitted byte-identical to the double-capture).
+
+**Findings that bind the roadmap.** (i) The live `TramoKernel.process` stage
+order — seasonality test → log-level test → round-0 {outliers → estimation} →
+round-1 {differencing → ARMA → outliers → estimation} — differs from the X-13
+`RegArimaKernel` order: the native X-13 automatic driver is NOT a reusable
+TRAMO skeleton. (ii) The TR template expansion is probe-materialized
+(`TramoSpec` statics TR0–TR5/TRfull with a live knob matrix;
+`TramoSeatsSpec.RSA0=DEFAULT`, `RSA1..RSA5/RSAfull` wrap TR1..TR5/TRfull +
+`DecompositionSpec.DEFAULT`; the R glue renames rsa→tr before `fromString`) and
+the TRAMO `AutoModelSpec` scalars (cancel 0.05, pcr 0.95, ub1 0.97, ub2 0.91)
+provably differ from the X-13 decoder set (0.1/1.0309…/1.1363…) — the binding
+layers need a SEPARATE TRAMO template table. (iii) `TramoSelection` and
+`TramoSelection$AuxiliaryModule` DO NOT EXIST in the pinned jars
+(ClassNotFoundException) — any plan naming them is void; the live selection
+machinery is the `tramo.internal` trio (`ArmaModule` +
+`ArmaModelSelector.FastBIC`, `DifferencingModule`, `OutliersDetectionModule`).
+The selector's `HannanRissanen` call site is in the bytecode but never executed
+on the clean probe series (HR not class-loaded — the 23-D corpus must force the
+search). `TramoModelBuilder` is the live builder (class-load confirmed;
+`DefaultModelBuilder` never loads). (iv) The SEATS default path resolves the
+Wiener–Kolmogorov estimator — Kalman/Matrix estimators NOT loaded (register
+D1); the XL=0.95 parameter cutoff is live at the boundary (fixed-airline probe
+lands ±0.95 with `parametersCutOff=true` — a ready 24-A fixture); the
+`TramoSeatsKernel.of(RegSarimaModel)` bridge is fully decoded (interpolated
+series + log + mean-correction + variance + fitted orders re-pinned as Fixed
+parameters), so 24-A consumes SEATS inputs without running TRAMO. (v) The
+rsa3→rsafull class-load diff on the probe data is exactly the FTEST
+trading-days stage (rsa3's `DefaultRegressionTest` is replaced by
+`AutomaticFRegressionTest` + `TradingDaysController`) —
+which makes the 21-I dependency precise: 21-I BLOCKS only the TRfull/23-E
+calendar branch and the rsafull leg of 24-E, NOT 23-A…23-D/23-F or 24-A…24-D.
+
+**Roadmap shape.** Reuse/fork table against the existing units (estimation
+spine reuse-as-is — TRAMO's `ModelEstimator` builds the same pinned-LM
+`RegSarimaComputer`; `final_estimator`/`final_information` fork-candidates
+pending 23-F decode; `initial_arma_identification`/`arma_refinement`/
+`regression_variable_tests` NOT applicable — different machines;
+`residual_information`/`arma_information` (tramo-information contract) already
+the TRAMO covariance convention); slices 23-A
+(`tramo_model_builder`) … 23-G (end-to-end TRAMO oracle) and 24-A
+(validator/cutoff) … 24-E (end-to-end, rsa3 AND rsafull per item acceptance),
+order 23-A → 24-A → 24-B → 23-B → 23-C → 23-D → 24-C → 23-E → 23-F → 24-D →
+23-G → 24-E; a cold-resume-ready spec for 23-A (oracle entries
+`TramoSpec.fromString`/statics and `new TramoModelBuilder(spec, ctx).build(ts,
+log)`, ~18–22-case corpus, double-capture fixture plan, full gate list); and a
+maintainer decision register D1–D11 (WK-only envelope, rsa3-first coverage,
+outlier iteration semantics, faithful FastBIC port, TD deferral to a joint 21-I
+surface, monthly-only first envelope, etc.).
+
+**Gates.** Docs-only slice: no build, tests, or manifest change (ctest stays
+64; `check-manifest.py`/`verify-migration.py` untouched, no source staged).
+The slice's own evidence gate — probe double-capture 7/7 byte-identical —
+passed; tree changes are this entry plus `docs/tramo-seats-roadmap.md`.
