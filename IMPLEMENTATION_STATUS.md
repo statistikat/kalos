@@ -2408,3 +2408,71 @@ tramo-builder sweep 22/22; `check-manifest.py` 146/112/207 (unchanged —
 contract pinned-semantics section (+ QR-cascade table, seasonal loop-bound
 quirk, refusal list, 24-A.1 deltas), roadmap 24-A ledger extended. D6 stays
 open; spectral factorization and the variance allocation remain 24-B scope.
+
+## SEATS decomposition seam: slice 24-B lands `kalos::decompose_ucarima` — 2026-11-21
+
+The seam between 24-A admissibility and SEATS filter construction —
+`DefaultModelDecomposer.decompose` (selector chain), `UcarimaModel.
+setVarianceMax(-1, false)` and `SeatsModel.compactUcarimaModel(false, false)`
+— is mirrored decision-for-decision and BIT-FOR-BIT by
+`kalos::decompose_ucarima` (`src/decompose_ucarima.cpp`) against the
+double-captured 49-case corpus (`DecomposeUcarimaProbe.java` +
+`capture-decompose-ucarima.R`; csv files byte-identical across JVM
+processes, SHA256SUMS verify). The 24-A engine moved verbatim to
+`include/kalos/detail/ucarima_engine.hpp` so the seam composes on the
+identical validated code; the validator TU is now the thin 24-A entry.
+
+The numerical core is the one-sided spectral factorization chain behind
+`ArimaModel.getMa()/getIV()`: `SymmetricFilter.factorize` = degree-0
+shortcut → `EigenValuesDecomposer2` → `EigenValuesDecomposer` → null. A
+LIVE JVM chain probe over all 150 distinct corpus symmetric filters (124
+EV2 / 5 EV1 / 1 fast / 20 none) fixed the tier scope: EV2 carries the
+`UnitRootsSolver` + `IVector.sqrt` + exact-LS-divide spine, the z = x + 1/x
+companion, `balance`/`hessenbergQR` (maxIter 120) and the real-pair /
+unit-circle classification with faithful AIOOBE bounds traps; EV1 (live for
+`v_simplify`/`d_d2_decomp` r c1) keeps the FULL-degree companion with the
+coefficients in `column(degree-1)` and the `|z| > 1` root filter; the fast
+tier's only corpus filter belongs to a validator-refused case, so
+EV2 → EV1 → null reproduces every `ma/var/sfd` line (incl. the JVM's own
+null-factorization `maerr`/`varr` failures). `setVarianceMax` applies the
+`Spectrum$Minimizer` with the pinned dispatch `denom.length() = 2*degree+1
+<= 6` and the `min == 0` / `m < 0` (dcmpl/dcmpg) branches; `fmt_g`
+reproduces Java `%.17g` (shortest round-trip digits PADDED to 17 — plain C
+differs). Fact scope: the d/cmp/r blocks + the SeatsException status row;
+JVM abort classes are captured as data (dangling-prefix `maerr`/`varr`/
+`sfdr` lines, `d.decompose null`); D6 CLOSED APPROVED: the 16
+approximation_required and 1 Noisy requests refuse fail-closed with pinned
+reasons, the crashing `DefaultModelApproximator` is NOT ported. The WK-only
+downstream caveat (D1) stands: 24-C wires the seam into the pipeline.
+
+Nine transcription bugs were root-caused to the bytecode on the way to
+bit-exactness (full writeup `tmp_opencode/kalos-m5-pinning.md` §10): the
+`hessenbergQR` left-update s2 slots (v2/w2, not hv/hw), `jm = min(k, i+3)`,
+the `m == 0` carry-over slots, `ComplexMath.sqrt`'s re<=0 cart branch
+(re = `0.5*im/t`), the Java-`%.17g` padding, the EV1 chain tier and its
+`column(degree-1)` placement, the `2*degree+1` minimizer dispatch (the
+engine compared the stored half-count to 6 — quarterly seasonal components
+take the GRID tier, the by-roots quartic exhaustion on `q_airline`/
+`q_decomp2` was self-inflicted), `jvm_decompose_abort` not deriving from
+`std::exception` (escaped the driver's catch → terminate; the JVM try
+around chain + setVarianceMax makes it `d.decompose null`), and the
+`balance` shrink loop's `dcmpl ifle` NaN exit.
+
+**Gates (this tree, all fresh builds).** `test_decompose_ucarima` (49
+cases, **1669 checks, 0 failures**: 32 byte-identical replays +
+determinism double-run, 17 exact-reason refusals): OpenMP lane 67/67
+(426 s), serial lane 67/67 (463 s). ASan/UBSan builds of unit, sweep and
+the 49-case smoke: clean. `tools/verify_decompose_ucarima.cpp` replays the
+csv corpus DIRECTLY: 49 cases, 1620 fact lines exact + 17 exact-reason
+refusals + 32 grammar audits, **81 checks 0 failures**. Existing suite
+invariant: validator sweep 35/35 (1026 checks), tramo-builder 22/22, nine
+sweeps byte-identical (differencing 39, transformation 11,
+estimation-control 27, initial-ARMA 4368, arma-refinement 423,
+outlier-scoring 98, regression-tests 494, final-information 266; x11 bpass
+18/18, cpass 18/18, dpass 22/22), x13 allocation 280 and fit 528, full
+automatic sweep 71401 checks 0 bad (13/13); `check-manifest.py`
+149/112/213 (the 24-B probe commit had left the six corpus files out of
+[evidence] — fixed here); `verify-migration.py` 406. Docs: new
+`docs/contracts/decompose-ucarima-contract.md`, contracts README index,
+roadmap 24-B ledger + D6 row CLOSED APPROVED, stale 24-A index note (the
+five QR-cascade refusal rows) corrected.

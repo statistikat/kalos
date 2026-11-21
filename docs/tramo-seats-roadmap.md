@@ -348,6 +348,42 @@ Dependencies on the unfinished X-13 queue (M4 report §6):
   (`r c{i} ma|var`, `k.ucar`, `model seasonality`) and the approximation
   policy remain scoped to 24-B/D6 as above.
 
+## 24-B — spec: `decompose_ucarima` (the decomposition seam)
+
+- **Scope (delivered).** The seam between 24-A admissibility and SEATS
+  filter construction: the raw selector-chain split ("r"),
+  `UcarimaModel.setVarianceMax(-1, false)` ("d") and
+  `SeatsModel.compactUcarimaModel(false, false)` ("cmp"), emitted as the
+  probe's fact grammar. The one-sided spectral factorization chain
+  (`SymmetricFilter.factorize`: degree-0 shortcut → `EigenValuesDecomposer2`
+  → `EigenValuesDecomposer`, the z = x + 1/x companion +
+  `balance`/`hessenbergQR` (maxIter 120), the real-pair / unit-circle
+  classification with faithful AIOOBE bounds traps, `UnitRootsSolver` +
+  `IVector.sqrt` quirks, exact LS divide, leja + `fromComplexRoots`), the
+  `Spectrum$Minimizer` dispatch on `2*degree+1 <= 6`, and the Java-`%.17g`
+  renderer (shortest round-trip digits PADDED to 17). A live JVM chain probe
+  over all 150 distinct corpus symmetric filters (124 EV2 / 5 EV1 / 1 fast /
+  20 none) settles the tier scope; JVM abort classes are captured as data
+  (dangling-prefix `maerr`/`varr`/`sfdr` lines, `d.decompose null`, the
+  SeatsException status row).
+- **Explicitly out.** `DefaultModelApproximator` (register D6 — refused);
+  the fast/robust factorizer tiers (their only corpus filter belongs to a
+  validator-refused case); `k.*` kernel flags and post-seam estimation
+  statuses (record-only); the WK-only downstream is D1 (24-C re-pins
+  WK-vs-sfd when wiring the seam into the pipeline).
+- **LANDED 2026-11-21.** 32 replayed cases (1620 fact lines, byte-identical
+  incl. the Eco- and SeatsException-status rows) + 17 pinned refusals
+  (16 approximation_required, 1 Noisy) bit-exact in both lanes (67/67 each,
+  fresh trees); sweep `tools/verify_decompose_ucarima.cpp` 49 cases direct
+  from csv, 1620 lines exact + determinism + grammar audits, 0 failures;
+  ASan/UBSan unit + sweep clean; existing suite invariant. Transcription
+  fixes found on the way (EV1 chain tier + its `column(degree-1)` placement,
+  the `2*degree+1` minimizer dispatch, `jvm_decompose_abort` escaping the
+  driver's `std::exception` catch, the `balance` shrink-loop `dcmpl` flavor,
+  the QR left-update slots and the `sqrt` cart branch) are itemized in the
+  contract doc. Ledger: unit `kalos::decompose_ucarima` closed for the
+  decomposition-seam surface; D6 CLOSED APPROVED (row below).
+
 ## Maintainer decision register (sign-off before the owning slice)
 
 | # | Decision | Slice | Position recorded at M5-open |
@@ -357,7 +393,7 @@ Dependencies on the unfinished X-13 queue (M4 report §6):
 | D3 | TRAMO outlier iteration semantics: round/pass3 wiring, `curva`/`reduceVa`/pcr adaptation, maxOutliers/maxIter defaults | 23-B | open; the 21-C scan engine is the substrate, policy forked |
 | D4 | FastBIC search: reuse HR unit as initializer vs faithful `ArmaModelSelector` port | 23-D | recommend faithful port of the selector with HR reuse inside (21-F lesson: decode before reusing) |
 | D5 | TRAMO call-site minimizer: pinned LM at the units, BFGS stays the core default (probed: TRAMO builds an LM minimizer) | 23-B…F | recommend the 21-D.2 precedent verbatim |
-| D6 | Non-decomposable model policy: which `ModelApproximationMode` values are in the envelope | 24-B | open; probe pinned the enum + defaults |
+| D6 | Non-decomposable model policy: which `ModelApproximationMode` values are in the envelope | 24-B | **CLOSED APPROVED at 24-B landing**: decomposable-only envelope — `approximation_required` decisions and `Noisy` mode refuse fail-closed with the pinned reasons; the crashing `DefaultModelApproximator` is NOT ported (validator classifies, unit refuses; contract `decompose-ucarima`) |
 | D7 | Bias correction (Burman) + auto forecast/backcast counts (−2) in the first 24-C envelope | 24-C | recommend include (the live default path uses them) |
 | D8 | Benchmarking (Cholette) stays OUT of the first pipeline envelope (rsa* defaults are OFF); requests refuse fail-closed | 24-E | recommend yes |
 | D9 | TRAMO-side coefficient uncertainty reuses the 20c.1b.2 `tramo_residual` covariance modes (already TRAMO-pinned) | 23-F | recommend yes, kept distinct from SEATS extraction variances |

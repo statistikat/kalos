@@ -557,6 +557,32 @@ into `DefaultModelApproximator` is register D6 (stays unimplemented: the unit
 reports `approximation_required` and stops). Spectral factorization
 (one-sided MA/variance), the variance allocation and `k.ucar` facts are
 24-B scope; five QR-cascade corpus rows (degree > 2 `roots()`: `d_d2`,
-`q_airline`, `q_d2`, `v_cut_bq2`, `v_simplify`) are refusal-asserted
-record cases (D11). Parameter-estimation uncertainty is 24-C scope. See
+`q_airline`, `q_d2`, `v_cut_bq2`, `v_simplify`) were refusal-asserted at
+landing; since the 24-A.1 QR-cascade port they replay as positive
+assertions (the factorizer chain itself is 24-B, see
+[decompose-ucarima-contract.md](decompose-ucarima-contract.md)). Parameter-estimation uncertainty is 24-C scope. See
 [tramo-seats-model-contract.md](tramo-seats-model-contract.md).
+
+## SEATS decomposition seam mirror
+
+`test_decompose_ucarima.cpp`, the double-captured 49-case JVM corpus under
+`validation/evidence/native/decompose-ucarima/`, the replay tool
+`tools/verify_decompose_ucarima.cpp` and the generator
+`tools/gen_decompose_ucarima_golden.py` qualify `kalos::decompose_ucarima`
+(item 24-B): the LIVE pinned decomposition seam — raw selector-chain split,
+`UcarimaModel.setVarianceMax(-1, false)` and
+`SeatsModel.compactUcarimaModel(false, false)` — through the spectral
+factorization chain (`SymmetricFilter.factorize`: constant shortcut →
+`EigenValuesDecomposer2` → `EigenValuesDecomposer`, the z = x + 1/x
+companion + `balance`/`hessenbergQR`, the real-pair / unit-circle
+classification, leja + `fromComplexRoots`), the `Spectrum$Minimizer`
+by-roots/by-grid dispatch (`2*degree+1 <= 6`), the compact reduction and
+the SeatsException status row. All 1620 fact lines are IEEE-754 bit-exact
+(no band at landing); JVM abort classes are captured as data (the dangling-
+prefix `maerr`/`varr`/`sfdr` lines, `d.decompose null`); the 16
+`approximation_required` and 1 Noisy requests fail closed with the pinned
+D6 reasons (the crashing `DefaultModelApproximator` stays unimplemented,
+register D6 APPROVED). The fast/robust factorizer tiers, the k.* kernel
+flags and the post-seam estimation statuses are record-only or out of
+envelope; the WK-only downstream caveat is D1. See
+[decompose-ucarima-contract.md](decompose-ucarima-contract.md).
