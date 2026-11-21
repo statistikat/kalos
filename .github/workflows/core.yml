@@ -39,7 +39,26 @@ jobs:
           cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release -DOpenBLAS_ROOT="${{ runner.temp }}/openblas" -DKALOS_OPENMP=${{ matrix.openmp }}
           cmake --build build --parallel 2
           if [ "$RUNNER_OS" = Linux ] && [ "${{ matrix.openmp }}" = ON ]; then export KALOS_REQUIRE_OPENMP=1; fi
-          ctest --test-dir build --output-on-failure
+          ctest --test-dir build --output-on-failure --output-junit build/junit.xml || {
+            ctest --test-dir build --rerun-failed --output-on-failure --output-junit build/junit-rerun.xml || true
+            mkdir -p "${GITHUB_WORKSPACE}/diag"
+            cc --version                                              > "${GITHUB_WORKSPACE}/diag/compiler.txt"
+            getconf GNU_LIBC_VERSION                                  > "${GITHUB_WORKSPACE}/diag/glibc.txt" 2>&1 || true
+            ldd build/test_x13_automatic_oracle                       > "${GITHUB_WORKSPACE}/diag/ldd.txt" 2>&1 || true
+            ldd --version                                             > "${GITHUB_WORKSPACE}/diag/ldd-version.txt" 2>&1
+            lscpu 2>/dev/null | grep -i flags | cut -c1-600           > "${GITHUB_WORKSPACE}/diag/cpu.txt" || sw_vers > "${GITHUB_WORKSPACE}/diag/cpu.txt"
+            ctest --test-dir build -N                                 > "${GITHUB_WORKSPACE}/diag/ctest-list.txt" || true
+            exit 1
+          }
+      - name: Upload test diagnostics
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ctest-${{ matrix.os }}-omp${{ matrix.openmp }}
+          path: |
+            build/junit.xml
+            build/junit-rerun.xml
+            diag/
       - name: Sanitizers
         if: runner.os == 'Linux' && matrix.openmp == 'OFF'
         run: |
