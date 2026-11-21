@@ -694,6 +694,49 @@ The default templates retain documented behavior, and no mandatory capability
 is missing. Source licences/notices and supported-platform evidence accompany
 the release; only then is the replacement considered complete.
 
+### 28. Implement fixed-structure coefficients-estimated X-13 fitting (automodel-OFF templates)
+
+**Depends on:** 20 for the fixed-order estimation kernel; 21 for regressor and
+transform policies; 22 for the X-11 pipeline including MSR and sigma handling;
+21-H for the nonzero-horizon route. **Owner:** numerical engineer with
+independent X-11 review.
+
+- **Scheduling (maintainer decision 2026-11-21):** this workstream is numbered
+  here and executes **after the M5 TRAMO/SEATS slice train**; it opens with its
+  own live-JVM probe/ledger slice in the style of
+  [`tramo-seats-roadmap.md`](tramo-seats-roadmap.md) before any unit ships.
+- Closes the envelope gap proven by the M4 gap investigation (persephone3
+  commits b625852/d8b335c, fixtures `native/refusals-m4gap`, double-JVM
+  byte-identical decodes): templates rsa0, rsa1 and rsa2c each require a
+  fixed-structure ARIMA whose coefficients remain **estimated**, the
+  `SEASONAL_FILTER_MSR` seasonal filter, **automatic Henderson** trend length
+  (H=0) and `nfcasts = -1` (12 forecast periods). The restricted-fit envelope
+  refuses each of those fields verbatim today; the automatic envelope covers
+  only the automodel-ON route. Candidate fixed values are series-dependent run
+  outputs, so no pinnable fixed-spec mapping exists — the selection behavior
+  itself must be implemented.
+- Deliver X13ARIMA-SEATS fixed-model fitting: estimate coefficients for the
+  declared model on the pre-adjustment series and feed the X-11 pipeline with
+  the spec-driven filter plan including MSR. Automatic Henderson selection is
+  its own decision stage requiring a JVM oracle corpus (bit-exact decisions,
+  banded values per the acceptance policy), not a filter-length argument.
+  Requalify the existing nonzero-horizon route for this estimation mode.
+- Port template-specific decoded quirks verbatim, including rsa0's empty
+  outlier-type list (registers no detection at all) and rsa2c's `TEST_REMOVE`
+  behavior (holiday columns removed while the leap-year coefficient stays
+  estimated).
+- Extend the rkalos/pykalos restricted-fit surface with capability-gated
+  envelope flags only after core qualification; persephone3 routes the three
+  templates once per-template parity is qualified. Until then the existing
+  evidence-backed refusals stand unchanged.
+
+**Acceptance:** rsa0/rsa1/rsa2c run natively in Persephone with decisions
+bit-exact against the pinned JVM reference (transform, filter plan, Henderson
+selection, outlier registry, estimated ARIMA coefficients) and measured table
+tiers with no tolerance relaxation. Any template that cannot be qualified
+keeps its evidence-backed refusal; the M4 clause "rsa0–rsa3 fully supported"
+is met literally or remains documented as refused.
+
 ### Numerical acceptance policy
 
 Use four independent validation layers, with failures attributed to the first
