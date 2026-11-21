@@ -2202,3 +2202,82 @@ surface, monthly-only first envelope, etc.).
 64; `check-manifest.py`/`verify-migration.py` untouched, no source staged).
 The slice's own evidence gate — probe double-capture 7/7 byte-identical —
 passed; tree changes are this entry plus `docs/tramo-seats-roadmap.md`.
+
+## TRAMO model-builder decision mirror: slice 23-A lands `kalos::tramo_model_builder` — 2026-11-21
+
+The first item-23 slice is delivered: the LIVE pinned
+`TramoModelBuilder.build(TsData, ProcessingLog)` (the package-private
+builder `TramoKernel` drives — `DefaultModelBuilder`/`TramoSelection` are
+dead on the live path) is mirrored decision-for-decision by
+`kalos::build_tramo_model` + `kalos::tramo_template`
+(`src/tramo_model_builder.cpp`), qualified against a double-captured
+22-case JVM corpus. The oracle path is the public entry point the roadmap
+pinned (`TramoSpec.fromString`/`TR*` statics plus
+`new TramoModelBuilder(spec, new ModellingContext()).build(ts, log)`,
+reached reflectively for the package-private class — no instrumentation),
+run under the G2 intrinsic-disable recipe on OpenJDK 21 with a live
+`Math.exp != StrictMath.exp` guard; inputs are StrictMath series carried
+as raw IEEE-754 bits, every probe value is a raw getter value, `%.17g`
+(`validation/reference/TramoModelBuilderProbe.java` +
+`capture-tramo-model-builder.R`, both byte-matched to the `metadata.R`
+pins at capture time). `--repro` re-capture: all four data files
+byte-identical across independent JVM processes; the corpus is locked in
+`validation/evidence/native/tramo-model-builder/` (`SHA256SUMS.csv`
+verifies 5/5).
+
+**Decision approvals (maintainer sign-off, slice time).** The register
+positions are approved as recommended: D2 (rsa3-first coverage order), D5
+(pinned-LM at the TRAMO call sites, 21-D.2 precedent), D9 (TRAMO-side
+uncertainty reuses the `tramo_residual` modes), D10 (calendar/Easter/user
+detection deferred to the joint 21-I surface — no second TD
+implementation), and D11 applies directly here: monthly frequency only at
+the unit boundary, the annual/quarterly corpus rows are JVM-qualified
+RECORD cases the unit refuses. D1/D3/D4/D6/D7/D8 stand as recorded for
+their owning slices; D3 and D6 remain open.
+
+**What the unit pins.** Template table `tr0..tr5,trfull` + uppercase
+(the `fromString` spellings; `Trfull`, `trFull` and every `rsa*` refused);
+start rule (autoModel → undefined airline + the post-`initializeVariables`
+`setMean(true)` overwrite, else `setArimaSpec(withPeriod(12))`, declared
+periods outside {0,12} refused); the `initializeMean` fixed-coefficient
+quirk (a `const` TrendConstant with `regeffect=Undefined`, mean OFF); the
+DERIVED `RegressionSpec.isUsed` gate (the `mean_off` row: TR1 +
+`MeanSpec.none()` registers nothing); log iff function==Log with
+`setPreadjustment(adjust)` always; the `AverageInterpolator` plan
+(interior `(left + right) / 2.0` on outer neighbours, leading run
+forward-filled — refuting the M5-open "leading NaNs stay NaN" decode note
+— trailing run left-filled, ascending missing list, all-missing refused);
+outlier factories with the 22c `ComponentType` regeffect vocabulary (AO/TC
+→ Irregular, LS → Trend, SO → Seasonal; `withCore` keeps request
+name/attributes, factory regeffect only when absent; unknown codes skipped
+in silence); users → the pinned `"<name>: not found (removed from the
+model)"` warning; the six-pass `sortVariables` order. The key decode
+finding for 23-B/23-E: **all seven templates register NO calendar
+variables** (TR2/TR4/TR5 tested; TRfull is automatic-FTEST + tested
+IncludeEaster), so every template build carries zero variables.
+
+**Fail-closed matrix** (`std::invalid_argument`, unit-asserted):
+non-monthly frequency, empty/all-NaN/infinite series, bad months, declared
+SARIMA periods ≠ 0/12, resolved user variables (21-I), stock/holidays/
+user-trading-day calendars, TD types other than TD2, registered TD blocks
+without the LeapYear LoP rule, julian/include Easter, outlier positions
+outside the month domain. Registered TD with `LoP=None` (which the JVM
+would build with a null `lp` core) is refused with the quirk documented.
+
+**Gates (this tree, all fresh builds).** `test_tramo_model_builder`
+(22 corpus cases — request echo + facts + events byte-identical — plus
+the template-name, rejection and interpolation-plan matrices): OpenMP lane
+65/65 (468 s), serial lane 65/65 (428 s). ASan/UBSan build of unit +
+sweep: clean. `tools/verify_tramo_model_builder.cpp` re-drives the raw
+csv corpus: 22/22 PASS (the two non-monthly rows refused as recorded).
+Two JVM numeric identities the replay reproduces: Java `%.17g` renders
+the SHORTEST round-tripping decimal padded to 17 digits (0.7 →
+`0.70000000000000000`, not C's `%#.17g` expansion), and
+`Parameter.isFree()` is `type != Fixed`. Existing suite unchanged: nine
+sweeps byte-identical (differencing 39, transformation 11,
+estimation-control 27, initial-ARMA 4368, arma-refinement 423,
+outlier-scoring 98, regression-tests 494, final-information 266, x11-bpass
+18/18), full automatic sweep 71401 checks 0 bad 13/13;
+`check-manifest.py` 144/112/201; `verify-migration.py` 406. Docs:
+`docs/contracts/tramo-model-builder-contract.md` (with the landing-delta
+section), its README index entry, and the roadmap 23-A ledger line.

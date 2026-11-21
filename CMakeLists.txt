@@ -73,6 +73,7 @@ add_library(kalos STATIC
   src/ssq_levmar.cpp
   src/ssq_deviances.cpp
   src/state_space.cpp
+  src/tramo_model_builder.cpp
   src/transformation_decision.cpp
   src/transforms.cpp
   src/vector_jacobian.cpp
@@ -202,6 +203,7 @@ if(KALOS_BUILD_TESTS)
     test_residual_information
     test_special_functions
     test_state_space
+    test_tramo_model_builder
     test_transformation_decision
     test_transforms
     test_vector_jacobian

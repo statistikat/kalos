@@ -295,6 +295,12 @@ Dependencies on the unfinished X-13 queue (M4 report §6):
   `check-manifest.py` and `verify-migration.py` 406 after staging; contract doc
   `docs/contracts/tramo-model-builder-contract.md` including the
   "Implementation-actual deltas at landing" section from day one.
+- **LANDED 2026-11-21.** All decisions bit-exact on the 22-case corpus in
+  both lanes; envelope decisions D2/D5/D9/D10/D11 approved by the maintainer
+  at slice time (see the dated status entry; D3/D6 stay open). Ledger: unit
+  `kalos::tramo_model_builder` closed; calendar design columns, the
+  collinearity `check()` pass, automatic outlier identification and the
+  log/level decision remain scoped to 21-I/23-B/23-E/23-F as above.
 
 ## Maintainer decision register (sign-off before the owning slice)
 

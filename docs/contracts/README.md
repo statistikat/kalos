@@ -510,3 +510,28 @@ coefficients, 5e-4 likelihood, guards at 1e-9; measured agreement over the
 promotion of pinned values to configuration and qualification of the pinned
 behaviour on degenerate unbounded-likelihood inputs are not delivered or
 claimed. See [estimation-control-contract.md](estimation-control-contract.md).
+
+## TRAMO model-builder decision mirror
+
+`test_tramo_model_builder.cpp`, the double-captured 22-case JVM corpus under
+`validation/evidence/native/tramo-model-builder/` and
+`tools/verify_tramo_model_builder.cpp` qualify `kalos::build_tramo_model`
+and `kalos::tramo_template` (item 23-A): the LIVE pinned
+`TramoModelBuilder.build` decisions — start rule (autoModel airline plus
+the post-`initializeVariables` mean overwrite versus
+`withPeriod(12)`), the `initializeMean` fixed-coefficient quirk, the
+derived `RegressionSpec.isUsed` gate, the `AverageInterpolator` missing
+plan (interior `(left + right) / 2.0`, forward-filled leading run,
+left-filled trailing run, ascending missing list), the `sortVariables`
+order with the `regeffect`/`ComponentType` attribute vocabulary, and the
+processing-log warnings — replayed as byte-identical probe lines (the
+driver `tests/tramo_model_builder_replay.h`, Java-`%.17g` shortest-decimal
+formatter, raw-bit series). All seven templates register NO calendar
+variables (the decode finding); every unproven path (stock/holidays/user
+trading days, TD types other than TD2, julian/include Easter, non-monthly
+frequency, declared periods other than 0/12, resolved user variables) is
+refused fail-closed, plus the template-name matrix (`rsa*`/`Trfull`
+rejected). Design algebra (day clustering, LoP and Easter columns), the
+log/level decision, the `check()` collinearity pass, automatic outlier
+identification and the Rcpp boundary are not delivered or claimed. See
+[tramo-model-builder-contract.md](tramo-model-builder-contract.md).
