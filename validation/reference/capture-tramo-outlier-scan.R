@@ -1,295 +1,275 @@
-#!/usr/bin/env Rscript
-# Byte-identity capture: TRAMO round-0 outlier scan corpus (M5 item 23-B, part 2).
+# Pinned-reference capture for item 23-B (part 2): the round-0 TRAMO outlier
+# scan of the pinned jdplus 3.9.0 stack (rjd3tramoseats), observed through the
+# LIVE module entry point tramo.internal.OutliersDetectionModule by
+# TramoOutlierScanProbe.java - builder + process(modelling, cv) over a
+# RegSarimaModelling built from a live ModelDescription, exactly as
+# TramoKernel/outlierSelection drives it (both JVM builder topologies: the
+# spec mix and the AO+LS robust mix). Raw getter values throughout (%.17g
+# doubles, identity-hash toStrings never echoed - pinning notes 6.1/6.2).
+# Series are built in R (21-H recipes: seed 21202 base, 2302 growth) and
+# handed to the probe as %.17g tokens; the G2 recipe below pins the JVM.
+# Pass --repro=<dir> to cross-check a capture against an earlier one from an
+# independent JVM process (byte-identity gate, final-information precedent).
 #
-# Runs the pinned JVM scan stack per case through the PUBLIC spec-topology
-# entry point (tramo.internal.OutlierDetection.create(spec, Ts, null).detect())
-# and validates against TramoOutlierScanProbe.class. The spec builder pins the
-# whole path: TramoSpec -> OutlierDetectionModule -> ODM -> PeriodicOutlierFactory
-# -> FastOutliersDetector -> FastOutlierDetector.
-#
-# The unit's round-0 decision is scanned per case: the first scan's T-table,
-# mad, and the selected cell under the critical value. The probe also records
-# the JVM driver's later-round scans (scan events with the round index) as
-# evidence for the deferred multi-round driver (D3); the replay test consumes
-# only the round-0 facts.
-#
-# Each case runs in its OWN JVM process (run(String[])). With --repro=<dir>
-# the capture is re-run and byte-compared file by file (two-process gate).
-#
-# Usage: env -u LD_LIBRARY_PATH env JAVA_HOME=<jdk21> \
-#   _JAVA_OPTIONS='-XX:+UnlockDiagnosticVMOptions -XX:DisableIntrinsic=_dexp \
-#   -XX:DisableIntrinsic=_dlog' \
-#   Rscript validation/reference/capture-tramo-outlier-scan.R \
-#     --output=validation/evidence/native/tramo-outlier-scan [--repro=<prior>]
-#
-# Output: scan-facts.csv, scan-events.csv, cases.csv, inputs.csv, metadata.R,
-#         SHA256SUMS.csv.
-
-suppressWarnings(suppressMessages(library(jdartifact)))
-
+# Corpus (26 cases): noout/ao/ls/multi shapes on the standard airline with the
+# full AO+LS+TC+SO mix (the spec topology of TramoKernel); SO-only and AO-only
+# factory mixes (the JVM's PeriodicOutlierFactory picks nothing - a golden);
+# tc-rate flips 0.5/0.7/0.9; selection spans (in-domain between, an excluding
+# window, and the epoch-anchored between whose empty hit collapses the bounds
+# - the fail-closed spannone shape); pre-registered outlier variables (the
+# double effect in-domain: X column + excluded cell; the {excluded=true}
+# out-of-domain tag), maximum likelihood on, interior missing values, a raised
+# critical value, the growth series, a tightened precision, and the short-
+# series comatip failures (n=20, n=30 with and without ml: need=max(14,13)+1+
+# 4+12=31 > 30 so ml cannot rescue). Monthly only (register D11).
+args <- commandArgs(trailingOnly = FALSE)
+script <- sub('^--file=', '', args[startsWith(args, '--file=')][[1L]])
+tooling <- dirname(normalizePath(script)); source(file.path(tooling, 'common.R'))
+root <- reference_root()
 args <- commandArgs(trailingOnly = TRUE)
-out_dir <- sub("^--output=(.*)$", "\\1", grep("^--output=", args, value = TRUE))
-repro_dir <- sub("^--repro=(.*)$", "\\1", grep("^--repro=", args, value = TRUE))
-if (length(out_dir) != 1) stop("usage: capture-tramo-outlier-scan.R --output=<dir> [--repro=<prior-dir>]")
-if (!dir.exists(out_dir)) stop("output directory does not exist: ", out_dir)
-if (length(list.files(out_dir)) != 0) stop("output directory is not empty: ", out_dir)
-
-jar_path <- local({
-    configured <- Sys.getenv("JDPLUS_JAR", "")
-    if (nzchar(configured)) configured else jdartifact::find_jar()
-})
-stopifnot(nzchar(jar_path), file.exists(jar_path))
-jar_path <- normalizePath(jar_path, mustWork = TRUE)
-jar_sha <- unname(tools::md5sum(jar_path))
-stopifnot(jar_sha == "39f9f28a0c4ab4b5b368557462924f54")
-
-java_bin <- local({
-    jh <- Sys.getenv("JAVA_HOME")
-    cand <- if (nzchar(jh)) file.path(jh, "bin", "java") else "java"
-    stopifnot(nzchar(Sys.which(cand)))
-    normalizePath(cand, mustWork = TRUE)
-})
-
-probe_root <- file.path("build", "validation-reference")
-probe_class <- file.path(probe_root, "TramoOutlierScanProbe.class")
-stopifnot(file.exists(probe_class))
-
-# ---------------------------------------------------------------- cases ----
-# pvars: pre-registered outlier variables (position, type 0..3); pexcl:
-# estimation-domain positions excluded from detection (the JVM tags the
-# matching pre-registered variable {excluded=true}; out-of-domain positions
-# are tagged with a no-op exclude); select: selection span (span_from,
-# span_to) or NULL; ml: full ML on the ARMA parameters (removes the unit-root
-# filter correction and changes the scan window).
-cases <- list()
-mkcase <- function(id, y, freq = 12L, maxout = 12L, maxround = 2L, cv = NA_real_,
-                   ao = TRUE, ls = TRUE, so = FALSE, tc = NA_real_, robust = TRUE,
-                   select = NULL, pvars = NULL, pexcl = NULL, ml = FALSE) {
-    cases[[length(cases) + 1L]] <<- list(id = id, y = y, freq = freq, maxout = maxout,
-        maxround = maxround, cv = cv, ao = ao, ls = ls, so = so, tc = tc, robust = robust,
-        select = select, pvars = pvars, pexcl = pexcl, ml = ml)
+repro <- ''
+if (any(startsWith(args, '--repro='))) {
+  repro <- normalizePath(sub('^--repro=', '', args[startsWith(args, '--repro=')][[1L]]),
+    mustWork = TRUE)
+  args <- args[!startsWith(args, '--repro=')]
 }
-
-seed_series <- function(n, seed, sd = 1) {
-    set.seed(seed)
-    rnorm(n, sd = sd)
+if (length(args) != 1L || !startsWith(args, '--output='))
+  stop('Usage: capture-tramo-outlier-scan.R [--repro=<captured directory>] --output=<existing empty directory>')
+output <- normalizePath(sub('^--output=', '', args), mustWork = TRUE)
+if (!dir.exists(output) || length(list.files(output, all.files = TRUE, no.. = TRUE)))
+  stop('Output must be empty')
+suppressWarnings(suppressMessages({
+  library(rjd3jars); library(rjd3toolkit); library(rjd3tramoseats); library(rJava)
+}))
+.jinit()
+# The rJava JVM fixes the loadable class-file version; compile the observer
+# for exactly that release. rJava selects the JVM through JAVA_HOME (21-H.3
+# precedent: pin JAVA_HOME=/usr/lib/jvm/java-21-openjdk-amd64).
+javahome <- Sys.getenv('JAVA_HOME')
+javac <- if (nzchar(javahome)) {
+  file.path(javahome, 'bin', paste0('javac',
+    if (.Platform$OS.type == 'windows') '.exe' else ''))
+} else {
+  Sys.which('javac')
 }
-monthly <- function(n, seed) {
-    set.seed(seed)
-    t <- seq_len(n)
-    rnorm(n) + 2 * sin(2 * pi * t / 12) + 1.2 * cos(2 * pi * 2 * t / 12) +
-        0.6 * sin(2 * pi * 3 * t / 12)
-}
-m5 <- local({
-    set.seed(21202)
-    y <- rnorm(96, sd = 1.2) + 6
-    y[48] <- y[48] + 8; y[70] <- y[70] - 6
-    y
-})
-m5so <- local({
-    set.seed(21202)
-    y <- rnorm(96, sd = 1.2) + 6
-    y[61:96] <- y[61:96] + 4
-    y
-})
-gs <- local({
-    set.seed(2302)
-    y <- rnorm(96) + 8
-    y[48] <- y[48] + 7
-    y
+if (!nzchar(javac) || !file.exists(javac))
+  stop('javac is required (JAVA_HOME/bin or PATH)')
+jvm_major <- as.integer(sub('^([0-9]+).*', '\\1',
+  .jcall('java/lang/System', 'S', 'getProperty', 'java.version')))
+if (jvm_major != 21L)
+  stop('the pinned capture JVM is OpenJDK 21: run with ',
+    'JAVA_HOME=/usr/lib/jvm/java-21-openjdk-amd64 (rJava picked up JVM ',
+    .jcall('java/lang/System', 'S', 'getProperty', 'java.version'), ')')
+probe <- tempfile('kalos-tramo-outlier-scan-'); dir.create(probe)
+jars <- c(list.files(system.file('java', package = 'rjd3jars'), pattern = '[.]jar$',
+  full.names = TRUE),
+  list.files(system.file('java', package = 'rjd3toolkit'), pattern = '[.]jar$',
+    full.names = TRUE),
+  list.files(system.file('java', package = 'rjd3tramoseats'), pattern = '[.]jar$',
+    full.names = TRUE))
+classpath <- paste(jars, collapse = .Platform$path.sep)
+status <- system2(javac, c('--release', jvm_major, '-d', shQuote(probe),
+  '-cp', shQuote(classpath),
+  shQuote(file.path(tooling, 'TramoOutlierScanProbe.java'))))
+if (status != 0L) stop('probe compilation failed')
+.jaddClassPath(c(jars[grep('tramoseats', jars)], probe))
+if (inherits(try(.jfindClass('TramoOutlierScanProbe'), silent = TRUE), 'try-error'))
+  stop('observer class not loadable in the rJava JVM')
+# Ground-truth guard (21-D.2): the intrinsic-disable flags must be live.
+local({
+  x <- 0.022970045955171898  # bits 3f978575b0a90ad5: 1 ulp dexp deviation
+  em <- .jcall('java/lang/Math', 'D', 'exp', x)
+  es <- .jcall('java/lang/StrictMath', 'D', 'exp', x)
+  if (!identical(em, es))
+    stop('capture JVM still uses the intrinsic Math.exp: run with ',
+      '_JAVA_OPTIONS="-XX:+UnlockDiagnosticVMOptions -XX:DisableIntrinsic=_dexp ',
+      '-XX:DisableIntrinsic=_dlog"')
 })
 
-mkcase("sc_m5", y = m5)
-mkcase("sc_gs", y = gs)
-mkcase("sc_ao", y = m5, ls = FALSE)
-mkcase("sc_ls", y = m5, ao = FALSE)
-mkcase("sc_so", y = m5so, ao = FALSE, ls = FALSE, so = TRUE)
-mkcase("sc_alsotc", y = m5, so = TRUE, tc = 0.7)
-mkcase("sc_nomax", y = m5, maxout = 0L)
-mkcase("sc_multi", y = m5, maxout = 5L)
-mkcase("sc_rounds", y = m5, maxout = 5L, maxround = 3L)
-mkcase("sc_rounds0", y = m5, maxout = 2L, maxround = 0L)
-mkcase("sc_cv5", y = m5, cv = 5)
-mkcase("sc_cv2", y = m5, cv = 2)
-mkcase("sc_noao", y = seed_series(96L, 99L, sd = 1), maxout = 0L)     # nothing to find
-mkcase("sc_clean", y = seed_series(120L, 98L), maxout = 2L)           # gate-fail path
-mkcase("sc_pre48", y = m5, pvars = list(c(48, 0)))
-mkcase("sc_pre48x", y = m5, pvars = list(c(48, 0)), pexcl = 48L)      # excluded cell
-mkcase("sc_prels70x", y = m5, pvars = list(c(70, 1)), pexcl = 70L)
-mkcase("sc_preboth_x48", y = m5, pvars = list(c(48, 0), c(70, 1)), pexcl = 48L)
-mkcase("sc_pexout", y = m5, pvars = list(c(48, 0)), pexcl = 108L)     # out-of-domain tag
-mkcase("sc_span", y = m5, select = c(60L, 96L))
-mkcase("sc_spannone", y = m5, select = c(1L, 10L))                    # out-of-domain span
-mkcase("sc_ml", y = m5, ml = TRUE)
-mkcase("sc_missing", y = { z <- m5; z[30] <- NA; z[52] <- NA; z })
-mkcase("sc_shortfail", y = m5[1:20], maxout = 12L)
-mkcase("sc_s30", y = m5[1:30], maxout = 12L)
-mkcase("sc_robustoff", y = m5, robust = FALSE)
+g <- function(x) sprintf('%.17g', x)
 
-# ----------------------------------------------------------------- run ----
-literal <- function(x) {
-    if (is.null(x)) return("NULL")
-    if (length(x) == 1 && is.logical(x)) return(if (x) "TRUE" else "FALSE")
-    if (is.na(x)) return("NA")
-    if (is.character(x)) return(sprintf('"%s"', x))
-    format(x, digits = 17)
-}
-r_vector <- function(v) {
-    if (length(v) == 0) return("numeric(0)")
-    paste0("c(", paste(vapply(v, literal, ""), collapse = ", "), ")")
-}
-r_pair_list <- function(ps) {
-    if (is.null(ps) || length(ps) == 0) return("NULL")
-    paste0("list(", paste(vapply(ps, function(p)
-        paste0("c(", literal(p[1]), ", ", literal(p[2]), ")"), ""), collapse = ", "), ")")
-}
+facts <- list(); events <- list(); inputs <- list(); summaries <- list()
 
-encode_case <- function(case) {
-    c(
-        paste0("id=", case$id),
-        paste0("y=", r_vector(case$y)),
-        paste0("freq=", case$freq),
-        paste0("maxout=", case$maxout),
-        paste0("maxround=", case$maxround),
-        paste0("cv=", literal(case$cv)),
-        paste0("ao=", if (case$ao) "TRUE" else "FALSE"),
-        paste0("ls=", if (case$ls) "TRUE" else "FALSE"),
-        paste0("so=", if (case$so) "TRUE" else "FALSE"),
-        paste0("tc=", literal(case$tc)),
-        paste0("robust=", if (case$robust) "TRUE" else "FALSE"),
-        paste0("select=", if (is.null(case$select)) "NULL"
-               else paste0("c(", literal(case$select[1]), ", ", literal(case$select[2]), ")")),
-        paste0("pvars=", r_pair_list(case$pvars)),
-        paste0("pexcl=", if (is.null(case$pexcl) || length(case$pexcl) == 0) "numeric(0)"
-               else r_vector(as.integer(unlist(case$pexcl)))),
-        paste0("ml=", if (case$ml) "TRUE" else "FALSE")
-    )
-}
-
-run_java <- function(lines, tag) {
-    input <- paste0(lines, collapse = "\n")
-    p <- paste0("|", input, "\n")
-    res <- system2(java_bin,
-        c("-cp", shQuote(probe_root), "TramoOutlierScanProbe", shQuote(jar_path)),
-        stdin = p, stdout = TRUE, stderr = TRUE, wait = TRUE)
-    status <- attr(res, "status")
-    if (!is.null(status) && status != 0) {
-        stop("probe failed for ", tag, " (status ", status, "):\n  ",
-             paste(head(res, 40), collapse = "\n  "))
-    }
-    res
-}
-
-facts <- list()
-events <- list()
-inputs <- character(0)
-for (case in cases) {
-    lines <- encode_case(case)
-    inputs <- c(inputs, lines, "")
-    out <- run_java(lines, case$id)
-    hdr <- grep("^tramo-outlier-scan", out, value = TRUE)
-    if (length(hdr) != 1) stop("missing header for ", case$id)
-    fields <- strsplit(hdr, "\\|")[[1]]
-    fact_row <- data.frame(
-        case_id = case$id,
-        field = vapply(fields[-1], function(f) strsplit(f, "=")[[1]][1], ""),
-        value = vapply(fields[-1], function(f) sub("^[^=]*=", "", f), ""),
+case <- function(id, note, y, hdr) {
+  lines <- c(hdr, paste('values',
+    paste(ifelse(is.na(y), 'nan', vapply(y, g, character(1))), collapse = ' ')))
+  for (ln in lines)
+    inputs[[length(inputs) + 1L]] <<- data.frame(id = id, line = ln, stringsAsFactors = FALSE)
+  res <- .jcall('TramoOutlierScanProbe', 'S', 'run', .jarray(lines))
+  out <- strsplit(res, '\n', fixed = TRUE)[[1L]]
+  out <- out[nzchar(out)]
+  if (!identical(out[[1L]], paste('case', id))) {
+    if (length(out) > 1L && startsWith(out[[2L]], 'fatal '))
+      stop('probe failed on ', id, ': ', out[[2L]])
+    stop('observer echoed a different case id for ', id)
+  }
+  for (ln in out[-1L]) {
+    if (startsWith(ln, 'evt ')) {
+      m <- regmatches(ln, regexec(
+        '^evt ([0-9]+) ([a-z]+) ([0-9]+) (.*) det (.*)$', ln))[[1L]]
+      if (length(m) != 6L) stop('unparsable event line: ', ln)
+      events[[length(events) + 1L]] <<- data.frame(id = id, seq = m[[2L]],
+        kind = m[[3L]], depth = m[[4L]], msg = m[[5L]], detail = m[[6L]],
         stringsAsFactors = FALSE)
-    ev <- grep("^evt ", out, value = TRUE)
-    ev <- ev[startsWith(ev, paste0("evt ", case$id, "|"))]
-    for (e in ev) {
-        parts <- strsplit(sub("^evt ", "", e), "\\|")[[1]]
-        events[[length(events) + 1L]] <- data.frame(
-            case_id = case$id, method = parts[2], line = as.integer(parts[3]),
-            group = parts[4], key = parts[5], value = parts[6],
-            stringsAsFactors = FALSE)
+    } else if (startsWith(ln, 'req ')) {
+      inputs[[length(inputs) + 1L]] <<- data.frame(id = id, line = ln,
+        stringsAsFactors = FALSE)
+    } else {
+      k <- regmatches(ln, regexec('^([^ ]+) (.*)$', ln))[[1L]]
+      if (length(k) != 3L) stop('unparsable fact line: ', ln)
+      facts[[length(facts) + 1L]] <<- data.frame(id = id, key = k[[2L]],
+        value = k[[3L]], stringsAsFactors = FALSE)
     }
-    facts[[length(facts) + 1L]] <- fact_row
+  }
+  fact <- function(key) {
+    v <- out[startsWith(out, paste0(key, ' '))]
+    if (!length(v)) '' else sub(paste0('^', key, ' '), '', v[[1L]])
+  }
+  ninfo <- 0L
+  for (e in events)
+    if (identical(e$id, id) && grepl('odmInfo', e$detail, fixed = TRUE))
+      ninfo <- ninfo + 1L
+  outliers <- ''
+  for (e in events)
+    if (identical(e$id, id) && grepl('odmInfo', e$detail, fixed = TRUE))
+      outliers <- sub('^.*outliers\\[', '', sub('\\]$', '', e$detail))
+  nn <- as.integer(sub('^n ([0-9]+) .*', '\\1', fact('in')))
+  summaries[[length(summaries) + 1L]] <<- data.frame(
+    id = id, note = note, n = nn,
+    status = sub('^scan_status ([A-Za-z]+)$', '\\1', fact('scan_status')),
+    need_estimation = sub('^need_estimation ([01])$', '\\1', fact('need_estimation')),
+    n_info = ninfo,
+    n_outliers = if (nzchar(outliers) && outliers != ']')
+      length(strsplit(outliers, '\\], \\[')[[1L]]) else 0L,
+    outliers = outliers,
+    nevents = length(grep('^evt ', out)),
+    stringsAsFactors = FALSE)
+  invisible(NULL)
 }
-facts_df <- do.call(rbind, facts)
-events_df <- if (length(events)) do.call(rbind, events) else
-    data.frame(case_id = character(), method = character(), line = integer(),
-        group = character(), key = character(), value = character())
 
-# Raw getters only for the decision numbers.
-for (f in c("scan_max_t", "scan_mad")) {
-    hit <- facts_df$value[facts_df$field == f]
-    bad <- hit[!is.na(hit) & hit != "nan" &
-        !grepl("^[+-][0-9]\\.[0-9a-fpP+-]*$", hit) &
-        !grepl("^[+-][0-9]\\.[0-9]+[eE][+-][0-9]+$", hit)]
-    if (length(bad)) stop("non-raw value in field ", f, ": ", paste(unique(bad), collapse = ", "))
+# -- corpus --------------------------------------------------------------------
+n <- 96L
+t <- seq_len(n)
+# 21-H standard base (seeded additive-noise seasonal).
+set.seed(21202)
+b <- 50 + 0.05 * t + 5 * sin(2 * pi * t / 12) + 3 * cos(4 * pi * t / 12) +
+  0.5 * sin(14 * pi * t / 12) + rnorm(n, 0, 0.3)
+ao <- b; ao[49] <- ao[49] + 15
+ls <- b; ls[61:96] <- ls[61:96] + 15
+multi <- b; multi[31] <- multi[31] + 14; multi[71:96] <- multi[71:96] + 10
+k <- seq_len(24); multi[49:72] <- multi[49:72] + 18 * 0.9^(k - 1)
+# growth (log-flip) 21-C recipe.
+set.seed(2302)
+gs <- exp(cumsum(rnorm(n, .01, .02)) + .2 * sin(2 * pi * t / 12))
+gs2 <- gs; gs2[61] <- gs2[61] * 2.5; gs2[80:90] <- gs2[80:90] * 0.6
+miss <- b; miss[21] <- NA; miss[46] <- NA
+short20 <- b[1:20]
+short30 <- b[1:30]
+
+# hdr: id freq mean log d D p q bp bq fac tcrate prec ml maxround maxout
+#      span cv interp pre
+S <- 'SCAN %s 12 y y 1 1 1 1 0 1 %s %s 1e-07 %s 50 30 %s %s %s %s'
+scan <- function(id, note, y, fac = 'yyyy', tcrate = '0.7', ml = 'n', span = 'all',
+    cv = 'calc', interp = 'y', pre = '-') {
+  case(id, note, y, sprintf(S, id, fac, tcrate, ml, span, cv, interp, pre))
 }
 
-decisions <- facts_df$value[facts_df$field == "decision"]
-stopifnot(!any(is.na(decisions)))
-if (!any(decisions == "NotDone")) {
-    stop("decision-diversity gate: no NotDone cases in the corpus")
+scan('sc_noout', 'clean series: scan finds nothing (Unchanged)', b)
+scan('sc_ao', 'single AO at 48: AO wins the round-0 scan', ao)
+scan('sc_ls', 'level shift at 60: LS with the zero-ended factory', ls)
+scan('sc_multi', 'AO+LS+TC mixture: four-outlier set with the add/verify loop', multi)
+scan('sc_so', 'SO-only mix on the AO series: the JVM SO factory picks nothing', ao,
+  fac = 'nnny')
+scan('sc_aoonly', 'AO-only mix: same winner through the single-factory table', ao,
+  fac = 'ynnn')
+scan('sc_tc05', 'tc rate 0.5: decay too fast, TC loses to LS at 48', multi, tcrate = '0.5')
+scan('sc_tc09', 'tc rate 0.9: TC keeps its win at 48', multi, tcrate = '0.9')
+scan('sc_span', 'selection span idx:12-84 (between, in-domain): AO inside the window', ao,
+  span = 'idx:12-84')
+scan('sc_spanout', 'selection span idx:60-90: AO outside the window -> nothing', ao,
+  span = 'idx:60-90')
+scan('sc_excl', 'pre-registered AO at 30: X column + excluded cell, set reshapes', multi,
+  pre = 'AO:30')
+scan('sc_ml', 'maximum likelihood on: ML estimateModel path through the rounds', ao,
+  ml = 'y')
+scan('sc_missing', 'interior missing values: est-relative exclusions', miss)
+scan('sc_cv4', 'critical value 4.0 instead of calcCv: marginal candidates stay out', multi,
+  cv = '4.0')
+scan('sc_maxout2', 'maxOutliers at the JVM default through calcCv', multi)
+scan('sc_gs2', 'growth series with spike + shelf: log-scale scan', gs2)
+case('sc_prec8', 'estimation precision 1e-8: tighter landing, same decisions', ao,
+  'SCAN sc_prec8 12 y y 1 1 1 1 0 1 yyyy 0.7 0.00000001 n 50 30 all calc y -')
+case('sc_shortfail', 'n=20: comatip gate fails the module', short20,
+  'SCAN sc_shortfail 12 y y 1 1 1 1 0 1 yyyy 0.7 1e-07 n 50 30 all calc y -')
+case('sc_s30', 'n=30: need = max(14,13)+1+4+12 = 31 > 30 -> Failed', short30,
+  'SCAN sc_s30 12 y y 1 1 1 1 0 1 yyyy 0.7 1e-07 n 50 30 all calc y -')
+case('sc_s30ml', 'n=30 with maximum likelihood: ml cannot rescue the size gate', short30,
+  'SCAN sc_s30ml 12 y y 1 1 1 1 0 1 yyyy 0.7 1e-07 y 50 30 all calc y -')
+scan('sc_spanfull', 'between over the whole domain == all (inclusivity pin)', ao,
+  span = 'idx:0-95')
+scan('sc_spannone', 'epoch-anchored between hits nothing: bounds collapse, nothing found', ao,
+  span = 'idxe:0-95')
+scan('sc_pexao48', 'pre-registered AO exactly at 48: cell suppressed, nothing else fires', ao,
+  pre = 'AO:48')
+scan('sc_pexao47', 'pre-registered AO at 47 (adjacent control): AO at 48 still wins', ao,
+  pre = 'AO:47')
+scan('sc_pextc48', 'pre-registered TC at 48: model + cell change, scan lands on the misfit',
+  multi, pre = 'TC:48')
+scan('sc_pexctl', 'pre-registered AO at 2 (far control): identical set, order pinned', multi,
+  pre = 'AO:2')
+
+# -- corpus files ---------------------------------------------------------------
+wcsv <- function(name, df) {
+  con <- file(file.path(output, name), open = 'wt')
+  write.table(df, con, sep = ',', qmethod = 'double', row.names = FALSE,
+    col.names = TRUE, na = '')
+  close(con)
 }
-if (!any(decisions == "Done")) {
-    stop("decision-diversity gate: no Done cases in the corpus")
-}
+wcsv('cases.csv', do.call(rbind, summaries))
+wcsv('inputs.csv', do.call(rbind, inputs))
+wcsv('scan-facts.csv', do.call(rbind, facts))
+wcsv('scan-events.csv', do.call(rbind, events))
 
-write.csv(facts_df, file.path(out_dir, "scan-facts.csv"), row.names = FALSE, na = "")
-write.csv(events_df, file.path(out_dir, "scan-events.csv"), row.names = FALSE, na = "")
-
-cases_csv <- do.call(rbind, lapply(cases, function(c) data.frame(
-    case_id = c$id, n = length(c$y), freq = c$freq, maxout = c$maxout,
-    maxround = c$maxround, ao = c$ao, ls = c$ls, so = c$so,
-    robust = c$robust, ml = c$ml,
-    has_cv = !is.na(c$cv), has_tc = !is.na(c$tc),
-    has_select = !is.null(c$select),
-    n_pre_vars = length(c$pvars), n_pre_excluded = length(c$pexcl),
-    stringsAsFactors = FALSE)))
-write.csv(cases_csv, file.path(out_dir, "cases.csv"), row.names = FALSE, na = "")
-con <- file(file.path(out_dir, "inputs.csv"), "w")
-writeLines(inputs, con, sep = "\n")
-close(con)
-
-scan_t <- sum(events_df$group == "T" & events_df$line == 1078 &
-    grepl("^T[0-9]+$", events_df$key))
 writeLines(c(
-    "# TRAMO round-0 outlier scan capture metadata (M5 item 23-B, part 2).",
-    paste0("capture_script <- \"validation/reference/capture-tramo-outlier-scan.R\""),
-    paste0("probe_class <- \"validation/reference/TramoOutlierScanProbe.java\""),
-    paste0("artifact <- \"", basename(jar_path), "\""),
-    paste0("artifact_md5 <- \"", jar_sha, "\""),
-    paste0("java <- \"", java_bin, "\""),
-    paste0("jvm_options <- \"-XX:+UnlockDiagnosticVMOptions -XX:DisableIntrinsic=_dexp -XX:DisableIntrinsic=_dlog\""),
-    "n_cases <- 26",
-    "topology <- \"spec builder: TramoSpec -> tramo.internal.OutlierDetection -> internal OutliersDetectionModule -> FastOutliersDetector (both topologies: this is the spec path; the userapi robust topology is captured by the transform corpus)\"",
-    "unit_scope <- \"round-0 only: scan 0 T-table (line 1078), mad, selection under the critical value; later-round scan events are recorded as D3 evidence, not replayed\"",
-    "coordinate_semantics <- \"TsPeriod.dateAt(n) is epoch-anchored; selection spans and pexcl use estimation-domain positions (est = full span minus the 12-month first lag for this family); out-of-domain pexcl is tagged {excluded=true} with a no-op exclude; an out-of-domain selection span collapses the bounds and finds nothing (sc_spannone)\"",
-    paste0("round0_cells <- ", scan_t),
-    paste0("decision_counts <- c(",
-        paste(sprintf('"%s" = %d', names(table(decisions)), as.integer(table(decisions))),
-        collapse = ", "), ")")
-), con = file(file.path(out_dir, "metadata.R")), sep = "\n")
+  paste0('# metadata for the item 23-B tramo-outlier-scan capture ',
+    '(generated by validation/reference/capture-tramo-outlier-scan.R)'),
+  paste0('r_version <- "', paste(R.version$major, R.version$minor, sep = '.'), '"'),
+  paste0('jvm_version <- "', .jcall('java/lang/System', 'S', 'getProperty', 'java.version'), '"'),
+  paste0('jvm_vendor <- "', .jcall('java/lang/System', 'S', 'getProperty', 'java.vendor'), '"'),
+  paste0('java_options <- "', Sys.getenv('_JAVA_OPTIONS'), '"'),
+  paste0('capture_time <- "', format(Sys.time(), tz = 'UTC'), '"'),
+  paste0('capture_host <- "', Sys.info()[['nodename']], '"'),
+  paste0('capture_user <- "', Sys.info()[['user']], '"'),
+  paste0('probe_sha256 <- "', reference_sha256(file.path(root,
+    'validation/reference/TramoOutlierScanProbe.java')), '"'),
+  paste0('script_sha256 <- "', reference_sha256(file.path(root,
+    'validation/reference/capture-tramo-outlier-scan.R')), '"'),
+  'jar_sha256 <- c(',
+  paste0('  "', vapply(jars, function(p) paste0(basename(p), '=',
+    reference_sha256(p)), character(1)), '"',
+    collapse = ',\n  '),
+  ')'
+), file.path(output, 'metadata.R'))
 
-files <- sort(list.files(out_dir))
-sums <- tools::md5sum(file.path(out_dir, files))
-write.csv(data.frame(file = files, md5 = unname(sums)),
-    file.path(out_dir, "SHA256SUMS.csv"), row.names = FALSE)
-
-# ------------------------------------------------------- repro gate ----
-if (length(repro_dir) == 1) {
-    files_a <- sort(list.files(repro_dir))
-    files_b <- sort(list.files(out_dir))
-    if (!identical(files_a, files_b)) {
-        stop("repro file set differs:\n  only in prior: ",
-            paste(setdiff(files_a, files_b), collapse = ", "), "\n  only in rerun: ",
-            paste(setdiff(files_b, files_a), collapse = ", "))
-    }
-    bad <- character(0)
-    for (f in files_b) {
-        a <- readBin(file.path(repro_dir, f), "raw", n = file.size(file.path(repro_dir, f)))
-        b <- readBin(file.path(out_dir, f), "raw", n = file.size(file.path(out_dir, f)))
-        if (!identical(a, b)) bad <- c(bad, f)
-    }
-    if (length(bad)) {
-        stop("cross-process byte-identity FAILED for: ", paste(bad, collapse = ", "))
-    }
-    message("repro gate: ", length(files_b), " files byte-identical across JVM processes")
+files <- setdiff(list.files(output), 'SHA256SUMS.csv')
+if (nzchar(repro)) {
+  # Byte-identity gate over the data files; metadata.R legitimately differs
+  # in its captured_at field only (final-information precedent).
+  data_files <- setdiff(files, 'metadata.R')
+  prior <- setdiff(intersect(list.files(repro), data_files),
+    c('metadata.R', 'SHA256SUMS.csv'))
+  if (!identical(sort(data_files), sort(prior)))
+    stop('repro capture has a different file set: ',
+      paste(setxor(data_files, prior), collapse = ', '))
+  for (f in data_files) {
+    a <- readBin(file.path(output, f), 'raw', file.size(file.path(output, f)))
+    b <- readBin(file.path(repro, f), 'raw', file.size(file.path(repro, f)))
+    if (!identical(a, b)) stop('repro capture differs byte-wise: ', f)
+  }
+  message('repro check: ', length(data_files), ' data files byte-identical')
 }
-
-message("TRAMO outlier scan capture complete: ", length(cases), " cases, ",
-    nrow(facts_df), " fact rows -> ", out_dir)
+write.csv(data.frame(file = files,
+  sha256 = vapply(files, function(f)
+    digest::digest(file = file.path(output, f), algo = 'sha256'), character(1))),
+  file.path(output, 'SHA256SUMS.csv'), row.names = FALSE, quote = FALSE)
+message('wrote ', length(files), ' files to ', output)
