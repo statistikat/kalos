@@ -535,3 +535,28 @@ rejected). Design algebra (day clustering, LoP and Easter columns), the
 log/level decision, the `check()` collinearity pass, automatic outlier
 identification and the Rcpp boundary are not delivered or claimed. See
 [tramo-model-builder-contract.md](tramo-model-builder-contract.md).
+
+## SEATS model admissibility and decomposition mirror
+
+`test_tramo_seats_model.cpp`, the double-captured 35-case JVM corpus under
+`validation/evidence/native/tramo-seats-model/` and the replay driver
+`tests/tramo_seats_model_replay.h` qualify
+`kalos::validate_tramo_seats_model` (item 24-A): the LIVE pinned
+`DefaultModelValidator` (simplifyModel trim with cutOff, the xl<1
+`stabilizeMA` projection versus the xl≥1 `fixMaUnitRoots` unit-circle
+projection with its degree-1 −1 quirk), the `SeatsToolkit` selector chain
+(`TrendCycleSelector`/`SeasonalSelector` wired from the DecompositionSpec
+knobs, the greedy D1 division), the `RootDecomposer` linear system
+(`LULinearSystemSolver2` bit-exact symmetric filters, `checkSpecialCases`)
+and the `setVarianceMax` minima-sum decomposability decision
+(`Spectrum$Minimizer` by-roots/by-grid), plus the kernel flags and the
+`ProcessingLog` frame — all golden numerics IEEE-754 bit-exact (raw sar/ur/
+sfd, validator parameters; no measured band at landing). The `kevt` frame is
+exact, exact-prefix for the 13 `legacy_approx` rows whose live continuation
+into `DefaultModelApproximator` is register D6 (stays unimplemented: the unit
+reports `approximation_required` and stops). Spectral factorization
+(one-sided MA/variance), the variance allocation and `k.ucar` facts are
+24-B scope; five QR-cascade corpus rows (degree > 2 `roots()`: `d_d2`,
+`q_airline`, `q_d2`, `v_cut_bq2`, `v_simplify`) are refusal-asserted
+record cases (D11). Parameter-estimation uncertainty is 24-C scope. See
+[tramo-seats-model-contract.md](tramo-seats-model-contract.md).

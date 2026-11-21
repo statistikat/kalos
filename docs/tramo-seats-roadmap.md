@@ -302,6 +302,33 @@ Dependencies on the unfinished X-13 queue (M4 report §6):
   collinearity `check()` pass, automatic outlier identification and the
   log/level decision remain scoped to 21-I/23-B/23-E/23-F as above.
 
+## 24-A — spec: `validate_tramo_seats_model` (admissibility + root handling + decomposability)
+
+- **Scope (delivered).** `DefaultModelValidator` (simplifyModel trim/cutOff,
+  `stabilizeMA` vs `fixMaUnitRoots` including the degree-1 −1 quirk), the
+  `SeatsToolkit.of` selector chain wired from the DecompositionSpec knobs, the
+  `RootDecomposer` linear system (`LULinearSystemSolver2` bit-exact) and the
+  `UcarimaModel.setVarianceMax(-1, noisy)` minima-sum decomposability test
+  (`Spectrum$Minimizer` by-roots/by-grid), plus the kernel flags/events.
+  Bit-exact golden numerics; decisions from the `cases.csv` matrix.
+- **Explicitly out.** Everything after a null decomposition
+  (`DefaultModelApproximator`, register D6 — stays OPEN, the unit reports
+  `approximation_required`, its events are an exact prefix of the captured
+  `kevt` frame, and the corpus records the live continuation incl. the two
+  approximator `MatrixException` crashes and the Noisy NPE); spectral
+  factorization and variance allocation (24-B); estimation uncertainty (24-C).
+- **D11 refusals (record cases).** Five corpus rows whose live path enters
+  `Polynomial.roots()` of degree > 2 (`d_d2`/`q_airline`/`q_d2` degree-4 and
+  `v_cut_bq2` degree-10 minimizer numerators, `v_simplify` stationary-`bphi`
+  reconstruction) are refusal-asserted; the QR cascade is not ported.
+- **LANDED 2026-11-21.** 30 replayed + 5 refusal cases bit-exact in both
+  lanes (66/66 each, fresh trees); sweep 35/35 + determinism + envelope
+  probes; ASan/UBSan clean; D6 untouched (observations in the contract doc).
+  Ledger: unit `kalos::validate_tramo_seats_model` closed for the
+  admissibility/root-handling/decomposability decision surface; the
+  one-sided MA/variance facts (`r c{i} ma|var`, `k.ucar`, `model seasonality`)
+  and the approximation policy remain scoped to 24-B/D6 as above.
+
 ## Maintainer decision register (sign-off before the owning slice)
 
 | # | Decision | Slice | Position recorded at M5-open |

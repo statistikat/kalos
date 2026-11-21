@@ -2281,3 +2281,74 @@ outlier-scoring 98, regression-tests 494, final-information 266, x11-bpass
 `check-manifest.py` 144/112/201; `verify-migration.py` 406. Docs:
 `docs/contracts/tramo-model-builder-contract.md` (with the landing-delta
 section), its README index entry, and the roadmap 23-A ledger line.
+
+## SEATS admissibility and decomposition mirror: slice 24-A lands `kalos::validate_tramo_seats_model` — 2026-11-21
+
+The first item-24 slice is delivered: the LIVE pinned path between the
+`SeatsKernel.validate` and `SeatsKernel.decomposeModel` seams —
+`DefaultModelValidator` (simplifyModel trim with cutOff, the xl<1
+`stabilizeMA` XL projection versus the xl≥1 `fixMaUnitRoots` unit-circle
+projection with its degree-1 **−1-both-ways** quirk), the `SeatsToolkit.of`
+selector chain (`TrendCycleSelector`/`SeasonalSelector` wired from the
+DecompositionSpec knobs, the greedy D1 division on repeated unit roots), the
+`RootDecomposer` split linear system (`LULinearSystemSolver2` eps 1e-13,
+bit-exact symmetric filters, `checkSpecialCases`) and the
+`UcarimaModel.setVarianceMax(-1, noisy)` minima-sum decomposability decision
+(`Spectrum$Minimizer` by-roots/by-grid) — is mirrored decision-for-decision
+by `kalos::validate_tramo_seats_model` (`src/tramo_seats_model_validator.cpp`),
+qualified against a double-captured 35-case JVM corpus
+(`validation/reference/TramoSeatsModelProbe.java` +
+`capture-tramo-seats-model.R`, G2 recipe, OpenJDK 21; the landing `--repro`
+re-capture from an independent JVM process reported **4 data files
+byte-identical**; `SHA256SUMS.csv` verifies 5/5 in
+`validation/evidence/native/tramo-seats-model/`).
+
+Every golden-asserted numeric — validator parameters, the raw
+(pre-variance-allocation) `sar`/`ur`/`sfd` component coefficients — is
+**IEEE-754 bit-exact** on all 30 replayed cases (the `%.17g` capture
+re-parses exactly through `strtod`; comparison is on raw bits); no measured
+band was needed at landing. The kernel flags and the `ProcessingLog` frame
+are exact, **exact-prefix** for the 13 `legacy_approx` rows: what happens
+after a null decomposition (`DefaultModelApproximator`) stays register D6 —
+OPEN, un-implemented; the corpus records the live continuation, incl. the two
+approximator `MatrixException` crashes (`v_fixma_pos/neg`, the degree-1 quirk
+downstream) and the Noisy-mode NPE (`d_nondec_noisy`), as data only.
+
+Three transcription-bug root-causes were re-qualified with JVM raw-bit
+probes (full writeup in `tmp_opencode/kalos-m5-pinning.md` §8):
+`SymmetricFilter.convolutionOf` receives the **BackFilter coefficients
+reversed** (`weights()` is `k → get(−k)`; bit-visible on non-palindromic
+inputs, it explained the `d_ar1_slow` lag7/lag10 1-ulp family);
+`AbstractArimaModel.symmetricMa()` scales by the SarimaModel's **own**
+SarimaSpec-default variance 1.0 — `SeatsModelSpec.innovationVariance` never
+reaches the decomposition (`d_wn` var=2 → `r c2 sfd [1.0]`);
+`Polynomial.fromComplexRoots` is the faithful scaled ∏ (the leading copy is
+load-bearing, the inner loop starts at index i) — it pins the
+`v_fixma_q2proj` root-projection reconstruction bit for bit.
+
+Fail-closed matrix (`std::invalid_argument`, unit-asserted): period/
+frequency ∉ {4, 12}, non-empty `bphi`, AR degree > 2, MA degree > 2,
+negative d/bd, non-finite inputs, and any live path entering `roots()` of
+degree > 2 — five corpus rows are refusal-asserted record cases
+(`d_d2`/`q_airline`/`q_d2` degree-4 and `v_cut_bq2` degree-10 minimizer
+numerators, `v_simplify` stationary-`bphi`; `d_d2` shows the QR-cascade class
+is reachable MONTHLY). The `FastEigenValuesSolver.qr` cascade is not ported.
+
+**Gates (this tree, all fresh builds).** `test_tramo_seats_model` (35 cases,
+860 checks: 30 bit-exact replays incl. kevt frames and the decision matrix,
+5 refusal assertions): OpenMP lane 66/66 (442 s), serial lane 66/66
+(1152 s). ASan/UBSan builds of unit and sweep: clean.
+`tools/verify_tramo_seats_model.cpp` re-drives the raw csv corpus (gating
+the evidence layer itself): 35/35 PASS, 896 checks incl. the determinism
+double-run and six envelope-refusal probes. Existing suite unchanged: nine
+sweeps byte-identical (differencing 39, transformation 11,
+estimation-control 27, initial-ARMA 4368, arma-refinement 423,
+outlier-scoring 98, regression-tests 494, final-information 266, x11-bpass
+18/18; x11 cpass 18/18 and dpass 22/22 also re-run), full automatic sweep
+71401 checks 0 bad (13/13), tramo-builder sweep 22/22;
+`check-manifest.py` 146/112/207 (+2 core, +6 evidence);
+`verify-migration.py` 406. Docs:
+`docs/contracts/tramo-seats-model-contract.md` (pinned-semantics table,
+mode observations, landing deltas), its README index entry, and the roadmap
+24-A ledger section. D6 stays open; spectral factorization and the variance
+allocation are 24-B scope, estimation uncertainty 24-C.
