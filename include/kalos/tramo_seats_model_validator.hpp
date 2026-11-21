@@ -37,17 +37,25 @@ namespace kalos {
 // UcarimaModel post-allocation values are item 24-B scope; the unit exposes
 // the raw (pre-allocation) component structure only.
 //
-// Envelope (register D11, monthly-first, faithful-to-capture): the unit
+// Envelope (registers D5/D11, monthly-first, faithful-to-capture): the unit
 // boundary accepts the fixed-parameter (all-Fixed) SarimaSpec shape the probe
-// captured, monthly (period 12) and quarterly (period 4) series; the unit
-// REFUSES (std::invalid_argument, never silently reinterpreting):
-//   - bphi != empty (stationary seasonal AR: its root set needs the
-//     degree > 2 FastEigenValuesSolver.qr cascade, not ported);
-//   - stationary AR degree > 2 (same closed-form coverage);
-//   - any MA/AR input coefficient non-finite;
-//   - requests whose Minimizer root search would need w.roots() of degree
-//     > 2 (measured: every corpus case lands on wdeg <= 2);
-//   - frequency outside {4, 12} (the captured corpus shapes).
+// captured, monthly (period 12) and quarterly (period 4) series. The degree
+// >= 3 root cascade (FastEigenValuesSolver.qr, ported bit-exact at 24-A.1)
+// retired the old D11 refusals: stationary bphi, stationary AR degree > 2 and
+// MA degree > 2 are all in scope now. The unit REFUSES (std::invalid_argument,
+// never silently reinterpreting) only:
+//   - period or frequency outside {4, 12} (the captured corpus shapes);
+//   - any MA/AR input coefficient or knob non-finite; negative d/bd.
+// Two cascade paths end in a JVM exception that DefaultModelDecomposer's
+// catch(Exception) turns into a null result (it_max exhaustion -> null roots
+// -> consumer NPE; a chase of the 2x2 tail block -> ArrayIndexOutOfBounds);
+// the unit mirrors both as an internal abort caught at the decompose seam,
+// reproducing the captured "non decomposable" decisions (q_airline/q_d2).
+// Inside the cascade the one unpinnable JVM branch - the it_count % 25 random
+// shift (new Random(); fires on v_simplify's degree-12 stationary AR in both
+// the JVM and the unit, whose roots only feed gate-robust partition
+// decisions) - is substituted deterministically, not refused: the JVM itself
+// is not bit-reproducible there.
 // JVM-observed crashes on the live path (the fixMa deg-1 quirk feeding a
 // MatrixException into the Legacy approximator, the Noisy-mode NPE) are
 // outside this unit and recorded as data in the corpus, never reproduced.

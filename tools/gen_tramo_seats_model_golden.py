@@ -26,13 +26,11 @@ into kalos::tramo_seats_model_request, runs the unit and compares:
     continued into DefaultModelApproximator, register D6);
   * the derived flags (approximation_required / seats_exception /
     noisy_model_used / model_changed).
-Five cases carry reject=1 (record-only): their live JVM path enters the
-Polynomial.roots()/FastEigenValuesSolver QR cascade or the seasonal
-root-zone selector reconstruction (bphi stationary parts, degree > 2
-minimizer numerators, quarterly degree 4-5 numerators, the bq=2 seasonal
-split, the degenerate D2 spectrum w). The unit refuses those inputs
-fail-closed (std::invalid_argument), and the replay asserts exactly that
-refusal; their captured facts stay in the csv corpus as 24-B evidence.
+No case carries reject=1 since 24-A.1: the five QR-cascade record cases
+(d_d2, q_airline, q_d2, v_cut_bq2, v_simplify) became positive assertions
+when FastEigenValuesSolver.qr was ported bit-exact. The reject field and the
+replay refusal branch stay as the fail-closed mechanism for any future
+capture whose live JVM path has no bit-portable unit mirror.
 
 Regenerate with:
   python3 tools/gen_tramo_seats_model_golden.py \
@@ -44,13 +42,15 @@ import sys
 
 # key == value rows asserted verbatim (values compared as tokens; numeric
 # tokens bit-compared by the replay layer).
-# Record cases outside the 24-A envelope (see docstring): the unit refuses.
-REJECT = {"d_d2", "q_airline", "q_d2", "v_cut_bq2", "v_simplify"}
+# Record cases without a bit-portable unit mirror: none since 24-A.1 (the
+# QR-cascade refusals were retired with the FastEigenValuesSolver.qr port).
+REJECT = set()
 
 ASSERT_KEYS = ("v.changed", "v.xl", "v.orders", "v.phi", "v.bphi", "v.theta",
                "v.btheta", "r.decompose", "r.count", "d.decompose",
                "k.cutOff", "k.modelChanged")
-# "r" rows: keep only the sar/ur/sfd columns (ma/var need the 24-B factorization).
+# "r" rows: keep only the sar/ur/sfd columns (ma/var hold the component MA
+# polynomial and the variance share, which this unit does not expose).
 ASSERT_R_COLS = ("sar", "ur", "sfd")
 
 
@@ -118,7 +118,7 @@ def main(corpus_dir, dst):
     out.append("    const char* status;  // captured status class (record for the JVM crashes)")
     out.append("    const char* mode;    // captured DecompositionSpec mode")
     out.append("    int legacy_approx;   // 1: Legacy and setVarianceMax returned null (D6 prefix)")
-    out.append("    int reject;          // 1: QR-cascade record case, refused by the unit (D11)")
+    out.append("    int reject;          // 1: no bit-portable mirror (D11); none since 24-A.1")
     out.append("    std::size_t nreq;")
     out.append("    const char* const* req;")
     out.append("    std::size_t nfacts;")

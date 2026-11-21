@@ -11,11 +11,12 @@
 // decomposition coefficients (bit-exact through the %.17g re-parse), the
 // decomposability decision mirror, the kernel flags and the kevt frame
 // (exact, exact-prefix for the legacy_approx D6 continuation) must all match.
-// Five record cases carry the documented D11 refusal (degree > 2 root
-// solving: d_d2, q_airline, q_d2, v_cut_bq2, v_simplify); for them the tool
-// requires the unit to throw and counts the refusal. The final section is the
-// determinism double-run plus the fail-closed envelope probes (non-{4,12}
-// period, non-finite parameter, stationary bphi, degree > 2 phi/theta).
+// Since 24-A.1 every corpus case is a positive assertion (the five QR-cascade
+// refusals d_d2, q_airline, q_d2, v_cut_bq2, v_simplify were retired by the
+// bit-exact FastEigenValuesSolver.qr port; reject=1 stays as a mechanism for
+// future captures). The final section is the determinism double-run plus the
+// envelope probes (non-{4,12} period, non-finite parameter or knob, negative
+// d, and the 24-A.1 accepts: stationary bphi, degree-3 phi / btheta).
 #include <kalos/tramo_seats_model_validator.hpp>
 
 #include "../tests/tramo_seats_model_replay.h"
@@ -95,10 +96,10 @@ bool is_assert_key(const std::string& key) {
     return false;
 }
 
-bool is_reject(const std::string& id) {
-    const char* const ids[] = {"d_d2", "q_airline", "q_d2", "v_cut_bq2", "v_simplify"};
-    for (const char* r : ids)
-        if (id == r) return true;
+bool is_reject(const std::string&) {
+    // No case carries reject=1 since 24-A.1 (the QR-cascade refusals were
+    // retired with the bit-exact FastEigenValuesSolver.qr port). The
+    // mechanism stays for future captures with no bit-portable mirror.
     return false;
 }
 
@@ -237,10 +238,10 @@ int main(int argc, char** argv) {
             ++checks;
             try {
                 kalos::validate_tramo_seats_model(req);
-                fail(id + ": D11 refusal expected, unit accepted");
+                fail(id + ": refusal expected (no bit-portable mirror), unit accepted");
             } catch (const std::exception&) {
             }
-            std::cout << "case " << id << " refused as recorded (D11)" << std::endl;
+            std::cout << "case " << id << " refused as recorded" << std::endl;
             continue;
         }
         kalos::tramo_seats_model_result res;
@@ -281,7 +282,8 @@ int main(int argc, char** argv) {
     }
     std::cout << "determinism double-run checked" << std::endl;
 
-    // Fail-closed envelope probes (register D11).
+    // Fail-closed envelope probes (the three 24-A.1-retired degree/bphi probes
+    // became corpus-asserted accepts; the shape/finite checks stay).
     kalos::tramo_seats_model_request base;  // spec 0 1 1 0 1 1 12, theta 0.5, btheta 0.4
     base.phi = {};
     base.theta = {0.5};
@@ -313,20 +315,48 @@ int main(int argc, char** argv) {
     }
     {
         auto r = base;
+        r.d = -1;
+        probe("negative d", r);
+    }
+    {
+        auto r = base;
+        r.smod_pi = std::numeric_limits<double>::quiet_NaN();
+        probe("NaN smodPi", r);
+    }
+    {
+        // 24-A.1 accepts: stationary bphi, AR degree 3 and MA degree 3 all run
+        // through the ported roots cascade now (mirrors the flipped corpus
+        // cases v_simplify / q_airline / v_cut_bq2).
+        auto r = base;
         r.bphi = {0.2};
-        probe("stationary bphi", r);
+        ++checks;
+        try {
+            kalos::validate_tramo_seats_model(r);
+        } catch (const std::exception& e) {
+            fail(std::string("24-A.1 accept probe stationary bphi: ") + e.what());
+        }
     }
     {
         auto r = base;
         r.phi = {0.1, 0.1, 0.1};
-        probe("degree-3 phi", r);
+        ++checks;
+        try {
+            kalos::validate_tramo_seats_model(r);
+        } catch (const std::exception& e) {
+            fail(std::string("24-A.1 accept probe degree-3 phi: ") + e.what());
+        }
     }
     {
         auto r = base;
         r.btheta = {0.4, 0.2, 0.1};
-        probe("degree-3 btheta", r);
+        ++checks;
+        try {
+            kalos::validate_tramo_seats_model(r);
+        } catch (const std::exception& e) {
+            fail(std::string("24-A.1 accept probe degree-3 btheta: ") + e.what());
+        }
     }
-    std::cout << "envelope refusal probes checked" << std::endl;
+    std::cout << "envelope probes checked" << std::endl;
 
     if (failures == 0) {
         std::cout << "PASS: tramo seats model, " << order.size() << " corpus cases, " << checks

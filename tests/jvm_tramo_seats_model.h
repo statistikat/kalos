@@ -16,7 +16,7 @@ struct Case {
     const char* status;  // captured status class (record for the JVM crashes)
     const char* mode;    // captured DecompositionSpec mode
     int legacy_approx;   // 1: Legacy and setVarianceMax returned null (D6 prefix)
-    int reject;          // 1: QR-cascade record case, refused by the unit (D11)
+    int reject;          // 1: no bit-portable mirror (D11); none since 24-A.1
     std::size_t nreq;
     const char* const* req;
     std::size_t nfacts;
@@ -1471,9 +1471,9 @@ inline const Case* table(std::size_t& count) {
         {"v_in_xl", "ok", "Legacy", 1, 0, 7, k_req_v_in_xl, 21, k_fact_v_in_xl, 8, k_evt_v_in_xl},
         {"v_cut_neg", "ok", "None", 0, 0, 7, k_req_v_cut_neg, 21, k_fact_v_cut_neg, 7, k_evt_v_cut_neg},
         {"v_cut_pos", "ok", "Legacy", 1, 0, 7, k_req_v_cut_pos, 12, k_fact_v_cut_pos, 9, k_evt_v_cut_pos},
-        {"v_cut_bq2", "ok", "None", 0, 1, 7, k_req_v_cut_bq2, 21, k_fact_v_cut_bq2, 6, k_evt_v_cut_bq2},
+        {"v_cut_bq2", "ok", "None", 0, 0, 7, k_req_v_cut_bq2, 21, k_fact_v_cut_bq2, 6, k_evt_v_cut_bq2},
         {"v_stab_q2", "ok", "Legacy", 1, 0, 7, k_req_v_stab_q2, 12, k_fact_v_stab_q2, 9, k_evt_v_stab_q2},
-        {"v_simplify", "ok", "None", 0, 1, 7, k_req_v_simplify, 18, k_fact_v_simplify, 7, k_evt_v_simplify},
+        {"v_simplify", "ok", "None", 0, 0, 7, k_req_v_simplify, 18, k_fact_v_simplify, 7, k_evt_v_simplify},
         {"v_fixma_pos", "error:jdplus.toolkit.base.core.math.matrices.MatrixException", "Legacy", 1, 0, 7, k_req_v_fixma_pos, 19, k_fact_v_fixma_pos, 9, k_evt_v_fixma_pos},
         {"v_fixma_neg", "error:jdplus.toolkit.base.core.math.matrices.MatrixException", "Legacy", 1, 0, 7, k_req_v_fixma_neg, 19, k_fact_v_fixma_neg, 9, k_evt_v_fixma_neg},
         {"v_fixma_btheta", "ok", "Legacy", 1, 0, 7, k_req_v_fixma_btheta, 12, k_fact_v_fixma_btheta, 9, k_evt_v_fixma_btheta},
@@ -1485,7 +1485,7 @@ inline const Case* table(std::size_t& count) {
         {"d_ar1_slow", "ok", "None", 0, 0, 7, k_req_d_ar1_slow, 21, k_fact_d_ar1_slow, 6, k_evt_d_ar1_slow},
         {"d_ar1_rej", "ok", "None", 0, 0, 7, k_req_d_ar1_rej, 21, k_fact_d_ar1_rej, 6, k_evt_d_ar1_rej},
         {"d_ar2", "ok", "None", 0, 0, 7, k_req_d_ar2, 18, k_fact_d_ar2, 6, k_evt_d_ar2},
-        {"d_d2", "ok", "Legacy", 1, 1, 7, k_req_d_d2, 12, k_fact_d_d2, 8, k_evt_d_d2},
+        {"d_d2", "ok", "Legacy", 1, 0, 7, k_req_d_d2, 12, k_fact_d_d2, 8, k_evt_d_d2},
         {"d_stab_land", "ok", "Legacy", 1, 0, 7, k_req_d_stab_land, 21, k_fact_d_stab_land, 9, k_evt_d_stab_land},
         {"d_airline_var0", "ok", "Legacy", 1, 0, 7, k_req_d_airline_var0, 12, k_fact_d_airline_var0, 8, k_evt_d_airline_var0},
         {"d_log", "ok", "Legacy", 1, 0, 7, k_req_d_log, 12, k_fact_d_log, 8, k_evt_d_log},
@@ -1499,8 +1499,8 @@ inline const Case* table(std::size_t& count) {
         {"d_nondec_legacy", "ok", "Legacy", 1, 0, 7, k_req_d_nondec_legacy, 21, k_fact_d_nondec_legacy, 8, k_evt_d_nondec_legacy},
         {"d_nondec_noisy", "error:java.lang.NullPointerException:values is marked non-null but is null", "Noisy", 0, 0, 7, k_req_d_nondec_noisy, 19, k_fact_d_nondec_noisy, 7, k_evt_d_nondec_noisy},
         {"d_cut_then_decomp", "ok", "None", 0, 0, 7, k_req_d_cut_then_decomp, 21, k_fact_d_cut_then_decomp, 7, k_evt_d_cut_then_decomp},
-        {"q_airline", "error:jdplus.tramoseats.base.api.seats.SeatsException:Invalid decomposition", "None", 0, 1, 7, k_req_q_airline, 19, k_fact_q_airline, 8, k_evt_q_airline},
-        {"q_d2", "error:jdplus.tramoseats.base.api.seats.SeatsException:Invalid decomposition", "None", 0, 1, 7, k_req_q_d2, 10, k_fact_q_d2, 8, k_evt_q_d2},
+        {"q_airline", "error:jdplus.tramoseats.base.api.seats.SeatsException:Invalid decomposition", "None", 0, 0, 7, k_req_q_airline, 19, k_fact_q_airline, 8, k_evt_q_airline},
+        {"q_d2", "error:jdplus.tramoseats.base.api.seats.SeatsException:Invalid decomposition", "None", 0, 0, 7, k_req_q_d2, 10, k_fact_q_d2, 8, k_evt_q_d2},
     };
     count = sizeof(kCases) / sizeof(kCases[0]);
     return kCases;

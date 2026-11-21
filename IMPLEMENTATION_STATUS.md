@@ -2352,3 +2352,59 @@ outlier-scoring 98, regression-tests 494, final-information 266, x11-bpass
 mode observations, landing deltas), its README index entry, and the roadmap
 24-A ledger section. D6 stays open; spectral factorization and the variance
 allocation are 24-B scope, estimation uncertainty 24-C.
+
+## QR cascade port: slice 24-A.1 retires the five degree > 2 refusals — 2026-11-21
+
+The 24-A fail-closed envelope is retired at its root: `roots()` of degree ≥ 3
+now runs the faithful `FastEigenValuesSolver.qr` cascade — Householder
+Hessenberg reduction through the JVM's pure-Java GEMM loops, the Wilkinson /
+exceptional shift algebra, bulge + chase, `checkDeflation` at
+`Constants.getEpsilon()` = 1.1102230246251565E-16, root extraction through
+`eigenValues()` with Givens-rotated 2×2 blocks, the `dcmpl`/`dcmpg`
+comparison flavors and the `!(|s| > eps)` simplification test verbatim.
+Convergence profiles (start/stop/zero markers, per-block iteration counts,
+chase counts) were bit-matched against reflected JVM solver-state dumps for
+EVERY corpus polynomial entering the cascade (degrees 4/10/12). All five
+refusal-asserted rows (`d_d2`, `q_airline`, `q_d2`, `v_cut_bq2`, `v_simplify`)
+now replay as **positive** assertions of their captured facts; the unit
+boundary refuses only period/frequency ∉ {4, 12}, negative d/bd and
+non-finite inputs.
+
+Two cascade ends end in JVM exceptions that `DefaultModelDecomposer`'s
+`catch (Exception)` turns into null results — it_max (30n) exhaustion, whose
+null `roots` array makes the consumer NPE, and the 2×2-tail `chase()` that
+indexes `B[-1]`. Both are mirrored as internal aborts caught at the decompose
+seam and reproduce captured decisions (exhaustion fires measurably on
+`q_airline`/`q_d2`; JVM and unit agree on the full solver profile
+stop 2 / itc 120 / chase 120). They are decisions, not refusals. The
+`it_count % 25` bulge branch seeds its shift from `new Random()`: verified
+across three fresh JVM processes that its root bits are NOT bit-reproducible
+while every downstream captured decision is, so the unit substitutes a
+deterministic shift — fires on `v_simplify`'s degree-12 stationary AR in both
+engines, all 35 cases replay bit-exactly, and the csv corpus needed no
+re-capture (landing `--repro` re-run: 4 data files byte-identical again,
+SHA256SUMS 5/5).
+
+Two further JVM quirks/bugs came out of the decode and are transcribed
+verbatim: `SarimaModel.seasonalAR()/seasonalMA()` bound the STRIDE loop index
+by the parameter COUNT (`for (i = s, j = 0; i < arr.length; i += s, j++)`), so
+bp/bq ≥ 2 silently drops the seasonal component to 1 — `v_cut_bq2`'s
+whole-MA-to-noise decomposition is exactly that path; and the 24-A sketch had
+`SymmetricFrequencyResponse` transposed: `UpperTriangularMatrix.Ux` computes
+`x' = Uᵀ x` (accumulate DOWN into powers ≤ k), which only bites where the
+transform is applied — `v_simplify`'s `minimizeByRoots` component minimum,
+bit-pinned by a raw spnum/spden → `Spectrum$Minimizer` oracle probe.
+
+**Gates (this tree, all fresh builds).** `test_tramo_seats_model` (35 cases,
+**983 checks, 0 failures**, all positive incl. the flipped five): OpenMP lane
+66/66 (420 s), serial lane 66/66 (397 s). ASan/UBSan builds of unit and sweep:
+clean. `tools/verify_tramo_seats_model.cpp`: 35/35 PASS, **1026 checks** incl.
+the determinism double-run and eight envelope probes (five fail-closed + the
+three 24-A.1 accepts: stationary bphi, degree-3 phi, degree-3 btheta); the
+tool itself joins the tracked tree in this commit. Existing suite unchanged:
+nine sweeps byte-identical, full automatic sweep 71401 checks 0 bad (13/13),
+tramo-builder sweep 22/22; `check-manifest.py` 146/112/207 (unchanged —
+`tools/` is outside the manifest scope); `verify-migration.py` 406. Docs:
+contract pinned-semantics section (+ QR-cascade table, seasonal loop-bound
+quirk, refusal list, 24-A.1 deltas), roadmap 24-A ledger extended. D6 stays
+open; spectral factorization and the variance allocation remain 24-B scope.

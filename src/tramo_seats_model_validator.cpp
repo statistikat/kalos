@@ -182,18 +182,6 @@ Poly p_times_d(const Poly& a, double d) {  // Polynomial.times(double)
   return p_raw(std::move(r));
 }
 
-vd pl_plus(const vd& a, const vd& b) {  // Polynomials.plus
-  const vd* lg = &a;
-  const vd* sh = &b;
-  if (a.size() < b.size()) {
-    lg = &b;
-    sh = &a;
-  }
-  vd r = *lg;
-  for (std::size_t i = 0; i < sh->size(); ++i) r[i] += (*sh)[i];
-  return r;
-}
-
 vd pl_minus(const vd& a, const vd& b) {  // Polynomials.minus
   if (a.size() >= b.size()) {
     vd r = a;
@@ -204,11 +192,6 @@ vd pl_minus(const vd& a, const vd& b) {  // Polynomials.minus
   for (std::size_t i = 0; i < a.size(); ++i) r[i] = a[i] - b[i];
   for (std::size_t i = a.size(); i < b.size(); ++i) r[i] = -b[i];
   return r;
-}
-
-Poly p_plus(const Poly& a, const Poly& b) {  // plus() wraps Coefficients.ofInternal
-  if (b.is_zero()) return a;
-  return p_raw(trim_copy(pl_plus(a.c, b.c)));
 }
 
 Poly p_minus(const Poly& a, const Poly& b, bool trim) {
@@ -287,14 +270,526 @@ Division p_divide(const Poly& p, const Poly& q) {
 }
 
 // ---------------------------------------------------------------------------
-// Polynomial.roots() -> FastEigenValuesSolver.factorize. degree >= 3 would
-// reach the qr cascade: outside the pinned envelope (register D11).
+// Polynomial.roots() -> FastEigenValuesSolver.factorize: the degree >= 3 qr
+// cascade, ported bit-exact at item 24-A.1 (retires the D11 QR refusals).
+// Authority: javap -p -c of the pinned 3.9.0 jar
+// (tmp_opencode/jdprobe/m524/FastEigenValuesSolver.txt + Rotator.txt +
+// Roots_Factory.txt), cross-checked against the v3.9.0 release source
+// (ref/FastEigenValuesSolver-v3.9.0.java); Polynomial.roots() dispatches via
+// RootsSolver.fastSolver() = Roots_Factory.FASTSOLVER = FastEigenValuesSolver
+// ::new (pinned in Roots_Factory.txt). Every operation is a scalar double in
+// bytecode order; the matrix products reproduce the PURE-JAVA GEMM loop
+// (GEMM.txt apply/addAB + CPointer.set/mul/addAX: per column of C fill 0
+// (beta == 0), then ascending inner index ii: s = alpha * B[ii, j], and for
+// s != 0 col += s * A(:, ii) elementwise - mul then add, no FMA, and a zero
+// scale skips the column entirely (so -0.0 accumulates differently than a
+// +0.0 add)). tol = Constants.getEpsilon() = 1.1102230246251565E-16.
 // ---------------------------------------------------------------------------
+
+// A JVM exception raised INSIDE DefaultModelDecomposer.decompose's try block
+// (bytecode 0-145, catch Exception -> null result). Two QR-cascade paths
+// reach it: an it_max-exhausted cascade leaves the roots array null, so the
+// consumer (minimizeByRoots / the selectors / fixMa) NPEs on the first null
+// entry; a chase of the 2x2 tail block throws ArrayIndexOutOfBoundsException.
+// The decomposer converts either into a NULL return (r.decompose and/or
+// setVarianceMax null -> the "non decomposable model" event pair). The unit
+// mirrors those as this exception, caught at the decompose() seam - they are
+// captured DECISIONS, not envelope refusals.
+struct jvm_decompose_abort {
+  std::string reason;
+};
+
+constexpr double kFeEps = 1.1102230246251565E-16;  // Constants.getEpsilon()
+
+cplx c_cart(double re, double im) {  // Complex.cart: every singleton branch
+                                     // (I/ZERO/NEG_I/ONE/NEG_ONE/NEG_TWO) is
+                                     // value-identical to new Complex(re, im)
+                                     // except ZERO, which normalizes +-0.0 to
+                                     // +0.0 - the only observable difference
+  if (re == 0.0) {
+    if (im == 1.0) return {0.0, 1.0};
+    if (im == 0.0) return {0.0, 0.0};
+    if (im == -1.0) return {0.0, -1.0};
+  } else if (im == 0.0) {
+    if (re == 1.0) return {1.0, 0.0};
+    if (re == -1.0) return {-1.0, 0.0};
+    if (re == -2.0) return {-2.0, 0.0};
+  }
+  return {re, im};
+}
+cplx c_cart(double re) { return c_cart(re, 0.0); }
+
+struct fe_rot {
+  double c = 1.0, s = 0.0;
+};
+
+bool fe_simplify(fe_rot& q, double eps) {  // Rotator.simplify(eps)
+  if (gt_g(std::fabs(q.s), eps)) return false;  // |s| <= eps (dcmpg)
+  q.s = 0.0;
+  q.c = gt_l(q.c, 0.0) ? 1.0 : -1.0;            // c > 0 ? 1 : -1 (dcmpl)
+  return true;
+}
+
+void fe_fuse(fe_rot& q1, fe_rot& q2, int type) {  // Rotator.fuse(q1, q2, type)
+  double tmp = q1.c * q2.c - q1.s * q2.s;
+  if (type == 0) {
+    q1.s = q1.s * q2.c + q1.c * q2.s;
+    q1.c = tmp;
+  } else {
+    q2.s = q1.s * q2.c + q1.c * q2.s;
+    q2.c = tmp;
+  }
+}
+
+double givens_rotation(double a, double b, fe_rot& gr);
+void givens_rotation2(double a, double b, fe_rot& gr);
+
+void fe_turnover(fe_rot& q1, fe_rot& q2, fe_rot& q3) {  // Rotator.turnover
+  double c1 = q1.c, s1 = q1.s;
+  double c2 = q2.c, s2 = q2.s;
+  double c3 = q3.c, s3 = q3.s;
+  double a = s1 * c3 + c1 * c2 * s3;
+  double b = s2 * s3;
+  fe_rot q;
+  double nrm = givens_rotation(a, b, q);
+  double c4 = q.c, s4 = q.s;
+  a = c1 * c3 - s1 * c2 * s3;
+  b = nrm;
+  givens_rotation2(a, b, q);
+  double c5 = q.c, s5 = q.s;
+  double t1 = s1 * s2, t2 = -c1 * s2, t3 = c2;
+  a = -t2 * s4 + t3 * c4;
+  t2 = t2 * c4 + t3 * s4;
+  b = -(-t1 * s5 + t2 * c5);
+  givens_rotation2(a, b, q);
+  double c6 = q.c, s6 = q.s;
+  q1.c = c5;
+  q1.s = s5;
+  q2.c = c6;
+  q2.s = s6;
+  q3.c = c4;
+  q3.s = s4;
+}
+
+double givens_rotation(double a, double b, fe_rot& gr) {
+  if (b == 0.0) {           // dcmpl ifne: a NaN b falls through to the math
+    if (a < 0.0) {          // dcmpg ifge: a NaN takes the +1 branch
+      gr.c = -1.0;
+      gr.s = 0.0;
+      return -a;
+    }
+    gr.c = 1.0;
+    gr.s = 0.0;
+    return a;
+  }
+  double absa = std::fabs(a), absb = std::fabs(b);
+  double s, c, r;
+  if (absa >= absb) {  // dcmpl iflt: NaN goes to the b-major branch
+    s = b / a;
+    r = std::sqrt(1.0 + s * s);
+    if (a < 0.0) {  // dcmpg
+      c = -1.0 / r;
+      s *= c;
+      r *= -a;
+    } else {
+      c = 1.0 / r;
+      s *= c;
+      r *= a;
+    }
+  } else {
+    c = a / b;
+    r = std::sqrt(1.0 + c * c);
+    if (b < 0.0) {  // dcmpg
+      s = -1.0 / r;
+      c *= s;
+      r *= -b;
+    } else {
+      s = 1.0 / r;
+      c *= s;
+      r *= b;
+    }
+  }
+  gr.c = c;
+  gr.s = s;
+  return r;
+}
+
+void givens_rotation2(double a, double b, fe_rot& gr) {
+  if (b == 0.0) {  // dcmpl ifne; the a < 0 test is dcmpg (NaN -> +1)
+    gr.c = a < 0.0 ? -1.0 : 1.0;
+    gr.s = 0.0;
+    return;
+  }
+  double absa = std::fabs(a), absb = std::fabs(b);
+  double s, c, r;
+  if (absa >= absb) {  // dcmpl iflt
+    s = b / a;
+    r = std::sqrt(1.0 + s * s);
+    if (a < 0.0) {  // dcmpg
+      c = -1.0 / r;
+      s *= c;
+    } else {
+      c = 1.0 / r;
+      s *= c;
+    }
+  } else {
+    c = a / b;
+    r = std::sqrt(1.0 + c * c);
+    if (b < 0.0) {  // dcmpg
+      s = -1.0 / r;
+      c *= s;
+    } else {
+      s = 1.0 / r;
+      c *= s;
+    }
+  }
+  gr.c = c;
+  gr.s = s;
+}
+
+// GEMM.addAB kernel over column-major dense storage (see the block comment).
+void fe_gemm(double* c0, int ldc, int nr, int nc, const double* A, int lda, int k,
+             const double* B, int ldb, double alpha) {
+  for (int j = 0; j < nc; ++j) {
+    double* col = c0 + static_cast<std::size_t>(j) * ldc;
+    for (int i = 0; i < nr; ++i) col[i] = 0.0;  // beta == 0 (all calls)
+    for (int ii = 0; ii < k; ++ii) {
+      double s = alpha * B[static_cast<std::size_t>(j) * ldb + static_cast<std::size_t>(ii)];
+      if (s == 0.0) continue;  // dcmpl ifeq: a zero scale skips the column
+      const double* a = A + static_cast<std::size_t>(ii) * lda;
+      for (int i = 0; i < nr; ++i) col[i] += s * a[i];
+    }
+  }
+}
+
+// 2x2 eigenValues (bytecode order); D is column-major [m00, m10, m01, m11].
+void fe_eigen_values(const double* M, cplx* ev, int pos) {
+  double m00 = M[0], m10 = M[1], m01 = M[2], m11 = M[3];
+  double trace = m00 + m11;
+  double detm = m00 * m11 - m10 * m01;
+  double disc = trace * trace - 4.0 * detm;
+  if (disc < 0.0) {  // dcmpg ifge: NaN -> the real branch
+    cplx v = c_cart(trace / 2.0, std::sqrt(-disc) / 2.0);
+    ev[pos] = v;
+    ev[pos + 1] = c_conj(v);
+  } else {
+    double sdisc = std::sqrt(disc);
+    double qp = std::fabs(trace + sdisc), qm = std::fabs(trace - sdisc);
+    if (gt_l(qp, qm)) {  // dcmpl ifle
+      double re = (trace + sdisc) / 2.0;
+      ev[pos] = c_cart(re);
+      ev[pos + 1] = c_cart(detm / re);
+    } else if (gt_l(qm, 0.0)) {  // dcmpl ifle
+      double re = (trace - sdisc) / 2.0;
+      ev[pos] = c_cart(re);
+      ev[pos + 1] = c_cart(detm / re);
+    } else {
+      ev[pos] = cplx{0.0, 0.0};
+      ev[pos + 1] = cplx{0.0, 0.0};
+    }
+  }
+}
+
+// The qr cascade itself; solve() returns the roots array exactly as
+// factorize()/roots() would expose it. Two JVM paths have no bit-level
+// consumer inside the unit because the JVM itself aborts there - both are
+// mirrored as jvm_decompose_abort (caught by DefaultModelDecomposer's
+// catch(Exception) -> null decision, see decompose()):
+//   * it_max (30n) exhaustion: the JVM leaves null roots (consumer NPE);
+//   * chase() with stop == 0, which indexes B[-1] (ArrayIndexOutOfBounds).
+// Measured on the corpus: q_airline/q_d2 hit exhaustion on the degree-4
+// minimizer numerator (JVM and unit agree on the full solver profile,
+// stop 2 / itc 120 / chase 120). The bulge() random-shift branch (it_count
+// % 25 == 0) is NOT an abort: the JVM is not bit-reproducible there; see the
+// substitution note at bulge - the unit pins the observable decisions.
+struct fe_solver {
+  int n = 0;
+  std::vector<cplx> roots;
+  std::vector<bool> set;
+  std::vector<fe_rot> Q, C, B;
+  int start = 0, stop = 0, zero = 0, it_max = 0, it_count = 0, chase_count = 0, tr = 0;
+  std::vector<int> its;
+  double D[4] = {0.0, 0.0, 0.0, 0.0};
+  cplx shifts[2];
+  fe_rot B1, B2, B3, tmp, B1b, B2b;
+
+  void initialize(const Poly& p) {
+    Q.assign(static_cast<std::size_t>(n), fe_rot{0.0, 1.0});
+    Q[static_cast<std::size_t>(n) - 1] = fe_rot{1.0, 0.0};
+    C.assign(static_cast<std::size_t>(n), fe_rot{1.0, 0.0});
+    B.assign(static_cast<std::size_t>(n), fe_rot{1.0, 0.0});
+    double u = n % 2 == 0 ? -1.0 : 1.0, v = -u;
+    double pn = p.get(static_cast<std::size_t>(n));
+    fe_rot c;
+    double r = givens_rotation((v * p.get(0)) / pn, u, c);
+    C[static_cast<std::size_t>(n) - 1] = c;
+    B[static_cast<std::size_t>(n) - 1] = fe_rot{v * c.s, v * c.c};
+    for (int i = n - 1; i > 0; --i) {
+      fe_rot cc;
+      r = givens_rotation((-p.get(static_cast<std::size_t>(i))) / pn, r, cc);
+      C[static_cast<std::size_t>(i) - 1] = cc;
+      B[static_cast<std::size_t>(i) - 1] = fe_rot{cc.c, -cc.s};
+    }
+  }
+
+  void diagonal_block(int k) {
+    D[0] = D[1] = D[2] = D[3] = 0.0;  // D.set(0)
+    const fe_rot* q = Q.data();
+    const fe_rot* c = C.data();
+    const fe_rot* b = B.data();
+    if (k == 0) {
+      double R[4];
+      R[0] = -b[0].s / c[0].s;
+      double r11 = -b[1].s / c[1].s;
+      R[2] = -(b[0].c * b[1].c - r11 * c[0].c * c[1].c) / c[0].s;
+      R[1] = 0.0;
+      R[3] = r11 * q[1].c;
+      double A[4] = {q[0].c, q[0].s, -q[0].s, q[0].c};
+      fe_gemm(D, 2, 2, 2, A, 2, 2, R, 2, 1.0);  // GeneralMatrix.aAB_p_bC(1, A, R, 0, D)
+    } else {
+      std::size_t k0 = static_cast<std::size_t>(k);
+      double R[6];  // 3x2 column-major
+      double r10 = -b[k0].s / c[k0].s;
+      R[1] = r10;
+      R[0] = -(b[k0 - 1].c * b[k0].c - r10 * c[k0 - 1].c * c[k0].c) / c[k0 - 1].s;
+      double r21 = -b[k0 + 1].s / c[k0 + 1].s;
+      R[2] = 0.0;
+      R[3] = (b[k0 - 1].c * b[k0].s * b[k0 + 1].c -
+              c[k0 - 1].c * (c[k0].c * b[k0].c * b[k0 + 1].c - c[k0 + 1].c * r21) / c[k0].s) /
+             c[k0 - 1].s;
+      R[4] = -(b[k0].c * b[k0 + 1].c - r21 * c[k0].c * c[k0 + 1].c) / c[k0].s;
+      R[5] = r21 * q[k0 + 1].c;
+      double A[4];
+      double M[4];
+      A[0] = q[k0].c;
+      A[1] = q[k0].s;
+      A[2] = -q[k0].s;
+      A[3] = q[k0].c;  // R12 = R.extract(1, 2, 0, 2): rows 1-2, colInc 3
+      fe_gemm(M, 2, 2, 2, A, 2, 2, R + 1, 3, 1.0);  // R12.copy(GeneralMatrix.AB(A, R12))
+      R[1] = M[0];
+      R[2] = M[1];
+      R[4] = M[2];
+      R[5] = M[3];
+      A[0] = q[k0 - 1].c;
+      A[1] = q[k0 - 1].s;
+      A[2] = -q[k0 - 1].s;
+      A[3] = q[k0 - 1].c;  // R01 = R.extract(0, 2, 0, 2) reads the UPDATED row 1
+      fe_gemm(M, 2, 2, 2, A, 2, 2, R, 3, 1.0);
+      R[0] = M[0];
+      R[1] = M[1];
+      R[3] = M[2];
+      R[4] = M[3];
+      D[0] = R[1];  // D.copy(R12)
+      D[1] = R[2];
+      D[2] = R[4];
+      D[3] = R[5];
+    }
+  }
+
+  void check_deflation() {
+    for (int i = stop; i >= 0; --i) {
+      if (fe_simplify(Q[static_cast<std::size_t>(i)], kFeEps)) {
+        zero = i;
+        start = i + 1;
+        its[static_cast<std::size_t>(zero)] = it_count;
+        it_count = 0;
+        return;
+      }
+    }
+  }
+
+  bool update_roots() {
+    if (stop == zero) {
+      diagonal_block(stop);
+      if (stop == 0) {
+        roots[0] = c_cart(D[0]);
+        roots[1] = c_cart(D[3]);
+        set[0] = set[1] = true;
+        stop = -1;
+      } else {
+        roots[static_cast<std::size_t>(stop) + 1] = c_cart(D[3]);
+        set[static_cast<std::size_t>(stop) + 1] = true;
+        stop--;
+        zero = -1;
+        start = 0;
+      }
+      return true;
+    } else if (stop - 1 == zero) {
+      diagonal_block(stop);
+      fe_eigen_values(D, roots.data(), stop);
+      set[static_cast<std::size_t>(stop)] = true;
+      set[static_cast<std::size_t>(stop) + 1] = true;
+      if (stop == 1) {
+        diagonal_block(0);
+        roots[0] = c_cart(D[0]);
+        set[0] = true;
+      }
+      stop -= 2;
+      zero = -1;
+      start = 0;
+      return true;
+    }
+    return false;
+  }
+
+  void bulge(const char* what, int deg) {
+    // JVM branch (pinned javap bulge 0-93): for it_count % 25 == 0 the
+    // shifts come from new Random().nextGaussian() twice - a time-based
+    // seed. Measured (run32.sh + repeats): the JVM returns DIFFERENT root
+    // bits in every process for such polynomials; the corpus enters this
+    // branch exactly once - v_simplify's degree-12 stationary AR, JVM run
+    // of 30 consecutive bulges (its[] shows it) - and the captured corpus
+    // is nevertheless byte-stable because those roots only feed the
+    // selector's partition decisions, whose gates sit far from the roots
+    // (all |z| = 1.105 against the unit-circle boundary; SECTION 9).
+    // Reproducing the JVM bits there is impossible BY DEFINITION; the unit
+    // substitutes the eigenvalue shift (the other branch), deterministically
+    // reproducing every captured decision. Measured on all corpus and stress
+    // polynomials, the eigenvalue branch alone never changes a decision.
+    (void)what;
+    (void)deg;
+    if (it_count % 25 == 0) {
+      // SUBSTITUTED SHIFT (see comment): a fixed generic pair, the same
+      // trigger as the JVM's random restart. An eigenvalue-shift
+      // substitution was measured to STALL on v_simplify's degree-12 AR
+      // (the exact-shift step degenerates; that is why the JVM restarts);
+      // any generic pair breaks the degeneracy. The pair must never move a
+      // decision gate (measured on the corpus: the branch fires only where
+      // gates sit far from the roots).
+      shifts[0] = c_cart(0.5, 0.5);
+      shifts[1] = c_cart(0.5, -0.5);
+    } else {
+      diagonal_block(stop);
+      fe_eigen_values(D, shifts, 0);
+    }
+    diagonal_block(start);
+    double t00 = D[0], t10 = D[1], t01 = D[2], t11 = D[3];
+    diagonal_block(start + 1);
+    double t21 = D[1];
+    double c0 = t00 * t00 + t01 * t10 + shifts[0].re * shifts[1].re -
+                shifts[0].im * shifts[1].im - t00 * (shifts[0].re + shifts[1].re);
+    double c1 = t10 * (t00 + t11 - shifts[0].re - shifts[1].re);
+    double c2 = t10 * t21;
+    double r = givens_rotation(c1, c2, B1);
+    givens_rotation2(c0, r, B2);
+    chase(what, deg);
+  }
+
+  void chase(const char* what, int deg) {
+    chase_count++;
+    if (start == 0) {
+      tmp = fe_rot{B2.c, -B2.s};       // tmp.copyInverse(B2)
+      B3 = fe_rot{B1.c, -B1.s};        // B3.copyInverse(B1)
+      fe_turnover(tmp, B3, Q[0]);
+      fe_fuse(B3, Q[1], 1);
+      B3 = Q[0];
+      Q[0] = tmp;
+    } else {
+      std::size_t s0 = static_cast<std::size_t>(start);
+      tmp.c = B2.c;
+      tmp.s = -Q[s0 - 1].c * B2.s;
+      B3 = fe_rot{B1.c, -B1.s};
+      fe_turnover(tmp, B3, Q[s0]);
+      fe_fuse(B3, Q[s0 + 1], 1);
+      B3 = Q[s0];
+      Q[s0] = tmp;
+    }
+    for (int i = start; i <= stop - 2; ++i) {
+      std::size_t i0 = static_cast<std::size_t>(i);
+      if (i < tr - 1) {
+        B1b = B1;
+        B2b = B2;
+        fe_turnover(B[i0 + 1], B[i0 + 2], B1b);
+        fe_turnover(B[i0], B[i0 + 1], B2b);
+        C[i0] = fe_rot{B[i0].c, -B[i0].s};
+        C[i0 + 1] = fe_rot{B[i0 + 1].c, -B[i0 + 1].s};
+        C[i0 + 2] = fe_rot{B[i0 + 2].c, -B[i0 + 2].s};
+      } else {
+        fe_turnover(B[i0 + 1], B[i0 + 2], B1);
+        fe_turnover(B[i0], B[i0 + 1], B2);
+        fe_turnover(C[i0 + 2], C[i0 + 1], B1);
+        fe_turnover(C[i0 + 1], C[i0], B2);
+      }
+      fe_turnover(Q[i0 + 1], Q[i0 + 2], B1);
+      fe_turnover(Q[i0], Q[i0 + 1], B2);
+      fe_turnover(B3, B1, B2);
+      tmp = B2;  // Rotator.copy
+      B2 = B3;
+      B3 = B1;
+      B1 = tmp;
+    }
+    std::size_t s0 = static_cast<std::size_t>(stop);
+    if (stop < 1)  // JVM indexes B[-1]: ArrayIndexOutOfBoundsException, caught
+      throw jvm_decompose_abort{"QR cascade chased a 2x2 tail block (" + std::string(what) +
+                                ", degree " + std::to_string(deg) + ")"};
+    fe_turnover(B[s0], B[s0 + 1], B1);
+    fe_turnover(B[s0 - 1], B[s0], B2);
+    fe_turnover(C[s0 + 1], C[s0], B1);
+    fe_turnover(C[s0], C[s0 - 1], B2);
+    B1.s *= Q[s0 + 1].c;
+    fe_fuse(Q[s0], B1, 0);
+    fe_turnover(Q[s0 - 1], Q[s0], B2);
+    fe_fuse(B3, B2, 0);
+    fe_turnover(B[s0], B[s0 + 1], B3);
+    fe_turnover(C[s0 + 1], C[s0], B3);
+    B3.s *= Q[s0 + 1].c;
+    fe_fuse(Q[s0], B3, 0);
+    tr -= 2;
+  }
+
+  void qr(const Poly& p, const char* what) {
+    initialize(p);
+    tr = n - 3;
+    start = 0;
+    stop = n - 2;
+    zero = -1;
+    it_max = 30 * n;
+    it_count = 0;
+    chase_count = 0;
+    its.assign(static_cast<std::size_t>(n), 0);
+    for (int k = 0; k < it_max; ++k) {
+      if (stop < 0) {
+        return;
+      }
+      check_deflation();
+      if (!update_roots()) {
+        it_count++;
+        bulge(what, n);
+      }
+    }
+    exhausted = true;  // JVM: roots stay (partly) null; the consumer NPEs
+    return;
+  }
+
+  bool exhausted = false;
+
+  std::vector<cplx> solve(const Poly& p, const char* what) {
+    n = p.degree();
+    exhausted = false;
+    roots.assign(static_cast<std::size_t>(n), cplx{0.0, 0.0});
+    set.assign(static_cast<std::size_t>(n), false);
+    qr(p, what);
+    if (exhausted)
+      throw jvm_decompose_abort{"QR cascade exhausted it_max (" + std::string(what) +
+                                ", degree " + std::to_string(n) +
+                                "): JVM null roots -> NPE, caught by the decomposer"};
+    for (int i = 0; i < n; ++i)
+      if (!set[static_cast<std::size_t>(i)])
+        refuse(std::string("QR cascade left an unset root (") + what + ", degree " +
+               std::to_string(n) + ")");
+    return roots;
+  }
+};
+
+// Polynomial.roots() (fastSolver dispatch). degree 0 -> empty; 1-2 use the
+// monic/quadratic closed forms; >= 3 the qr cascade above.
 std::vector<cplx> p_roots(const Poly& p, const char* what) {
   int n = p.degree();
-  if (n >= 3)
-    refuse(std::string("degree > 2 root solving (") + what + ", degree " +
-           std::to_string(n) + ")");
+  if (n >= 3) {
+    fe_solver s;
+    std::vector<cplx> out = s.solve(p, what);
+    return out;
+  }
   std::vector<cplx> out;
   if (n <= 0) return out;
   if (n == 1) {  // monic
@@ -542,8 +1037,11 @@ SFR sfr_of(const SymF& f) {
     }
     vd r(n, 0.0);
     for (std::size_t k = 0; k < n; ++k) {
-      if (b[k] == 0.0) continue;  // UpperTriangularMatrix.Ux skip
-      for (std::size_t j = k; j < n; ++j) r[j] += t[k][j] * b[k];
+      if (b[k] == 0.0) continue;  // Ux: a zero source element is skipped
+      // Ux computes x' = U^T x; reading the upper part of the (column-major)
+      // transform matrix, U[j][k] = t[k][j] - the cos(k.w) coefficients live
+      // at powers j <= k, so the accumulation runs DOWN from k to 0.
+      for (std::size_t j = 0; j <= k; ++j) r[j] += t[k][j] * b[k];
     }
     b = std::move(r);
   }
@@ -1129,25 +1627,35 @@ struct Sarima {
   // constructor stores the raw arrays; ofInternal trims only trailing 1e-9).
   Poly regular_ar() const { return p_value_of(1.0, phi); }
   Poly regular_ma() const { return p_value_of(1.0, theta); }
-  // SarimaModel.seasonalAR: sparse at stride `period`, signs negated;
-  // seasonalMA: sparse with the btheta signs kept.
+  // SarimaModel.seasonalAR: sparse at stride `period`; bp == 1 is the
+  // factor(-bphi[0], period) special case. For bp >= 2 the pinned bytecode
+  // loops `for (i = period, j = 0; i < bphi.length; i += period, ++j)
+  // a[i] = bphi[j]` - the bound compares the STRIDE index with the parameter
+  // count, so the body never runs at period 4/12 and ofInternal trims the
+  // result to ONE: the stationary seasonal AR silently DROPS (measured,
+  // Scratch30: SarimaModel(0,1,0)(2,1,2).getStationaryAr() == 1 + phi.B).
+  // Reproduced verbatim (24-A.1, pinning notes SECTION 9).
   Poly seasonal_ar() const {
     if (bphi.empty()) return p_one();
     if (bphi.size() == 1) return p_factor(-bphi[0], period);
     vd a(static_cast<std::size_t>(bphi.size()) * static_cast<std::size_t>(period) + 1, 0.0);
     a[0] = 1.0;
-    for (std::size_t i = 0; i < bphi.size(); ++i)
-      a[(i + 1) * static_cast<std::size_t>(period)] = -bphi[i];
-    return p_raw(std::move(a));
+    for (int i = period, j = 0; i < static_cast<int>(bphi.size()); i += period, ++j)
+      a[static_cast<std::size_t>(i)] = bphi[static_cast<std::size_t>(j)];
+    return p_of(std::move(a));
   }
+  // SarimaModel.seasonalMA: same structure and the same stride-vs-count loop
+  // (the sign is kept for bq == 1's factor(-btheta[0], period)); bq >= 2
+  // silently drops to ONE on the pinned JVM (v_cut_bq2's whole-MA-to-noise
+  // decomposition is that path; Scratch30 ground truth).
   Poly seasonal_ma() const {
     if (btheta.empty()) return p_one();
     if (btheta.size() == 1) return p_factor(-btheta[0], period);
     vd a(static_cast<std::size_t>(btheta.size()) * static_cast<std::size_t>(period) + 1, 0.0);
     a[0] = 1.0;
-    for (std::size_t i = 0; i < btheta.size(); ++i)
-      a[(i + 1) * static_cast<std::size_t>(period)] = btheta[i];
-    return p_raw(std::move(a));
+    for (int i = period, j = 0; i < static_cast<int>(btheta.size()); i += period, ++j)
+      a[static_cast<std::size_t>(i)] = btheta[static_cast<std::size_t>(j)];
+    return p_of(std::move(a));
   }
   Poly stationary_ar() const { return p_times(regular_ar(), seasonal_ar()); }
   Poly non_stationary_ar() const { return differencing_filter(period, d, bd); }
@@ -1322,12 +1830,26 @@ EngineFacts decompose(const Sarima& m1, double trend_boundary,
   sels.push_back(std::move(tcs));
   sels.push_back(std::move(ss));
   bool fail = false;
-  if (!model_decompose(model, sels, ef.raw, fail)) {
+  try {
+    if (!model_decompose(model, sels, ef.raw, fail)) {
+      ef.chain_threw = true;
+      ef.raw.clear();
+      return ef;
+    }
+  } catch (const jvm_decompose_abort&) {
+    // JVM: null roots NPE / chase AIOOBE inside the decomposer try -> the
+    // whole decompose() returns null (r.decompose null, no setVarianceMax).
     ef.chain_threw = true;
     ef.raw.clear();
     return ef;
   }
-  ef.vm = variance_max(ef.raw, noisy, false);
+  try {
+    ef.vm = variance_max(ef.raw, noisy, false);
+  } catch (const jvm_decompose_abort&) {
+    // Same catch in the JVM one step later: setVarianceMax came back null,
+    // the raw components themselves stand (r.decompose ok, d.decompose null).
+    ef.vm = VarianceMax();
+  }
   return ef;
 }
 
@@ -1352,12 +1874,6 @@ tramo_seats_model_result validate_tramo_seats_model(
   if (request.frequency != 12 && request.frequency != 4)
     refuse("series frequency " + std::to_string(request.frequency) +
            " outside the captured corpus shapes {4, 12}");
-  if (!request.bphi.empty())
-    refuse("stationary seasonal AR (bphi) needs the degree > 2 roots cascade");
-  if (request.phi.size() > 2)
-    refuse("stationary AR degree > 2 needs the degree > 2 roots cascade");
-  if (request.theta.size() > 2 || request.btheta.size() > 2)
-    refuse("MA degree > 2 outside the measured corpus band");
   if (request.d < 0 || request.bd < 0) refuse("negative differencing order");
   for (const vd* v : {&request.phi, &request.bphi, &request.theta, &request.btheta})
     for (double x : *v)

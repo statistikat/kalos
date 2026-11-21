@@ -306,9 +306,10 @@ inline Summary replay_all(bool verbose) {
     }
     kalos::tramo_seats_model_result res;
     if (c.reject != 0) {
-      // QR-cascade record case (D11): the JVM entered the
-      // FastEigenValuesSolver / seasonal root-zone reconstruction path;
-      // the unit must refuse the request fail-closed.
+      // Case with no bit-portable unit mirror: the unit must refuse the
+      // request fail-closed. No captured case carries reject=1 since 24-A.1
+      // (the QR-cascade refusals were retired with the FastEigenValuesSolver
+      // port); the mechanism stays for future captures.
       ++s.checks;
       bool threw = false;
       try {

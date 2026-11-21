@@ -1,4 +1,4 @@
-# SEATS model admissibility and decomposition mirror (24-A)
+# SEATS model admissibility and decomposition mirror (24-A, extended at 24-A.1)
 
 Unit-qualified transcription of the LIVE pinned jdplus 3.9.0 SEATS path
 between the `SeatsKernel.validate` and `SeatsKernel.decomposeModel` seams:
@@ -58,8 +58,9 @@ complete the layer.
 Numeric comparison is IEEE-754 BIT equality: golden doubles are `%.17g`
 captures, re-parsed through `strtod` (exact round trip) and bit-compared — a
 formatter-independent comparison. At landing every golden-asserted numeric
-(validator parameters, the raw `sar`/`ur`/`sfd` component coefficients) is
-bit-exact on all 30 non-refused cases; no measured band was needed. The
+(validator parameters, the raw `sar`/`ur`/`sfd` component coefficients) was
+bit-exact on all 30 non-refused cases; since the 24-A.1 roots-cascade port all
+**35** cases replay with bit-exact facts and no measured band was needed. The
 minima-sum `variance_floor` is exposed for the sweep report; the decision
 uses only its sign, as `setVarianceMax` does.
 
@@ -99,6 +100,40 @@ uses only its sign, as `setVarianceMax` does.
   `model var 2.0` is the SeatsModel echo; `k.ucar` reports 1.0 and the
   variance-free `r sfd` facts pin it). Seasonal MA sign: `bq = 1` keeps the
   `btheta` sign (`p_factor(-btheta[0], period)`).
+* **`SarimaModel.seasonalAR()/seasonalMA()` loop-bound quirk (24-A.1)**: for
+  orders ≥ 2 the builder loop `for (i = s, j = 0; i < arr.length; i += s,
+  j++) a[i] = arr[j]` bounds the STRIDE index `i` by the parameter-COUNT
+  array `arr`, so with period 12 the body never runs — the seasonal
+  polynomial keeps only its leading 1 and `Polynomial.ofInternal` trims:
+  seasonal AR/MA order ≥ 2 silently DROPS the seasonal component
+  (`v_cut_bq2`'s whole-MA-to-noise decomposition is this path). Transcribed
+  verbatim, JVM ground truth pinned by raw-decomposition probes.
+* **`roots()` degree ≥ 3 — `FastEigenValuesSolver.qr` cascade (24-A.1)**:
+  faithful port of the JVM QR iteration — Householder reduction to Hessenberg
+  form through the pure-Java GEMM loops (no BLAS on this path), Wilkinson /
+  exceptional shifts from the pinned tr/det expressions, bulge + chase,
+  `checkDeflation` against the tridiagonal envelope with
+  `Constants.getEpsilon()` = 1.1102230246251565E-16, root extraction via
+  `eigenValues()` + Givens rotation of the 2×2 diagonal blocks, the
+  `dcmpl`/`dcmpg` comparison flavors and the `!(|s| > eps)` simplification
+  test verbatim. Convergence profiles (start/stop/zero markers, iteration
+  counts, chase counts) are bit-exact against JVM solver-state dumps for
+  every corpus polynomial that enters the cascade (degree 4/10/12; probes in
+  `tmp_opencode/jdprobe/m524`). Two cascade ends end in a JVM exception
+  caught by `DefaultModelDecomposer`'s `catch (Exception)` → null result; the
+  unit mirrors both as internal aborts caught at the decompose seam (they
+  reproduce captured decisions, they are NOT refusals): `it_max = 30n`
+  exhaustion — the JVM leaves null entries in `roots`, the consumer NPEs
+  (measured on `q_airline`/`q_d2`'s degree-4 minimizer numerators; JVM and
+  unit agree on the full profile stop 2 / itc 120 / chase 120) — and
+  `chase()` of the 2×2 tail at `stop == 0`, which indexes `B[-1]`
+  (ArrayIndexOutOfBounds; measured unreachable on the corpus). The bulge
+  branch `it_count % 25 == 0` seeds its shift from `new Random()`: the JVM is
+  NOT bit-reproducible there (root bits differ across JVM processes,
+  verified), so the unit substitutes the deterministic shift {0.5 ± 0.5i};
+  measured to fire on `v_simplify`'s degree-12 stationary AR in BOTH engines,
+  whose roots only feed gate-robust partition/minima decisions (the captured
+  facts replay bit-exactly).
 * **Selector chain** (exactly as `SeatsToolkit.of` wires it):
   `TrendCycleSelector(rmod)` with the default low-frequency threshold, then
   `SeasonalSelector(period, seasTolerance)` with
@@ -144,16 +179,18 @@ completed, and `d_nondec_noisy` crashes probe-side with the Noisy-mode NPE
 (their `kevt` streams are complete and asserted); mode **Noisy** mirrors the
 warning branch. `legacy_approx = 1 ⟺ mode == Legacy ∧ d.decompose == null`.
 
-`validate_tramo_seats_model` refuses (`std::invalid_argument`, register D11):
-period or frequency outside {4, 12}; non-empty `bphi` (its root set needs the
-degree > 2 `FastEigenValuesSolver.qr` cascade); stationary AR degree > 2; MA
-degree > 2 (outside the measured corpus band); negative d/bd; any non-finite
-parameter or knob; and any request whose live path enters `roots()` of degree
-> 2 (stabilizeMA/fixMaUnitRoots/minimizer `w`). Five corpus rows are
-REFUSAL-asserted (their JVM path enters the QR cascade): `d_d2`, `q_airline`,
-`q_d2` (degree-4 minimizer numerator), `v_cut_bq2` (degree-10 minimizer
-numerator on the bq=2 split), `v_simplify` (stationary `bphi` reconstruction).
-Their captured facts remain in the csv corpus as 24-B evidence.
+`validate_tramo_seats_model` refuses (`std::invalid_argument`): period or
+frequency outside {4, 12}; negative d/bd; any non-finite parameter or knob.
+That is the whole refusal list since 24-A.1: the five 24-A D11 refusals
+(`d_d2`, `q_airline`, `q_d2`, `v_cut_bq2`, `v_simplify` — non-empty `bphi`,
+stationary AR degree > 2, MA degree > 2, degree > 2 `roots()`) were retired
+when `FastEigenValuesSolver.qr` was ported bit-exact; all five replay as
+POSITIVE assertions of their captured facts. The two JVM-abortive cascade
+ends (it_max exhaustion → consumer NPE; 2×2-tail chase → `B[-1]`
+ArrayIndexOutOfBounds) are NOT refusals either: they are mirrored as internal
+aborts that reproduce the captured null-decomposition decisions. The `reject`
+column mechanism in the corpus protocol stays (dormant, 0 of 35) for future
+captures with no bit-portable mirror.
 
 ## Implementation-actual deltas at landing (24-A)
 
@@ -168,24 +205,44 @@ Their captured facts remain in the csv corpus as 24-B evidence.
   `∏`): the copy `z[i+1] = z[i]` is load-bearing, the inner loop starts at
   index `i`.
 * `d_d2` is MONTHLY, not quarterly: degree-4 minimizer numerators are
-  reachable monthly (`q = 2` plus D2), so the QR-cascade refusal class spans
-  both corpus shapes — recorded, refused, not widened.
+  reachable monthly (`q = 2` plus D2), so the QR-cascade class spans both
+  corpus shapes — recorded, and (since 24-A.1) replayed positively on both.
 * The `variance_max_ok` mirror consumes the RAW component structure; the
   captured `k.ucar` variances and `r c{i} ma|var` allocations stay
   record-only (24-B).
 
+## Implementation-actual deltas at 24-A.1
+
+* **`SymmetricFrequencyResponse` constructor direction** was transposed in
+  the 24-A sketch: the bytecode runs `UpperTriangularMatrix.Ux(U, x)` =
+  `x' = Uᵀ x`, reading the cos(k·ω) coefficient row `t[k][0..k]` and
+  accumulating DOWN into powers `0..k` — not `U x` upward. Only visible where
+  the transform is actually applied (n > 2 SFRs): `v_simplify`'s
+  `minimizeByRoots` component minimum (bit-pinned by a raw
+  spnum/spden → `Spectrum$Minimizer` oracle probe); the by-grid minima never
+  apply the transform, which is why 24-A still passed 30/30.
+* **The bulge random shift is JVM-irreproducible by construction**: three
+  fresh JVM processes return different root bits for the fired degree-12
+  polynomial while all downstream captured DECISIONS (sfd minima, partition,
+  variances, events) stay identical, because the selector/minimizer decisions
+  are robust there. The deterministic substitute therefore pins decisions,
+  not root bits, exactly per the G2 corpus doctrine — and the corpus needed
+  no re-capture: the landing `--repro` re-run of 24-A.1 reported the four data
+  files byte-identical again.
+
 ## Gates
 
-`test_tramo_seats_model`: 35 corpus cases — 30 replayed with bit-exact facts
+`test_tramo_seats_model`: 35 corpus cases, ALL 35 positive — bit-exact facts
 (validator v.\*, raw `r` sar/ur/sfd, `r.count`, `r.decompose`, the
 `d.decompose` mirror, `k.cutOff`, `k.modelChanged` where not D6-skipped),
 exact kevt frames (exact-prefix for the 13 `legacy_approx` rows), flags from
-the decision matrix, plus the 5 refusal-asserted D11 rows: 860 checks, 0
-failures, bit-exact in BOTH the OpenMP and serial lanes (66/66 each, fresh
-trees). ASan/UBSan builds of unit and sweep: clean.
-`tools/verify_tramo_seats_model.cpp` re-drives the raw csv corpus (the
-evidence layer itself, not the generated header): 35/35 cases, 896 checks
-(including the determinism double-run and the six envelope-refusal probes).
-Existing suite unchanged: the nine sweeps byte-identical, the full automatic
-sweep 71401 checks 0 bad (13/13), the tramo-builder sweep 22/22,
-`verify-migration.py` 406.
+the decision matrix: 983 checks, 0 failures, bit-exact in BOTH the OpenMP and
+serial lanes (66/66 each, fresh trees). ASan/UBSan builds of unit and sweep:
+clean. `tools/verify_tramo_seats_model.cpp` re-drives the raw csv corpus (the
+evidence layer itself, not the generated header): 35/35 cases, 1026 checks
+(including the determinism double-run and the eight envelope probes: five
+fail-closed refusals plus the three 24-A.1 accepts — stationary bphi,
+degree-3 phi, degree-3 btheta). Existing suite unchanged: the nine sweeps
+byte-identical, the full automatic sweep 71401 checks 0 bad (13/13), the
+tramo-builder sweep 22/22, `verify-migration.py` 406; corpus `SHA256SUMS.csv`
+5/5 and the 24-A.1 `--repro` re-capture byte-identical.

@@ -320,14 +320,33 @@ Dependencies on the unfinished X-13 queue (M4 report §6):
 - **D11 refusals (record cases).** Five corpus rows whose live path enters
   `Polynomial.roots()` of degree > 2 (`d_d2`/`q_airline`/`q_d2` degree-4 and
   `v_cut_bq2` degree-10 minimizer numerators, `v_simplify` stationary-`bphi`
-  reconstruction) are refusal-asserted; the QR cascade is not ported.
+  reconstruction) were refusal-asserted at landing; the QR cascade is now
+  ported (next bullet) and all five replay as POSITIVE assertions.
+- **24-A.1 extension — the `FastEigenValuesSolver.qr` cascade (LANDED
+  2026-11-21).** Bit-exact port of the degree ≥ 3 roots machine (Householder
+  Hessenberg, Wilkinson/exceptional shifts, bulge + chase, deflation at
+  `Constants.getEpsilon()`, `eigenValues()` + Givens root extraction, the
+  `dcmpl`/`dcmpg` comparison flavors; convergence profiles bit-matched against
+  JVM solver-state dumps). The two JVM-abortive cascade ends (it_max → null
+  roots → consumer NPE; 2×2-tail chase → `B[-1]` AIOOBE) are mirrored as
+  internal aborts reproducing the captured null-decomposition decisions —
+  measured firing on `q_airline`/`q_d2`; the `new Random()` bulge branch is
+  substituted deterministically (the JVM is not bit-reproducible there, the
+  captured decisions are — contract doc, pinned-semantics section). Fixed the
+  24-A `SymmetricFrequencyResponse` transposition (Ux computes `Uᵀ x`);
+  pinned the `SarimaModel.seasonalAR()/seasonalMA()` loop-bound quirk
+  verbatim (bp/bq ≥ 2 silently drops the seasonal component). Unit 983
+  checks 0 failures, sweep 35/35 + 1026 checks (8 envelope probes), both
+  lanes 66/66 fresh trees, ASan/UBSan clean; the csv corpus is byte-unchanged
+  (landing `--repro` re-capture byte-identical, SHA256SUMS 5/5).
 - **LANDED 2026-11-21.** 30 replayed + 5 refusal cases bit-exact in both
   lanes (66/66 each, fresh trees); sweep 35/35 + determinism + envelope
   probes; ASan/UBSan clean; D6 untouched (observations in the contract doc).
   Ledger: unit `kalos::validate_tramo_seats_model` closed for the
-  admissibility/root-handling/decomposability decision surface; the
-  one-sided MA/variance facts (`r c{i} ma|var`, `k.ucar`, `model seasonality`)
-  and the approximation policy remain scoped to 24-B/D6 as above.
+  admissibility/root-handling/decomposability decision surface INCLUDING the
+  degree ≥ 3 root cascade (24-A.1); the one-sided MA/variance facts
+  (`r c{i} ma|var`, `k.ucar`, `model seasonality`) and the approximation
+  policy remain scoped to 24-B/D6 as above.
 
 ## Maintainer decision register (sign-off before the owning slice)
 
