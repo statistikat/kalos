@@ -64,8 +64,10 @@ shaped X-11 request block (Msr seasonal requests, Henderson length 0,
 calendarSigma None) straight into the qualified `x11_selection_pass`,
 which already delivers those surfaces (items 22b.3c/22b.3d/22b.4/22b.5).
 `EstimationSolver::Bfgs` remains the core default; the automatic driver
-selects `PinnedLevenbergMarquardt` only inside the qualified units that
-already pin it internally (21-D/E/F machines, 21-C callback recipe). The
+selects `PinnedLevenbergMarquardt` inside the qualified units that
+already pin it internally (21-D/E/F machines, 21-C callback recipe) and —
+since the CI-FDLIBM ruling — for the adapter row-1/row-4 estimate
+(`base_request`). The
 sigma policy stays a required explicit field on both kinds.
 
 ## Pinned composition order (RegArimaKernel.calc, current jar)
@@ -134,7 +136,7 @@ sequence and `reference=copyOf(m)` are part of the transcription.
 
 | # | JVM call site | JVM processor | Kalos seam |
 |---|---|---|---|
-| 1 | `m.estimate(1e-7)` (kernel rounds, redoEstimation) | `RegSarimaComputer` builder, precision=eps, startingPoint HannanRissanen, default minimizer | `estimate_sarima_fixed`, control {eps=request, feps 1e-4, ml=true, starting_point HannanRissanen, solver **Bfgs** (product default, maintainer-ruling #2)} |
+| 1 | `m.estimate(1e-7)` (kernel rounds, redoEstimation) | `RegSarimaComputer` builder, precision=eps, startingPoint HannanRissanen, default minimizer | `estimate_sarima_fixed`, control {eps=request, feps 1e-4, ml=true, starting_point HannanRissanen, solver **PinnedLevenbergMarquardt** (CI-FDLIBM 2026-11-21: supersedes the Bfgs product default of maintainer-ruling #2 on measured basin evidence — see the CI-FDLIBM section; the solver stays explicitly pinned, the "never implicit" half of the ruling stands)} |
 | 2 | `transformation.process` | `DemetraUtility.processor(true,1e-7)` | inside the 21-B unit (unchanged) |
 | 3 | mean-added estimation (`MeanController`, eps 1e-5) and the ODM `estimateModel` chain (`RegArimaUtility.processor(true,1e-7/1e-5)`) | `GlsSarimaComputer` + LM + HR init | 21-C callback recipe: `estimate_sarima_fixed`/`optimize_sarima_from` + `sarima_regression_likelihood` + `regression_t_statistics` (solver `PinnedLevenbergMarquardt` + HR — the recipe the 21-C sweep qualifies) |
 | 4 | `FinalEstimator.estimate` computer | `RegSarimaComputer` + LM minimizer + Multiple start + `computeExactFinalDerivatives(true)` | adapter row 1 shape **plus the final-information producer — open gap G1 below** |
@@ -479,11 +481,11 @@ checks 0 bad, all thirteen cases):
 | family | band | basis |
 |---|---|---|
 | decision bits, chain counts/scalars, model facts | bit-exact | this contract |
-| diff-search tmean | 1e-3 | 21-D trial-fit class (measured 7.4e-4) |
+| diff-search tmean | 5e-3 | 21-D trial-fit class; re-measured 3.1e-3 under CI-FDLIBM pinned-JVM transcendentals + pinned-LM landing (was 7.4e-4 on the local-glibc trajectory — see the CI-FDLIBM section) |
 | panel BIC2 | 1e-2 | measured 8.1e-3 at the automatic landing: the panel trial fits run on the ODM-altered design; membership and selections stay bit-exact |
 | AICC display pair (observer `%.6g`) | 1e-5 | display round-trip (measured 3.4e-6) |
 | landing regression coefficients, loglik, AICC | 2e-3 | adapter row-4 basin tier (measured 4.5e-7) |
-| ARMA landing coefficient block | 1e-2 | measured 9.8e-3 — row-4 landing-basin depth from the driver's start values (G2 seam) |
+| ARMA landing coefficient block | 1e-2 | adapter row 1 now runs the pinned LM machine (CI-FDLIBM): measured 5.8e-4 with 15/36 bit-exact (pre-routing Bfgs measured 9.8e-3 on the local-glibc trajectory and 6.2e-2 off-machine — the band stays at 1e-2 unchanged) |
 | downstream tables (out, d11final, e11) | 1e-6 rel | measured 5.0e-7 over all thirteen cases |
 | c17 composite column (full sweep only) | 1e-4 rel | measured 8.3e-5 — the composite filter recursion propagates the landing drift; the golden subset the gate carries excludes c17 |
 | refine linearizedSeries (full sweep) | 1e-6 rel | measured 2.4e-7 — the linearization rides the landing regression coefficients (G2 seam); the decisions it feeds are the bit-exact diff-decisions |
@@ -570,3 +572,68 @@ included); the functional `ScanRecord` trajectory carrier added to
 `OutlierScoringResult` stays (the sweep tool's diagnostic input).
 The sweep tool keeps its `KALOS_DUMP_ODM`/`KALOS_DUMP_ARMA` switches
 (tools are triage instruments, not shipped surface).
+
+## CI-FDLIBM transcendental routing (2026-11-21)
+
+Machine-independence of the automatic pipeline: every double-precision
+transcendental on the estimation/landing/decision trajectory is pinned to the
+pinned JVM's bytecode semantics (java.lang.FdLibm kernels, transcribed
+operation-for-operation from javap dumps of OpenJDK 21.0.11+10-1-24.04.2;
+golden-proved bit-exact against double-captured JVM goldens on 33M+ grid
+points AND on every corpus-reached argument recorded through the LD_PRELOAD
+argument shim — evidence: tmp_opencode/ci-fdlibm/{dumps,goldens}/, header
+provenance table in include/kalos/detail/fdlibm.hpp).
+
+Routed (std::exp/std::log/std::tanh/std::atanh -> detail::fdlibm_*):
+arma_optimizer (reflection-coordinate maps), arma_parameters (coordinate
+maps), estimation_control (to_coordinates atanh), x13_automatic (decided-log
+value map, selection-gate exp, log-likelihood adjustment), transforms
+(log/exp back-transform), transformation_decision (AICc value log),
+arma_information (scale/damping logs), outlier_scoring (kernel scoring,
+extreme-value constants).
+
+Ledger — raw host libm, with recorded reasons (comments at each site):
+- cos/sin (ucarima_engine rfr/fr_eval/dfr_eval, decompose_ucarima pnorm):
+  the pinned JVM's Math.cos/sin dispatches to the live C2 dcos/dsin stubs —
+  IBM-APML lineage shared by glibc and the macOS libm — not the FdLibm
+  bytecode (probe: stub-vs-bytecode 337/14753 cos, 399/9507 sin of the
+  corpus-reached arguments; stub-vs-glibc 19/16). Routing fdlibm sin/cos
+  would break the corpora. The bytecode kernels stay vendored and
+  golden-proved for the harness.
+- pow (outlier_scoring transitory_change_rate, preparation drift): Math.pow
+  is the _dpow intrinsic onto the HOST libm (Math.pow != StrictMath.pow on
+  6.4% of integral-exponent pairs); the recorded corpus domain is the single
+  pair pow(0.9999, 12), bit-identical across Math/StrictMath/glibc.
+- x13_allocation / x13_fit / x13_automatic results-builder exp/log:
+  the x13-allocation and x13-fit fixture corpora were captured WITHOUT the
+  DisableIntrinsic recipe (capture-x13-allocation.R sets no _JAVA_OPTIONS),
+  so their bit claims froze the HotSpot _dexp stub (APML) bits; routing
+  fdlibm_exp moved 1-2 ulp at the q_log export arguments and broke 50
+  boundary checks at the pinned 1e-15 exp-boundary class. Host-libm bits
+  hold that class on every qualified platform; bytecode-recipe consumers
+  reach these tables through tolerance bands only. CAVEAT for future
+  captures: a corpus whose recipe omits DisableIntrinsic pins STUB bits for
+  exp/log/pow/cos/sin — the recipe flag set is part of the corpus contract.
+- expm1/log1p: no double call sites exist in the shipped pipeline (the new
+  kernels back fdlibm_tanh and the harness); arma_residuals' log-sum-exp is
+  missing-row preprocessing on band-claimed paths.
+- long-double log/exp/log1p/expm1 (state_space, diffuse_state_space,
+  regression_likelihood, prediction_moments): different engine axis, item
+  25+ qualification ledger.
+
+Estimation adapter row 1 (landing estimate) moved from Bfgs to
+PinnedLevenbergMarquardt (the transcribed JVM LM machine), superseding the
+Bfgs product default of maintainer-ruling #2 on measured evidence: with the
+transcendentals pinned, Bfgs landing deterministically chose a different
+basin than the JVM's LM landing on the four knife-edge cases (8/36 at
+worst-rel 0.0622 = the CI run-#17 signature, machine-independent), while the
+LM machine lands 0/36 bad, 15/36 bit-exact, worst-rel 5.75e-4, landing-stats
+1.7e-9, tables 2708/3783 exact, legacy suite 140/140, shim/hwcaps invariant.
+The solver stays explicitly pinned at every request builder.
+
+Band re-measurement (only changed family; decisions untouched, all decision
+families bit-exact): diff-search tmean 1e-3 -> 5e-3 (multi/diff0 measured
+3.1e-3 — the trial-fit t-stat rides landing arithmetic; deterministic and
+bit-noise/hwcaps invariant on the pinned trajectory). No band was widened to
+absorb machine variation: the variation the old pins encoded WAS the machine
+variation.

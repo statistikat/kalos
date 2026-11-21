@@ -2476,3 +2476,90 @@ automatic sweep 71401 checks 0 bad (13/13); `check-manifest.py`
 `docs/contracts/decompose-ucarima-contract.md`, contracts README index,
 roadmap 24-B ledger + D6 row CLOSED APPROVED, stale 24-A index note (the
 five QR-cascade refusal rows) corrected.
+
+## CI-FDLIBM: pinned-JVM transcendental routing lands — the machine-independence fix for run #17's two red tests — 2026-11-21
+
+**Root cause (confirmed, `tmp_opencode/kalos-ci2-fix/VERDICT.md`).** The
+automatic pipeline ran host-libm transcendentals where the JVM runs pinned
+bytecode semantics; glibc-IFUNC/macOS libm variation moved real bits on the
+estimation trajectory (±1ulp tanh/atanh noise alone reproduces the CI
+signature exactly: 8/36 landing at 0.0622, same four cases; exp/log noise
+flips the legacy odm p/q cascade). Compiler and threading ruled out.
+
+**Dispatch verdicts (javap dumps of OpenJDK 21.0.11+10-1-24.04.2 in
+`tmp_opencode/ci-fdlibm/dumps/`, "dump not trust").** Math.tanh dispatches
+to the JDK 9+ expm1-based rewrite (NOT e_tanh.c); expm1/log1p/tanh have no
+HotSpot intrinsic (Math == StrictMath bits). Math.cos/sin dispatch to the
+LIVE C2 dcos/dsin stubs on this CPU — IBM-APML lineage, which glibc and the
+macOS libm both derive from (stub-vs-bytecode: 337/14753 cos, 399/9507 sin
+of the corpus-reached args differ; stub-vs-glibc: 19/16) — so host-libm
+cos/sin ARE the corpora lineage and stay. Math.pow is the _dpow intrinsic
+onto the host libm (Math.pow != StrictMath.pow at 6.4% of integral pairs);
+the recorded domain is one pair, bit-identical everywhere. No atanh exists
+in the JDK (reflection-verified): e_atanh.c transcribed as the anchor with
+an explicit no-JVM-bit-claim (audited <=1ulp + specials + tanh round-trip).
+An earlier header claim of "no intrinsic hits" was falsified and rewritten.
+
+**Kernels (`src/fdlibm.cpp` +470 lines, header provenance rewritten).**
+fdlibm_expm1/tanh/log1p/atanh/cos/sin transcribed operation-for-operation,
+plus the complete mid-range Cody-Waite `$RemPio2` incl. the staged i>16 and
+i>49 fixups (recorded sin args reach 348 -> n<=222); Payne-Hanek is
+fail-closed unreachable by contract (`hi_word > 0x413921FB` throws).
+Golden-proved BIT-EXACT against double-captured StrictMath goldens over
+dense grids + special values + every corpus-reached argument recorded
+through the LD_PRELOAD argument shim (record mode): expm1 4.40M, log1p
+8.50M, tanh 4.52M, cos 10.02M, sin 10.01M, re-proved exp 6.00M, log 6.00M —
+0 mismatches everywhere. glibc differs on the same sets (exp 9.6%, log1p
+5.9%, cos/sin ~3.3%) — the routing moves real bits. ASan+UBSan clean over
+3.3M kernel evaluations. Evidence + reproducers + SHA256SUMS:
+`tmp_opencode/ci-fdlibm/goldens/`.
+
+**Routing (30 call sites, 10 files):** tanh/atanh reflection-coordinate
+maps (arma_optimizer, arma_parameters, estimation_control), decided-log /
+selection-gate exp / likelihood log (x13_automatic), back-transform
+(transforms), AICc value log (transformation_decision), scale/damping logs
+(arma_information), scoring kernels + extreme constants (outlier_scoring).
+LEDGER (raw host libm, recorded reason at each site): cos/sin
+(ucarima_engine, decompose_ucarima — stub lineage == corpora); pow
+(outlier_scoring — _dpow -> host libm); the three results-builder exp/log
+copies + allocation staging log (x13_allocation, x13_fit, x13_automatic —
+their fixture corpora were captured WITHOUT the DisableIntrinsic recipe, so
+their bit claims froze STUB bits: routing fdlibm_exp there broke 50 q_log
+boundary checks at the pinned 1e-15 class; capture-recipe caveat now
+recorded in the pipeline contract); expm1/log1p (no double production
+sites); long-double axis (item 25+ ledger).
+
+**Landing solver (maintainer-approved ruling in the pipeline contract):**
+adapter row 1 (and, with its delta retired, row 4 via the same
+`base_request`) moved from Bfgs to `PinnedLevenbergMarquardt` — with the
+transcendentals pinned, Bfgs deterministically lands the four knife-edge
+cases in the wrong basin (the run-#17 0.0622 signature) while the
+transcribed JVM LM machine lands 15/36 bit-exact, worst-rel 5.75e-4,
+landing-stats 1.7e-9, tables 2708/3783 exact. The "never implicit" half of
+maintainer-ruling #2 stands (solver explicit at every builder); the
+"product default" half is superseded on measured evidence. Band
+re-measurement, one family: diff-search tmean 1e-3 -> 5e-3 (measured 3.1e-3
+at multi/diff0 on the pinned trajectory; every decision family stays
+bit-exact; no band widened to absorb machine variation — the variation the
+old pins encoded WAS the machine variation).
+
+**Gates (this tree, fresh builds).** Oracle `test_x13_automatic_oracle`
+**4637 checks, 0 failures** (both CI-red families green: landing 0 bad,
+tmean 0 bad); legacy `test_x13_automatic` **140/140**. Full sweep
+`verify_x13_automatic` 71401 checks **0 bad** (13/13; odm-scan 13 stays the
+info-family), allocation 280 (boundary 1.9e-16), fit 528 (4.5e-16); ALL
+seventeen verify tools 0 failures (arma-refinement 423, differencing 39,
+estimation-control 27, initial-ARMA 4368, outlier-scoring 98, final-info
+266, transformation 11, decomposition 81, regression-class tools). OpenMP
+ctest **67/67** (324 s), serial lane **67/67** (455 s). ASan/UBSan: kernel
+harness + allocation/fit/decompose unit tests + oracle + full automatic
+clean. Machine-independence (LD_PRELOAD ±1ulp noise shim on the FINAL
+binary; strict byte-identity is not the criterion — host-libm noise MAY
+move band-tier values at the ledger sites): all four regimes
+(shim-thatan, shim-explog, shim-all, `GLIBC_TUNABLES=glibc.cpu.hwcaps=-AVX2_FMA`)
+leave **0 failures, identical bad-counts, identical worst-rel and every
+decision family bit-identical**; the only movement in any regime is the
+exact-match count of the band-tier tables family (2708 -> 2661..2707 exact
+of 3783) at exactly the stub-lineage ledger sites — the designed behaviour
+(the run-#17 selection flips are gone: the legacy suite under the all-shim
+is **140/140**). `check-manifest.py` 149/112/213; `verify-migration.py` 406.

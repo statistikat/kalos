@@ -77,6 +77,16 @@ inline double c_abs(double re, double im) {  // ComplexType.abs
   return mx * std::sqrt(1.0 + r * r);
 }
 inline double c_abs(cplx a) { return c_abs(a.re, a.im); }
+// Raw libm, intentionally (CI-FDLIBM ledger, 2026-11-21): the JVM Spectrum
+// filter evaluations call Math.cos/sin, whose pinned-JVM dispatch is the live
+// C2 dcos/dsin stub — IBM-APML lineage, which glibc and the macOS libm both
+// derive from (stub-vs-bytecode probe: 337/14753 cos and 399/9507 sin of the
+// corpus-reached arguments differ from the FdLibm bytecode, while stub-vs-
+// glibc differs at only 19/16; every qualified platform replays the corpora
+// bit-exactly with host-libm cos/sin). Routing the vendored fdlibm_cos/
+// fdlibm_sin to these seams would BREAK the captured corpora's bit lineage;
+// the kernels stay vendored for their golden-proved role (see
+// include/kalos/detail/fdlibm.hpp).
 inline double c_arg(cplx a) { return std::atan2(a.im, a.re); }
 
 inline cplx c_inv(cplx a) {  // Complex.inv(): branches on |re| >= |im|
@@ -931,6 +941,11 @@ inline SymF sym_convolution(const vd& w_in, double scale) {
   return sym_of(std::move(r));
 }
 
+// Raw libm for the trig calls in rfr/fr_eval/dfr_eval below (CI-FDLIBM ledger
+// 2026-11-21): the JVM Spectrum$* counterparts dispatch through the live C2
+// dcos/dsin stubs (IBM-APML lineage == host libm), not the FdLibm bytecode;
+// routing fdlibm_cos/fdlibm_sin here would break the captured bit lineage.
+// See the note at c_arg above and the header provenance table.
 inline double rfr(const SymF& f, double x) {  // SymmetricFilter.realFrequencyResponse
   std::size_t stop = f.a.size();
   std::size_t k = 0;

@@ -114,7 +114,7 @@ bool to_coordinates(const ArmaParameterMap& map,
         const auto check = arma_admissibility(physical[b], b == 1 || b == 3, map.margin());
         if (check.status != "admissible") return false;
         for (const double reflection : check.reflections) {
-            const double coordinate = std::atanh(reflection / (1 - map.margin()));
+            const double coordinate = detail::fdlibm_atanh(reflection / (1 - map.margin()));
             if (!std::isfinite(coordinate)) return false;
             out.push_back(coordinate);
         }

@@ -578,6 +578,12 @@ UnitRoots ur_solver_factorize(const Poly& p) {
   vi divs;
   UnitRoots tmp;
   auto pnorm = [&q](int nn) {
+    // Raw libm for the cos/sin below (CI-FDLIBM ledger 2026-11-21): the dcmpg
+    // port's Math.cos/sin reaches the JVM's live C2 dcos/dsin stubs
+    // (IBM-APML lineage == host libm), and the differencing decisions of every
+    // qualified platform (incl. macOS arm64) replay bit-exactly on host-libm
+    // bits; the FdLibm bytecode kernels would move the pnorm boundary. See
+    // include/kalos/detail/ucarima_engine.hpp (c_arg note) for the probe data.
     if (nn == 1) return std::fabs(detail::p_value_at(q, 1.0));
     if (nn == 2) return std::fabs(detail::p_value_at(q, -1.0));
     double th = 6.283185307179586 / static_cast<double>(nn);

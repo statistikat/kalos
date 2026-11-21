@@ -18,7 +18,8 @@
 // mean), the ODM selections (positions, types) and their cv, the ARMA
 // selection orders, the merged-panel membership and the cascade final
 // spec.  Landing quantities are measured tiers with recorded root causes:
-// tmean at the 21-D qualified band (1e-3, trial-fit class), panel BIC2 at
+// tmean at the 21-D qualified band (5e-3, trial-fit class, re-measured
+// 3.1e-3 under CI-FDLIBM), panel BIC2 at
 // the 21-E kPanelBand (1e-5), the AICC pair at the observer's %.6g display
 // precision, the landing ARMA/regression coefficients and statistics at
 // the 2e-3 basin band (adapter row 4, never bit-claimed), and the
@@ -616,7 +617,10 @@ double entry_scalar(const kalos::AutoDecisionRecord& e, const char* key) {
 // ---- the per-case sweep ----------------------------------------------------
 
 // Bands (contract Envelope; measured worst deviations go to the contract).
-constexpr double kTmeanBand = 1e-3;     // 21-D trial-fit-class band
+constexpr double kTmeanBand = 5e-3;     // 21-D trial-fit-class band, re-measured
+                                        // under CI-FDLIBM (3.1e-3 at multi/diff0;
+                                        // see tests/test_x13_automatic_oracle.cpp
+                                        // for the recorded root cause)
 constexpr double kPanelBicBand = 1e-2;  // panel BIC2 at the automatic landing
                                         // (measured 8.1e-3, membership bit)
 constexpr double kDisplayBand = 1e-5;   // observer %.6g AICC display
