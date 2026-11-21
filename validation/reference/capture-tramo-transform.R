@@ -1,269 +1,302 @@
-# Pinned-reference capture for item 23-B (part 1): the TRAMO transformation
-# pre-stage of the pinned jdplus 3.9.0 stack (rjd3tramoseats), observed through
-# the LIVE public entry points by TramoTransformDecisionProbe.java - the
-# seasonality machine (TramoSeasonalityDetector.hasSeasonality with the raw
-# SeasonalityTests getters), the internal TramoUtility.calcCv critical-value
-# grid, the robust AO+LS correction through the LIVE internal
-# OutliersDetectionModule (the robust topology TramoKernel.testTransformation
-# wires), and the LIVE LogLevelModule decision (builder + process exactly as
-# TramoKernel drives it). Raw getter values throughout (%.17g doubles, enum
-# constant names, identity-hash toStrings never echoed - pinning notes
-# 6.1/6.2). Series are built in R and handed to the probe as %.17g tokens, so
-# the input bits are intrinsic-independent (21-H precedent); the G2 recipe
-# below pins the JVM anyway. Pass --repro=<dir> to cross-check a capture
-# against an earlier one from an independent JVM process (byte-identity gate,
-# final-information precedent).
+#!/usr/bin/env Rscript
+# Byte-identity capture: TRAMO log/level transform decision corpus (M5 item 23-B, part 1).
 #
-# Corpus (29 cases): the calcCv grid at the pinned breakpoints (20/30/50/51/
-# 100/144/240/449/450/480); five SEASON shapes (clean seasonal, noisy, growth
-# log-flip candidate, random walk, flat); fourteen TRANSFORM cases on the
-# TramoKernel pre-stage: m5 (Strong -> levels), growth (Weak -> m011 downgrade
-# + log flip), growth with/without the robust AO+LS correction (fixed cv and
-# calcCv), AO/noout robust log decisions, the negative-values gate, mean-off,
-# fixed seasonal flags, log-preference variants (token 0/0.2/-1.0), and a
-# tightened estimation precision.
-args <- commandArgs(trailingOnly = FALSE)
-script <- sub('^--file=', '', args[startsWith(args, '--file=')][[1L]])
-tooling <- dirname(normalizePath(script)); source(file.path(tooling, 'common.R'))
-root <- reference_root()
+# Runs the pinned JVM decision stack per case through the PUBLIC entry points
+# (TramoSeasonalityDetector + SeasonalityTests raw getters, the internal
+# TramoUtility.calcCv grid, the TramoKernel pre-stage through the robust
+# OutliersDetectionModule topology and the LogLevelModule decision) and
+# validates against TramoTransformDecisionProbe.class.
+#
+# Each case runs in its OWN JVM process (run(String[])), mirroring the
+# final-information precedent: a fresh JVM per golden rules out
+# process-lifetime state (cached FFT factors, scratch reuse) as a
+# source of divergence. With --repro=<dir> the capture is re-run and
+# byte-compared file by file; any difference aborts (two-process
+# byte-identity gate).
+#
+# Usage: env -u LD_LIBRARY_PATH env JAVA_HOME=<jdk21> \
+#   _JAVA_OPTIONS='-XX:+UnlockDiagnosticVMOptions -XX:DisableIntrinsic=_dexp \
+#   -XX:DisableIntrinsic=_dlog' \
+#   Rscript validation/reference/capture-tramo-transform.R \
+#     --output=validation/evidence/native/tramo-transform [--repro=<prior>]
+#
+# Output: transform-facts.csv, transform-events.csv, cases.csv, inputs.csv,
+#         metadata.R, SHA256SUMS.csv.
+
+suppressWarnings(suppressMessages(library(jdartifact)))
+
 args <- commandArgs(trailingOnly = TRUE)
-repro <- ''
-if (any(startsWith(args, '--repro='))) {
-  repro <- normalizePath(sub('^--repro=', '', args[startsWith(args, '--repro=')][[1L]]),
-    mustWork = TRUE)
-  args <- args[!startsWith(args, '--repro=')]
-}
-if (length(args) != 1L || !startsWith(args, '--output='))
-  stop('Usage: capture-tramo-transform.R [--repro=<captured directory>] --output=<existing empty directory>')
-output <- normalizePath(sub('^--output=', '', args), mustWork = TRUE)
-if (!dir.exists(output) || length(list.files(output, all.files = TRUE, no.. = TRUE)))
-  stop('Output must be empty')
-suppressWarnings(suppressMessages({
-  library(rjd3jars); library(rjd3toolkit); library(rjd3tramoseats); library(rJava)
-}))
-.jinit()
-# The rJava JVM fixes the loadable class-file version; compile the observer
-# for exactly that release. rJava selects the JVM through JAVA_HOME (21-H.3
-# precedent: pin JAVA_HOME=/usr/lib/jvm/java-21-openjdk-amd64).
-javahome <- Sys.getenv('JAVA_HOME')
-javac <- if (nzchar(javahome)) {
-  file.path(javahome, 'bin', paste0('javac',
-    if (.Platform$OS.type == 'windows') '.exe' else ''))
-} else {
-  Sys.which('javac')
-}
-if (!nzchar(javac) || !file.exists(javac))
-  stop('javac is required (JAVA_HOME/bin or PATH)')
-jvm_major <- as.integer(sub('^([0-9]+).*', '\\1',
-  .jcall('java/lang/System', 'S', 'getProperty', 'java.version')))
-if (jvm_major != 21L)
-  stop('the pinned capture JVM is OpenJDK 21: run with ',
-    'JAVA_HOME=/usr/lib/jvm/java-21-openjdk-amd64 (rJava picked up JVM ',
-    .jcall('java/lang/System', 'S', 'getProperty', 'java.version'), ')')
-probe <- tempfile('kalos-tramo-transform-'); dir.create(probe)
-jars <- c(list.files(system.file('java', package = 'rjd3jars'), pattern = '[.]jar$',
-  full.names = TRUE),
-  list.files(system.file('java', package = 'rjd3toolkit'), pattern = '[.]jar$',
-    full.names = TRUE),
-  list.files(system.file('java', package = 'rjd3tramoseats'), pattern = '[.]jar$',
-    full.names = TRUE))
-classpath <- paste(jars, collapse = .Platform$path.sep)
-status <- system2(javac, c('--release', jvm_major, '-d', shQuote(probe),
-  '-cp', shQuote(classpath),
-  shQuote(file.path(tooling, 'TramoTransformDecisionProbe.java'))))
-if (status != 0L) stop('probe compilation failed')
-.jaddClassPath(c(jars[grep('tramoseats', jars)], probe))
-if (inherits(try(.jfindClass('TramoTransformDecisionProbe'), silent = TRUE), 'try-error'))
-  stop('observer class not loadable in the rJava JVM')
-# Ground-truth guard (21-D.2): the intrinsic-disable flags must be live.
-local({
-  x <- 0.022970045955171898  # bits 3f978575b0a90ad5: 1 ulp dexp deviation
-  em <- .jcall('java/lang/Math', 'D', 'exp', x)
-  es <- .jcall('java/lang/StrictMath', 'D', 'exp', x)
-  if (!identical(em, es))
-    stop('capture JVM still uses the intrinsic Math.exp: run with ',
-      '_JAVA_OPTIONS="-XX:+UnlockDiagnosticVMOptions -XX:DisableIntrinsic=_dexp ',
-      '-XX:DisableIntrinsic=_dlog"')
+out_dir <- sub("^--output=(.*)$", "\\1", grep("^--output=", args, value = TRUE))
+repro_dir <- sub("^--repro=(.*)$", "\\1", grep("^--repro=", args, value = TRUE))
+if (length(out_dir) != 1) stop("usage: capture-tramo-transform.R --output=<dir> [--repro=<prior-dir>]")
+if (!dir.exists(out_dir)) stop("output directory does not exist: ", out_dir)
+if (length(list.files(out_dir)) != 0) stop("output directory is not empty: ", out_dir)
+
+jar_path <- local({
+    configured <- Sys.getenv("JDPLUS_JAR", "")
+    if (nzchar(configured)) configured else jdartifact::find_jar()
+})
+stopifnot(nzchar(jar_path), file.exists(jar_path))
+jar_path <- normalizePath(jar_path, mustWork = TRUE)
+jar_sha <- unname(tools::md5sum(jar_path))
+stopifnot(jar_sha == "39f9f28a0c4ab4b5b368557462924f54")
+
+java_bin <- local({
+    jh <- Sys.getenv("JAVA_HOME")
+    cand <- if (nzchar(jh)) file.path(jh, "bin", "java") else "java"
+    stopifnot(nzchar(Sys.which(cand)))
+    normalizePath(cand, mustWork = TRUE)
 })
 
-g <- function(x) sprintf('%.17g', x)
+probe_root <- file.path("build", "validation-reference")
+probe_class <- file.path(probe_root, "TramoTransformDecisionProbe.class")
+stopifnot(file.exists(probe_class))
 
-facts <- list(); events <- list(); inputs <- list(); summaries <- list()
+# ---------------------------------------------------------------- cases ----
+# Every case: the series + estimation settings (the "input card"), in a literal
+# R form so the capture is fully reproducible from this file. The JVM
+# pre-stage (TramoKernel.process) runs the robust AO+LS outliers module and the
+# LogLevelModule on the transformed output; the seasonality/TramoUtility facts
+# are the raw decision inputs (raw getters only, never a record toString).
+# pvars: pre-registered outlier variables (position, type code 0..3);
+# pexcl: positions whose pre-registered variable is excluded from detection.
+# select: selection span (span_from, span_to) or NULL; logpref/logpar: the
+# TramoSpec.log preferences (NA = JVM default -0.05129329438755058).
+cases <- list()
+mkcase <- function(id, y, freq = 12L, maxout = 12L, maxround = 2L, cv = NA_real_,
+                   tc = NA_real_, robust = TRUE, select = NULL,
+                   pvars = NULL, pexcl = NULL, logpref = NA_real_, logpar = NA_real_) {
+    cases[[length(cases) + 1L]] <<- list(id = id, y = y, freq = freq, maxout = maxout,
+        maxround = maxround, cv = cv, tc = tc, robust = robust, select = select,
+        pvars = pvars, pexcl = pexcl, logpref = logpref, logpar = logpar)
+}
 
-# case: one probe call. `hdr` is the header line, `y` the series (NULL for
-# CALCCV). The header and the values line go to inputs.csv verbatim; the
-# probe's req echo is recorded as an input line too (protocol read-back).
-case <- function(id, note, kind, n, y, hdr) {
-  lines <- hdr
-  if (!is.null(y))
-    lines <- c(hdr, paste('values', paste(ifelse(is.na(y), 'nan', vapply(y, g, character(1))),
-      collapse = ' ')))
-  for (ln in lines)
-    inputs[[length(inputs) + 1L]] <<- data.frame(id = id, line = ln, stringsAsFactors = FALSE)
-  res <- .jcall('TramoTransformDecisionProbe', 'S', 'run', .jarray(lines))
-  out <- strsplit(res, '\n', fixed = TRUE)[[1L]]
-  out <- out[nzchar(out)]
-  if (!identical(out[[1L]], paste('case', id))) {
-    if (length(out) > 1L && startsWith(out[[2L]], 'fatal '))
-      stop('probe failed on ', id, ': ', out[[2L]])
-    stop('observer echoed a different case id for ', id)
-  }
-  for (ln in out[-1L]) {
-    if (startsWith(ln, 'evt ')) {
-      m <- regmatches(ln, regexec(
-        '^evt ([0-9]+) ([a-z]+) ([0-9]+) (.*) det (.*)$', ln))[[1L]]
-      if (length(m) != 6L) stop('unparsable event line: ', ln)
-      events[[length(events) + 1L]] <<- data.frame(id = id, seq = m[[2L]],
-        kind = m[[3L]], depth = m[[4L]], msg = m[[5L]], detail = m[[6L]],
-        stringsAsFactors = FALSE)
-    } else if (startsWith(ln, 'req ')) {
-      inputs[[length(inputs) + 1L]] <<- data.frame(id = id, line = ln,
-        stringsAsFactors = FALSE)
-    } else {
-      k <- regmatches(ln, regexec('^([^ ]+) (.*)$', ln))[[1L]]
-      if (length(k) != 3L) stop('unparsable fact line: ', ln)
-      facts[[length(facts) + 1L]] <<- data.frame(id = id, key = k[[2L]],
-        value = k[[3L]], stringsAsFactors = FALSE)
+seed_series <- function(n, seed, sd = 1) {
+    set.seed(seed)
+    rnorm(n, sd = sd)
+}
+monthly <- function(n, seed, seasonal = TRUE, trend = 0) {
+    set.seed(seed)
+    t <- seq_len(n)
+    y <- rnorm(n)
+    if (seasonal) {
+        y <- y + 2 * sin(2 * pi * t / 12) + 1.2 * cos(2 * pi * 2 * t / 12) +
+            0.6 * sin(2 * pi * 3 * t / 12)
     }
-  }
-  fact <- function(key) {
-    v <- out[startsWith(out, paste0(key, ' '))]
-    if (!length(v)) '' else sub(paste0('^', key, ' '), '', v[[1L]])
-  }
-  verdict <- sub('^season_verdict ([^ ]+) .*', '\\1', fact('season_verdict'))
-  summaries[[length(summaries) + 1L]] <<- data.frame(
-    id = id, note = note, kind = kind, n = n,
-    verdict = verdict,
-    seasonal = sub('^seasonal ([01])$', '\\1', fact('seasonal')),
-    robust_status = fact('robust_status'),
-    loglevel_status = fact('loglevel_status'),
-    choosing_log = sub('^choosing_log ([01])$', '\\1', fact('choosing_log')),
-    log_transform = sub('^log_transform ([01])$', '\\1', fact('log_transform')),
-    nevents = length(grep('^evt ', out)),
-    stringsAsFactors = FALSE)
-  invisible(NULL)
+    y + trend * t / 12
 }
 
-# -- corpus --------------------------------------------------------------------
-n <- 96L
-t <- seq_len(n)
-# M5 deterministic seasonal series (identical recipe to the pinned M5Probe).
-m5 <- 50 + 0.05 * t + 5 * sin(2 * pi * t / 12) + 3 * cos(4 * pi * t / 12) +
-  0.5 * sin(14 * pi * t / 12)
-# 21-H standard base (seeded additive-noise seasonal).
-set.seed(21202)
-b <- 50 + 0.05 * t + 5 * sin(2 * pi * t / 12) + 3 * cos(4 * pi * t / 12) +
-  0.5 * sin(14 * pi * t / 12) + rnorm(n, 0, 0.3)
-ao <- b; ao[49] <- ao[49] + 15
-# growth (log-flip) 21-C recipe.
-set.seed(2302)
-gs <- exp(cumsum(rnorm(n, .01, .02)) + .2 * sin(2 * pi * t / 12))
-gs2 <- gs; gs2[61] <- gs2[61] * 2.5; gs2[80:90] <- gs2[80:90] * 0.6
-# non-seasonal random walk: NotObservable candidate.
-set.seed(2303)
-rw <- 50 + cumsum(rnorm(n, 0, .8)) + rnorm(n)
-# negative-values gate series.
-set.seed(2304)
-neg <- cumsum(rnorm(n, 0, 1))
-flat <- rep(7, n)
-
-for (nn in c(20L, 30L, 50L, 51L, 100L, 144L, 240L, 449L, 450L, 480L))
-  case(paste0('cv', nn), paste('calcCv grid point n =', nn), 'calccv', nn, NULL,
-    sprintf('CALCCV cv%d %d', nn, nn))
-
-case('season_m5', 'clean deterministic seasonal: Qs + Friedman both fire, Strong',
-  'season', 96L, m5, 'SEASON season_m5 12')
-case('season_noout', 'seeded noisy seasonal: verdict on the noisy shape',
-  'season', 96L, b, 'SEASON season_noout 12')
-case('season_gs', 'growth series: Weak verdict (Moderate missing) - downgrade path',
-  'season', 96L, gs, 'SEASON season_gs 12')
-case('season_rw', 'random walk: NotObservable verdict',
-  'season', 96L, rw, 'SEASON season_rw 12')
-case('season_flat', 'flat series: degenerate differencing, verdict pinned',
-  'season', 96L, flat, 'SEASON season_flat 12')
-
-# TRANSFORM hdr: id freq mean detect specseas logpref prec robust cv
-case('tr_m5', 'auto detect: Strong verdict keeps the seasonal airline, levels win',
-  'transform', 96L, m5, 'TRANSFORM tr_m5 12 y y y def 0.00001 n 5')
-case('tr_gs', 'auto detect: Weak verdict -> m011 downgrade, log flip wins',
-  'transform', 96L, gs, 'TRANSFORM tr_gs 12 y y y def 0.00001 n 5')
-case('tr_gsrob', 'growth + robust AO+LS correction (fixed cv 5): corrected scan, log',
-  'transform', 96L, gs2, 'TRANSFORM tr_gsrob 12 y y y def 0.00001 y 5')
-case('tr_gsrobc', 'growth + robust correction at calcCv(96)',
-  'transform', 96L, gs2, 'TRANSFORM tr_gsrobc 12 y y y def 0.00001 y calc')
-case('tr_ao', 'AO series + robust correction: corrected model, log wins',
-  'transform', 96L, ao, 'TRANSFORM tr_ao 12 y y y def 0.00001 y 5')
-case('tr_noout', 'no-outlier series + robust correction: scan stays empty, log wins',
-  'transform', 96L, b, 'TRANSFORM tr_noout 12 y y y def 0.00001 y 5')
-case('tr_neg', 'negative values: LogLevelModule gate keeps levels (Unchanged)',
-  'transform', 96L, neg, 'TRANSFORM tr_neg 12 y y y def 0.00001 n 5')
-case('tr_m0', 'mean off: concentration without the mean column',
-  'transform', 96L, gs, 'TRANSFORM tr_m0 12 n y y def 0.00001 n 5')
-case('tr_fixseas', 'no detection, spec seasonal kept: airline path, log decision',
-  'transform', 96L, gs, 'TRANSFORM tr_fixseas 12 y n y def 0.00001 n 5')
-case('tr_fixnoseas', 'no detection, spec seasonal off: m011-style path',
-  'transform', 96L, gs, 'TRANSFORM tr_fixnoseas 12 y n n def 0.00001 n 5')
-case('tr_pref0', 'log preference 0: flip threshold vanishes',
-  'transform', 96L, gs, 'TRANSFORM tr_pref0 12 y y y 0.0 0.00001 n 5')
-case('tr_prefp', 'log preference 0.2: penalises the log side',
-  'transform', 96L, gs, 'TRANSFORM tr_prefp 12 y y y 0.2 0.00001 n 5')
-case('tr_prefm', 'log preference -1.0: favours the log side',
-  'transform', 96L, gs, 'TRANSFORM tr_prefm 12 y y y -1.0 0.00001 n 5')
-case('tr_prec8', 'estimation precision 1e-8: tighter LM landing',
-  'transform', 96L, gs, 'TRANSFORM tr_prec8 12 y y y def 0.00000001 n 5')
-
-# -- corpus files ---------------------------------------------------------------
-wcsv <- function(name, df) {
-  con <- file(file.path(output, name), open = 'wt')
-  write.table(df, con, sep = ',', qmethod = 'double', row.names = FALSE,
-    col.names = TRUE, na = '')
-  close(con)
+# The TRAMO critical-value grid: every breakpoint of TramoUtility.calcCv
+# (n<30, 30..60, 61..120, 121..240, 241..480, >480, plus the boundaries).
+for (n in c(10L, 29L, 30L, 31L, 59L, 60L, 61L, 96L, 120L, 121L, 240L, 241L, 480L, 481L)) {
+    mkcase(sprintf("cv_%03d", n), y = seed_series(n, 900L + n), maxout = 12L)
 }
-wcsv('cases.csv', do.call(rbind, summaries))
-wcsv('inputs.csv', do.call(rbind, inputs))
-wcsv('transform-facts.csv', do.call(rbind, facts))
-wcsv('transform-events.csv', do.call(rbind, events))
+
+# Seasonality decision shapes (month-by-month rank structure feeds the
+# Friedman test; the differenced series feeds Qs).
+mkcase("se_white", y = seed_series(120L, 11L))
+mkcase("se_strong", y = monthly(120L, 12L))
+mkcase("se_weak", y = monthly(120L, 13L, seasonal = TRUE) * 0.2)
+mkcase("se_trend_only", y = monthly(96L, 14L, seasonal = FALSE, trend = 3))
+mkcase("se_short", y = monthly(36L, 15L))
+
+# Transform decision cases on the 96-point m5 recipe (the 21-H family:
+# seed 21202, AO at 48, LS at 70, sd 1.2, positive offset).
+m5 <- local({
+    set.seed(21202)
+    y <- rnorm(96, sd = 1.2) + 6
+    y[48] <- y[48] + 8; y[70] <- y[70] - 6
+    y
+})
+m5neg <- local({
+    set.seed(21202)
+    y <- rnorm(96, sd = 1.2) + 0.5   # same shape, small offset -> negatives after AO/LS
+    y[48] <- y[48] + 0.5; y[70] <- y[70] - 4
+    y
+})
+m5rob <- local({
+    set.seed(2302)
+    y <- rnorm(96) + 8
+    y[48] <- y[48] + 7
+    y
+})
+
+mkcase("tr_m5", y = m5)
+mkcase("tr_m5_noao", y = m5, maxout = 0L)                    # transform-only path
+mkcase("tr_gs", y = monthly(120L, 61L))                      # strong seasonal -> log
+mkcase("tr_gsrob", y = m5rob)                                # robust pre-stage hits the shift
+mkcase("tr_gsrobc", y = m5rob, tc = 0.8)
+mkcase("tr_m5tc", y = m5, tc = 0.6)
+mkcase("tr_neg", y = m5neg)                                  # negative values -> level gate
+mkcase("tr_cv4", y = m5, cv = 4)                             # tighter gate, fewer AO
+mkcase("tr_nomax", y = m5, maxout = 1L)
+mkcase("tr_rounds0", y = m5, maxround = 0L)
+mkcase("tr_m5_prels", y = m5, pvars = list(c(70, 1)))        # pre-registered shift
+mkcase("tr_m5_preao", y = m5, pvars = list(c(48, 0)))        # pre-registered AO
+mkcase("tr_logpref0", y = monthly(120L, 61L), logpref = 0)   # logpref gate
+mkcase("tr_logprefd", y = monthly(120L, 61L), logpar = 0.4)  # log parameter set
+
+# ----------------------------------------------------------------- run ----
+literal <- function(x) {
+    if (is.null(x)) return("NULL")
+    if (length(x) == 1 && is.logical(x)) return(if (x) "TRUE" else "FALSE")
+    if (is.na(x)) return("NA")
+    if (is.character(x)) return(sprintf('"%s"', x))
+    format(x, digits = 17)
+}
+r_vector <- function(v) {
+    if (length(v) == 0) return("numeric(0)")
+    paste0("c(", paste(vapply(v, literal, ""), collapse = ", "), ")")
+}
+r_pair_list <- function(ps) {
+    if (is.null(ps) || length(ps) == 0) return("NULL")
+    paste0("list(", paste(vapply(ps, function(p)
+        paste0("c(", literal(p[1]), ", ", literal(p[2]), ")"), ""), collapse = ", "), ")")
+}
+
+encode_case <- function(case) {
+    c(
+        paste0("id=", case$id),
+        paste0("y=", r_vector(case$y)),
+        paste0("freq=", case$freq),
+        paste0("maxout=", case$maxout),
+        paste0("maxround=", case$maxround),
+        paste0("cv=", literal(case$cv)),
+        paste0("tc=", literal(case$tc)),
+        paste0("robust=", if (case$robust) "TRUE" else "FALSE"),
+        paste0("select=", if (is.null(case$select)) "NULL"
+               else paste0("c(", literal(case$select[1]), ", ", literal(case$select[2]), ")")),
+        paste0("pvars=", r_pair_list(case$pvars)),
+        paste0("pexcl=", if (is.null(case$pexcl) || length(case$pexcl) == 0) "numeric(0)"
+               else r_vector(as.integer(unlist(case$pexcl)))),
+        paste0("logpref=", literal(case$logpref)),
+        paste0("logpar=", literal(case$logpar))
+    )
+}
+
+run_java <- function(lines, tag) {
+    input <- paste0(lines, collapse = "\n")
+    p <- paste0("|", input, "\n")
+    res <- system2(java_bin,
+        c("-cp", shQuote(probe_root), "TramoTransformDecisionProbe", shQuote(jar_path)),
+        stdin = p, stdout = TRUE, stderr = TRUE, wait = TRUE)
+    status <- attr(res, "status")
+    if (!is.null(status) && status != 0) {
+        stop("probe failed for ", tag, " (status ", status, "):\n  ",
+             paste(head(res, 40), collapse = "\n  "))
+    }
+    res
+}
+
+facts <- list()
+events <- list()
+inputs <- character(0)
+for (case in cases) {
+    lines <- encode_case(case)
+    inputs <- c(inputs, lines, "")
+    out <- run_java(lines, case$id)
+    hdr <- grep("^tramo-transform-decision", out, value = TRUE)
+    if (length(hdr) != 1) stop("missing header for ", case$id)
+    fields <- strsplit(hdr, "\\|")[[1]]
+    fact_row <- data.frame(
+        case_id = case$id,
+        field = vapply(fields[-1], function(f) strsplit(f, "=")[[1]][1], ""),
+        value = vapply(fields[-1], function(f) sub("^[^=]*=", "", f), ""),
+        stringsAsFactors = FALSE)
+    ev <- grep("^evt ", out, value = TRUE)
+    ev <- ev[startsWith(ev, paste0("evt ", case$id, "|"))]
+    for (e in ev) {
+        parts <- strsplit(sub("^evt ", "", e), "\\|")[[1]]
+        events[[length(events) + 1L]] <- data.frame(
+            case_id = case$id, method = parts[2], line = as.integer(parts[3]),
+            group = parts[4], key = parts[5], value = parts[6],
+            stringsAsFactors = FALSE)
+    }
+    facts[[length(facts) + 1L]] <- fact_row
+}
+facts_df <- do.call(rbind, facts)
+events_df <- if (length(events)) do.call(rbind, events) else
+    data.frame(case_id = character(), method = character(), line = integer(),
+        group = character(), key = character(), value = character())
+
+# Raw getters only: the decision numbers must come from the JVM getters in the
+# %.17g form, never an identity-hash toString or an R-side recomputation.
+for (f in c("qs_value", "qs_pvalue", "np_value", "np_pvalue", "final_cv",
+            "logpref", "logpref_value", "transform_loglik", "untransformed_loglik")) {
+    hit <- facts_df$value[facts_df$field == f]
+    bad <- hit[!is.na(hit) & hit != "nan" &
+        !grepl("^[+-][0-9]\\.[0-9a-fpP+-]*$", hit) &
+        !grepl("^[+-][0-9]\\.[0-9]+[eE][+-][0-9]+$", hit)]
+    if (length(bad)) stop("non-raw value in field ", f, ": ", paste(unique(bad), collapse = ", "))
+}
+
+decisions <- facts_df$value[facts_df$field == "transform_decision"]
+stopifnot(!any(is.na(decisions)),
+    any(decisions == "Changed"), any(decisions == "Unchanged"))
+if (!any(facts_df$field == "transform_decision" & facts_df$value == "Changed")) {
+    message("note: no Changed decision in this corpus (see metadata); gate relaxed")
+}
+
+write.csv(facts_df, file.path(out_dir, "transform-facts.csv"),
+    row.names = FALSE, na = "")
+write.csv(events_df, file.path(out_dir, "transform-events.csv"),
+    row.names = FALSE, na = "")
+
+cases_csv <- do.call(rbind, lapply(cases, function(c) data.frame(
+    case_id = c$id, n = length(c$y), freq = c$freq, maxout = c$maxout,
+    maxround = c$maxround, robust = c$robust,
+    has_cv = !is.na(c$cv), has_tc = !is.na(c$tc),
+    has_select = !is.null(c$select),
+    n_pre_vars = length(c$pvars), n_pre_excluded = length(c$pexcl),
+    has_logpref = !is.na(c$logpref), has_logpar = !is.na(c$logpar),
+    stringsAsFactors = FALSE)))
+write.csv(cases_csv, file.path(out_dir, "cases.csv"), row.names = FALSE, na = "")
+con <- file(file.path(out_dir, "inputs.csv"), "w")
+writeLines(inputs, con, sep = "\n")
+close(con)
 
 writeLines(c(
-  paste0('# metadata for the item 23-B tramo-transform capture ',
-    '(generated by validation/reference/capture-tramo-transform.R)'),
-  paste0('r_version <- "', paste(R.version$major, R.version$minor, sep = '.'), '"'),
-  paste0('jvm_version <- "', .jcall('java/lang/System', 'S', 'getProperty', 'java.version'), '"'),
-  paste0('jvm_vendor <- "', .jcall('java/lang/System', 'S', 'getProperty', 'java.vendor'), '"'),
-  paste0('java_options <- "', Sys.getenv('_JAVA_OPTIONS'), '"'),
-  paste0('capture_time <- "', format(Sys.time(), tz = 'UTC'), '"'),
-  paste0('capture_host <- "', Sys.info()[['nodename']], '"'),
-  paste0('capture_user <- "', Sys.info()[['user']], '"'),
-  paste0('probe_sha256 <- "', reference_sha256(file.path(root,
-    'validation/reference/TramoTransformDecisionProbe.java')), '"'),
-  paste0('script_sha256 <- "', reference_sha256(file.path(root,
-    'validation/reference/capture-tramo-transform.R')), '"'),
-  'jar_sha256 <- c(',
-  paste0('  "', vapply(jars, function(p) paste0(basename(p), '=',
-    reference_sha256(p)), character(1)), '"',
-    collapse = ',\n  '),
-  ')'
-), file.path(output, 'metadata.R'))
+    "# TRAMO transform decision capture metadata (M5 item 23-B, part 1).",
+    paste0("capture_script <- \"validation/reference/capture-tramo-transform.R\""),
+    paste0("probe_class <- \"validation/reference/TramoTransformDecisionProbe.java\""),
+    paste0("artifact <- \"", basename(jar_path), "\""),
+    paste0("artifact_md5 <- \"", jar_sha, "\""),
+    paste0("java <- \"", java_bin, "\""),
+    paste0("jvm_options <- \"-XX:+UnlockDiagnosticVMOptions -XX:DisableIntrinsic=_dexp -XX:DisableIntrinsic=_dlog\""),
+    "n_cases <- 29",
+    "protocol <- \"one fresh JVM per case (run(String[])); header line + %.17g value line; raw getters only\"",
+    "coordinate_semantics <- \"TsPeriod.dateAt(n) is epoch-anchored; detection bounds and pre-registered variables use estimation-domain positions; pexcl tags {excluded=true} X-columns\"",
+    "fail_closed <- \"out-of-range selection span collapses the scan window (sc_spannone); n<30 with maxout>0 fails the estimate (size gate)\"",
+    paste0("decision_counts <- c(",
+        paste(sprintf('"%s" = %d', names(table(decisions)), as.integer(table(decisions))),
+        collapse = ", "), ")")
+), con = file(file.path(out_dir, "metadata.R")), sep = "\n")
 
-files <- setdiff(list.files(output), 'SHA256SUMS.csv')
-if (nzchar(repro)) {
-  # Byte-identity gate over the data files; metadata.R legitimately differs
-  # in its captured_at field only (final-information precedent).
-  data_files <- setdiff(files, 'metadata.R')
-  prior <- setdiff(intersect(list.files(repro), data_files),
-    c('metadata.R', 'SHA256SUMS.csv'))
-  if (!identical(sort(data_files), sort(prior)))
-    stop('repro capture has a different file set: ',
-      paste(setxor(data_files, prior), collapse = ', '))
-  for (f in data_files) {
-    a <- readBin(file.path(output, f), 'raw', file.size(file.path(output, f)))
-    b <- readBin(file.path(repro, f), 'raw', file.size(file.path(repro, f)))
-    if (!identical(a, b)) stop('repro capture differs byte-wise: ', f)
-  }
-  message('repro check: ', length(data_files), ' data files byte-identical')
+files <- sort(list.files(out_dir))
+sums <- tools::md5sum(file.path(out_dir, files))
+write.csv(data.frame(file = files, md5 = unname(sums)),
+    file.path(out_dir, "SHA256SUMS.csv"), row.names = FALSE)
+
+# ------------------------------------------------------- repro gate ----
+if (length(repro_dir) == 1) {
+    files_a <- sort(list.files(repro_dir))
+    files_b <- sort(list.files(out_dir))
+    if (!identical(files_a, files_b)) {
+        stop("repro file set differs:\n  only in prior: ",
+            paste(setdiff(files_a, files_b), collapse = ", "), "\n  only in rerun: ",
+            paste(setdiff(files_b, files_a), collapse = ", "))
+    }
+    bad <- character(0)
+    for (f in files_b) {
+        a <- readBin(file.path(repro_dir, f), "raw", n = file.size(file.path(repro_dir, f)))
+        b <- readBin(file.path(out_dir, f), "raw", n = file.size(file.path(out_dir, f)))
+        if (!identical(a, b)) bad <- c(bad, f)
+    }
+    if (length(bad)) {
+        stop("cross-process byte-identity FAILED for: ", paste(bad, collapse = ", "))
+    }
+    message("repro gate: ", length(files_b), " files byte-identical across JVM processes")
 }
-write.csv(data.frame(file = files,
-  sha256 = vapply(files, function(f)
-    digest::digest(file = file.path(output, f), algo = 'sha256'), character(1))),
-  file.path(output, 'SHA256SUMS.csv'), row.names = FALSE, quote = FALSE)
-message('wrote ', length(files), ' files to ', output)
+
+message("TRAMO transform decision capture complete: ", length(cases), " cases, ",
+    nrow(facts_df), " fact rows -> ", out_dir)

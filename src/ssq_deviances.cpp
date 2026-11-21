@@ -253,11 +253,14 @@ std::optional<std::vector<double>> acf_values(    const std::vector<double>& ar,
     std::vector<double> ac;
     if (ardeg == 0) {
         // SymmetricFilter.convolutionOf(BackFilter(ma), 1): c[k] accumulates
-        // w[u] * w[u + k] in the pinned u-major sweep; ivar enters as 1.
-        std::vector<double> c(ma.size(), 0.0);
-        for (std::size_t u = 0; u < ma.size(); ++u) {
-            for (std::size_t v = u; v < ma.size(); ++v) {
-                c[v - u] += ma[u] * ma[v];
+        // w[u] * w[u + k] in the pinned u-major sweep over the REVERSED ma
+        // coefficients (BackFilter.weightsToArray), i.e. descending in the
+        // ma index; ivar enters as 1.
+        const std::vector<double> w(ma.rbegin(), ma.rend());
+        std::vector<double> c(w.size(), 0.0);
+        for (std::size_t u = 0; u < w.size(); ++u) {
+            for (std::size_t v = u; v < w.size(); ++v) {
+                c[v - u] += w[u] * w[v];
             }
         }
         ac = std::move(c);

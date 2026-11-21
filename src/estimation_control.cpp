@@ -675,26 +675,46 @@ SarimaEstimationResult estimate_sarima_fixed(
             physical[b].assign(request.blocks[b].initial.size(), fill);
         }
     } else {
+        // The meanCorrection seam (the pinned airline-model constant column
+        // lives on the differenced scale) enters the initializer as that
+        // constant, on the single-polynomial differenced response the pinned
+        // deviances machine runs on (the JVM reads it from the same
+        // differenced model). Every other design keeps the sequential
+        // per-pass differencing of the 22-series seam.
+        const bool mean_correction = request.design.columns == 1 &&
+            request.design.values.size() == request.series.values.size() &&
+            std::all_of(request.design.values.begin(), request.design.values.end(),
+                [](double value) { return value == 1.0; });
+        const auto differenced_response = mean_correction
+            ? detail::pinned_backfilter_apply(detail::pinned_differencing_polynomial(
+                  request.period, request.d, request.seasonal_d),
+                request.series.values)
+            : difference_series(
+                request.series.values, request.d, request.seasonal_d, request.period);
         RegressionDesign differenced;
         differenced.columns = request.design.columns;
         differenced.coefficients = request.design.coefficients;
         differenced.fixed = request.design.fixed;
-        for (std::size_t c = 0; c < request.design.columns; ++c) {
-            std::vector<double> column(request.design.values.begin() +
-                    static_cast<std::ptrdiff_t>(c) * request.series.values.size(),
-                request.design.values.begin() +
-                    static_cast<std::ptrdiff_t>(c + 1) * request.series.values.size());
-            auto filtered = difference_series(std::move(column), request.d, request.seasonal_d,
-                request.period);
-            differenced.values.insert(differenced.values.end(), filtered.begin(), filtered.end());
+        if (mean_correction) {
+            differenced.values.assign(differenced_response.size(), 1.0);
+        } else {
+            for (std::size_t c = 0; c < request.design.columns; ++c) {
+                std::vector<double> column(request.design.values.begin() +
+                        static_cast<std::ptrdiff_t>(c) * request.series.values.size(),
+                    request.design.values.begin() +
+                        static_cast<std::ptrdiff_t>(c + 1) * request.series.values.size());
+                auto filtered = difference_series(std::move(column), request.d,
+                    request.seasonal_d, request.period);
+                differenced.values.insert(
+                    differenced.values.end(), filtered.begin(), filtered.end());
+            }
         }
         const HannanRissanenOrders orders{static_cast<int>(request.blocks[0].initial.size()),
             static_cast<int>(request.blocks[2].initial.size()),
             static_cast<int>(request.blocks[1].initial.size()),
             static_cast<int>(request.blocks[3].initial.size()), request.period};
         const auto start = hannan_rissanen_start(
-            difference_series(request.series.values, request.d, request.seasonal_d, request.period),
-            differenced, orders, interrupt);
+            differenced_response, differenced, orders, interrupt);
         // The HR unit hands back [ar, sar, ma, sma] (the m_pi extraction
         // order); the request blocks are [ar, ma, sar, sma].
         const std::size_t permutation[4] = {0, 2, 1, 3};

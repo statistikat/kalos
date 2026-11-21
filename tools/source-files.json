@@ -58,6 +58,7 @@
     "include/kalos/state_space.hpp",
     "include/kalos/tramo_model_builder.hpp",
     "include/kalos/tramo_seats_model_validator.hpp",
+    "include/kalos/tramo_transform_decision.hpp",
     "include/kalos/transformation_decision.hpp",
     "include/kalos/transforms.hpp",
     "include/kalos/version.hpp",
@@ -128,6 +129,7 @@
     "src/state_space.cpp",
     "src/tramo_model_builder.cpp",
     "src/tramo_seats_model_validator.cpp",
+    "src/tramo_transform_decision.cpp",
     "src/transformation_decision.cpp",
     "src/transforms.cpp",
     "src/vector_jacobian.cpp",
@@ -151,6 +153,7 @@
     "src/x13_allocation.cpp",
     "src/x13_automatic.cpp",
     "src/x13_fit.cpp"
+  
   ],
   "fixtures": [
     "validation/fixtures/backend/SHA256SUMS.csv",
@@ -492,5 +495,6 @@
     "validation/evidence/native/x13-horizon/inputs.csv",
     "validation/evidence/native/x13-horizon/metadata.R",
     "validation/evidence/native/x13-horizon/oracle-facts.csv"
+  
   ]
 }

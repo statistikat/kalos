@@ -62,8 +62,9 @@ inline std::string g17(double v) {
             out = "0.";
             for (int i = 0; i < -x; ++i) out += '0';
             out += digits;
-            const int used = -x + static_cast<int>(digits.size());
-            for (int i = used; i < 17; ++i) out += '0';
+            // The -x leading zeros are not significant: pad to 17 SIGNIFICANT
+            // digits (digits.size() of them are in out).
+            for (std::size_t i = digits.size(); i < 17; ++i) out += '0';
         } else {
             std::string intpart = digits.substr(0, std::min<std::size_t>(digits.size(), x));
             for (std::size_t i = intpart.size(); i < static_cast<std::size_t>(x); ++i)
