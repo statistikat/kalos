@@ -30,3 +30,29 @@ replay lands with the 23-F F.2 driver layer and is inert in the F.1 golden.
 Regenerate the C++ golden:
   python3 tools/gen_tramo_final_estimation_golden.py \
       validation/evidence/native/tramo-final-estimation tests/jvm_tramo_final_estimation.h
+
+F.2 ROUND-STEP CLUSTER (2026-11-23): Scratch23n.java consumes the same
+cases-fe1.txt fe_est rows and prints, per case, (r) a real
+FinalEstimator.estimate run in the F.1 grammar plus (m) a MANUAL replay of
+the decoded estimate() driver (tmp_opencode/kalos-m5-pinning.md SECTION 29)
+over the same public machinery, with per-round dumps: entry spec/pars
+(the SarimaMapping2 default parameters), HannanRissanenInitializer
+(stabilize, useDefaultIfFailed) start, warm (stationaryMapping
+parametersOf), validate, landing, cl (dim/ssq/logDeterminant/allCoefficients),
+Point rows (max parameters, score = -LM gradientAtMinimum, information =
+LM curvatureAtMinimum lazily from Evaluation.ssqDerivatives), and
+asymptoticCovariance = SymmetricMatrix.inverse(information). Gates:
+n23-capture-1.out == n23-capture-2.out byte-identical (REPRO); the r rows
+reproduce every fe_est fact of fe1-capture-1.out (est_return/nnsig/orders/
+pars/cl/coef/vd; es09/es10 print the same estimation-null fact under a
+cleaner label); the m rows match the r rows BIT-EXACTLY on all 10 cases
+(180 fact lines) — the decoded driver is confirmed, including the
+es05/08/09/10 seasonal-cancel path (LM lands exactly at the saddle [0,0]
+from the zero warm start, |bphi(1)-btheta(1)| = 0 < cancel 0.044, nnsig=2,
+the dim==0 round-2 short-circuit returning true with nnsig untouched) and
+the es09/10 return-false path leaving the estimation nulled by
+setSpecification. n23-classload.log: tramo.FinalEstimator loaded once from
+the pinned jar, ZERO x13 regarima.FinalEstimator loads;
+RegSarimaComputer/HannanRissanenInitializer/RegArmaProcessor/
+LevenbergMarquardtMinimizer all pinned-jar loads; NO outlier detector loads
+(the es shapes never touch the ODM).
