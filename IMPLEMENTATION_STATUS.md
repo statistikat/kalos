@@ -2616,3 +2616,67 @@ heap-overread in the `HouseholderWithPivoting` free-column init norms
 not from the diagonal), fixed at the pinned machine with all pivot
 decisions corpus-invariant; nine existing sweeps re-run at 0 failures;
 `check-manifest.py` and `verify-migration.py` 406 pass.
+
+## TRAMO differencing ladder: slice 23-C lands `decide_tramo_differencing` — 2026-11-22
+
+**Scope (round-1 ladder; battery deferred with disclosure).** Unit 23-C
+`kalos::decide_tramo_differencing` transcribes the live
+`tramo.internal.DifferencingModule.process` over an estimated
+`RegSarimaModelling`: the `comespd`/`TramoUtility.autlar` size gate with the
+airline fallback (`default model selected`, the `isAirline` Unprocessed
+guard), the step0/nextstep/initstep/maincondition/cond1/finalcond ladder
+(the per-step raw HannanRissanen start with the −0.1/−0.2 default fills,
+the 1.02 tolerance / 1.12 out-of-range / `din = 1.005 - ub2` / `c -= 0.002`
+rule set, the iter-0 `cond1`, the `mlused`-aware `finalcond`, the iter ≥ 5
+exit), the warm maximum-likelihood re-estimation on the 23-B LM seam, the
+`searchur` unit-root scans behind rmax/rsmax, the `FastKalmanFilter`
+`computeTMean` and the `isMeanCorrection` length table. The battery stage
+(`RegularUnder(+2)`/`SeasonalUnder(+2)`, `SeasonalOverDifferencingTest`,
+`SpectralPeaks`) is registered as 23-C.2, gated on the noncentral-beta F-CDF
+prerequisite; its landing facts are pinned inert in the golden (12 BAT
+stage lines + 3 FULL cases). The `ml = true` multi-round wiring is 23-F.
+
+**Corpus and gate discipline.** 25 double-captured (byte-identical) cases
+through the live module (`validation/evidence/native/tramo-differencing/`,
+11 evidence files, load witnesses for the module and battery classes); the
+replay covers 10 DIFF + 12 BAT cases, 120 module fact lines compared as
+IEEE-754 bit patterns (`token_equal` reparse; Java `%.17g` pads where C
+expands, so string equality would falsely fail on `0.97`-type literals).
+
+**Transcription findings (contract `tramo-differencing-decision`).**
+(1) `RegArimaUtility.differencingFilter` hands the BackFilter the REVERSED
+polynomial while `mlj::apply_backfilter` reads ascending — the JVM
+correlation is the mlj correlation times `(-1)^(d + bd)`; without the parity
+pin five cases drift (tmean sign flips, ML landings). (2) The 1-ulp rmax
+drift is rooted: `Polynomial.roots()` runs `Roots_Factory.FASTSOLVER` =
+`FastEigenValuesSolver`, not a DGEEV companion; within the ladder's degree
+domain (p ≤ 2, bp ≤ 1) its `factorize` dispatches only closed forms, ported
+exactly (monic, the `2a`/`b*b − 4ac` quadratic, the `dcmpg` NaN branch) with
+`ComplexType.abs` as the SCALED modulus, not `std::hypot`; the qr/chase
+branch is unported and unreachable orders throw fail-closed. (3)
+`computeTMean` runs `FastKalmanFilter.fastFilter`, a DIFFERENT machine from
+the 23-B `process(x)`: warmup of `tmax = max(arLen, maLen) − 1` steps, the
+sticky all-`|c4| ≤ eps` switch, the h update through the switch, NaN-h
+abort, raw Durbin-Magenau tail — new `detail::pinned_fast_filter_residuals`
+(the process() machine untouched), bit-identical d_air innovations 84/84.
+(4) `tmean = s / sqrt((ss*n − s*s)/n)` over plain forward DataBlock folds;
+the module never demeaning-mutates `y` (d_qtr_noseas panel pins it). (5) The
+description log channel is a unit input: the fdlibm `log` per observation
+(same application as `transform_series`), pinned by the growth_log pair.
+
+**Fail-closed set.** Degenerate requests throw `invalid_argument` (empty /
+non-finite series, period < 2, non-positive values under the log channel).
+A warm-ML landing reaching the private optimize tail's `tryUrpCancelling` /
+`tryUrmCancelling` gates throws `std::runtime_error` (the corpus never
+reaches it); `searchur` beyond the ported closed forms throws likewise.
+Pinned ladder failures (ESPDIF non-convergence, missing identification)
+take the JVM catch into the airline fallback and never throw.
+
+**Gates.** Fresh-tree ctest 70/70 in BOTH lanes (new `test_tramo_differencing`,
+#38); ASan/UBSan clean (unit + the units exercising the shared deviances
+machine); all existing sweeps re-run at 0 failures (outlier-scoring 98,
+differencing 39, transformation 11, estimation-control 27, initial-ARMA
+4368, arma-refinement 423, regression 494, final-info 266, x11 b/c/d
+18/18/22, builder 22, validator 35/1026, decompose 81, allocation 280, fit
+528, x13-automatic 71401); `check-manifest.py` 155/112/236;
+`verify-migration.py` 406.

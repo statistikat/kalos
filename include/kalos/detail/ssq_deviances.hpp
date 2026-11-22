@@ -130,6 +130,20 @@ std::optional<std::vector<double>> pinned_fast_kalman_residuals(const std::vecto
     std::size_t p, std::size_t bp, std::size_t q, std::size_t bq, int period,
     const std::vector<double>& jvm);
 
+// FastKalmanFilter.fastFilter(x): the machine the differencing module's
+// computeTMean runs (item 23-C). Distinct from the process(x) machine above:
+// the warmup runs only max(arLen - 1, maLen - 1) steps, the stickiness fires
+// when every c4 entry reaches |c4| <= eps, the h update runs on every warmup
+// step (including after the switch), a NaN h after the update aborts the
+// machine (the ArimaException), and every remaining step is the plain
+// Durbin-Magenau recursion on raw series lags:
+// e[t] = x[t] + sum_j ar[j] * x[t - j] - sum_j ma[j] * e[t - j]. A series
+// shorter than the warmup trips the JVM array-index failure; that mirrors as
+// nullopt.
+std::optional<std::vector<double>> pinned_fast_filter_residuals(const std::vector<double>& x,
+    std::size_t p, std::size_t bp, std::size_t q, std::size_t bq, int period,
+    const std::vector<double>& jvm);
+
 // The design-free ConcentratedLikelihoodComputer innovations (the item 23-B
 // allCoefficients-empty branch: KalmanFilter.prepare plus sfilter, the
 // meanCorrection(false) machine already bit-qualified through

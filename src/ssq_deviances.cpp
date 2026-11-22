@@ -1484,6 +1484,110 @@ std::optional<std::vector<double>> pinned_fast_kalman_residuals(const std::vecto
     return e;
 }
 
+std::optional<std::vector<double>> pinned_fast_filter_residuals(const std::vector<double>& x,
+    std::size_t p, std::size_t bp, std::size_t q, std::size_t bq, int period,
+    const std::vector<double>& jvm) {
+    if (x.empty()) {
+        return std::nullopt;
+    }
+    const default_fp_environment fp_guard;
+    std::vector<double> ar, ma, acf;
+    std::size_t dim = 0;
+    if (!stationary_setup(jvm, p, bp, q, bq, period, ar, ma, dim, acf)) {
+        return std::nullopt;
+    }
+    const std::vector<double>& phi = ar; // tlast reads the AR coefficients
+    std::vector<double> c0 = acf;
+    const double h0 = c0[0]; // h0 is read before the tx window drop
+    {
+        // FastKalmanFilter.tx(c): the same window drop as the process(x)
+        // machine.
+        double d = 0.0;
+        for (std::size_t j = 1; j < phi.size(); ++j) {
+            d -= phi[j] * c0[dim - j];
+        }
+        for (std::size_t j = 1; j < dim; ++j) {
+            c0[j - 1] = c0[j];
+        }
+        c0[dim - 1] = d;
+    }
+    auto tlast = [&](const std::vector<double>& v) {
+        double s = 0.0;
+        for (std::size_t j = 1; j < phi.size(); ++j) {
+            s -= phi[j] * v[dim - j];
+        }
+        return s;
+    };
+    constexpr double kEps = 1e-12; // FastKalmanFilter.eps
+    const double sa2 = 1.0;              // getInnovationVariance()
+    std::vector<double> c = c0;
+    std::vector<double> c4 = c0;
+    std::vector<double> w(dim, 0.0);
+    std::vector<double> e(x.size(), 0.0);
+    double h = h0;
+    bool fast = false;
+    const std::size_t kmax = dim - 1;
+    const std::size_t tmax = std::max(phi.size(), ma.size()) - 1;
+    if (x.size() < tmax) {
+        return std::nullopt; // the JVM index failure on a short series
+    }
+    for (std::size_t i = 0; i < tmax; ++i) {
+        const double root = std::sqrt(h);
+        const double innov = (x[i] - w[0]) / root;
+        e[i] = innov;
+        const double tl = tlast(w);
+        const double f = innov / root;
+        for (std::size_t j = 0; j < kmax; ++j) {
+            w[j] = w[j + 1] + c[j] * f;
+        }
+        w[kmax] = tl + c[kmax] * f;
+        const double c0v = c4[0];
+        const double r = c0v / h;
+        h = h - c0v * r;
+        if (h < sa2) { // dcmpg: a NaN h keeps NaN
+            h = sa2;
+        }
+        if (std::isnan(h)) {
+            return std::nullopt; // the ArimaException abort
+        }
+        if (!fast) {
+            const double tl2 = tlast(c4);
+            const double last_c = c[kmax];
+            for (std::size_t j = 0; j < kmax; ++j) {
+                const double nxt = c4[j + 1];
+                if (r != 0.0) { // dcmpl ifeq: a NaN r eliminates
+                    c4[j] = nxt - c[j] * r;
+                    c[j] = c[j] - r * nxt;
+                } else {
+                    c4[j] = nxt;
+                }
+            }
+            c4[kmax] = tl2 - r * last_c;
+            c[kmax] = c[kmax] - r * tl2;
+            bool settled = true;
+            for (const double v : c4) {
+                if (!(std::fabs(v) <= kEps)) { // dcmpl ifle: NaN keeps it slow
+                    settled = false;
+                    break;
+                }
+            }
+            fast = settled;
+        }
+    }
+    // The Durbin-Magenau tail on raw series lags (no state, no h).
+    for (std::size_t t = tmax; t < x.size(); ++t) {
+        double v = x[t];
+        for (std::size_t j = 1; j < phi.size(); ++j) {
+            v += phi[j] * x[t - j];
+        }
+        for (std::size_t j = 1; j < ma.size(); ++j) {
+            v -= ma[j] * e[t - j];
+        }
+        e[t] = v;
+    }
+    return e;
+}
+
 std::optional<std::vector<double>> pinned_kalman_innovations(const std::vector<double>& y,
     std::size_t p, std::size_t bp, std::size_t q, std::size_t bq, int period,
     const std::vector<double>& jvm) {

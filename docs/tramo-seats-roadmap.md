@@ -180,6 +180,21 @@ pinned values without a maintainer ruling (the 21 precedent).
   and must be forced by corpus cases)
   and the pcr/pc/tsig/ub1/ub2 rule set (all already probe-materialized as spec
   scalars; thresholds decoded from the dumps).
+- **LANDED 2026-11-22 (round-1 ladder as scoped; battery stage = 23-C.2).**
+  `kalos::decide_tramo_differencing` transcribes the live
+  `DifferencingModule.process` ladder — the `comespd`/autlar gate with the
+  airline fallback, the step0/nextstep ladder (HR start, the 1.02/1.12
+  stabilize rules, warm ML on the 23-B seam with the
+  tryUrpC/tryUrmC-cancel fail-closed guard), the `searchur` scans on the
+  `FastEigenValuesSolver` closed forms with the scaled `ComplexType.abs`,
+  the `FastKalmanFilter.fastFilter` tmean (new
+  `pinned_fast_filter_residuals`) and the `isMeanCorrection` table —
+  bit-exact on all 120 module fact lines of the 22 replayed cases (25-case
+  double-captured corpus), incl. the `(-1)^(d + bd)` filter-orientation pin
+  and the fdlibm log channel. The battery/over-side replay stays open as
+  23-C.2 (its landing facts pinned inert; gated on the noncentral-beta
+  F-CDF prerequisite); the `ml = true` multi-round wiring is 23-F.
+  Contract `tramo-differencing-decision`.
 - **23-D — `select_tramo_arma`**: `internal.ArmaModule` + `ArmaModelSelector.
   FastBIC` — the HR-fast-BIC candidate enumeration, the `CInfo` panel and the
   selection rule, composed on the reusable HR/estimation units (the selector's HR

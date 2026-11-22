@@ -586,3 +586,47 @@ register D6 APPROVED). The fast/robust factorizer tiers, the k.* kernel
 flags and the post-seam estimation statuses are record-only or out of
 envelope; the WK-only downstream caveat is D1. See
 [decompose-ucarima-contract.md](decompose-ucarima-contract.md).
+
+## TRAMO pre-stage decision mirrors
+
+`test_tramo_transform_decision.cpp` / `test_tramo_outlier_scan.cpp` and the
+double-captured JVM corpora under
+`validation/evidence/native/tramo-transform/` and
+`validation/evidence/native/tramo-outlier-scan/` qualify
+`kalos::decide_tramo_transform` and `kalos::scan_tramo_outliers` (item 23-B):
+the `TramoUtility.calcCv` grid, the `TramoSeasonalityDetector` machine and
+the `LogLevelModule` pair through the CI-FDLIBM-routed estimation layer
+(26-case bit-exact replay), and the ROUND-0 observation of the
+`internal.OutliersDetectionModule` (the `make()` gate, the design pre-stage
+with the `SimplifyingTool.simplifyExact` least-squares quotient columns, the
+OlsComputer→HR→stabilize→warm-optimize estimateModel chain, the
+FastKalmanFilter initmodel, the per-factory T/coefficient tables,
+`searchMax` and the `!(|maxT| < cv)` gate; all 22 numerically observable
+cases bit-exact at IEEE-754 level). The multi-round driver and the
+`curva`/`reduceVa`/pcr policy stay open under D3 (faithful port ruled for
+23-F); `sc_so`/`sc_spanout`/`sc_spannone` are the registered D3 evidence and
+`sc_pexao47` pins the warm-seam fail-closed throw. See
+[tramo-transform-decision-contract.md](tramo-transform-decision-contract.md)
+and [tramo-outlier-scan-contract.md](tramo-outlier-scan-contract.md).
+
+## TRAMO differencing decision mirror
+
+`test_tramo_differencing.cpp`, the double-captured 25-case JVM corpus under
+`validation/evidence/native/tramo-differencing/` and the generator
+`tools/gen_tramo_differencing_golden.py` qualify
+`kalos::decide_tramo_differencing` (item 23-C): the LIVE round-1
+`internal.DifferencingModule.process` — the `comespd`/autlar size gate with
+the airline fallback, the step0/nextstep/initstep/maincondition/cond1/
+finalcond ladder with its per-step Hannan-Rissanen start and the warm
+maximum-likelihood seam, the `searchur` unit-root scans (the
+`FastEigenValuesSolver` closed forms plus the scaled `ComplexType.abs`, the
+root cause of the 1-ulp `rmax` drift against the DGEEV companion), the
+`FastKalmanFilter.fastFilter` tmean machine (the sticky Durbin-Magenau
+transcription `pinned_fast_filter_residuals`) and the `isMeanCorrection`
+length table. All 120 module fact lines of the 22 replayed cases are
+IEEE-754 bit-exact, including the `(-1)^(d + bd)` differencing-filter
+orientation pin and the fdlibm log channel. The battery stage
+(`RegularUnder(+2)`/`SeasonalUnder(+2)`/over-differencing tests, spectral
+peaks) is 23-C.2 with its landing facts pinned inert; the multi-round driver
+is 23-F. See
+[tramo-differencing-decision-contract.md](tramo-differencing-decision-contract.md).
