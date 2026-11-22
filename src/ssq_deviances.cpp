@@ -1232,6 +1232,124 @@ std::optional<PinnedMachinePoint> pinned_deviances_evaluate(
     return pt;
 }
 
+std::optional<PinnedMachinePoint> pinned_deviances_evaluate_multi(
+    const std::vector<double>& y, std::size_t p, std::size_t bp, std::size_t q, std::size_t bq,
+    int period, const std::vector<std::vector<double>>& design, const std::vector<double>& jvm) {
+    if (jvm.size() != p + bp + q + bq || period < 2 || y.empty() || design.empty()) {
+        return std::nullopt;
+    }
+    for (const auto& col : design) {
+        if (col.size() != y.size()) {
+            return std::nullopt;
+        }
+    }
+    const default_fp_environment fp_guard;
+    for (const double v : jvm) {
+        if (!std::isfinite(v)) {
+            return std::nullopt;
+        }
+    }
+    auto split = [&](std::size_t off, std::size_t len) {
+        return std::vector<double>(
+            jvm.begin() + static_cast<std::ptrdiff_t>(off),
+            jvm.begin() + static_cast<std::ptrdiff_t>(off + len));
+    };
+    const auto phi = split(0, p);
+    const auto bphi = split(p, bp);
+    const auto th = split(p + bp, q);
+    const auto bth = split(p + bp + q, bq);
+
+    const auto reg_ar = raw_poly(phi);
+    const auto seas_ar = seasonal_poly(bphi, period);
+    const auto ar = poly_times(reg_ar, seas_ar);
+    const auto reg_ma = raw_poly(th);
+    const auto seas_ma = seasonal_poly(bth, period);
+    const auto ma = poly_times(reg_ma, seas_ma);
+
+    const std::size_t ar_order = p + static_cast<std::size_t>(period) * bp;
+    const std::size_t ma_order = q + static_cast<std::size_t>(period) * bq;
+    const std::size_t dim = std::max(ar_order, ma_order + 1);
+
+    auto acf = acf_values(ar, ma, dim);
+    if (!acf || acf->size() < dim) {
+        return std::nullopt; // "acgf of non stationary model"
+    }
+    acf->resize(dim);
+
+    kalman kf;
+    kf.multi_use = true;
+    kf.prepare(ar, std::move(*acf), y.size(), dim);
+    if (kf.failed) {
+        return std::nullopt;
+    }
+
+    PinnedMachinePoint pt;
+    const std::vector<double> w = kf.mfilter(y);
+    std::vector<std::vector<double>> xx;
+    xx.reserve(design.size());
+    for (const auto& col : design) {
+        xx.push_back(kf.mfilter(col));
+    }
+    pt.ldet = kf.ldet;
+
+    hwp_n decomp;
+    // The ssq function's default cll is DEFAULT_FULL_COMPUTER: xfixed = false,
+    // so process hands HouseholderWithPivoting nfixed = nmissing (0 for a
+    // missing-free design), i.e. full column pivoting. There is no
+    // rank-equals-columns requirement here (that is the xfixed computer,
+    // which is the estimateModel landing seam, pinned_gls_point).
+    decomp.decompose(xx, 0);
+    const ls_solution_n sol = least_squares_n(decomp, w, kRcond);
+    if (sol.singular) {
+        return std::nullopt;
+    }
+    pt.rank = sol.rank;
+    if (sol.rank == 0) {
+        // ConcentratedLikelihoodComputer: the rank-0 branch profiles no
+        // regressor and uses w.ssq() with the raw residuals.
+        double wssq = 0.0;
+        for (const double v : w) {
+            if (std::isfinite(v)) {
+                wssq += v * v;
+            }
+        }
+        pt.ssq_err = wssq;
+    } else {
+        pt.ssq_err = sol.ssq_err;
+    }
+
+    const double n = static_cast<double>(y.size());
+    pt.factor = fdlibm_exp(pt.ldet / n);
+    if (!std::isfinite(pt.factor)) {
+        return std::nullopt;
+    }
+    pt.ssq_e = pt.ssq_err * pt.factor;
+    pt.log_likelihood =
+        -0.5 * (n * kLogTwoPi + n * (1.0 + fdlibm_log(pt.ssq_err / n)) + pt.ldet);
+
+    // ConcentratedLikelihoodComputer.process residual assembly: w minus the
+    // per-column dneg/addAY walk in design-column order.
+    std::vector<double> res = w;
+    if (sol.rank > 0) {
+        for (std::size_t j = 0; j < xx.size(); ++j) {
+            const double b = sol.b[j];
+            for (std::size_t i = 0; i < res.size(); ++i) {
+                res[i] += -b * xx[j][i];
+            }
+        }
+    }
+    const double root = std::sqrt(pt.factor);
+    pt.e.clear();
+    pt.e.reserve(res.size());
+    for (const double v : res) {
+        if (!std::isfinite(v)) {
+            continue; // DoubleSeq.select(isFinite)
+        }
+        pt.e.push_back(pt.factor == 1.0 ? v : v * root); // dcmpl ifne shortcut
+    }
+    return pt;
+}
+
 std::vector<double> pinned_polynomial_times(const std::vector<double>& a,
     const std::vector<double>& b) {
     return poly_times(a, b);
@@ -1352,8 +1470,8 @@ std::optional<std::vector<double>> pinned_gls_coefficients(const std::vector<dou
     // ConcentratedLikelihoodComputer.DEFAULT_COMPUTER at a coordinate vector
     // (item 23-B initmodel seam): multi-use KalmanFilter whitening of the
     // response and every design column, HouseholderWithPivoting with all
-    // columns fixed (prepare hands back n > ncols, so both xfixed settings
-    // pin every column) and QRLeastSquaresSolver.leastSquares at the machine
+    // columns fixed (DEFAULT_COMPUTER runs xfixed = true, which passes
+    // nfixed = ncols) and QRLeastSquaresSolver.leastSquares at the machine
     // rcond. xfixed = true turns a rank below the column count into
     // "Gls failed"; the scan machine runs with xfixed = true.
     if (y.empty() || xcols.empty()) {
@@ -1389,6 +1507,100 @@ std::optional<std::vector<double>> pinned_gls_coefficients(const std::vector<dou
         return std::nullopt;
     }
     return sol.b;
+}
+
+std::optional<PinnedGlsPoint> pinned_gls_point(const std::vector<double>& y,
+    std::size_t p, std::size_t bp, std::size_t q, std::size_t bq, int period,
+    const std::vector<std::vector<double>>& xcols, const std::vector<double>& jvm,
+    std::size_t nmissing) {
+    // The same DEFAULT_COMPUTER solve as pinned_gls_coefficients, additionally
+    // assembling the ConcentratedLikelihoodWithMissing views the outlier
+    // rounds' updateLikelihood reads (item 23-F F.2): QRLeastSquaresSolution
+    // .unscaledCovariance() = SymmetricMatrix.UUt applied to
+    // UpperTriangularMatrix.inverse of the rawR (0, rank) block, pivot-
+    // scattered over the n-column design; CLWM.unscaledCovariance() then
+    // extracts the (nmissing, nx) diagonal block, so ser() reads the
+    // surviving diagonal entries. UUt's (k, k) cell is the serial ascending
+    // dot of row k with itself (plain dmul/dadd, no fused pass); inverse()
+    // throws on a diagonal exactly equal to zero (dcmpg, so a NaN defers to
+    // the solveUx walk, mirrored by solve_ux) and solves the identity's
+    // columns through the same solveUx the b vector went through.
+    if (y.empty() || xcols.empty()) {
+        return std::nullopt;
+    }
+    const default_fp_environment fp_guard;
+    std::vector<double> ar, ma, acf;
+    std::size_t dim = 0;
+    if (!stationary_setup(jvm, p, bp, q, bq, period, ar, ma, dim, acf)) {
+        return std::nullopt;
+    }
+    for (const auto& col : xcols) {
+        if (col.size() != y.size()) {
+            return std::nullopt;
+        }
+    }
+    kalman kf;
+    kf.multi_use = true;
+    kf.prepare(ar, std::move(acf), y.size(), dim);
+    if (kf.failed) {
+        return std::nullopt;
+    }
+    const std::vector<double> w = kf.mfilter(y);
+    std::vector<std::vector<double>> whitened;
+    whitened.reserve(xcols.size());
+    for (const auto& col : xcols) {
+        whitened.push_back(kf.mfilter(col));
+    }
+    hwp_n decomp;
+    decomp.decompose(whitened, whitened.size());
+    const ls_solution_n sol = least_squares_n(decomp, w, kRcond);
+    if (sol.singular || sol.rank != whitened.size()) {
+        return std::nullopt;
+    }
+
+    PinnedGlsPoint pt;
+    pt.b = sol.b;
+    pt.ssq_err = sol.ssq_err;
+    const std::size_t r = sol.rank; // == whitened.size() here, square
+    for (std::size_t k = 0; k < r; ++k) { // inverse()'s m_err_sing precheck
+        if (std::isgreater(decomp.qr[k * (decomp.m + 1)], 0.0)
+            || std::isless(decomp.qr[k * (decomp.m + 1)], 0.0)) {
+            continue; // dcmpg != 0: a nonzero diagonal passes
+        }
+        if (!std::isnan(decomp.qr[k * (decomp.m + 1)])) {
+            return std::nullopt; // exactly zero (signed zero included)
+        }
+    }
+    // U = inverse(R block): identity columns, ascending, through solve_ux
+    // (the rank-bounded loop reads only x[0..rank), so an r-long column is
+    // the extracted block's column).
+    std::vector<double> uc_full(decomp.n, 0.0);
+    std::vector<std::vector<double>> ucols;
+    ucols.reserve(r);
+    for (std::size_t j = 0; j < r; ++j) {
+        std::vector<double> x(r, 0.0);
+        x[j] = 1.0;
+        if (!decomp.solve_ux(r, x)) {
+            return std::nullopt; // MatrixException
+        }
+        ucols.push_back(std::move(x));
+    }
+    for (std::size_t k = 0; k < r; ++k) {
+        double acc = 0.0;
+        for (std::size_t j = 0; j < r; ++j) { // UUt row dot, ascending j
+            const double v = ucols[j][k];
+            acc += v * v;
+        }
+        if (decomp.pivot.empty()) {
+            uc_full[k] = acc;
+        } else {
+            uc_full[static_cast<std::size_t>(decomp.pivot[k])] = acc;
+        }
+    }
+    const std::size_t nx = decomp.n - nmissing; // nx() = b.length - nmissing
+    pt.uc_diag.assign(uc_full.begin() + static_cast<std::ptrdiff_t>(nmissing),
+        uc_full.begin() + static_cast<std::ptrdiff_t>(nmissing + nx));
+    return pt;
 }
 
 std::optional<std::vector<double>> pinned_fast_kalman_residuals(const std::vector<double>& x,

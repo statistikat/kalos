@@ -84,6 +84,7 @@ add_library(kalos STATIC
   src/tramo_final_estimation.cpp
   src/tramo_model_builder.cpp
   src/tramo_outlier_scan.cpp
+  src/tramo_outlier_rounds.cpp
   src/tramo_regression_tests.cpp
   src/tramo_seats_model_validator.cpp
   src/tramo_transform_decision.cpp

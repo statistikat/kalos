@@ -79,6 +79,24 @@ std::optional<PinnedMachinePoint> pinned_deviances_evaluate(
     const std::vector<double>& y, std::size_t p, std::size_t bp, std::size_t q, std::size_t bq,
     int period, const std::vector<double>& design, const std::vector<double>& jvm);
 
+// The multi-regressor generalization of the same machine (item 23-F F.2):
+// design carries the full whitened-model regressor block (each column
+// y.size() entries, the differenced-domain view the pinned
+// ConcentratedLikelihoodComputer sees: missing point columns first, the
+// meanCorrection constant, then the differenced user columns). The QR runs
+// the pivoting hwp_n decomposition of the DEFAULT_FULL_COMPUTER shape the
+// RegArmaSsqFunction surface uses (xfixed = false, so nfixed = nmissing:
+// full column pivoting) and the rcond-1e-12 solve (the same primitives the
+// OLS and DEFAULT_COMPUTER seams replay), the residual assembly keeps the
+// per-column dneg/addAY order and the e/ssqE/logLikelihood assembly is
+// byte-identical to the single-column machine. A rank loss is not an error
+// here (the xfixed rank throw belongs to the landing seam, not to this
+// computer); nullopt mirrors the pinned throws. pt.coefficient/uc00/tstat
+// (the 1x1 conveniences) are not filled here.
+std::optional<PinnedMachinePoint> pinned_deviances_evaluate_multi(
+    const std::vector<double>& y, std::size_t p, std::size_t bp, std::size_t q, std::size_t bq,
+    int period, const std::vector<std::vector<double>>& design, const std::vector<double>& jvm);
+
 // Pinned Polynomial.times (the full convolution behind the rational filter
 // compositions of the item 23-B scan machine: composing the pi weights with
 // an outlier filter representation).
@@ -120,6 +138,25 @@ std::optional<std::vector<double>> pinned_ols_coefficients(const std::vector<dou
 std::optional<std::vector<double>> pinned_gls_coefficients(const std::vector<double>& y,
     std::size_t p, std::size_t bp, std::size_t q, std::size_t bq, int period,
     const std::vector<std::vector<double>>& xcols, const std::vector<double>& jvm);
+
+// The same DEFAULT_COMPUTER evaluation with the QRLeastSquaresSolution parts
+// the outlier rounds' updateLikelihood reads (item 23-F F.2): the raw
+// coefficient vector b (the ConcentratedLikelihoodWithMissing allCoefficients
+// - missing-correction entries first), the unscaledCovariance() diagonal
+// AFTER the missing-slice view (concentrated over the nx non-missing design
+// columns, entry k = the diagonal of SymmetricMatrix.UUt applied to
+// UpperTriangularMatrix.inverse of the leading rank block, the pivot applied
+// when the decomposition carries one) and the raw ssqErr.
+struct PinnedGlsPoint {
+    std::vector<double> b;         // solution coefficients, design order
+    std::vector<double> uc_diag;   // nx diagonal entries (missing slice)
+    double ssq_err = 0.0;          // QRLeastSquaresSolution.getSsqErr()
+};
+
+std::optional<PinnedGlsPoint> pinned_gls_point(const std::vector<double>& y,
+    std::size_t p, std::size_t bp, std::size_t q, std::size_t bq, int period,
+    const std::vector<std::vector<double>>& xcols, const std::vector<double>& jvm,
+    std::size_t nmissing);
 
 // FastKalmanFilter.process(x).e(): the Durbin-Magenau innovations of the
 // stationary model at the coordinates over x, with the pinned steady-state

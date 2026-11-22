@@ -153,10 +153,13 @@ public:
         std::size_t q, std::size_t bq, const Interrupt& interrupt)
         : request_(request), interrupt_(interrupt), domain_(static_cast<int>(p),
               static_cast<int>(bp), static_cast<int>(q), static_cast<int>(bq)) {
-        // Qualify the pinned deviances machine (21-D.2) for this request: the
-        // machine carries no missing observations, needs a seasonal period,
-        // and knows the design-free (sfilter) and constant-regressor
-        // (mfilter) machines. Anything else keeps the 21-A GLS provider.
+        // Qualify the pinned deviances machine (21-D.2, multi-column
+        // generalization item 23-F F.2) for this request: the machine carries
+        // no missing observations, needs a seasonal period, and knows the
+        // design-free (sfilter), constant-regressor (mfilter, the 1x1
+        // machine) and full pivoting-QR multi-column (mfilter, hwp_n)
+        // machines. Missing observations and sub-period seasonality keep the
+        // 21-A GLS provider.
         if (request_.period < 2 || request_.d < 0 || request_.seasonal_d < 0) {
             return;
         }
@@ -168,25 +171,59 @@ public:
         for (const double value : request_.series.values) {
             if (!std::isfinite(value)) return;
         }
-        machine_y_ = detail::pinned_backfilter_apply(
-            detail::pinned_differencing_polynomial(request_.period, request_.d,
-                request_.seasonal_d),
-            request_.series.values);
+        const std::vector<double> kernel = detail::pinned_differencing_polynomial(
+            request_.period, request_.d, request_.seasonal_d);
+        machine_y_ = detail::pinned_backfilter_apply(kernel, request_.series.values);
         if (machine_y_.empty()) return;
         if (request_.design.columns == 0) {
             machine_usable_ = true;
             return;
         }
-        if (request_.design.columns != 1 || request_.design.values.size() !=
-                request_.series.values.size() ||
-            (!request_.design.fixed.empty() && request_.design.fixed[0] != 0)) {
+        if (!request_.design.fixed.empty()) {
+            for (const std::uint8_t flag : request_.design.fixed) {
+                if (flag != 0) return; // fixed design entries are not qualified
+            }
+        }
+        const std::size_t rows = request_.series.values.size();
+        if (request_.design.values.size() != rows * request_.design.columns) {
             return;
         }
-        for (const double value : request_.design.values) {
-            if (value != 1.0) return; // the pinned seam machine is the
-                                      // meanCorrection constant column
+        // The raw-domain columns map to the machine view the pinned
+        // ConcentratedLikelihoodComputer sees (mirror of the scan machine's
+        // design()): an all-ones column is the meanCorrection constant, 1.0
+        // over the differenced domain; every other column carries the
+        // unit-root filter.
+        std::vector<std::vector<double>> cols;
+        cols.reserve(request_.design.columns);
+        for (std::size_t c = 0; c < request_.design.columns; ++c) {
+            std::vector<double> raw(request_.design.values.begin()
+                    + static_cast<std::ptrdiff_t>(c * rows),
+                request_.design.values.begin()
+                    + static_cast<std::ptrdiff_t>((c + 1) * rows));
+            bool constant = true;
+            for (const double value : raw) {
+                if (value != 1.0) {
+                    constant = false;
+                    break;
+                }
+            }
+            if (constant) {
+                if (request_.design.columns == 1) {
+                    machine_design_.assign(machine_y_.size(), 1.0);
+                    machine_usable_ = true; // the verified 1x1 constant machine
+                    return;
+                }
+                cols.push_back(std::vector<double>(machine_y_.size(), 1.0));
+            } else {
+                cols.push_back(detail::pinned_backfilter_apply(kernel, raw));
+                if (cols.back().empty()) return;
+            }
         }
-        machine_design_.assign(machine_y_.size(), 1.0);
+        if (cols.size() != request_.design.columns) {
+            return; // defensive: the column walk above must consume all
+        }
+        machine_cols_ = std::move(cols);
+        machine_multi_ = true;
         machine_usable_ = true;
     }
 
@@ -204,8 +241,11 @@ public:
             // vector the machine runs on; a rejected evaluation mirrors the
             // pinned Evaluation constructor throwing, which the pinned
             // iterateQR catch feeds to the damping tail.
-            const auto point = detail::pinned_deviances_evaluate(
-                machine_y_, p, bp, q, bq, request_.period, machine_design_, x);
+            const auto point = machine_multi_
+                ? detail::pinned_deviances_evaluate_multi(
+                      machine_y_, p, bp, q, bq, request_.period, machine_cols_, x)
+                : detail::pinned_deviances_evaluate(
+                      machine_y_, p, bp, q, bq, request_.period, machine_design_, x);
             if (!point || point->e.size() != machine_y_.size() ||
                 !std::isfinite(point->ssq_e)) {
                 return std::nullopt;
@@ -290,8 +330,11 @@ public:
                 for (const double v : c[2]) jvm.push_back(-v);
                 for (const double v : c[1]) jvm.push_back(v);
                 for (const double v : c[3]) jvm.push_back(v);
-                const auto point = detail::pinned_deviances_evaluate(
-                    machine_y_, p, bp, q, bq, request_.period, machine_design_, jvm);
+                const auto point = machine_multi_
+                    ? detail::pinned_deviances_evaluate_multi(
+                          machine_y_, p, bp, q, bq, request_.period, machine_cols_, jvm)
+                    : detail::pinned_deviances_evaluate(
+                          machine_y_, p, bp, q, bq, request_.period, machine_design_, jvm);
                 if (point && std::isfinite(point->log_likelihood)) {
                     return point->log_likelihood;
                 }
@@ -327,8 +370,10 @@ private:
     // qualify for (missing observations, multi-column or non-constant
     // designs, sub-period seasonality).
     bool machine_usable_ = false;
+    bool machine_multi_ = false;
     std::vector<double> machine_y_;
     std::vector<double> machine_design_;
+    std::vector<std::vector<double>> machine_cols_;
 };
 
 const char* pinned_lm_status(int stop) {

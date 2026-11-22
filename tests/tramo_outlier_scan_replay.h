@@ -7,8 +7,11 @@
 // token handling: the d D p q bp bq order of the header, the yyyy factory
 // mix, the "calc" pseudo-token resolved from the captured "in" fact line,
 // the span selector already resolved to estimation-domain bounds (all ->
-// [0, n), idx:l-h -> [l, h + 1], the epoch-anchored idxe selector -> the
-// collapsed [0, 0)) and the CODE:idx(+CODE:idx) prespec list.
+// [0, n), idx:l-h -> [l, h] (the F.2 witness fields pin setBounds(l, h) -
+// the earlier [l, h + 1] mapping was a transcription bug, inert for the
+// corpus because no winner ever sat on the boundary row), the epoch-anchored
+// idxe selector -> the collapsed [0, 0)) and the CODE:idx(+CODE:idx)
+// prespec list.
 
 #include <kalos/tramo_outlier_scan.hpp>
 
@@ -76,7 +79,7 @@ inline ParsedScan parse_scan(const std::vector<std::string>& t,
         const std::string body = t[17].substr(4);
         const auto dash = body.find('-');
         r.lower_bound = std::stoi(body.substr(0, dash));
-        r.upper_bound = std::stoi(body.substr(dash + 1)) + 1;
+        r.upper_bound = std::stoi(body.substr(dash + 1));
     } else if (t[17].rfind("idxe:", 0) == 0) {
         // Epoch-anchored selector: the window lands before the series and
         // the module's bounds collapse.
