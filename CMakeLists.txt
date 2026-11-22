@@ -75,6 +75,7 @@ add_library(kalos STATIC
   src/ssq_deviances.cpp
   src/state_space.cpp
   src/tramo_model_builder.cpp
+  src/tramo_outlier_scan.cpp
   src/tramo_seats_model_validator.cpp
   src/tramo_transform_decision.cpp
   src/transformation_decision.cpp
@@ -208,6 +209,7 @@ if(KALOS_BUILD_TESTS)
     test_special_functions
     test_state_space
     test_tramo_model_builder
+    test_tramo_outlier_scan
     test_tramo_seats_model
     test_tramo_transform_decision
     test_transformation_decision

@@ -2563,3 +2563,56 @@ exact-match count of the band-tier tables family (2708 -> 2661..2707 exact
 of 3783) at exactly the stub-lineage ledger sites — the designed behaviour
 (the run-#17 selection flips are gone: the legacy suite under the all-shim
 is **140/140**). `check-manifest.py` 149/112/213; `verify-migration.py` 406.
+
+## TRAMO pre-stage decisions: slice 23-B lands `decide_tramo_transform` + round-0 `scan_tramo_outliers` — 2026-11-22
+
+**Scope (D3 stop gate respected).** The 23-B first half lands as two
+decision units over the pinned `OutliersDetectionModule`/`LogLevelModule`
+corpora: Unit A `kalos::decide_tramo_transform` (calcCv grid, the
+TramoSeasonalityDetector machine on the pinned LjungBox/Friedman/chi2
+surface, the airline-pair log/level decision; 26-case bit-exact replay,
+committed separately) and Unit B `kalos::scan_tramo_outliers`, the
+**round-0** observation of the spec-driven outlier scan: the `make()`
+comatip gate, the interpolation/log/design pre-stage, the
+OlsComputer→HannanRissanen→stabilize→warm-optimize estimateModel chain, the
+FastKalmanFilter initmodel, Mad2(50), the per-factory T/coefficient tables
+and `searchMax` with the `!(|maxT| < cv)` gate. The multi-round driver and
+the `curva`/`reduceVa`/pcr policy stay OPEN under D3; `sc_so`/`sc_spanout`
+(round-0 picks the live driver later empties) and `sc_spannone` (collapsed
+scan) are registered as the D3 brief evidence.
+
+**Bit-level gate discipline.** Java's `%.17g` renders some doubles one
+digit away from the C rendering of the SAME bits — three suspected 1-ulp
+drifts during pinning (OLS mean coordinate, sc_gs2 maxT, sc_multi OLS b)
+were pure rendering artifacts. Every JVM microscope dump (`%.17g#bits`) and
+every replay comparison now runs on IEEE-754 bit patterns. On that gate
+all 22 numerically observable corpus cases are bit-exact end-to-end, plus
+the three comatip Failed cases and the Unchanged shapes.
+
+**Transcription findings (contracts `tramo-transform-decision` /
+`tramo-outlier-scan`).** (1) `RationalBackFilter.times` cross-cancels the
+outlier filter denominator against the pi numerator BEFORE multiplying —
+`SimplifyingTool.simplifyExact` = `LeastSquaresDivision` (Householder2
+least squares, rcond 0, exact iff `ssqErr/m < sqrt(eps)`), so the LS/SO
+columns run on the least-squares quotient (float residue included) over
+the plain MA; skipping the cancel costs 2 ulp (SO) to 17 ulp (`sc_excl`)
+and is pinned via the new `pinned_ls_divide`. (2) `FastKalmanFilter.tx` is
+an IN-PLACE left-shift with the raw-AR tail term. (3) The round-0 OLS
+machine is `OlsComputer.compute` (pivoting Householder, rcond 1e-9) and
+the `hr.stabilized ⇒ optimizeModel` trigger is required (the raw HR
+landing is routinely off the unit circle, e.g. bth −1.01186).
+
+**Fail-closed set.** Pre-registered SO, missings without interpolation and
+a general roots-pass cancellation throw `invalid_argument`; warm
+re-estimation over a non-constant design (HR stabilization + prespec
+design) throws — the multi-column GLS-profiled LM objective is its own
+future slice — and corpus case `sc_pexao47` pins that refusal in the
+replay (golden `seam_throw`).
+
+**Gates.** Fresh-tree ctest 69/69 in BOTH lanes (new `test_tramo_outlier_scan`,
+#39); ASan/UBSan clean — the sanitizer lane also caught a real
+heap-overread in the `HouseholderWithPivoting` free-column init norms
+(the JVM norms rows [nfixed, m) from `nfixed * (m + 1)` stepped by `m`,
+not from the diagonal), fixed at the pinned machine with all pivot
+decisions corpus-invariant; nine existing sweeps re-run at 0 failures;
+`check-manifest.py` and `verify-migration.py` 406 pass.

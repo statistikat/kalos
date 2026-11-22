@@ -79,6 +79,65 @@ std::optional<PinnedMachinePoint> pinned_deviances_evaluate(
     const std::vector<double>& y, std::size_t p, std::size_t bp, std::size_t q, std::size_t bq,
     int period, const std::vector<double>& design, const std::vector<double>& jvm);
 
+// Pinned Polynomial.times (the full convolution behind the rational filter
+// compositions of the item 23-B scan machine: composing the pi weights with
+// an outlier filter representation).
+std::vector<double> pinned_polynomial_times(
+    const std::vector<double>& a, const std::vector<double>& b);
+
+// LeastSquaresDivision.divide + isExact behind Polynomial.SimplifyingTool
+// .simplifyExact (the exact-cancel step of RationalBackFilter.times): the
+// divisor shifted across n rows, Householder2 least squares (no pivoting,
+// rcond 0), quotient exact iff ssqErr / b.size() is below sqrt(epsilon).
+// nullopt marks "divide refused" (a divisor longer than the dividend, a
+// MatrixException) or "not exact", both of which send the simplifier to its
+// roots pass.
+std::optional<std::vector<double>> pinned_ls_divide(
+    const std::vector<double>& a, const std::vector<double>& b);
+
+// Pinned RationalFunction.coefficients(k): the first k power-series weights
+// of num / den, the same literal recurrence the deviances machine runs for
+// its psi series and the scan machine for the pi / (pi * rep) columns.
+std::vector<double> pinned_rational_weights(
+    const std::vector<double>& num, const std::vector<double>& den, std::size_t k);
+
+// QRLeastSquaresSolver.robustLeastSquares behind OlsComputer.compute
+// (HouseholderWithPivoting with nfixed = 0, column pivoting, rcond 1e-9):
+// returns the getB() vector (zero-padded on rank deficiency). nullopt marks
+// the null result for a response norm below Constants.epsilon or a
+// MatrixException from the triangular tail, which the driver turns into
+// "Ols failed".
+std::optional<std::vector<double>> pinned_ols_coefficients(const std::vector<double>& y,
+    const std::vector<std::vector<double>>& xcols);
+
+// ConcentratedLikelihoodComputer.DEFAULT_COMPUTER over a multi-column design
+// at one coordinate vector (the item 23-B initmodel seam): steady-state
+// multi-use KalmanFilter whitening of the response and every design column,
+// HouseholderWithPivoting with all columns fixed and
+// QRLeastSquaresSolver.leastSquares at the machine rcond 1e-12. nullopt
+// mirrors the "Gls failed" EcoException (rank below the column count) or a
+// whitening/solve failure.
+std::optional<std::vector<double>> pinned_gls_coefficients(const std::vector<double>& y,
+    std::size_t p, std::size_t bp, std::size_t q, std::size_t bq, int period,
+    const std::vector<std::vector<double>>& xcols, const std::vector<double>& jvm);
+
+// FastKalmanFilter.process(x).e(): the Durbin-Magenau innovations of the
+// stationary model at the coordinates over x, with the pinned steady-state
+// fast switch. nullopt mirrors the null Likelihood the pinned filter returns
+// when a predicted variance is NaN or negative (where the caller
+// dereferences it).
+std::optional<std::vector<double>> pinned_fast_kalman_residuals(const std::vector<double>& x,
+    std::size_t p, std::size_t bp, std::size_t q, std::size_t bq, int period,
+    const std::vector<double>& jvm);
+
+// The design-free ConcentratedLikelihoodComputer innovations (the item 23-B
+// allCoefficients-empty branch: KalmanFilter.prepare plus sfilter, the
+// meanCorrection(false) machine already bit-qualified through
+// pinned_deviances_evaluate). nullopt mirrors the failed machine.
+std::optional<std::vector<double>> pinned_kalman_innovations(const std::vector<double>& y,
+    std::size_t p, std::size_t bp, std::size_t q, std::size_t bq, int period,
+    const std::vector<double>& jvm);
+
 } // namespace kalos::detail
 
 #endif
