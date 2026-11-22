@@ -6,6 +6,7 @@
 #include "kalos/x13_allocation.hpp"
 
 #include "kalos/detail/fdlibm.hpp"
+#include "kalos/detail/hostlineage.hpp"
 #include <cmath>
 #include <stdexcept>
 namespace kalos {
@@ -38,7 +39,7 @@ std::vector<double> backTransform(const std::vector<double>& x, bool log) {
     // arguments and broke 50 boundary checks at the pinned 1e-15 exp-boundary
     // class). The bytecode-recipe corpora consume these tables only through
     // tolerance bands, which the host-libm bits satisfy two orders inside.
-    for (std::size_t i=0;i<v.size();++i) v[i]=std::exp(x[i]);
+    for (std::size_t i=0;i<v.size();++i) v[i]=kalos::detail::glibc_exp(x[i]);
     return v;
 }
 bool restoreOpMultiplicative(X11DecompositionMode mode) { // pinned op() test
@@ -179,7 +180,7 @@ X13Preadjustment x13_preadjust(const X13PreadjustInput& input) {
         // Raw libm, intentionally (CI-FDLIBM ledger): input-side log of the
         // allocation staging seam — same stub-lineage fixture corpus as the
         // export-stage exp above; see the recorded root cause there.
-        const double v30=input.log?std::log(input.input[i]):input.input[i];
+        const double v30=input.log?kalos::detail::glibc_log(input.input[i]):input.input[i];
         r[i]=v30-v27[nb+i]; // TsData.subtract aligns v27 to the input domain
     }
     const ArimaForecastsResult route=arima_forecasts(*input.arima, r, nb, nf);

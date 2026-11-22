@@ -7,6 +7,7 @@
 #include "kalos/x13_fit.hpp"
 
 #include "kalos/detail/fdlibm.hpp"
+#include "kalos/detail/hostlineage.hpp"
 #include <cmath>
 #include <stdexcept>
 namespace kalos {
@@ -42,7 +43,7 @@ void logAdditiveResults(const std::vector<double>& step10,
         // bit contract is the stub-lineage x13-fit fixture corpus (capture ran
         // without DisableIntrinsic); see src/x13_allocation.cpp for the full
         // recorded root cause. Bytecode-recipe consumers ride tolerance bands.
-        A[i]=std::exp(step10[i]); B[i]=std::exp(step12[i]); C[i]=std::exp(step13[i]);
+        A[i]=kalos::detail::glibc_exp(step10[i]); B[i]=kalos::detail::glibc_exp(step12[i]); C[i]=kalos::detail::glibc_exp(step13[i]);
         sa+=A[i]; sc+=C[i];
     }
     const double v9=sa/static_cast<double>(n),

@@ -1,3 +1,4 @@
+#include "kalos/detail/hostlineage.hpp"
 #include "kalos/outlier_scoring.hpp"
 
 #include "kalos/detail/fdlibm.hpp"
@@ -207,7 +208,7 @@ double transitory_change_rate(int frequency, double monthly_rate) {
     // target exists here. The recorded corpus-reached domain is the single
     // pair (0.9999, 12), where Math.pow, StrictMath.pow and glibc pow are all
     // bit-identical (0x3feff62ccd1f502a).
-    return std::pow(monthly_rate, 12 / frequency);
+    return kalos::detail::glibc_pow(monthly_rate, 12 / frequency);
 }
 
 OutlierZone outlier_excluding_zone(OutlierType type, int period) {

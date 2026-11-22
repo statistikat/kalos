@@ -396,29 +396,42 @@ void replay_census(const char* path) {
     ++replayed;
   }
   std::fclose(f);
-  std::printf("census %s: %llu distinct args replayed, %llu skipped (%s)\n",
-              path, replayed, skipped,
-              rep_hypot.bad || rep_pow.bad ? "running totals" : "clean so far");
+  std::printf("census %s: %llu distinct args replayed, %llu skipped "
+              "(mismatches so far: sin=%llu cos=%llu exp=%llu log=%llu "
+              "pow=%llu hypot=%llu atan2=%llu acos=%llu)\n",
+              path, replayed, skipped, rep_sin.bad, rep_cos.bad, rep_exp.bad,
+              rep_log.bad, rep_pow.bad, rep_hypot.bad, rep_atan2.bad,
+              rep_acos.bad);
 }
 
 }  // namespace
 
 int main(int argc, char** argv) {
-  battery_sincos();
-  battery_exp();
-  battery_log();
-  battery_pow();
-  battery_hypot();
-  battery_atan2();
-  battery_asinacos();
-  for (int i = 1; i < argc; ++i) replay_census(argv[i]);
+  bool census_only = false;
+  int first_file = 1;
+  if (argc > 1 && !std::strcmp(argv[1], "--census-only")) {
+    census_only = true;  // replay only (machine-independent regression mode);
+    ++first_file;        // dense grids probe the HOST lineage and are noisy
+  }                      // where the host is a patched build (see docs)
+  if (!census_only) {
+    battery_sincos();
+    battery_exp();
+    battery_log();
+    battery_pow();
+    battery_hypot();
+    battery_atan2();
+    battery_asinacos();
+  }
+  for (int i = first_file; i < argc; ++i) replay_census(argv[i]);
 
   KernelReport* reps[] = {&rep_sin, &rep_cos, &rep_exp, &rep_log, &rep_pow,
                           &rep_hypot, &rep_atan2, &rep_acos, &rep_asin};
   unsigned long long bad = 0, checked = 0;
   for (KernelReport* r : reps) {
-    std::printf("%-6s %12llu checks: %s\n", r->name, r->checked,
-                r->bad ? "FAIL" : "PASS");
+    std::printf("%-6s %12llu checks: %s%s\n", r->name, r->checked,
+                r->bad ? "FAIL" : "PASS",
+                r->bad ? "" : (r->checked ? "" : " (no args)"));
+    if (r->bad) std::printf("       mismatches: %llu\n", r->bad);
     bad += r->bad;
     checked += r->checked;
   }

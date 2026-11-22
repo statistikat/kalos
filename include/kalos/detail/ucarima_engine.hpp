@@ -7,6 +7,7 @@
 // validator runs; the authoritative bytecode notes live in that file and
 // in tmp_opencode/jdprobe. Everything here is JVM-bytecode order.
 
+#include "kalos/detail/hostlineage.hpp"
 #include "kalos/tramo_seats_model_validator.hpp"
 
 #include <algorithm>
@@ -87,7 +88,7 @@ inline double c_abs(cplx a) { return c_abs(a.re, a.im); }
 // fdlibm_sin to these seams would BREAK the captured corpora's bit lineage;
 // the kernels stay vendored for their golden-proved role (see
 // include/kalos/detail/fdlibm.hpp).
-inline double c_arg(cplx a) { return std::atan2(a.im, a.re); }
+inline double c_arg(cplx a) { return kalos::detail::glibc_atan2(a.im, a.re); }
 
 inline cplx c_inv(cplx a) {  // Complex.inv(): branches on |re| >= |im|
   if (!lt_g(std::fabs(a.re), std::fabs(a.im))) {
@@ -952,7 +953,7 @@ inline double rfr(const SymF& f, double x) {  // SymmetricFilter.realFrequencyRe
   double u = f.a[k++];
   if (k >= stop) return u;
   double t0 = 1.0;
-  double cs = std::cos(x);
+  double cs = kalos::detail::glibc_cos(x);
   double t1 = cs;
   for (;;) {
     u = u + 2.0 * t1 * f.a[k++];
@@ -971,7 +972,7 @@ inline void fr_eval(const SymF& f, double x, double& fv, double& dfv, double& d2
   dfv = 0.0;
   d2fv = 0.0;
   if (n <= 1) return;
-  double cs = std::cos(x), sn = std::sin(x);
+  double cs = kalos::detail::glibc_cos(x), sn = kalos::detail::glibc_sin(x);
   double ck = cs, sk = sn;
   for (std::size_t k = 1; k < n; ++k) {
     double ak = f.a[k];
@@ -994,8 +995,8 @@ inline double dfr_eval(const SymF& f, int d, double x) {
   for (std::size_t k = 1; k < n; ++k) {
     double t = static_cast<double>(k);
     for (int i = 1; i < d; ++i) t *= static_cast<double>(k);
-    double trig = (d % 2 == 0) ? std::cos(x * static_cast<double>(k))
-                               : std::sin(x * static_cast<double>(k));
+    double trig = (d % 2 == 0) ? kalos::detail::glibc_cos(x * static_cast<double>(k))
+                               : kalos::detail::glibc_sin(x * static_cast<double>(k));
     t = t * trig * f.a[k];
     s += t;
   }
@@ -1140,7 +1141,7 @@ inline MinResult minimize_by_roots(const Spectrum& s) {
     double e = minimizer_evaluate(P, Q, re, 0);
     if (!is_nan(e) && lt_g(e, r.min)) {
       r.min = e;
-      r.x = std::acos(re);
+      r.x = kalos::detail::glibc_acos(re);
     }
   }
   return r;
@@ -1759,7 +1760,7 @@ struct Validator {
     vd& th = model.theta;
     vd& bth = model.btheta;
     if (!bth.empty()) {
-      double pw = std::pow(lim, static_cast<double>(model.period));
+      double pw = kalos::detail::glibc_pow(lim, static_cast<double>(model.period));
       double v = bth[0];
       if (lt_g(v, -pw)) {
         bth[0] = -1.0;

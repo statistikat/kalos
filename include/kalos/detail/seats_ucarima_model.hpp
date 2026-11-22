@@ -18,6 +18,7 @@
 // lookup finds kalos::detail's engine helpers (Poly, SymF, cplx, the *_g /
 // *_l comparison shims) exactly as before.
 
+#include "kalos/detail/hostlineage.hpp"
 #include <algorithm>
 #include <charconv>
 #include <cmath>
@@ -574,7 +575,7 @@ inline UrSolverResult ur_solver_run(const Poly& p) {
     if (nn == 1) return std::fabs(detail::p_value_at(q, 1.0));
     if (nn == 2) return std::fabs(detail::p_value_at(q, -1.0));
     double th = 6.283185307179586 / static_cast<double>(nn);
-    cplx z{std::cos(th), std::sin(th)};
+    cplx z{kalos::detail::glibc_cos(th), kalos::detail::glibc_sin(th)};
     cplx acc{0.0, 0.0};
     for (int i = q.degree(); i >= 0; --i) acc = c_add(c_times(acc, z), c_real(q.c[idx(i)]));
     return c_abs(acc);

@@ -38,6 +38,7 @@
 #include "kalos/x13_automatic.hpp"
 
 #include "kalos/detail/fdlibm.hpp"
+#include "kalos/detail/hostlineage.hpp"
 
 #include "kalos/detail/ssq_deviances.hpp"
 #include "kalos/final_information.hpp"
@@ -249,7 +250,7 @@ void logAdditiveResults(const std::vector<double>& step10,
         // at the q_log export arguments). The bytecode-recipe consumers
         // (oracle/sweep) reach these tables through tolerance bands only.
         // See src/x13_allocation.cpp for the recorded measurement.
-        A[i]=std::exp(step10[i]); B[i]=std::exp(step12[i]); C[i]=std::exp(step13[i]);
+        A[i]=kalos::detail::glibc_exp(step10[i]); B[i]=kalos::detail::glibc_exp(step12[i]); C[i]=kalos::detail::glibc_exp(step13[i]);
         sa+=A[i]; sc+=C[i];
     }
     const double v9=sa/static_cast<double>(n),

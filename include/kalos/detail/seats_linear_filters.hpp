@@ -60,6 +60,7 @@
 // include the seam together needs a separate behavior-neutral commit to
 // add the keywords (tracked for cluster 5+).
 
+#include "kalos/detail/hostlineage.hpp"
 #include <algorithm>
 #include <climits>
 #include <cmath>
@@ -189,16 +190,16 @@ inline cplx cq_div(cplx a, cplx b) {
 // are host-libm (C2 stub lineage).
 // ---------------------------------------------------------------------------
 inline cplx fu_freq(const std::function<double(int)>& g, int lo, int hi, double w) {
-  double cs = std::cos(w);
+  double cs = kalos::detail::glibc_cos(w);
   int i = lo;
   cplx z = (lo == 0) ? cplx{1.0, 0.0}
-                     : c_cart(std::cos(w * static_cast<double>(lo)),
-                              std::sin(w * static_cast<double>(lo)));
+                     : c_cart(kalos::detail::glibc_cos(w * static_cast<double>(lo)),
+                              kalos::detail::glibc_sin(w * static_cast<double>(lo)));
   CC acc{z.re, z.im};
   acc.mul_d(g(i++));
   if (i > hi) return c_cart(acc.re, acc.im);
-  cplx zi = c_cart(std::cos(w * static_cast<double>(i)),
-                   std::sin(w * static_cast<double>(i)));
+  cplx zi = c_cart(kalos::detail::glibc_cos(w * static_cast<double>(i)),
+                   kalos::detail::glibc_sin(w * static_cast<double>(i)));
   acc.add_ac(g(i++), zi);
   while (i <= hi) {
     CC t{zi.re, zi.im};
