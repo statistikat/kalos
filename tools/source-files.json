@@ -27,6 +27,7 @@
     "include/kalos/detail/hannan_rissanen_pipeline.hpp",
     "include/kalos/detail/lapack.hpp",
     "include/kalos/detail/sarima_stabilization.hpp",
+    "include/kalos/detail/seats_acf_solver.hpp",
     "include/kalos/detail/seats_linear_filters.hpp",
     "include/kalos/detail/seats_ucarima_model.hpp",
     "include/kalos/detail/special_functions.hpp",

@@ -14,12 +14,22 @@
 // eager/lazy numerator-denominator paths (FiniteFilter vs SymmetricFilter
 // denominator), the LULinearSystemSolver2(1.0E-13) decomposition system,
 // and the AIOOBE-parity refusal paths (RationalFunction.get(i<0) and
-// Polynomial.get over-read).
+// Polynomial.get over-read). Cluster 2 adds the acf/solver mirror
+// (include/kalos/detail/seats_acf_solver.hpp): AutoCovarianceFunction (36-
+// quantized cache, ivar scaling incl. NaN, -0.0 extension zeros), the
+// default computer (Toeplitz + LU2, ArimaException translation), the
+// symmetric computer through the 2-arg ctor (incl. its decompose branch),
+// LinearProcess.lazy acf (one- and two-sided denominators) and Symmetric-
+// Filter.decompose (length-1 scaling path + Toeplitz path + bare
+// MatrixException) - goldens from /tmp/opencode/ssf/AcfProbe.java
+// (acfA.txt == acfB.txt, double capture 2026-11-22).
 #include "kalos/detail/seats_linear_filters.hpp"
+#include "kalos/detail/seats_acf_solver.hpp"
 
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
+#include <limits>
 #include <string>
 #include <vector>
 
@@ -90,6 +100,7 @@ void chk_true(const std::string& tag, bool cond) {
 
 using namespace kalos::detail;
 using namespace kalos::detail::seats_lfilters;
+namespace sa = kalos::detail::seats_acf;
 
 // Poly.get sweep with the AIOOBE-parity stop (probe poly() helper semantics).
 void poly_vals(const Poly& p, int n, vd& out, bool& threw) {
@@ -423,6 +434,250 @@ int main() {
     chk1("B.zm5", zrb.weight(-5), "0x0.0p0");
     chk_true("B.z", zrb.has_lower_bound() && zrb.has_upper_bound() &&
                         zrb.get_u_bound() == 0);
+  }
+
+  // ---- E: AutoCovarianceFunction (cluster 2, AcfProbe ground truth) ---------
+  {
+    sa::Acf a1 = sa::Acf::of_polys(Poly(vd{1.0, -0.6}), Poly(vd{1.0}), 1.0);
+    chk("E.a1v5", a1.values(5), false, "0x1.5c28f5c28f5c2p0 -0x1.3333333333333p-1 0x0.0p0 0x0.0p0 0x0.0p0");
+    chk("E.a1v40", a1.values(40), false, "0x1.5c28f5c28f5c2p0 -0x1.3333333333333p-1 0x0.0p0 0x0.0p0 0x0.0p0 " 
+                  "0x0.0p0 0x0.0p0 0x0.0p0 0x0.0p0 0x0.0p0 0x0.0p0 0x0.0p0 0x0.0p0 " 
+                  "0x0.0p0 0x0.0p0 0x0.0p0 0x0.0p0 0x0.0p0 0x0.0p0 0x0.0p0 0x0.0p0 " 
+                  "0x0.0p0 0x0.0p0 0x0.0p0 0x0.0p0 0x0.0p0 0x0.0p0 0x0.0p0 0x0.0p0 " 
+                  "0x0.0p0 0x0.0p0 0x0.0p0 0x0.0p0 0x0.0p0 0x0.0p0 0x0.0p0 -0x0.0p0 " 
+                  "-0x0.0p0 -0x0.0p0 -0x0.0p0");
+    chk_true("E.a1v0", a1.values(0).empty());
+    {
+      vd g;
+      for (int i = 0; i < 4; ++i) g.push_back(a1.get(i));
+      chk("E.a1g", g, false, "0x1.5c28f5c28f5c2p0 -0x1.3333333333333p-1 0x0.0p0 0x0.0p0");
+    }
+    chk1("E.a1g100", a1.get(100), "-0x0.0p0");
+    chk_true("E.a1b", a1.has_bound() && a1.get_bound() == 2);
+    sa::Acf a2 = sa::Acf::of_polys(Poly(vd{1.0, -0.6}), Poly(vd{1.0}), 2.0);
+    chk("E.a2v5", a2.values(5), false, "0x1.5c28f5c28f5c2p1 -0x1.3333333333333p0 0x0.0p0 0x0.0p0 0x0.0p0");
+    sa::Acf a3 = sa::Acf::of_polys(Poly(vd{1.0, -0.6}), Poly(vd{1.0}), 0.0);
+    chk("E.a3v5", a3.values(5), false, "0x0.0p0 0x0.0p0 0x0.0p0 0x0.0p0 0x0.0p0");
+    sa::Acf a4 = sa::Acf::of_polys(Poly(vd{1.0, -0.6}), Poly(vd{1.0}),
+                                   std::numeric_limits<double>::quiet_NaN());
+    chk("E.a4v5", a4.values(5), false, "NaN NaN 0x0.0p0 0x0.0p0 0x0.0p0");
+  }
+
+  // ---- F: default computer (Toeplitz + LU2), cache quantization, failures ---
+  {
+    sa::Acf b1 = sa::Acf::of_polys(Poly(vd{1.0}), Poly(vd{1.0, -0.5}), 1.0);
+    chk("F.b1v5", b1.values(5), false, "0x1.5555555555555p0 0x1.5555555555555p-1 0x1.5555555555555p-2 " 
+                  "0x1.5555555555555p-3 0x1.5555555555555p-4");
+    chk("F.b1v36", b1.values(36), false, "0x1.5555555555555p0 0x1.5555555555555p-1 0x1.5555555555555p-2 " 
+                  "0x1.5555555555555p-3 0x1.5555555555555p-4 0x1.5555555555555p-5 " 
+                  "0x1.5555555555555p-6 0x1.5555555555555p-7 0x1.5555555555555p-8 " 
+                  "0x1.5555555555555p-9 0x1.5555555555555p-10 0x1.5555555555555p-11 " 
+                  "0x1.5555555555555p-12 0x1.5555555555555p-13 0x1.5555555555555p-14 " 
+                  "0x1.5555555555555p-15 0x1.5555555555555p-16 0x1.5555555555555p-17 " 
+                  "0x1.5555555555555p-18 0x1.5555555555555p-19 0x1.5555555555555p-20 " 
+                  "0x1.5555555555555p-21 0x1.5555555555555p-22 0x1.5555555555555p-23 " 
+                  "0x1.5555555555555p-24 0x1.5555555555555p-25 0x1.5555555555555p-26 " 
+                  "0x1.5555555555555p-27 0x1.5555555555555p-28 0x1.5555555555555p-29 " 
+                  "0x1.5555555555555p-30 0x1.5555555555555p-31 0x1.5555555555555p-32 " 
+                  "0x1.5555555555555p-33 0x1.5555555555555p-34 0x1.5555555555555p-35");
+    chk("F.b1v37", b1.values(37), false, "0x1.5555555555555p0 0x1.5555555555555p-1 0x1.5555555555555p-2 " 
+                  "0x1.5555555555555p-3 0x1.5555555555555p-4 0x1.5555555555555p-5 " 
+                  "0x1.5555555555555p-6 0x1.5555555555555p-7 0x1.5555555555555p-8 " 
+                  "0x1.5555555555555p-9 0x1.5555555555555p-10 0x1.5555555555555p-11 " 
+                  "0x1.5555555555555p-12 0x1.5555555555555p-13 0x1.5555555555555p-14 " 
+                  "0x1.5555555555555p-15 0x1.5555555555555p-16 0x1.5555555555555p-17 " 
+                  "0x1.5555555555555p-18 0x1.5555555555555p-19 0x1.5555555555555p-20 " 
+                  "0x1.5555555555555p-21 0x1.5555555555555p-22 0x1.5555555555555p-23 " 
+                  "0x1.5555555555555p-24 0x1.5555555555555p-25 0x1.5555555555555p-26 " 
+                  "0x1.5555555555555p-27 0x1.5555555555555p-28 0x1.5555555555555p-29 " 
+                  "0x1.5555555555555p-30 0x1.5555555555555p-31 0x1.5555555555555p-32 " 
+                  "0x1.5555555555555p-33 0x1.5555555555555p-34 0x1.5555555555555p-35 " 
+                  "0x1.5555555555555p-36");
+    chk("F.b1v80", b1.values(80), false, "0x1.5555555555555p0 0x1.5555555555555p-1 0x1.5555555555555p-2 " 
+                  "0x1.5555555555555p-3 0x1.5555555555555p-4 0x1.5555555555555p-5 " 
+                  "0x1.5555555555555p-6 0x1.5555555555555p-7 0x1.5555555555555p-8 " 
+                  "0x1.5555555555555p-9 0x1.5555555555555p-10 0x1.5555555555555p-11 " 
+                  "0x1.5555555555555p-12 0x1.5555555555555p-13 0x1.5555555555555p-14 " 
+                  "0x1.5555555555555p-15 0x1.5555555555555p-16 0x1.5555555555555p-17 " 
+                  "0x1.5555555555555p-18 0x1.5555555555555p-19 0x1.5555555555555p-20 " 
+                  "0x1.5555555555555p-21 0x1.5555555555555p-22 0x1.5555555555555p-23 " 
+                  "0x1.5555555555555p-24 0x1.5555555555555p-25 0x1.5555555555555p-26 " 
+                  "0x1.5555555555555p-27 0x1.5555555555555p-28 0x1.5555555555555p-29 " 
+                  "0x1.5555555555555p-30 0x1.5555555555555p-31 0x1.5555555555555p-32 " 
+                  "0x1.5555555555555p-33 0x1.5555555555555p-34 0x1.5555555555555p-35 " 
+                  "0x1.5555555555555p-36 0x1.5555555555555p-37 0x1.5555555555555p-38 " 
+                  "0x1.5555555555555p-39 0x1.5555555555555p-40 0x1.5555555555555p-41 " 
+                  "0x1.5555555555555p-42 0x1.5555555555555p-43 0x1.5555555555555p-44 " 
+                  "0x1.5555555555555p-45 0x1.5555555555555p-46 0x1.5555555555555p-47 " 
+                  "0x1.5555555555555p-48 0x1.5555555555555p-49 0x1.5555555555555p-50 " 
+                  "0x1.5555555555555p-51 0x1.5555555555555p-52 0x1.5555555555555p-53 " 
+                  "0x1.5555555555555p-54 0x1.5555555555555p-55 0x1.5555555555555p-56 " 
+                  "0x1.5555555555555p-57 0x1.5555555555555p-58 0x1.5555555555555p-59 " 
+                  "0x1.5555555555555p-60 0x1.5555555555555p-61 0x1.5555555555555p-62 " 
+                  "0x1.5555555555555p-63 0x1.5555555555555p-64 0x1.5555555555555p-65 " 
+                  "0x1.5555555555555p-66 0x1.5555555555555p-67 0x1.5555555555555p-68 " 
+                  "0x1.5555555555555p-69 0x1.5555555555555p-70 0x1.5555555555555p-71 " 
+                  "0x1.5555555555555p-72 0x1.5555555555555p-73 0x1.5555555555555p-74 " 
+                  "0x1.5555555555555p-75 0x1.5555555555555p-76 0x1.5555555555555p-77 " 
+                  "0x1.5555555555555p-78 0x1.5555555555555p-79");
+    chk_true("F.b1b", !b1.has_bound() && b1.get_bound() == -1);
+    sa::Acf b2 = sa::Acf::of_polys(Poly(vd{1.0, 0.4}), Poly(vd{1.0, -0.3}), 1.5);
+    {
+      vd g;
+      for (int i = 35; i < 37; ++i) g.push_back(b2.get(i));
+      chk("F.b2q1", g, false, "0x1.3e0d57f5629c6p-59 0x1.7da99cc00feedp-61");
+      g.clear();
+      for (int i = 71; i < 74; ++i) g.push_back(b2.get(i));
+      chk("F.b2q2", g, false, "0x1.b84df87fdf496p-122 0x1.082ec84cb92cp-123 0x1.3d04f05c1168p-125");
+      g.clear();
+      for (int i = 0; i < 3; ++i) g.push_back(b2.get(i));
+      chk("F.b2q3", g, false, "0x1.2762762762762p1 0x1.4ad4ad4ad4ad4p0 0x1.8cff3659cc031p-2");
+    }
+    sa::Acf c1 = sa::Acf::of_polys(Poly(vd{1.0, 0.2, 0.3}), Poly(vd{1.0, -0.5}), 1.0);
+    chk("F.c1v3", c1.values(3), false, "0x1.06d3a06d3a06dp1 0x1.6fc962fc962fdp0 0x1.04b17e4b17e4bp0");
+    chk("F.c1v50", c1.values(50), false, "0x1.06d3a06d3a06dp1 0x1.6fc962fc962fdp0 0x1.04b17e4b17e4bp0 " 
+                  "0x1.04b17e4b17e4bp-1 0x1.04b17e4b17e4bp-2 0x1.04b17e4b17e4bp-3 " 
+                  "0x1.04b17e4b17e4bp-4 0x1.04b17e4b17e4bp-5 0x1.04b17e4b17e4bp-6 " 
+                  "0x1.04b17e4b17e4bp-7 0x1.04b17e4b17e4bp-8 0x1.04b17e4b17e4bp-9 " 
+                  "0x1.04b17e4b17e4bp-10 0x1.04b17e4b17e4bp-11 0x1.04b17e4b17e4bp-12 " 
+                  "0x1.04b17e4b17e4bp-13 0x1.04b17e4b17e4bp-14 0x1.04b17e4b17e4bp-15 " 
+                  "0x1.04b17e4b17e4bp-16 0x1.04b17e4b17e4bp-17 0x1.04b17e4b17e4bp-18 " 
+                  "0x1.04b17e4b17e4bp-19 0x1.04b17e4b17e4bp-20 0x1.04b17e4b17e4bp-21 " 
+                  "0x1.04b17e4b17e4bp-22 0x1.04b17e4b17e4bp-23 0x1.04b17e4b17e4bp-24 " 
+                  "0x1.04b17e4b17e4bp-25 0x1.04b17e4b17e4bp-26 0x1.04b17e4b17e4bp-27 " 
+                  "0x1.04b17e4b17e4bp-28 0x1.04b17e4b17e4bp-29 0x1.04b17e4b17e4bp-30 " 
+                  "0x1.04b17e4b17e4bp-31 0x1.04b17e4b17e4bp-32 0x1.04b17e4b17e4bp-33 " 
+                  "0x1.04b17e4b17e4bp-34 0x1.04b17e4b17e4bp-35 0x1.04b17e4b17e4bp-36 " 
+                  "0x1.04b17e4b17e4bp-37 0x1.04b17e4b17e4bp-38 0x1.04b17e4b17e4bp-39 " 
+                  "0x1.04b17e4b17e4bp-40 0x1.04b17e4b17e4bp-41 0x1.04b17e4b17e4bp-42 " 
+                  "0x1.04b17e4b17e4bp-43 0x1.04b17e4b17e4bp-44 0x1.04b17e4b17e4bp-45 " 
+                  "0x1.04b17e4b17e4bp-46 0x1.04b17e4b17e4bp-47");
+    {
+      bool threw = false;
+      std::string msg;
+      try {
+        sa::Acf d1 = sa::Acf::of_polys(Poly(vd{1.0}), Poly(vd{1.0, -1.0}), 1.0);
+        (void)d1.values(5);
+      } catch (const sa::arima_exception& e) {
+        threw = true;
+        msg = e.what();
+      }
+      chk_true("F.d1", threw && msg == "acgf of non stationary model");
+      threw = false;
+      msg.clear();
+      try {
+        sa::Acf d2 = sa::Acf::of_polys(Poly(vd{1.0}), Poly(vd{1.0, -2.0, 1.0}), 1.0);
+        (void)d2.values(9);
+      } catch (const sa::arima_exception& e) {
+        threw = true;
+        msg = e.what();
+      }
+      chk_true("F.d2", threw && msg == "acgf of non stationary model");
+    }
+    {  // get(i < 0) AIOOBE parity (after prepare ran)
+      bool threw = false;
+      try {
+        (void)b1.get(-1);
+      } catch (const std::out_of_range&) {
+        threw = true;
+      }
+      chk_true("F.h1", threw);
+    }
+  }
+
+  // ---- G: LinearProcess lazy acf ---------------------------------------------
+  {
+    FiniteFilter wE(Poly(vd{1.0, -0.6}), 0);
+    RationalFilter rfE =
+        RationalFilter::of_wbf(wE, BackFilter::of_internal(vd{1.0, -0.5}), ForeFilter::one());
+    sa::LinearProc lpE(rfE, 1.7);
+    chk_true("G.lpE", !lpE.is_null() && lpE.is_invertible() && lpE.is_stationary());
+    chk("G.lpEv5", lpE.get_auto_covariance_function().values(5), false, "0x1.b900aec33e1f7p0 -0x1.44f3078263ab1p-3 -0x1.44f3078263ab1p-4 " 
+                  "-0x1.44f3078263ab1p-5 -0x1.44f3078263ab1p-6");
+    chk("G.lpEv50", lpE.get_auto_covariance_function().values(50), false, "0x1.b900aec33e1f7p0 -0x1.44f3078263ab1p-3 -0x1.44f3078263ab1p-4 " 
+                  "-0x1.44f3078263ab1p-5 -0x1.44f3078263ab1p-6 -0x1.44f3078263ab1p-7 " 
+                  "-0x1.44f3078263ab1p-8 -0x1.44f3078263ab1p-9 -0x1.44f3078263ab1p-10 " 
+                  "-0x1.44f3078263ab1p-11 -0x1.44f3078263ab1p-12 -0x1.44f3078263ab1p-13 " 
+                  "-0x1.44f3078263ab1p-14 -0x1.44f3078263ab1p-15 -0x1.44f3078263ab1p-16 " 
+                  "-0x1.44f3078263ab1p-17 -0x1.44f3078263ab1p-18 -0x1.44f3078263ab1p-19 " 
+                  "-0x1.44f3078263ab1p-20 -0x1.44f3078263ab1p-21 -0x1.44f3078263ab1p-22 " 
+                  "-0x1.44f3078263ab1p-23 -0x1.44f3078263ab1p-24 -0x1.44f3078263ab1p-25 " 
+                  "-0x1.44f3078263ab1p-26 -0x1.44f3078263ab1p-27 -0x1.44f3078263ab1p-28 " 
+                  "-0x1.44f3078263ab1p-29 -0x1.44f3078263ab1p-30 -0x1.44f3078263ab1p-31 " 
+                  "-0x1.44f3078263ab1p-32 -0x1.44f3078263ab1p-33 -0x1.44f3078263ab1p-34 " 
+                  "-0x1.44f3078263ab1p-35 -0x1.44f3078263ab1p-36 -0x1.44f3078263ab1p-37 " 
+                  "-0x1.44f3078263ab1p-38 -0x1.44f3078263ab1p-39 -0x1.44f3078263ab1p-40 " 
+                  "-0x1.44f3078263ab1p-41 -0x1.44f3078263ab1p-42 -0x1.44f3078263ab1p-43 " 
+                  "-0x1.44f3078263ab1p-44 -0x1.44f3078263ab1p-45 -0x1.44f3078263ab1p-46 " 
+                  "-0x1.44f3078263ab1p-47 -0x1.44f3078263ab1p-48 -0x1.44f3078263ab1p-49 " 
+                  "-0x1.44f3078263ab1p-50 -0x1.44f3078263ab1p-51");
+    RationalFilter rfF = RationalFilter::of_wbf(
+        wE, BackFilter::of_internal(vd{1.0, -0.5}), ForeFilter::of_internal(vd{1.0, -0.3}));
+    sa::LinearProc lpF(rfF, 1.0);
+    chk("G.lpFv50", lpF.get_auto_covariance_function().values(50), false, "0x1.0a89210a89212p0 0x1.9ecea19ecea22p-3 0x1.80180180180cfp-8 " 
+                  "-0x1.a4f3280b598cbp-6 -0x1.5f29d34aaef11p-6 -0x1.b39392da7d0acp-7 " 
+                  "-0x1.e6396c30c580ap-8 -0x1.024e774bdee3cp-8 -0x1.0b6c519df62c4p-9 " 
+                  "-0x1.10e4a168d0f16p-10 -0x1.142cd148edce1p-11 -0x1.1624ee0298b8ep-12 " 
+                  "-0x1.175365a53279p-13 -0x1.1808e0a05b85ep-14 -0x1.1875c403da8dap-15 " 
+                  "-0x1.18b7193f8d2bep-16 -0x1.18de4c635ebe1p-17 -0x1.18f5d178dc7c4p-18 " 
+                  "-0x1.1903ee1f5b21ap-19 -0x1.190c65b673eb5p-20 -0x1.19117a444f979p-21 " 
+                  "-0x1.191486996cffp-22 -0x1.19165acc7ea38p-23 -0x1.191773b7ef9fep-24 " 
+                  "-0x1.19181c45336a8p-25 -0x1.19188166c27dcp-26 -0x1.1918be147ebc9p-27 " 
+                  "-0x1.1918e27cbc7bep-28 -0x1.1918f854e1884p-29 -0x1.191905702af62p-30 " 
+                  "-0x1.19190d4d5704ep-31 -0x1.191912053e41p-32 -0x1.191914d9fc31ep-33 " 
+                  "-0x1.1919168cd48f4p-34 -0x1.19191791bcc76p-35 -0x1.1919182e481c5p-36 " 
+                  "-0x1.1919188c354f5p-37 -0x1.191918c4906ep-38 -0x1.191918e660b3ap-39 " 
+                  "-0x1.191918faaa77p-40 -0x1.19191906d6b91p-41 -0x1.1919190e247a6p-42 " 
+                  "-0x1.191919128654dp-43 -0x1.1919191527718p-44 -0x1.19191916bb4f9p-45 " 
+                  "-0x1.19191917ada1ap-46 -0x1.191919183f062p-47 -0x1.1919191896428p-48 " 
+                  "-0x1.19191918ca9ap-49 -0x1.19191918ea01cp-50");
+    chk_true("G.lpFnull", sa::LinearProc(rfF, 0.0).is_null());
+  }
+
+  // ---- H: SymmetricFilter.decompose (SymmetricFilterAlgorithms lambda) -------
+  {
+    SymmetricFilter sF = SymmetricFilter::conv_of(BackFilter::of_internal(vd{1.0, 0.5}));
+    chk("H.f1", sa::sf_decompose(sF, BackFilter::of_internal(vd{2.0})).p.c, false, "0x1.4p-2 0x1.0p-2");
+    chk("H.f2", sa::sf_decompose(sF, BackFilter::of_internal(vd{1.0})).p.c, false, "0x1.4p-1 0x1.0p-1");
+    chk("H.f3", sa::sf_decompose(sF, BackFilter::of_internal(vd{-1.0})).p.c, false, "0x1.4p-1 0x1.0p-1");
+    chk("H.f4", sa::sf_decompose(sF, BackFilter::of_internal(vd{0.0})).p.c, false, "Infinity Infinity");
+    chk("H.f5", sa::sf_decompose(sF, BackFilter::of_internal(vd{-0.5})).p.c, false, "0x1.4p0 0x1.0p0");
+    SymmetricFilter sG = SymmetricFilter::conv_of(BackFilter::of_internal(vd{1.0, -0.5}));
+    chk("H.f6", sa::sf_decompose(sG, BackFilter::of_internal(vd{1.0, -0.5})).p.c, false, "0x1.0p-1 -0x1.0p-2");
+    {
+      bool threw = false;
+      try {
+        (void)sa::sf_decompose(SymmetricFilter::one(),
+                               BackFilter::of_internal(vd{1.0, -1.0}));
+      } catch (const matrix_exception&) {
+        threw = true;
+      }
+      chk_true("H.f7", threw);
+    }
+    SymmetricFilter sH =
+        SymmetricFilter::conv_of(BackFilter::of_internal(vd{1.0, -0.3, -0.1}));
+    chk("H.f8", sa::sf_decompose(sH, BackFilter::of_internal(vd{1.0, -0.5, 0.09})).p.c,
+        false, "0x1.0d7ab7bdd27aep-1 -0x1.2e9529abad26p-4 -0x1.2dd004b4f9da5p-3");
+  }
+
+  // ---- I: symmetric computer through the 2-arg Acf ctor -----------------------
+  {
+    SymmetricFilter sG = SymmetricFilter::conv_of(BackFilter::of_internal(vd{1.0, -0.5}));
+    sa::Acf g1 = sa::Acf::of_sym(sG, Poly(vd{1.0}));
+    chk("I.g1v5", g1.values(5), false, "0x1.4p0 -0x1.0p-1 0x0.0p0 0x0.0p0 0x0.0p0");
+    chk("I.g1v40", g1.values(40), false, "0x1.4p0 -0x1.0p-1 0x0.0p0 0x0.0p0 0x0.0p0 0x0.0p0 0x0.0p0 0x0.0p0 " 
+                  "0x0.0p0 0x0.0p0 0x0.0p0 0x0.0p0 0x0.0p0 0x0.0p0 0x0.0p0 0x0.0p0 " 
+                  "0x0.0p0 0x0.0p0 0x0.0p0 0x0.0p0 0x0.0p0 0x0.0p0 0x0.0p0 0x0.0p0 " 
+                  "0x0.0p0 0x0.0p0 0x0.0p0 0x0.0p0 0x0.0p0 0x0.0p0 0x0.0p0 0x0.0p0 " 
+                  "0x0.0p0 0x0.0p0 0x0.0p0 0x0.0p0 -0x0.0p0 -0x0.0p0 -0x0.0p0 -0x0.0p0");
+    sa::Acf g2 = sa::Acf::of_sym(sG, Poly(vd{1.0, -0.5}));
+    chk("I.g2v5", g2.values(5), false, "0x1.0p0 0x0.0p0 -0x0.0p0 -0x0.0p0 -0x0.0p0");
+    chk("I.g2v40", g2.values(40), false, "0x1.0p0 0x0.0p0 -0x0.0p0 -0x0.0p0 -0x0.0p0 -0x0.0p0 -0x0.0p0 -0x0.0p0 " 
+                  "-0x0.0p0 -0x0.0p0 -0x0.0p0 -0x0.0p0 -0x0.0p0 -0x0.0p0 -0x0.0p0 " 
+                  "-0x0.0p0 -0x0.0p0 -0x0.0p0 -0x0.0p0 -0x0.0p0 -0x0.0p0 -0x0.0p0 " 
+                  "-0x0.0p0 -0x0.0p0 -0x0.0p0 -0x0.0p0 -0x0.0p0 -0x0.0p0 -0x0.0p0 " 
+                  "-0x0.0p0 -0x0.0p0 -0x0.0p0 -0x0.0p0 -0x0.0p0 -0x0.0p0 -0x0.0p0 " 
+                  "-0x0.0p0 -0x0.0p0 -0x0.0p0 -0x0.0p0");
   }
 
   std::printf("checks=%d failures=%d\n", g_checks, g_failures);

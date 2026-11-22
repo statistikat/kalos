@@ -2955,3 +2955,57 @@ isSymmetric compares `-(len-1)` against `lb` (a centered window like
 test_decompose_ucarima"` passes (ctest inventory 73); manifest now
 161/112/271. Arithmetics and the SymmetricFilterAlgorithms decomposer stay
 deferred to the cluster that consumes them (pinning SECTION 14).
+
+## WK extraction acf/solver mirror: slice 24-C.1 cluster 2 lands `seats_acf_solver.hpp` — 2026-11-22
+
+Second increment of the 24-C.1 transcription (pinning SECTION 14 queue item
+2): `include/kalos/detail/seats_acf_solver.hpp` (`kalos::detail::seats_acf`)
+mirrors, bit-exact, the pinned 3.9.0 bytecode of AutoCovarianceFunction
+(the 36-quantized lazy acf cache, the Computer/SymmetricComputer dispatch,
+the ivar scale with dcmpl-ifeq identity skip — NaN ivar multiplies, the
+AR-recurrence extension whose zeros come out as **-0.0** past the first
+block, get(i<0) AIOOBE parity after prepare ran), the
+AutoCovarianceComputers default computer (lag-moment rhs through the
+no-simplify RationalFunction.of + coefficients(p+1), symmetric Toeplitz
+built with FastMatrix.add(i,|i-k|,c) with the `c != 0` dcmpl skip, solved
+by the cluster-1 lu2_solve — MatrixException translates to
+ArimaException("acgf of non stationary model")), the symmetric computer
+(including its decompose branch), LinearProcess (the lazily built
+Acf(numerator.weightsToArray, back.den x fore.den, var), one- and
+two-sided) and AbstractArimaModel.getAutoCovarianceFunction on the seam's
+AModel (isStationary guard with the same ArimaException).
+
+The cluster-1 deferral **SymmetricFilterAlgorithms.decomposer was proven
+necessary and landed**: WienerKolmogorovEstimators calls
+SymmetricFilter.decompose directly (javap call-site inventory of the pinned
+WKToolkit dump), and the AutoCovarianceComputers symmetric computer reaches
+it through the 2-arg AutoCovarianceFunction ctor. Mirrored as `sf_decompose`
+(length-1 scaling path with the c[0]/2 + |fb(0)| division and dcmpl skip,
+general Toeplitz path with the reverse-before-ofInternal ordering, bare
+MatrixException escaping). Fresh jar re-verifications while decoding:
+RationalFunction.of(num, den) takes the NO-simplify ctor (iconst_0) — the
+SECTION 14 memo claiming of() simplifies was wrong (the cluster-1 mirror
+was already correct); LS_Factory ROBUST_FACTORY == LULinearSystemSolver2
+(1.0E-13) is the solver both the acf Toeplitz systems and the cluster-1
+decomposition use, so no second LU port was forked. The staged
+RationalFunction.txt dump was a broken 1-line artifact and was regenerated
+from the pinned jar.
+
+**Ground truth + gates.** New probe /tmp/opencode/ssf/AcfProbe.java
+(double-captured acfA.txt == acfB.txt, sha256 aac44359…08c4b, 39 lines):
+sma-path white-noise-ish models incl. ivar 2/0/NaN and the -0.0 extension
+zeros, computer path with the 36/37/80 quantization crossings and
+interleaved get() cache evolution, p>q MA numerators, the two singular
+denominators ("acgf of non stationary model"), LinearProcess with
+one-sided and two-sided denominators, eight decompose cases (scaling path
+incl. |−1| skip and the divide-by-zero Infinity row, Toeplitz path with a
+hand-verified 2x2 system, the bare MatrixException singular row), the
+2-arg-ctor symmetric computer through both branches, and the get(i<0)
+AIOOBE. The replay lives in tests/test_seats_linear_filters.cpp sections
+E–I: **165 checks, 0 failures** (cluster-1 126 + cluster-2 39) plain and
+under ASan/UBSan; test_decompose_ucarima stays 49 cases / 1669 checks;
+full-tree build clean; manifest 162/112/271. No shared seam or cluster-1
+file touched. Remaining 24-C.1 queue (pinning SECTION 16): Arithmetics +
+the WK estimator builder (29-row seats matrix), the bit-faithful
+ExactArimaForecasts SSF cluster, Burman/DefaultBiasCorrector wiring, then
+the `test_seats_wk_extraction` corpus replay + contract + full gates.
