@@ -118,7 +118,7 @@ every inventory (probe `instanceof` preloading) — only the main-class and
 | --- | --- | --- |
 | AICc + likelihood comparison | LANDED (`transformation_decision.hpp`, `arma_refinement.hpp`, `regression_likelihood`) | REUSE — family A needs only candidate registration + comparator margin `getAicDiff()` |
 | F upper-tail pvalue | LANDED 23-C.2 (`detail::f_upper_p`, incBeta) | REUSE for family B (Lower = 1 − f_upper_p); family A needs NO F at all |
-| Wald statistic | not landed | NEW small kernel mirroring `ConcentratedLikelihoodWithMissing.tstat(I,I,Z)` (only if auto-methods enter the envelope, decision I-4) |
+| Wald statistic | not landed | NEW small kernel mirroring `ConcentratedLikelihoodWithMissing.tstat(I,I,Z)` — **IN SCOPE in 21-I.3 per maintainer I-4 ruling 2026-11-22** |
 | OLS + `Ftest()` assembly | LANDED (23-C surfaces) | REUSE; only the `AutomaticFRegressionTest$Info` bookkeeping is new |
 | TD/LoP/Easter/Ramp/User columns | NOT landed (23-A refuses everything but static TD2) | NEW unit (21-I.1), byte-for-byte from the gen capture |
 | Builder registration (`ami`/`regeffect` attrs, names) | pattern landed (23-A) | FOLLOW pattern, pin measured names (`td`, `lp`, `easter [8]`, …) |
@@ -156,13 +156,13 @@ Easter/TD beyond pinning the one measured quarterly row (D11 precedent).
 | # | Decision | Slice | Recommendation |
 | --- | --- | --- | --- |
 | I-1 | Ratify item-21 decision 9 as "separate 21-I queue" with this ledger | all | yes — the decoder modules are separable and both engines share the column layer |
-| I-2 | X-13 rsa4/rsa5c calendar detection = AICc battery ONLY (no F/Wald anywhere in the regAIC calendar path) | 21-I.2 | yes — `dstats.F` never loads on these paths (liveness matrix) |
+| I-2 | X-13 rsa4/rsa5c calendar detection = AICc battery ONLY (no F/Wald anywhere in the regAIC calendar path) | 21-I.2 | **APPROVED 2026-11-22** — `dstats.F` never loads on these paths (liveness matrix) |
 | I-3 | Preserve the TRAMO/X-13 module FORK (two namespaces, shared column layer, no second TD implementation — honors 23/24 decision D10) | 21-I.2/3 | yes |
-| I-4 | Auto-method TD tests beyond FTEST (T/Wald; X-13 `AutomaticTradingDays{,Wald}Test` with autoPvalue1/2) inside the first envelope? | 21-I.3 | NO — FTEST-only first (TRfull is the only template needing it); T/Wald fail-closed until a corpus demands them |
+| I-4 | Auto-method TD tests beyond FTEST (T/Wald; X-13 `AutomaticTradingDays{,Wald}Test` with autoPvalue1/2) inside the first envelope? | 21-I.3 | **MAINTAINER RULING 2026-11-22 — OVERRIDE: T/Wald IN SCOPE NOW.** Port the `AutomaticTradingDays{,Wald}Test` controllers + the `ConcentratedLikelihoodWithMissing.tstat(I,I,Z)` Wald/T kernel in 21-I.3 rather than fail-closing them; FTEST still lands first within the slice, T/Wald with their own double-captured oracles in the same slice (not deferred). Rationale: avoid a second re-entry into the controller code path; the small Wald/T kernel qualifies cheaply alongside F |
 | I-5 | Julian Easter and durations other than the template-pinned {1,8,15} candidates | 21-I.1/2 | generation may land them (matrices pinned); detection candidates stay {none,1,8,15}; julian detection refused (no live caller) |
-| I-6 | TR5 + strong-TD input class: pinned jar NPEs in `ModelComparator.compare` (AMI, not calendar) | 21-I.3 (record for 23) | do NOT emulate the crash; record and let the 23 envelope fail-closed on the input class |
+| I-6 | TR5 + strong-TD input class: pinned jar NPEs in `ModelComparator.compare` (AMI, not calendar) | 21-I.3 (record for 23) | **APPROVED 2026-11-22** — do NOT emulate the crash; record and let the 23 envelope fail-closed on the input class |
 | I-7 | Detection re-fires per estimation round (3 rounds observed) — integration contract replays per-round, not once per fit | 21-I.2/4 | yes — pin the round-conditional firing |
-| I-8 | Refusal-retirement ladder for the `21-I` refusal in `persephone3` ("x13 automatic fit defers calendar/easter/TD/user detection") | 21-I.4 | retire in three steps: calendar-free rsa4/5c passes → TD-effect passes → full parity flag; holidays/user-TD/julian stay refused |
+| I-8 | Refusal-retirement ladder for the `21-I` refusal in `persephone3` ("x13 automatic fit defers calendar/easter/TD/user detection") | 21-I.4 | **APPROVED 2026-11-22** — retire in three steps: calendar-free rsa4/5c passes → TD-effect passes → full parity flag; holidays/user-TD/julian stay refused |
 | I-9 | UserVariables out-of-domain 0-fill and the negative-Ramp sign convention are pinned semantics (accept, document, unit-test) | 21-I.1 | yes — measured, deterministic |
 
 ## What this unblocks (downstream map)
