@@ -8,6 +8,7 @@
 // outlier-scoring) carries the bit-level pinning of the JVM-facing values.
 #include "kalos/outlier_scoring.hpp"
 #include "kalos/regression_likelihood.hpp"
+#include "kalos/detail/hostlineage.hpp"
 
 #include <algorithm>
 #include <array>
@@ -130,11 +131,11 @@ void check_critical_value() {
 
 void check_transitory_rate() {
     assert(kalos::transitory_change_rate(12, 0.7) == 0.7);
-    assert(kalos::transitory_change_rate(4, 0.7) == std::pow(0.7, 3));
-    assert(kalos::transitory_change_rate(6, 0.7) == std::pow(0.7, 2));
-    assert(kalos::transitory_change_rate(3, 0.7) == std::pow(0.7, 4));
-    assert(kalos::transitory_change_rate(1, 0.7) == std::pow(0.7, 12));
-    assert(kalos::transitory_change_rate(2, 0.7) == std::pow(0.7, 6));
+    assert(kalos::transitory_change_rate(4, 0.7) == kalos::detail::glibc_pow(0.7, 3));
+    assert(kalos::transitory_change_rate(6, 0.7) == kalos::detail::glibc_pow(0.7, 2));
+    assert(kalos::transitory_change_rate(3, 0.7) == kalos::detail::glibc_pow(0.7, 4));
+    assert(kalos::transitory_change_rate(1, 0.7) == kalos::detail::glibc_pow(0.7, 12));
+    assert(kalos::transitory_change_rate(2, 0.7) == kalos::detail::glibc_pow(0.7, 6));
     for (const int bad : {0, -4, 5, 7, 24}) {
         try {
             kalos::transitory_change_rate(bad, 0.7);
@@ -197,7 +198,7 @@ void check_fills() {
         // The ZERO 1e-15 cutoff: 2^-50 < 1e-15 stops the write after index 49.
         auto d = column(200);
         kalos::fill_outlier_column(OutlierType::TransitoryChange, 0, 4, 0.5, d);
-        for (int i = 0; i <= 49; ++i) assert(d[static_cast<std::size_t>(i)] == std::pow(0.5, i));
+        for (int i = 0; i <= 49; ++i) assert(d[static_cast<std::size_t>(i)] == kalos::detail::glibc_pow(0.5, i));
         for (int i = 50; i < 200; ++i) assert(d[static_cast<std::size_t>(i)] == 0.0);
         // A rate of zero writes the single 1.0 and stops.
         auto e = column(4);

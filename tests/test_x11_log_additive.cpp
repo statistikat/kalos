@@ -33,6 +33,7 @@
 #include "kalos/x11_selection_pass.hpp"
 #include "kalos/x11_trend_selection.hpp"
 #include "kalos/parallel.hpp"
+#include "kalos/detail/hostlineage.hpp"
 #include <algorithm>
 #include <cassert>
 #include <cmath>
@@ -8442,7 +8443,7 @@ std::vector<double> log_domain(const std::vector<double>& raw,
         const std::vector<std::uint8_t>& missing) {
     std::vector<double> out(raw.size());
     for(std::size_t row=0;row<raw.size();++row)
-        out[row]=missing[row]?std::nan(""):std::log(raw[row]);
+        out[row]=missing[row]?std::nan(""):kalos::detail::glibc_log(raw[row]);
     return out;
 }
 } // namespace
@@ -8945,7 +8946,7 @@ int main() {
             assert(lc.mode==X11DecompositionMode::log_additive);
             const auto ld=x11_d_pass(y,4,1,q5,q9,13,X11SigmaPolicy::legacy,lc,0,0);
             assert(ld.mode==X11DecompositionMode::log_additive);
-            assert(same_nan(lb.b1.values[3],std::log(y.values[3])));
+            assert(same_nan(lb.b1.values[3],kalos::detail::glibc_log(y.values[3])));
             const auto def=x11_b_pass(y,4,1,q5,q9,13,X11SigmaPolicy::legacy);
             assert(def.mode==X11DecompositionMode::additive); // default unchanged
             assert(!same(lb.b1.values,def.b1.values)); // and not plain additive
