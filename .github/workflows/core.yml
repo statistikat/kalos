@@ -42,11 +42,11 @@ jobs:
           ctest --test-dir build --output-on-failure --output-junit build/junit.xml || {
             ctest --test-dir build --rerun-failed --output-on-failure --output-junit build/junit-rerun.xml || true
             mkdir -p "${GITHUB_WORKSPACE}/diag"
-            cc --version                                              > "${GITHUB_WORKSPACE}/diag/compiler.txt"
+            cc --version                                              > "${GITHUB_WORKSPACE}/diag/compiler.txt" 2>&1 || true
             getconf GNU_LIBC_VERSION                                  > "${GITHUB_WORKSPACE}/diag/glibc.txt" 2>&1 || true
             ldd build/test_x13_automatic_oracle                       > "${GITHUB_WORKSPACE}/diag/ldd.txt" 2>&1 || true
-            ldd --version                                             > "${GITHUB_WORKSPACE}/diag/ldd-version.txt" 2>&1
-            lscpu 2>/dev/null | grep -i flags | cut -c1-600           > "${GITHUB_WORKSPACE}/diag/cpu.txt" || sw_vers > "${GITHUB_WORKSPACE}/diag/cpu.txt"
+            ldd --version                                             > "${GITHUB_WORKSPACE}/diag/ldd-version.txt" 2>&1 || true
+            { lscpu 2>/dev/null | grep -i flags | cut -c1-600 || sw_vers; } > "${GITHUB_WORKSPACE}/diag/cpu.txt" || true
             ctest --test-dir build -N                                 > "${GITHUB_WORKSPACE}/diag/ctest-list.txt" || true
             exit 1
           }

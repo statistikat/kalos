@@ -121,7 +121,61 @@ token verbatim (item 23-B bit-pattern discipline).
   non-direct sequences; the ladder panel tmean on the raw y (d_qtr_noseas)
   pins that the module never mutates `y`.
 
+## Battery replay (item 23-C.2)
+
+`kalos::decide_tramo_differencing_battery` (include/kalos/tramo_differencing_
+battery.hpp) replaces the inert battery stage lines with positive native
+assertions over pinned estimation-state facts:
+
+- **Kernel provenance.** The SeasonalFTest p-value is recomputed natively by
+  `detail::f_upper_p(v, k1, k2) = incBeta(k2/2, k1/2, k2/(k2 + k1*v))`
+  (src/special_functions.cpp), a bit-exact transcription of the pinned
+  `SpecialFunctions` incomplete-beta + Lentz continued fraction (1000-
+  iteration throw, 1e-300 tiny floor, fdlibm exp/log; the JVM
+  DStatException/throw surface is the NaN p-value, matching the guards'
+  dcmpg semantics). The golden is
+  `validation/reference/fcdf_golden.txt` (18489 rows: a dense grid + specials
+  plus the 90 corpus triples of the battery capture), double-captured
+  byte-identical from independent JVM processes and replayed bit-pattern-for-
+  bit-pattern in `test_special_functions` through `tests/jvm_fcdf.h`.
+- **Active tiers.** SeasonalityController first pass (the `hasSeasonality`
+  score written to `ctx.originalSeasonalityTest`, the m011+`setBq(1)`
+  = (0,1,1,0,0,1) swap, the two seasonal-flip branches), the four battery
+  steps (ru1 mean/quasi-unit-root gates and direct Changed; su1
+  fixSeasonalRoots short-circuit + residual-ladder gate; ru2 lbp gate — a
+  NaN p-value does NOT proceed — + zero-mean autocovariance count
+  `pos12 >= freq || pos12 >= 9 || total >= 17`; su2 `bd!=1 && bq!=1 &&
+  ost!=0` gate), the `ModelComparator` port (BIC preference over the
+  `builder().build()` defaults, the exact 71/85 branch mapping,
+  `checkAcceptable` + five tests), the per-state ports (`SpectralPeaks.
+  hasSeasonalPeaks` length dispatch, the ladder score, the
+  `SeasonalOverDifferencingTest` 0/1/2 code) and the second
+  `compareReferenceModels` pass, which the JVM provably always leaves
+  Unchanged because the reference model IS the live object.
+- **Pinned boundary.** Estimation, the periodogram and the ModelStatistics
+  algebra stay at the JVM boundary: every candidate panel, F triple, ladder
+  stage fact and spectral-peak record is a captured getter of the live run
+  (`validation/evidence/native/tramo-differencing-battery/`, 15 cases,
+  1175 fact lines, double capture byte-identical, `SHA256SUMS.csv`
+  verified). Candidate construction is asserted against the captured
+  candidate stream (spec, mean, ok, consumption order 1..N-1); every
+  Changed transfer must reproduce the candidate panel bit-exactly in the
+  post-step state, every Unchanged step must freeze it.
+- **Force-load evidence.** `SeasonalOverDifferencingTest` and
+  `SpectralPeaks` class-load is witnessed via `-Xlog:class+load` during
+  seven capture runs (`loadlog-*.txt`, `loadwitness.csv`): the battery never
+  calls the over-side itself (15/15 `seas2` Unchanged lines pin that), so the
+  90 captured over codes are observer force-calls whose codes the native
+  port reproduces per state anyway.
+
 ## Fail-closed matrix
+
+Battery additions: a calendar-bearing `SeasonalUnderDifferencingTest2` scan,
+quasi-unit-root or ladder root scans above the ported closed-form degree, an
+ru2 autocovariance window below 12 residuals, a missing or diverging
+candidate snapshot, a null SeasonalFTest on the reference model, the
+`fixSeasonalRoots`/`buildNewModel` estimation-failure or null-model paths
+throw `std::runtime_error`; negative probes in the unit pin them.
 
 - Empty/non-finite series, period < 2: `std::invalid_argument`; a
   non-positive observation under `log_input`: `std::invalid_argument`.
@@ -136,19 +190,16 @@ token verbatim (item 23-B bit-pattern discipline).
 
 ## Not delivered or claimed
 
-Battery replay (the `SeasonalityController` pre/post passes,
-`RegularUnderDifferencingTest(+2)`/`SeasonalUnderDifferencingTest(+2)`, the
-`SeasonalOverDifferencingTest` comparison and the residual-ladder
-`SpectralPeaks` nullness branch) is item 23-C.2, gated on the noncentral
-beta F-CDF prerequisite (the same open item as the FTEST family); the
-battery landing facts here are the pinned inert stage lines. The multi-round
-kernel driver (`TramoKernel.process` wiring that feeds this module a
-re-estimated description, `ml = true` rounds) is 23-F — this unit decides
-the module stage for one round with the request-supplied entry description.
-Outlier/variable-adjusted inputs (`series` minus regression effect) enter as
-request data; the interpolation and regression-effect subtraction are the
-driver's. The Rcpp boundary and any promotion of the pinned literals to
-configuration are not delivered.
+Battery replay landed with 23-C.2 (section above); what stays out is the
+estimation algebra behind the pinned panels (the ML seam stays the 23-B
+unit), the multi-round kernel driver (`TramoKernel.process` wiring that feeds
+this module a re-estimated description, `ml = true` rounds) and the
+io = y outlier-module-on cases (23-F), the
+`SeasonalUnderDifferencingTest2` calendar-variable scan (fail-closed; 21-I
+joint surface), and the `SpecialFunctions` domain beyond the ported
+incBeta/F surface. This unit decides the battery segment for one round with
+the request-supplied estimation state. The Rcpp boundary and any promotion
+of the pinned literals to configuration are not delivered.
 
 ## Gates
 

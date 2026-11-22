@@ -195,6 +195,30 @@ pinned values without a maintainer ruling (the 21 precedent).
   23-C.2 (its landing facts pinned inert; gated on the noncentral-beta
   F-CDF prerequisite); the `ml = true` multi-round wiring is 23-F.
   Contract `tramo-differencing-decision`.
+- **LANDED 2026-11-22 (23-C.2: F kernel + battery activation).** The
+  noncentral-beta F-CDF prerequisite landed first — `detail::incBeta`/
+  `incBetaCf`/`f_upper_p` (Lentz continued fraction, the 1000-iteration
+  throw as the NaN surface, fdlibm exp/log) replay BIT-exact over the
+  double-captured live-JVM golden `validation/reference/fcdf_golden.txt`
+  (18489 rows: grid + specials + the 90 corpus F triples; cf 3342 rows with
+  1770 continue-throws, beta 11732/51, fprob 3325/1081) inside
+  `test_special_functions`. The 23-C battery facts went from inert to
+  positive: `kalos::decide_tramo_differencing_battery` transcribes the
+  `SeasonalityController` passes (the `hasSeasonality` score, the
+  m011+`setBq(1)` swap, the seasonal flips, the provably-Unchanged second
+  pass), the `RegularUnder(+2)`/`SeasonalUnder(+2)` ladder (ru1
+  mean/quasi-root gates, su1 fixSeasonalRoots + residual ladder, ru2 lbp
+  gate with the corrected `dcmpl` NaN reading + the zero-mean-autocovariance
+  sign count `pos12 >= freq || pos12 >= 9 || total >= 17`, su2 ost gate),
+  the `ModelComparator` (BIC over builder defaults, exact 71/85 branch map),
+  the `SpectralPeaks` length dispatch and the per-state
+  `SeasonalOverDifferencingTest` codes — bit-exact on the 15-case battery
+  corpus `validation/evidence/native/tramo-differencing-battery/` (1175
+  fact lines, 90 F p-values through the kernel, 75 decision lines, 26
+  candidate snapshots; double capture byte-identical; `-Xlog:class+load`
+  witnesses force `SeasonalOverDifferencingTest` + `SpectralPeaks`;
+  SHA256SUMS verified; the io = y cases and the `ml = true` rounds stay
+  23-F). Contract updated with the battery section.
 - **23-D — `select_tramo_arma`**: `internal.ArmaModule` + `ArmaModelSelector.
   FastBIC` — the HR-fast-BIC candidate enumeration, the `CInfo` panel and the
   selection rule, composed on the reusable HR/estimation units (the selector's HR
