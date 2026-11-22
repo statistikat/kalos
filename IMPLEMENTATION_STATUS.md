@@ -2680,3 +2680,96 @@ differencing 39, transformation 11, estimation-control 27, initial-ARMA
 18/18/22, builder 22, validator 35/1026, decompose 81, allocation 280, fit
 528, x13-automatic 71401); `check-manifest.py` 155/112/236;
 `verify-migration.py` 406.
+
+## The F kernel and the differencing battery: slice 23-C.2 lands `decide_tramo_differencing_battery` — 2026-11-22
+
+**Scope (kernel first, then activation).** The noncentral-beta F-CDF
+prerequisite landed as `detail::incBeta`/`incBetaCf`/`f_upper_p` in the
+21-H `special_functions` unit (src/special_functions.cpp): the pinned
+`SpecialFunctions` incomplete-beta with the symmetry gate, the Lentz
+continued fraction (1e-300 tiny floor, the 1000-iteration
+StatisticException throw surfacing as NaN, fdlibm exp/log). The golden is
+`validation/reference/FcdfGolden.java` double-captured BYTE-IDENTICAL from
+independent JVM processes (sha256 `ce9471e7…`): 18489 rows = a dense
+grid + specials (cf 3342 rows with 1770 continue-throws, beta 11732/51,
+fprob 3325/1081) plus the 90 corpus F triples of the battery capture; the
+C replay in `test_special_functions` (`tests/jvm_fcdf.h`) is bit-exact on
+ALL rows first run. `f_upper_p(v, k1, k2) =
+incBeta(k2/2, k1/2, k2/(k2 + k1*v))` is exactly the SeasonalFTest p-value
+the battery consumes.
+
+**Battery activation.** `kalos::decide_tramo_differencing_battery`
+(src/tramo_differencing_battery.cpp) turns the 23-C inert BAT stage lines
+into positive assertions: the `SeasonalityController` first pass
+(the `hasSeasonality` score → `ctx.originalSeasonalityTest`, the m011 +
+`setBq(1)` = (0,1,1,0,0,1) swap, both seasonal-flip branches) and the
+provably identity-short-circuited second pass (15/15 `seas2` Unchanged
+pins: the reference model IS the live object), the four battery steps (ru1
+mean/quasi-unit-root gates + direct Changed, su1 fixSeasonalRoots +
+residual-ladder gate, ru2 lbp gate + the zero-mean-autocovariance sign
+count, su2 `bd!=1 && bq!=1 && ost!=0` gate), the `ModelComparator` BIC port
+over the builder defaults (exact 71/85 branch map, `checkAcceptable` + the
+five tests), the `SpectralPeaks.hasSeasonalPeaks` length dispatch, the
+ladder scores and the per-state `SeasonalOverDifferencingTest` codes — the
+battery itself never calls the over-side, so the 90 captured codes are
+observer force-calls the native port reproduces anyway. Estimation, the
+periodogram and `ModelStatistics` stay pinned at the boundary; candidate
+construction, the consumption stream (exactly 1..N-1), the Changed panel
+transfers (bit-exact) and the Unchanged panel freezes are asserted per step.
+
+**Corpus and witnesses.**
+`validation/evidence/native/tramo-differencing-battery/` (22 files,
+`SHA256SUMS.csv` verified): 15 cases (9 io=n replays rebuilt from the 23-C
+seeded recipes + 6 forcing cases f_ru1/f_mean/f_su2/f_ru2q/f_peaks/
+f_qpeaks), 1175 fact lines, 90 F triples (all non-null), 26 candidate
+snapshots, 75 decision lines; double capture byte-identical (`--repro`, 18
+data files); SEVEN `-Xlog:class+load` witness runs each load
+`SeasonalOverDifferencingTest` and `SpectralPeaks` exactly once
+(`loadwitness.csv`, f_peaks/f_qpeaks also force the monthly/quarterly peak
+branch). Replay: 90 states, 90 F p-values bit-exact through the kernel, 90
+ladder scores, 180 peak gates, 90 over codes, 75 decision lines with the
+post-step spec/mean/seasonal/ost snapshots, 11 candidates, 9 panel
+transfers, 66 frozen panels, 0 failures in both lanes.
+
+**Transcription findings (contract battery section, pinning §12).**
+(1) ru2's lbp gate is `dcmpl(lbp, 0.005) iflt` — a NaN p-value does NOT
+proceed (the pre-decode note said the opposite). (2) `needProcessing`
+returns `pos12 >= freq || pos12 >= 9 || total >= 17` — the sign of the
+17-comparison is INVERTED relative to the note; catching it flipped
+f_peaks ru2 from a phantom candidate to the pinned Unchanged, and NaN lags
+COUNT as positive through `dcmpl ifle`. (3) An Unchanged battery step CAN
+consume its candidate: the JVM estimates before comparing (rw0 su1/su2 pin
+the shape). (4) `compare`'s 71/85 branch loads map to
+`preferSecondModel(s2, s1) ? -1 : +1` / `preferSecondModel(s1, s2) ? +1 :
+-1`; `checkAcceptable`'s bic guard is `dcmpl` (a NaN difference PASSES) and
+`acceptableStab` is computed but unreferenced. (5) `SarimaOrders.m011` =
+(0,1,1,0,0,0) → `setBq(1)`; the `isSeasonal()` guard in
+computeReferenceModel is vacuous for period > 1. (6) The su1 fix-seasonal
+gate is `bphi(1) < −0.91` (`dcmpl`), the SODT gate `btheta(1) < −0.7`, its
+codes 0/1/2 as decoded; the 5-arg ladder matches the captured 4-arg ctlst
+stage facts on all 90 states. (7) The F p-values pin the kernel beyond the
+grid: corpus-reached arguments reproduce bit-exactly.
+
+**Fail-closed set (negative probes in the unit).** Calendar-bearing su2
+scan, root scans above the ported closed forms, an ru2 autocovariance
+window below 12 residuals, missing/diverging candidate snapshots, a null
+SeasonalFTest, the fixSeasonalRoots/buildNewModel failure paths — all
+`std::runtime_error`; the io = y (ODM) cases and `ml = true` rounds stay
+23-F.
+
+**Gates.** Fresh-tree ctest 71/71 in BOTH lanes (new
+`test_tramo_differencing_battery`, #39; `test_special_functions` now
+carries the 18489-row fcdf golden); all sixteen existing sweeps re-run
+corpus-invariant at 0 failures (outlier-scoring 98, differencing 39,
+transformation 11, estimation-control 27, initial-ARMA 4368, arma-refinement
+423, regression 494, final-info 266, x11 b/c/d 18/18/22, builder 22,
+validator 35/1026, decompose 81, allocation 280, fit 528, automatic 71401);
+shim-invariance of the two tramo differencing units: the ±1ulp libm noise
+shim (modes thatan/explog/all) leaves both bit-identical to the unsuffixed
+run; ASan/UBSan (fresh Debug tree): `test_tramo_differencing`,
+`test_tramo_differencing_battery` and `test_special_functions` exit 0 with
+empty sanitizer output and the identical battery summary;
+`check-manifest.py` 157/112/256; `verify-migration.py` 406. History note:
+the battery content rode in `6fb8b72` (the staged index collided with an
+orchestrator workflow-guard commit); slice 23-C.2 is the pair `6fb8b72` +
+this addendum (dated entry + contracts-README index update).

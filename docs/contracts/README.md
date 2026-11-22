@@ -625,8 +625,15 @@ root cause of the 1-ulp `rmax` drift against the DGEEV companion), the
 transcription `pinned_fast_filter_residuals`) and the `isMeanCorrection`
 length table. All 120 module fact lines of the 22 replayed cases are
 IEEE-754 bit-exact, including the `(-1)^(d + bd)` differencing-filter
-orientation pin and the fdlibm log channel. The battery stage
-(`RegularUnder(+2)`/`SeasonalUnder(+2)`/over-differencing tests, spectral
-peaks) is 23-C.2 with its landing facts pinned inert; the multi-round driver
-is 23-F. See
+orientation pin and the fdlibm log channel. Item 23-C.2 ACTIVATED the
+battery stage: `kalos::decide_tramo_differencing_battery` replays the
+`SeasonalityController` passes, the `RegularUnder(+2)`/`SeasonalUnder(+2)`
+loop, the `ModelComparator`, the per-state `SeasonalOverDifferencingTest`
+codes and the `SpectralPeaks` gate bit-exactly over the pinned
+estimation-state facts of
+`validation/evidence/native/tramo-differencing-battery/`, with the
+`SeasonalFTest` p-values recomputed through the new bit-exact
+`detail::f_upper_p` incomplete-beta kernel (golden
+`validation/reference/fcdf_golden.txt`, double capture byte-identical); the
+multi-round driver and the io = y cases stay 23-F. See
 [tramo-differencing-decision-contract.md](tramo-differencing-decision-contract.md).
