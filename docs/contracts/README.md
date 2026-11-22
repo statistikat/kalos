@@ -667,3 +667,19 @@ qualified `hannan_rissanen_pipeline`, `pinned_fast_filter_residuals` and
 `tools/verify_tramo_arma_selection.cpp` re-drives the raw corpus (14
 replayed, 1 refusal, 1 record-only, 0 failures); shim-invariant. See
 [tramo-arma-selection-contract.md](tramo-arma-selection-contract.md).
+
+## SEATS Wiener-Kolmogorov extraction mirror
+
+`test_seats_extract_wk.cpp`, the double-captured 36-case JVM corpus under
+`validation/evidence/native/seats-wk-extraction/`, the replay tool
+`tools/verify_seats_wk_extraction.cpp` and the generator
+`tools/gen_seats_wk_extraction_golden.py` qualify `kalos::seats_extract_wk`
+(the live `SeatsKernel` extraction machine: `UcarimaModel.compact(2, 2)`,
+`BurmanEstimates`, the `WienerKolmogorovEstimator` initial surface and the
+`DefaultBiasCorrector` final surface, plus the PED sink in the ExactFc
+filter). 28 full runs, 3 mirror-status rows (the mode-None SeatsException
+and two mid-run EcoException prediction-error aborts) and 6 pinned refusals
+(period 4 D11, the two KalmanSmoother cases D1, innovation variance 0, the
+classical airline and the fixMa crash D6); the two-variance split
+(`ucm.getModel()` var 1 vs the spec-echo stdev) is pinned at x_wn /
+x_seasonal. See [seats-wk-extraction-contract.md](seats-wk-extraction-contract.md).

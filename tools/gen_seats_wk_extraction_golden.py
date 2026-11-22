@@ -1,0 +1,197 @@
+#!/usr/bin/env python3
+"""Generate tests/jvm_seats_wk_extraction.h from the item 24-C.1
+seats-wk-extraction corpus (validation/evidence/native/seats-wk-extraction,
+captured by validation/reference/SeatsWkExtractionProbe.java against the
+pinned jdplus 3.9.0 jars; double capture, byte-identical csv files across JVM
+processes).
+
+The golden carries, per case, the JVM-echoed request block (req lines), the
+observation series (values row, %.17g - strtod round-trips bit-exactly), the
+series start ("year month" from cases.csv), the annual frequency, and the
+EXTRACTION fact grammar kalos::seats_extract_wk mirrors: the status line,
+the three SeatsResults domains (dom actual|backcast|forecast) and the init /
+final decomposition rows in the fixed (ComponentType x ComponentInformation)
+enumeration.
+
+Tier map (the unit's envelope, pinned in
+docs/contracts/seats-wk-extraction-contract.md): the six refusal cases (the
+quarterly series D11, the two KalmanSmoother cases D1, the innovation
+variance 0 ConcentratedLikelihood path, and the two D6 approximation cases
+classical airline + fixMa crash) carry a pinned refusal reason and NO facts
+- their JVM context rows (which ran the unported DefaultModelApproximator /
+Kalman machinery) are never replayed. All other 30 cases replay their
+status/dom/init/final lines verbatim: 28 status ok runs, the mode-None
+SeatsException status row (x_stab_none) and the two mid-run EcoException
+prediction-error aborts (x_ar3, x_stat_ar3), which end in a status error row
+with no dom/init/final follow-up.
+
+Out of scope and NOT emitted (see the contract): the case/toolkit/v.*/model/
+tpl blocks (24-A scope), the d/cmp/r seam blocks (24-B), the k.* kernel
+surface and the kevt rows (record-only), and the src/values echoes beyond
+the request series.
+"""
+
+import csv
+import os
+import sys
+
+FACT_KEYS = ("status", "dom", "init", "final")
+
+REASON_FREQ = ("seats_extract_wk: annual frequency %d is outside the D11 "
+               "monthly-first envelope")
+REASON_KALMAN = ("seats_extract_wk: components_method KalmanSmoother is "
+                 "outside the D1 envelope (the Kalman estimator is not "
+                 "ported)")
+REASON_VAR0 = ("seats_extract_wk: innovation variance 0 selects the JVM "
+               "ConcentratedLikelihood variance path (outside the ported "
+               "domain)")
+REASON_NOISY = ("seats_extract_wk: Noisy approximation mode is outside the "
+                "D6 envelope")
+REASON_APPROX = ("seats_extract_wk: approximation_required decision is "
+                 "outside the D6 envelope (the DefaultModelApproximator "
+                 "retry loop is not ported)")
+
+
+def cstr(s):
+    out = ['"']
+    for ch in s:
+        o = ord(ch)
+        if ch == '"':
+            out.append('\\"')
+        elif ch == "\\":
+            out.append("\\\\")
+        elif 32 <= o < 127:
+            out.append(ch)
+        else:
+            out.append("\\x%02x" % o)
+    out.append('"')
+    return "".join(out)
+
+
+def refusal_reason(c, var):
+    """The unit's check order (seats_extract_wk): frequency, method,
+    variance, Noisy mode, approximation_required."""
+    if int(c["freq"]) != 12:
+        return REASON_FREQ % int(c["freq"])
+    if c["method"] == "KalmanSmoother":
+        return REASON_KALMAN
+    if var == 0.0:
+        return REASON_VAR0
+    if c["mode"] == "Noisy":
+        return REASON_NOISY
+    if c["ddecompose"] == "null" and c["mode"] != "None":
+        # mode None + null decomposition is the kernel's SeatsException
+        # status row (mirrored), not a refusal.
+        return REASON_APPROX
+    return ""
+
+
+def main(corpus_dir, dst):
+    cases, order = {}, []
+    with open(os.path.join(corpus_dir, "cases.csv")) as f:
+        for r in csv.DictReader(f):
+            cases[r["id"]] = r
+            order.append(r["id"])
+    req, values = {i: [] for i in order}, {}
+    var = {}
+    with open(os.path.join(corpus_dir, "inputs.csv")) as f:
+        for r in csv.DictReader(f):
+            ln = r["line"]
+            if ln.startswith("req "):
+                req[r["id"]].append(ln)
+                if ln.startswith("req log "):
+                    var[r["id"]] = float(ln.split()[6])
+            elif ln.startswith("values "):
+                values[r["id"]] = ln[len("values "):]
+    facts = {i: [] for i in order}
+    with open(os.path.join(corpus_dir, "model-facts.csv")) as f:
+        for r in csv.DictReader(f):
+            if r["key"] in FACT_KEYS:
+                facts[r["id"]].append(r["key"] + " " + r["value"])
+
+    reason = {cid: refusal_reason(cases[cid], var[cid]) for cid in order}
+    for cid in order:
+        if len(req[cid]) != 7:
+            sys.exit("case %s: expected 7 req lines, found %d"
+                     % (cid, len(req[cid])))
+        if cid not in values:
+            sys.exit("case %s: no values line" % cid)
+        if reason[cid]:
+            facts[cid] = []  # refusal: the JVM context rows are not replayed
+        elif not facts[cid] or not facts[cid][0].startswith("status"):
+            sys.exit("case %s: replay tier without status row" % cid)
+
+    out = []
+    out.append("// Generated by tools/gen_seats_wk_extraction_golden.py - do not edit.")
+    out.append("// Item 24-C.1 seats-wk-extraction golden: the double-captured JVM corpus")
+    out.append("// (validation/evidence/native/seats-wk-extraction) as request echo plus the")
+    out.append("// extraction fact grammar (status, the three SeatsResults domains, the init")
+    out.append("// and final decomposition rows). The six envelope refusals (frequency 4, the")
+    out.append("// two KalmanSmoother cases, innovation variance 0, classical airline and the")
+    out.append("// fixMa crash - D1/D11/D6/CL-path) carry a pinned reason and no facts.")
+    out.append("#ifndef KALOS_TESTS_JVM_SEATS_WK_EXTRACTION_H")
+    out.append("#define KALOS_TESTS_JVM_SEATS_WK_EXTRACTION_H")
+    out.append("")
+    out.append("#include <cstddef>")
+    out.append("")
+    out.append("namespace golden_swk {")
+    out.append("")
+    out.append("struct Case {")
+    out.append("    const char* id;")
+    out.append("    const char* reason;  // pinned refusal message (\"\" = replay the facts)")
+    out.append("    int freq;            // series annual frequency (cases.csv)")
+    out.append("    const char* start;   // \"year month\" (month 1-based)")
+    out.append("    const char* values;  // the observation series (%.17g, strtod exact)")
+    out.append("    std::size_t nreq;")
+    out.append("    const char* const* req;")
+    out.append("    std::size_t nfacts;")
+    out.append("    const char* const* facts;")
+    out.append("};")
+    out.append("")
+
+    def arr(name, items):
+        out.append("inline const char* k_%s[] = {" % name)
+        if not items:
+            # zero-size arrays are not valid C++; the table entry pairs the
+            # pointer with length 0, so this sentinel element is never read.
+            out.append('    "",')
+        for it in items:
+            out.append("    %s," % cstr(it))
+        out.append("};")
+        out.append("")
+
+    for cid in order:
+        arr("req_" + cid, req[cid])
+        if facts[cid]:
+            arr("fact_" + cid, facts[cid])
+    arr("empty", [])
+
+    out.append("inline const Case* table(std::size_t& count) {")
+    out.append("    static const Case kCases[] = {")
+    for cid in order:
+        c = cases[cid]
+        out.append('        {"%s", %s, %d, "%s", %s, %d, k_req_%s, %d, %s},'
+                   % (cid, cstr(reason[cid]), int(c["freq"]), c["start"],
+                      cstr(values[cid]), len(req[cid]), cid, len(facts[cid]),
+                      "k_fact_" + cid if facts[cid] else "k_empty"))
+    out.append("    };")
+    out.append("    count = sizeof(kCases) / sizeof(kCases[0]);")
+    out.append("    return kCases;")
+    out.append("}")
+    out.append("")
+    out.append("}  // namespace golden_swk")
+    out.append("")
+    out.append("#endif")
+
+    with open(dst, "w") as f:
+        f.write("\n".join(out) + "\n")
+    nr = sum(1 for cid in order if reason[cid])
+    nf = sum(len(facts[c]) for c in order)
+    print("wrote %s: %d cases, %d refusal, %d fact lines"
+          % (dst, len(order), nr, nf))
+
+
+if __name__ == "__main__":
+    if len(sys.argv) != 3:
+        sys.exit("usage: gen_seats_wk_extraction_golden.py CORPUS_DIR HEADER")
+    main(sys.argv[1], sys.argv[2])

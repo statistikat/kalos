@@ -69,6 +69,7 @@ add_library(kalos STATIC
   src/regression_variable_tests.cpp
   src/residual_information.cpp
   src/sarima_stabilization.cpp
+  src/seats_extract_wk.cpp
   src/sparse_history.cpp
   src/special_functions.cpp
   src/ssq_levmar.cpp
@@ -209,6 +210,7 @@ if(KALOS_BUILD_TESTS)
     test_regression_likelihood
     test_regression_variable_tests
     test_residual_information
+    test_seats_extract_wk
     test_seats_linear_filters
     test_special_functions
     test_state_space

@@ -3009,3 +3009,65 @@ file touched. Remaining 24-C.1 queue (pinning SECTION 16): Arithmetics +
 the WK estimator builder (29-row seats matrix), the bit-faithful
 ExactArimaForecasts SSF cluster, Burman/DefaultBiasCorrector wiring, then
 the `test_seats_wk_extraction` corpus replay + contract + full gates.
+
+## SEATS Wiener-Kolmogorov extraction: slice 24-C.1 lands `kalos::seats_extract_wk` — 2026-11-22
+
+The live `SeatsKernel` extraction machine — `SeatsModel` construction on the
+frozen fixed-parameter spec, `WienerKolmogorovEstimator.decompose` (the
+Burman/WK initial surface) and `DefaultBiasCorrector.correctBias` (the final
+surface) — is mirrored operation-for-operation and BIT-FOR-BIT by
+`kalos::seats_extract_wk` (`src/seats_extract_wk.cpp`) against the
+double-captured 36-case corpus (`SeatsWkExtractionProbe.java`, the real
+kernel end to end; csv files byte-identical across JVM processes). The unit
+composes on the public 24-A/24-B surfaces: the request re-validates, the
+24-B decomposition engine re-runs, then the mirror drives
+`UcarimaModel.compact(2, 2)` (unconditional, short-model AIOOBE mirrored
+fail-closed), `BurmanEstimates` on the transformed series, the 30-add
+initial assembly and `fillLevels`/`correctLogs` + the four
+fill{Fore,Back}casts passes, emitting the probe grammar (status, the three
+`SeatsResults` domains, the init/final rows in the fixed enum order,
+`%.17g`).
+
+Key pinned decodings this slice added: `BurmanEstimates.initModel` reads
+`ucm.getModel()` — the UCARIMA's OWN model (var 1.0 on every corpus path) —
+for the mapoly/iv scaling and the LU+ExactFc series model, while
+`innovationStdev` is `sqrt(SeatsModel.getInnovationVariance())`, the spec
+echo; the two variances differ exactly at x_wn/x_seasonal and the bm
+goldens cannot separate them. `TsData.add(a, {b,c})` folds LEFT from the
+first non-null varargs index (null receiver aliases a trailing sole arg, a
+null argument at j >= k dereferences null); `DoublesMath.add` skips trailing
+nulls only before the fold starts. `DefaultBiasCorrector` runs its two
+2-arg passes into the SAME builder after the value adds (Series-Fc fallback
+= add(Se, {T, I}), saFc = subtract(S/Fc, Se/Fc); fcS null-or-empty ABORTS
+the whole pass — x_fc0 has no final fc rows at all); `correctLogs` scales
+exp()ed components by 1/saMean (avg over n-n%period), 1/irMean (full avg)
+and saMean*irMean, corrects every stdev via `LogNormal.stdev2` and
+overwrites the exp-fed Irregular/Value key with divide(SA, T). The
+`CkmsFilter.process` mirror now carries the per-call
+`PredictionErrorDecomposition(false)` SINK (save-before-update, the
+ResidualsCumulator/DeterminantalTerm dcmpg/dcmpl throw chain; xf/bm goldens
+unchanged, no corpus xf case ever trips it). Status tiers: 28 full runs,
+3 JVM-status rows (x_stab_none SeatsException pre-estimation; x_ar3 and
+x_stat_ar3 EcoException "Negative variance" mid-Burman, no dom/init/final),
+6 pinned refusals (period 4 D11, two KalmanSmoother D1, innovation
+variance 0 = the ConcentratedLikelihood path, classical airline + fixMa
+crash D6 — the approximation retry loop stays unported, open question
+recorded in the contract).
+
+**Gates.** fresh-tree ctest 74/74 in BOTH lanes (new `test_seats_extract_wk`,
+1208 line checks, 36/36 cases byte-exact); decompose 49/1669, validator
+35/983 and the seats-linear-filters unit 8321/0 unchanged (PED sink is
+value-neutral there); `tools/verify_seats_wk_extraction.cpp` sweeps the raw
+csv corpus (36 cases, 6 refusals, 126 checks, 0 failures) and is
+deterministic per case; all earlier tools sweeps corpus-invariant;
+ASan/UBSan lane green (four SEATS units, empty sanitizer output);
+shim invariance: `test_seats_extract_wk` bit-identical under the
+thatan/explog modes and the no-AVX2_FMA tunable; under `all` only the
+7 cases with ill-conditioned 24-B spectral-factorization filters
+perturb (the EV-cascade branch flips are the established 24-B-core
+behaviour — `test_decompose_ucarima` itself shows them under `all`),
+while the clusters 2-6 machinery (`test_seats_linear_filters`, 8321
+checks) is bit-identical under `all`; `check-manifest.py` 167/112/271; `verify-migration.py`
+406. Envelope registers honored: D1 WK-only, D11 monthly-only, D6
+decomposable-only (CLOSED APPROVED at 24-B), var-0 CL path and the D7
+bias/auto-count defaults (Legacy bias, forecastCount -2) IN scope.

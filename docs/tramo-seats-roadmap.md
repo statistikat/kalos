@@ -497,6 +497,30 @@ extended in place (forecast/backcast counts, components method, bias, series
 linearfilters/acf/solver transcription clusters, the WK estimator builder,
 ExactArimaForecasts SSF cluster, Burman/bias wiring, unit + sweep + contract.
 
+**24-C.1 LANDED 2026-11-22 (clusters 1–6: the full extraction machine).**
+`kalos::seats_extract_wk` (`include/kalos/seats_extract_wk.hpp`,
+`src/seats_extract_wk.cpp`) mirrors the live `SeatsKernel` extraction end to
+end: the 24-B seam re-run, `UcarimaModel.compact(2, 2)` (unconditional; the
+short-model AIOOBE is mirrored fail-closed), `BurmanEstimates` on the
+transformed series with the WkEstimators/ExactFc chain from clusters 2–5
+(plus the pinned PredictionErrorDecomposition sink in `CkmsFilter.process` —
+throw-behaviour only, xf/bm goldens unchanged 8321), the 30-add initial
+assembly (null-guarded adds, the shared se[1] Stdev guard, sqrt+ dcmpg
+lambdas, the unconditional subtracts NPE-mirrored), `DefaultBiasCorrector`
+(`fillLevels`/`correctLogs` + the four 2-/3-arg fill passes with the
+varargs-add fold semantics and the `TsData` null quirks) and the
+`SeatsResults` domains. Key pinned decoding: `BurmanEstimates.initModel`
+reads `ucm.getModel()` (var 1 on the corpus), the innovationStdev is
+`sqrt(SeatsModel.getInnovationVariance())` (the spec echo) — the two
+variances differ exactly at x_wn/x_seasonal. Gates: `test_seats_extract_wk`
+36/36 cases (6 refusals, 28 full + 3 mirror-status rows, 1208 line checks
+byte-exact), decompose 49/1669 and validator 35/983 unchanged,
+`tools/verify_seats_wk_extraction.cpp` sweeps the raw csv (126 checks).
+Envelope: WK-only (D1), monthly (D11), var≠0 (CL path), decomposable
+(D6 — the approximation retry loop stays unported; open question recorded
+in the contract). Contract: `docs/contracts/seats-wk-extraction-contract.md`
+with the six pinned refusal reasons and the status-row tier map.
+
 ## Maintainer decision register (sign-off before the owning slice)
 
 | # | Decision | Slice | Position recorded at M5-open |

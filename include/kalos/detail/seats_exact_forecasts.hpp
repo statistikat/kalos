@@ -71,6 +71,54 @@ inline std::size_t idx(int i) { return static_cast<std::size_t>(i); }
 
 // SsfException from the diffuse fast initializer (never expected on the
 // corpus; the replay reports an unexpected throw as a failure).
+// JVM abort classes raised by the PredictionErrorDecomposition sink that
+// ExactArimaForecasts.fcasts attaches to every CkmsFilter.process run
+// (ResidualsCumulator.add / DeterminantalTerm.update). The 24-C extraction
+// unit surfaces them as `status error:<class>[:<msg>]' rows; no xf/bm
+// golden case ever triggers them (the corpus pins that).
+struct eco_abort {
+  std::string message;  // "Invalid variance" | "Negative variance"
+};
+struct demetra_abort {};  // DemetraException(), null message
+
+// jdplus...ssf.univariate.PredictionErrorDecomposition(false) in its sink
+// role: per-OBSERVATION (eps, var) cumulation. The Burman path never
+// consumes the accumulated values (the innovation variance is the spec
+// echo) - only the throw behaviour is live.
+struct PedSink {
+  double detman = 1.0;  // DeterminantalTerm fields
+  double detcar = 0.0;
+  double ssqerr = 0.0;
+  int n = 0;
+
+  void det_update(double x) {
+    if (!std::isfinite(x)) throw eco_abort{"Invalid variance"};
+    if (!(x > 0.0)) throw eco_abort{"Negative variance"};  // dcmpg ifgt: >0
+                                                           // or NaN passes
+    detman *= x;
+    while (detman >= 1.0) {  // dcmpl(detman,1) iflt: NaN exits
+      detman *= 0.0625;
+      detcar += 4.0;
+    }
+    if (detman != 0.0)
+      while (detman <= 0.0625) {  // dcmpg ifgt: NaN exits
+        detman *= 16.0;
+        detcar -= 4.0;
+      }
+  }
+
+  void add(double eps, double var) {  // ResidualsCumulator.add
+    if (std::fabs(var) < 1e-9) {  // Math.abs dcmpg ifge: NaN takes the big
+                                  // branch
+      if (std::fabs(eps) < 1e-9) return;
+      throw demetra_abort{};
+    }
+    det_update(var);
+    ssqerr += eps * eps / var;
+    ++n;
+  }
+};
+
 struct xf_ssf_exception {
   std::string msg;
 };
@@ -383,12 +431,17 @@ class ExactFc {
     }
 
     // CkmsFilter.process loop body (initialize(): steadypos = -1, eps =
-    // 1e-15, neps = eps * pe.variance).
+    // 1e-15, neps = eps * pe.variance). ExactArimaForecasts.fcasts passes
+    // a FRESH PredictionErrorDecomposition(false) per call; process saves
+    // (error(i), pre-update variance) with OBSERVATION status before
+    // update(i) (no missing values on the ported domain, pinned 24-C).
     const double eps = 1.0e-15;
     const double neps = eps * f;
     int steadypos = -1;
+    PedSink ped;
     for (int i = t0; i < ndata; ++i) {
       double e = data[idx(i)] - a[idx(0)];  // error(i) (no missing handling)
+      ped.add(e, f);                        // PED.save(OBS) before update
       db_adday(a, e / f, M.data(), 1);      // update(i)
       if (steadypos < 0) {
         double zx = l[idx(0)];
