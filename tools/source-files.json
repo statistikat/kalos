@@ -28,6 +28,8 @@
     "include/kalos/detail/lapack.hpp",
     "include/kalos/detail/sarima_stabilization.hpp",
     "include/kalos/detail/seats_acf_solver.hpp",
+    "include/kalos/detail/seats_burman_estimates.hpp",
+    "include/kalos/detail/seats_exact_forecasts.hpp",
     "include/kalos/detail/seats_linear_filters.hpp",
     "include/kalos/detail/seats_ucarima_model.hpp",
     "include/kalos/detail/seats_wk_estimators.hpp",

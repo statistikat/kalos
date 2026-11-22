@@ -33,11 +33,13 @@
 #include "kalos/detail/seats_acf_solver.hpp"
 #include "kalos/detail/seats_wk_estimators.hpp"
 #include "kalos/detail/seats_exact_forecasts.hpp"
+#include "kalos/detail/seats_burman_estimates.hpp"
 
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
 #include <limits>
+#include <memory>
 #include <string>
 #include <vector>
 
@@ -47,7 +49,8 @@ int g_checks = 0, g_failures = 0;
 
 void report(const std::string& what) {
   ++g_failures;
-  if (g_failures <= 12) std::printf("FAIL: %s\n", what.c_str());
+  if (g_failures <= (std::getenv("LF_ALL_FAILS") ? 100000 : 12))
+    std::printf("FAIL: %s\n", what.c_str());
 }
 
 bool bits_eq(double a, double b) { return std::memcmp(&a, &b, 8) == 0; }
@@ -555,6 +558,193 @@ void xf_replay() {
       report(id + ": C++ threw (non-std)");
     }
   }
+}
+
+// ---- L: BurmanEstimates (seats_burman_estimates.hpp) ----------------------
+// Bit-exact replay of /tmp/opencode/ssf/BurmanProbe.java over the same
+// 36-case 24-C corpus: the live SeatsKernel's FULL UcarimaModel (every
+// component's stat/ur/ma|sma/iv plus the outer and the working data, all
+// captured as id-tagged input rows) driven through BurmanEstimates on a
+// (bmean, ser, nf) grid: g0 (f, 1, nfx) g1 (t, 1, nfx) g2 (f, 1, period)
+// g3 (t, .5, period), mcmp = 0 (Builder default). Every public getter plus
+// the mean/meanc/nf/nbc/nfc privates are hex-compared against the JVM
+// double capture (bmA.txt == bmB.txt). NULL = captured null; EX:cls = the
+// null-slot fastOp NPE (JvmNpe parity).
+#include "bm_goldens.inc"
+
+namespace sb = kalos::detail::seats_burman;
+
+const char* bm_find(const std::string& tag) {
+  for (const auto& e : BM_G)
+    if (tag == e.tag) return e.gold;
+  return nullptr;
+}
+vd bm_input(const std::string& tag) {
+  const char* g = bm_find(tag);
+  vd out;
+  if (!g) {
+    ++g_checks;
+    report("bm golden missing (input): " + tag);
+    return out;
+  }
+  std::size_t i = 0, n = std::strlen(g);
+  while (i < n) {
+    while (i < n && g[i] == ' ') ++i;
+    std::size_t j = i;
+    while (j < n && g[j] != ' ') ++j;
+    if (j > i) out.push_back(hx(std::string(g + i, j - i).c_str()));
+    i = j;
+  }
+  return out;
+}
+int bm_int(const std::string& tag) { return std::atoi(bm_find(tag)); }
+double bm_one(const std::string& tag) { return hx(bm_find(tag)); }
+
+// optional<vd> surface (getter already called): NULL/EX/seq parity.
+void bm_opt(const std::string& tag, const std::optional<vd>& got, bool threw) {
+  const char* g = bm_find(tag);
+  if (!g) {
+    ++g_checks;
+    report("bm golden missing: " + tag);
+    return;
+  }
+  std::string gold(g);
+  if (gold.rfind("EX:", 0) == 0) {
+    ++g_checks;
+    if (!threw) report(tag + ": golden NPE, C++ returned");
+    return;
+  }
+  if (threw) {
+    ++g_checks;
+    report(tag + ": C++ threw, golden has data");
+    return;
+  }
+  if (gold == "NULL") {
+    ++g_checks;
+    if (got.has_value()) report(tag + ": golden NULL, C++ has values");
+    return;
+  }
+  if (!got.has_value()) {
+    ++g_checks;
+    report(tag + ": C++ null, golden has values");
+    return;
+  }
+  chk(tag, *got, false, gold);
+}
+void bm_seq(const std::string& tag, const vd& got) {
+  const char* g = bm_find(tag);
+  if (!g) {
+    ++g_checks;
+    report("bm golden missing: " + tag);
+    return;
+  }
+  chk(tag, got, false, std::string(g));
+}
+// call a Burman getter, mapping JvmNpe onto the EX: parity channel
+#define BM_OPT(expr, tag)                                       \
+  {                                                             \
+    std::optional<vd> r;                                        \
+    bool threw = false;                                         \
+    try {                                                       \
+      r = (expr);                                               \
+    } catch (const sm::JvmNpe&) {                               \
+      threw = true;                                             \
+    }                                                           \
+    bm_opt(tag, r, threw);                                      \
+  }
+
+void bm_case(const std::string& id) {
+  vd data = bm_input(id + ".xf.data");
+  vd sar = bm_input(id + ".xf.sar"), ur = bm_input(id + ".xf.ur");
+  vd ma = bm_input(id + ".xf.ma"), ar = bm_input(id + ".xf.ar");
+  double iv = bm_one(id + ".xf.iv");
+  int period = static_cast<int>(bm_one(id + ".xf.period"));
+  sm::AModel outer = wk_am4(sar, ur, ma, iv);
+  const int nc = bm_int(id + ".bm.ncomp");
+  sm::UcarimaModel um;
+  for (int c = 0; c < nc; ++c) {
+    const std::string pc = id + ".bm.c" + std::to_string(c) + ".";
+    vd cstat = bm_input(pc + "stat"), cur = bm_input(pc + "ur");
+    if (bm_find(pc + "ma")) {
+      // JVM ArimaModel carries a constructor-set sma FIELD (smaset=1 for
+      // every decomposition item; BurmanProbe bc rows) - symmetricMa()
+      // returns it without deriving. Feed the captured field, not the
+      // convolution of (ma, var), which differs at ULP level.
+      sm::AModel a =
+          wk_am4(cstat, cur, bm_input(pc + "ma"), bm_one(pc + "iv"));
+      a.symmetric = true;
+      a.sma = sm::SymF(trim_copy(bm_input(pc + "sma")));
+      um.comps.push_back(a);
+    } else {  // symmetric-factorization component (getMa throws in the JVM)
+      bm_find(pc + "maex");  // presence checked; value unused
+      um.comps.push_back(wk_am3(cstat, cur, bm_input(pc + "sma")));
+    }
+    chk_true(pc + "null", um.comps.back().is_null() == (bm_int(pc + "null") != 0));
+  }
+  const int q2 = static_cast<int>(ma.size()) - 1;
+  const int p2 = static_cast<int>(ar.size()) - 1;
+  const int nfx = q2 > p2 ? 2 * q2 : p2 + q2;
+  swk::WkEstimators E(&um, outer);
+  for (int gg = 0; gg < 4; ++gg) {
+    const bool bmean = (gg & 1) != 0;
+    const double ser = gg < 2 ? 1.0 : 0.5;
+    const int nf = gg < 2 ? nfx : period;
+    const std::string tag = id + ".bm.g" + std::to_string(gg);
+    std::unique_ptr<sb::BurmanEstimates> be;
+    try {
+      be.reset(new sb::BurmanEstimates(data, E, bmean, /*mcmp=*/0, ser, nf, nf));
+    } catch (const std::exception& ex) {
+      ++g_checks;
+      report(tag + ": C++ ctor threw: " + ex.what());
+      continue;
+    }
+    {  // .priv mean <hex> meanc <hex> nf <i> nbc <i> nfc <i>
+      std::string gold = bm_find(tag + ".priv");
+      std::size_t p = gold.find_first_not_of(' ');  // "mean" label
+      p = gold.find_first_not_of(' ', gold.find(' ', p));  // value start
+      std::size_t e1 = gold.find(' ', p);
+      chk1(tag + ".priv.mean", be->mean, gold.substr(p, e1 - p).c_str());
+      p = gold.find_first_not_of(' ', e1 + 1);  // "meanc" label
+      p = gold.find_first_not_of(' ', gold.find(' ', p));  // value start
+      e1 = gold.find(' ', p);
+      chk1(tag + ".priv.meanc", be->meanc, gold.substr(p, e1 - p).c_str());
+      ++g_checks;
+      if (std::atoi(gold.substr(gold.find("nf ") + 3).c_str()) != be->nf ||
+          std::atoi(gold.substr(gold.find("nbc ") + 4).c_str()) != be->nbc ||
+          std::atoi(gold.substr(gold.find("nfc ") + 4).c_str()) != be->nfc)
+        report(tag + ".priv orders");
+    }
+    chk1(tag + ".mc", be->is_mean_correction() ? 1.0 : 0.0,
+         bm_find(tag + ".mc"));
+    bm_seq(tag + ".sfc", be->series_forecasts());
+    bm_seq(tag + ".sbc", be->series_backcasts());
+    for (int c = 0; c < nc; ++c) {
+      const std::string cs = std::to_string(c);
+      BM_OPT(be->estimates(c, true), tag + ".est" + cs + "T");
+      BM_OPT(be->estimates(c, false), tag + ".est" + cs + "F");
+      BM_OPT(be->forecasts(c, true), tag + ".fc" + cs + "T");
+      BM_OPT(be->forecasts(c, false), tag + ".fc" + cs + "F");
+      BM_OPT(be->backcasts(c, true), tag + ".bc" + cs + "T");
+      BM_OPT(be->backcasts(c, false), tag + ".bc" + cs + "F");
+      bm_seq(tag + ".se" + cs, be->stdev_estimates(c));
+      BM_OPT(be->stdev_forecasts(c, true), tag + ".sf" + cs + "T");
+      BM_OPT(be->stdev_forecasts(c, false), tag + ".sf" + cs + "F");
+      BM_OPT(be->stdev_backcasts(c, true), tag + ".sb" + cs + "T");
+      BM_OPT(be->stdev_backcasts(c, false), tag + ".sb" + cs + "F");
+    }
+  }
+}
+
+void bm_replay() {
+  std::vector<std::string> ids;
+  for (const auto& e : BM_G) {
+    std::string t = e.tag;
+    std::size_t dot = t.find('.');
+    std::string id = t.substr(0, dot);
+    if (ids.empty() || ids.back() != id) ids.push_back(id);
+  }
+  for (const std::string& id : ids)
+    if (bm_find(id + ".bm.ncomp")) bm_case(id);
 }
 
 }  // namespace
@@ -1121,6 +1311,7 @@ int main() {
 
   wk_replay();
   xf_replay();
+  bm_replay();
 
   std::printf("checks=%d failures=%d\n", g_checks, g_failures);
   return g_failures == 0 ? 0 : 1;
