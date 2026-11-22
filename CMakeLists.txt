@@ -41,6 +41,7 @@ add_library(kalos STATIC
   src/arma_refinement.cpp
   src/arma_residuals.cpp
   src/arima_forecasts.cpp
+  src/calendar_generation.cpp
   src/decompose_ucarima.cpp
   src/differencing_decision.cpp
   src/diffuse_state_space.cpp
@@ -184,6 +185,7 @@ if(KALOS_BUILD_TESTS)
     test_arma_refinement
     test_arma_residuals
     test_arima_forecasts
+    test_calendar_generation
     test_decompose_ucarima
     test_differencing_decision
     test_diffuse_state_space
