@@ -24,8 +24,49 @@ jobs:
           else
             brew install gcc cmake ninja libomp
           fi
+      # Provider pinning (CI-FDLIBM section of
+      # docs/contracts/x13-automatic-pipeline-contract.md):
+      #   Source: OpenBLAS v0.3.34, tarball
+      #   sha256 cd7e129868320cc2d033afa920e31202dfe0b8066a5b66661900ccc0f197dfed
+      #   (dependencies/openblas.lock.json; tools/build-openblas.py enforces it
+      #   at download). LP64, USE_THREAD=0 USE_LOCKING=1 DYNAMIC_ARCH=1
+      #   TARGET=CORE2 - identical flags to the qualification provider.
+      #   Built shared object on the qualification machine (x86-64, gcc 13.3.0):
+      #   libopenblas-r0.3.34.so
+      #   sha256 84de4eab95a0f3e056b6efee2e7fd7c3731a9bec2f4552401f2b1fdf90420ae3
+      #   Recorded for comparison, not asserted: a runner whose toolchain
+      #   re-embeds different build artifacts is flagged in
+      #   diag/provider-sha256.txt (NOTE: DIFFERS) but does not fail the leg.
+      #   The cache key below is derived from the source tarball sha - bump it
+      #   together with dependencies/openblas.lock.json.
+      - name: Cache pinned OpenBLAS
+        uses: actions/cache@v4
+        with:
+          path: ${{ runner.temp }}/openblas
+          key: openblas-0.3.34-cd7e12986832-${{ runner.os }}-${{ runner.arch }}
       - name: Build pinned OpenBLAS
         run: python tools/build-openblas.py --prefix "${{ runner.temp }}/openblas" --jobs 2
+      - name: Provider fingerprint
+        shell: bash
+        run: |
+          mkdir -p "${GITHUB_WORKSPACE}/diag"
+          if command -v sha256sum > /dev/null 2>&1; then SHA() { sha256sum "$@"; }; else SHA() { shasum -a 256 "$@"; }; fi
+          prov=$(find "${{ runner.temp }}/openblas" -type f \
+                   \( -name 'libopenblas*.so*' -o -name 'libopenblas*.dylib*' \) | head -1)
+          {
+            echo "provider: ${prov:-none}"
+            [ -n "$prov" ] && SHA "$prov"
+            echo "qualification reference (x86-64 gcc 13.3.0):"
+            echo "84de4eab95a0f3e056b6efee2e7fd7c3731a9bec2f4552401f2b1fdf90420ae3  (libopenblas-r0.3.34.so)"
+          } > "${GITHUB_WORKSPACE}/diag/provider-sha256.txt" 2>&1 || true
+          if [ -n "$prov" ]; then
+            actual=$({ SHA "$prov" || true; } | awk '{print $1;}')
+            if [ "$actual" = "84de4eab95a0f3e056b6efee2e7fd7c3731a9bec2f4552401f2b1fdf90420ae3" ]; then
+              echo "provider matches qualification build" >> "${GITHUB_WORKSPACE}/diag/provider-sha256.txt"
+            else
+              echo "NOTE: DIFFERS - provider does not match the qualification build (different OS/toolchain or build nondeterminism)" >> "${GITHUB_WORKSPACE}/diag/provider-sha256.txt"
+            fi
+          fi || true
       - name: Export manifest
         run: python tools/check-manifest.py
       - name: Historical evidence
@@ -43,9 +84,16 @@ jobs:
             ctest --test-dir build --rerun-failed --output-on-failure --output-junit build/junit-rerun.xml || true
             mkdir -p "${GITHUB_WORKSPACE}/diag"
             cc --version                                              > "${GITHUB_WORKSPACE}/diag/compiler.txt" 2>&1 || true
+            cc -dumpfullversion -dumpmachine                          >> "${GITHUB_WORKSPACE}/diag/compiler.txt" 2>&1 || true
+            gfortran --version                                        > "${GITHUB_WORKSPACE}/diag/gfortran.txt" 2>&1 || true
+            clang --version                                           >> "${GITHUB_WORKSPACE}/diag/compiler.txt" 2>&1 || true
+            cmake --version                                           > "${GITHUB_WORKSPACE}/diag/cmake.txt" 2>&1 || true
+            ninja --version                                           > "${GITHUB_WORKSPACE}/diag/ninja.txt" 2>&1 || true
+            python --version                                          > "${GITHUB_WORKSPACE}/diag/python.txt" 2>&1 || true
             getconf GNU_LIBC_VERSION                                  > "${GITHUB_WORKSPACE}/diag/glibc.txt" 2>&1 || true
             ldd build/test_x13_automatic_oracle                       > "${GITHUB_WORKSPACE}/diag/ldd.txt" 2>&1 || true
             ldd --version                                             > "${GITHUB_WORKSPACE}/diag/ldd-version.txt" 2>&1 || true
+            { if command -v sha256sum > /dev/null 2>&1; then find "${RUNNER_TEMP}/openblas" -type f \( -name 'libopenblas*.so*' -o -name 'libopenblas*.dylib*' \) -exec sha256sum {} \;; else find "${RUNNER_TEMP}/openblas" -type f \( -name 'libopenblas*.so*' -o -name 'libopenblas*.dylib*' \) -exec shasum -a 256 {} \;; fi; } > "${GITHUB_WORKSPACE}/diag/provider-sha256-live.txt" 2>&1 || true
             { lscpu 2>/dev/null | grep -i flags | cut -c1-600 || sw_vers; } > "${GITHUB_WORKSPACE}/diag/cpu.txt" || true
             ctest --test-dir build -N                                 > "${GITHUB_WORKSPACE}/diag/ctest-list.txt" || true
             exit 1
