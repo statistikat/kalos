@@ -32,6 +32,7 @@
 #include "kalos/detail/seats_linear_filters.hpp"
 #include "kalos/detail/seats_acf_solver.hpp"
 #include "kalos/detail/seats_wk_estimators.hpp"
+#include "kalos/detail/seats_exact_forecasts.hpp"
 
 #include <cstdio>
 #include <cstdlib>
@@ -110,6 +111,7 @@ using namespace kalos::detail::seats_lfilters;
 namespace sa = kalos::detail::seats_acf;
 namespace sm = kalos::detail::seats_model;
 namespace swk = kalos::detail::seats_wk;
+namespace sx = kalos::detail::seats_xf;
 
 // Poly.get sweep with the AIOOBE-parity stop (probe poly() helper semantics).
 void poly_vals(const Poly& p, int n, vd& out, bool& threw) {
@@ -426,6 +428,132 @@ void wk_replay() {
     um.comps = {wk_am4({1.0, -0.3}, {1.0}, {1.0, 0.4}, 1.0)};
     sm::AModel outer = wk_am4({1.0, -0.3}, {1.0}, {1.0, 0.4}, 1.0);
     wk_case("F", um, outer, 1);
+  }
+}
+
+// ---- K: ExactArimaForecasts (seats_exact_forecasts.hpp) -------------------
+// Bit-exact replay of /tmp/opencode/ssf/XFProbe.java over the 36-case 24-C
+// corpus: the live SeatsKernel's outer UcarimaModel model (ar/sar/ur/ma/iv
+// captured as inputs so the replay is self-contained), driven through the
+// Burman-order surface prepare/forecasts(nfx)/backcasts(nfx)/getMean plus
+// the {0,1,3,period} horizon grid with the getMean re-read (mean-overwrite
+// quirk). Goldens: tests/xf_goldens.inc (xf.out.A == xf.out.B, double
+// capture 2026-11-22); .skip rows mark kernel refusals (covered by the WK
+// corpus goldens, no forecaster surface).
+#include "xf_goldens.inc"
+
+const char* xf_find(const std::string& tag) {
+  for (const auto& e : XF_G)
+    if (tag == e.tag) return e.gold;
+  return nullptr;
+}
+// Parse a golden hex-token list into a value vector (input rows).
+vd xf_input(const std::string& tag) {
+  const char* g = xf_find(tag);
+  vd out;
+  if (!g) {
+    ++g_checks;
+    report("xf golden missing (input): " + tag);
+    return out;
+  }
+  std::size_t i = 0, n = std::strlen(g);
+  while (i < n) {
+    while (i < n && g[i] == ' ') ++i;
+    std::size_t j = i;
+    while (j < n && g[j] != ' ') ++j;
+    if (j > i) out.push_back(hx(std::string(g + i, j - i).c_str()));
+    i = j;
+  }
+  return out;
+}
+int xf_int(const std::string& tag) {
+  const char* g = xf_find(tag);
+  if (!g) {
+    ++g_checks;
+    report("xf golden missing (int): " + tag);
+    return 0;
+  }
+  return std::atoi(g);
+}
+void xf_arr(const std::string& tag, const vd& got) {
+  const char* g = xf_find(tag);
+  if (!g) {
+    ++g_checks;
+    report("xf golden missing: " + tag);
+    return;
+  }
+  chk(tag, got, false, std::string(g));
+}
+void xf_d(const std::string& tag, double got) {
+  const char* g = xf_find(tag);
+  if (!g) {
+    ++g_checks;
+    report("xf golden missing: " + tag);
+    return;
+  }
+  chk1(tag, got, g);
+}
+
+void xf_emit(const std::string& id, bool bmean, const sx::XfModel& model,
+             const vd& data, int nfx, int period) {
+  const std::string tag = id + (bmean ? ".m" : ".z");
+  sx::ExactFc fc;  // fresh instance per emitXf (mean field starts at 0)
+  bool ok = fc.prepare(model, bmean);
+  xf_d(tag + ".ok", ok ? 1.0 : 0.0);
+  xf_arr(tag + ".fc", fc.forecasts(data, nfx));
+  xf_arr(tag + ".bc", fc.backcasts(data, nfx));
+  xf_d(tag + ".mean", fc.get_mean());
+  const int grid[4] = {0, 1, 3, period};
+  for (int k : grid) {
+    const std::string ks = std::to_string(k);
+    xf_arr(tag + ".fc" + ks, fc.forecasts(data, k));
+    xf_arr(tag + ".bc" + ks, fc.backcasts(data, k));
+  }
+  xf_d(tag + ".meang", fc.get_mean());
+}
+
+void xf_replay() {
+  // Case ids in golden order (deduplicated by first appearance).
+  std::vector<std::string> ids;
+  for (const auto& e : XF_G) {
+    std::string t = e.tag;
+    std::size_t dot = t.find('.');
+    std::string id = t.substr(0, dot);
+    if (ids.empty() || ids.back() != id) ids.push_back(id);
+  }
+  for (const std::string& id : ids) {
+    if (xf_find(id + ".skip")) continue;  // kernel refusal: no XF surface
+    sx::XfModel m;
+    m.stat = p_of(xf_input(id + ".sar"));
+    m.nonstat = p_of(xf_input(id + ".ur"));
+    m.ma = p_of(xf_input(id + ".ma"));
+    m.var = xf_input(id + ".iv").at(0);
+    const vd data = xf_input(id + ".data");
+    const int period = xf_int(id + ".period");
+    // Inputs cross-check: getAr() = stat x nonstat must reproduce .ar.
+    xf_arr(id + ".ar", p_times(m.stat, m.nonstat).c);
+    const char* g = xf_find(id + ".orders");
+    int p_ = 0, q_ = 0, nf_ = 0;
+    std::sscanf(g, "%d %d %d", &p_, &q_, &nf_);
+    chk_true(id + ".orders.p",
+             p_ == static_cast<int>(p_times(m.stat, m.nonstat).degree()));
+    chk_true(id + ".orders.q", q_ == static_cast<int>(m.ma.degree()));
+    const int nfx = q_ > p_ ? 2 * q_ : p_ + q_;
+    chk_true(id + ".orders.nf", nf_ == nfx);
+    // State dim = SsfArima.stateComponent(xm).dim() (pre-prepare model).
+    sx::ExactFc fcz;
+    fcz.prepare(m, false);
+    chk_true(id + ".sfdim", fcz.state_dim() == xf_int(id + ".sfdim"));
+    try {
+      xf_emit(id, false, m, data, nfx, period);
+      xf_emit(id, true, m, data, nfx, period);
+    } catch (const std::exception& ex) {
+      ++g_checks;
+      report(id + ": C++ threw: " + ex.what());
+    } catch (...) {
+      ++g_checks;
+      report(id + ": C++ threw (non-std)");
+    }
   }
 }
 
@@ -992,6 +1120,7 @@ int main() {
   }
 
   wk_replay();
+  xf_replay();
 
   std::printf("checks=%d failures=%d\n", g_checks, g_failures);
   return g_failures == 0 ? 0 : 1;
