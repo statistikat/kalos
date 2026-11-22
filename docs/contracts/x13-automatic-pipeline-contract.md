@@ -671,12 +671,12 @@ in this MIT tree as derived math kernels with per-file provenance headers —
 flagged for the licensing review alongside the pre-existing JVM-fdlibm
 transcription (src/fdlibm.cpp, separate lineage, unmodified by this slice).
 
-Routed (std:: -> detail::glibc_*, 18 call sites; census = distinct-argument
-replay of all 57 test corpora + 16 golden-capture corpora through
-tools/verify_hostlineage --census-only, 32.98M checks):
+Routed (std:: -> detail::glibc_*, 31 calls across 14 source files; census =
+distinct-argument replay of all 57 test corpora + 16 golden-capture corpora
+through tools/verify_hostlineage --census-only, 32.98M checks):
 | kernel | sites | corpus-arg replay vs host libm |
 | hypot  | diffuse_state_space x2, regression_likelihood, finite_state_factor, sparse_history, ssq_levmar | 31,745,965 args: 0 divergences |
-| cos/sin| ucarima_engine rfr/fr_eval/dfr_eval x4, seats_ucarima_model root finder, seats_linear_filters fu_freq x5 | 136,734/890,457 args: 88/627 host divergences, PROVEN INERT (below) |
+| cos/sin| ucarima_engine rfr/fr_eval/dfr_eval (4 calls), seats_ucarima_model root finder (2), seats_linear_filters fu_freq (5) | 136,734/890,457 args: 88/627 host divergences, PROVEN INERT (below) |
 | exp    | x13_automatic + x13_fit results builders, x13_allocation | 201,066 args: 117 host divergences, PROVEN INERT |
 | log    | x13_allocation input-log, x11_pinned.hpp log_domain | 2,009 args: 0 |
 | pow    | preparation drift x2, outlier_scoring transitory_change_rate, ucarima_engine stabilization limit | 184 args: 0 |
