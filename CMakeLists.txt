@@ -209,6 +209,7 @@ if(KALOS_BUILD_TESTS)
     test_regression_likelihood
     test_regression_variable_tests
     test_residual_information
+    test_seats_linear_filters
     test_special_functions
     test_state_space
     test_tramo_arma

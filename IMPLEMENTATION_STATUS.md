@@ -2911,3 +2911,47 @@ transformation 11, x11 b/c/d 18/18/22, allocation 280, fit 528, automatic
 (49 cases, 1669 checks) — the seam move is sanitizer-clean too;
 `check-manifest.py` updated for the two reference files + evidence tree;
 `verify-migration.py` 406.
+
+## WK extraction linearfilters mirror: slice 24-C.1 cluster 1 lands `seats_linear_filters.hpp` — 2026-11-22
+
+First increment of the 24-C.1 transcription (pinning doc SECTION 14 queue
+item 1): the linearfilters mirror the WK extraction machine runs on, as
+`include/kalos/detail/seats_linear_filters.hpp` (`kalos::detail::
+seats_lfilters`), a bit-exact C++ transcription of the pinned 3.9.0 bytecode
+of RationalFunction + Polynomial$SimplifyingTool, the linearfilters
+hierarchy (Back/Fore/Symmetric core/Finite/RationalBack/RationalFore/
+RationalFilter incl. the lazy numerator/denominator paths and the
+Decomposition inner class), FilterUtility.frequencyResponse (Clenshaw
+three-term recurrence, host-libm trig per the CI-FDLIBM ledger),
+ComplexComputer/Complex.div/DoubleSeq.equals and the
+LULinearSystemSolver2(1.0E-13) robust solver with the bytecode's own
+column-major indexing. Reuses the 24-B seam primitives (Poly algebra,
+QR/least-squares division, closed-form roots, rfr) untouched.
+
+**SimplifyingTool re-adjudicated fresh from the jar** (pinning SECTION 15):
+the real-root branch ends `149: goto 184`, i.e. the shared f2 divide DOES
+run after the f1 divide (an earlier decode note claiming `goto 221` was
+wrong); roots are taken of ARG2 (the smaller polynomial), the left/right
+swap is unconditional, and when common grows past degree 0 the tool stores
+`simplifiedLeft = big` UNCANCELLED with `simplifiedRight = small.divide
+(common)` (least-squares quotient). The WK mirror carries its own faithful
+copy of the tool; the 24-B seam's two latent divergences (roots of `big`,
+stale f2 on NaN-imaginary roots) stay untouched and unfixed this slice —
+the 24-B corpus never reaches them and the seam is behavior-frozen.
+
+**Ground truth + gates.** New `tests/test_seats_linear_filters.cpp` replays
+126 bit-for-bit checks against hex captured from the pinned jars via
+DecProbe/RFProbe2 (probes under /tmp/opencode/ssf): decomposition system +
+LU back-substitution, RationalFunction dd==0 path, 32-quantized cache with
+extension, drop, plus/minus/times/divide through the tool's exact, false
+and roots paths (incl. the real-root f1+stale-f2 double divide, the
+left==big quirk and the degenerate LS quotient), cross-cancelling
+Rational{Back,Fore}Filter.times with the leading-coefficient normalization,
+lazy vs eager RationalFilter numerator/denominator (FiniteFilter vs
+SymmetricFilter.convolutionOf), the filter statics, and the AIOOBE-parity
+refusals. One JVM fact corrected mid-cluster from the probe: FiniteFilter.
+isSymmetric compares `-(len-1)` against `lb` (a centered window like
+[1,2,1]@-1 is NOT symmetric). `ctest -R "test_seats_linear_filters|
+test_decompose_ucarima"` passes (ctest inventory 73); manifest now
+161/112/271. Arithmetics and the SymmetricFilterAlgorithms decomposer stay
+deferred to the cluster that consumes them (pinning SECTION 14).
