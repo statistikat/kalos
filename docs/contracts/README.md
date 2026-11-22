@@ -668,6 +668,31 @@ qualified `hannan_rissanen_pipeline`, `pinned_fast_filter_residuals` and
 replayed, 1 refusal, 1 record-only, 0 failures); shim-invariant. See
 [tramo-arma-selection-contract.md](tramo-arma-selection-contract.md).
 
+## TRAMO regression tests, no-calendar branch (23-E)
+
+`test_tramo_regression_tests.cpp` (#76), the double-captured 55-case JVM
+corpus under `validation/evidence/native/tramo-regression-tests/`, the
+generator `tools/gen_tramo_regression_tests_golden.py`, the shared replay
+`tests/tramo_regression_replay.h` and the sweep
+`tools/verify_tramo_regression_tests.cpp` (663 replay + 464 corpus
+cross-checks) qualify `kalos/tramo_regression_tests.hpp`: the
+`ModelStatistics.of` rows the refStats gate consumes (Ljung-Box + seasonal
+pair via the 23-C.2 kernels, `se`, fdlibm `bic`, the `df <= 0` un-built
+surface), `ConcentratedLikelihood.ser/tstats` both arms with the TRAMO
+addmu-site denominator, the dcmpl-bucket `TRegressionTest.accept` (NaN
+counts in NEITHER bucket), the full `TramoKernel.pass2` refStats gate
+(rules A-D + shape guards, pcr ladder, unconditional pass-1 remark,
+`needAutoModelling = !changed`, last-chance rewrite) and the calendar-free
+`FastRegressionTest`/`DefaultRegressionTest` mean-rule branch, plus the
+`AmiOptions` checkMu / round-0 / `reduceVa` / `lastSolution` /
+estimate-model retry members. Every calendar-kernel request (Fast ami
+td/lp/easter, Default calendar builder fields, moving-holiday) is refused
+fail closed naming item 21-I.3; the quarterly ModelStatistics row pins the
+D11 refusal. Bit-exact decisions and values; the retry ladder is qualified
+as transcribed control flow (no live witness, see the contract).
+Shim-invariant (23rd ledger cell). See
+[tramo-regression-tests-contract.md](tramo-regression-tests-contract.md).
+
 ## SEATS Wiener-Kolmogorov extraction mirror
 
 `test_seats_extract_wk.cpp`, the double-captured 36-case JVM corpus under

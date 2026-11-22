@@ -256,6 +256,28 @@ pinned values without a maintainer ruling (the 21 precedent).
   GATED by 21-I for the
   TD/Easter machinery; the no-calendar branch (TR0/TR1/TR3) is the
   `ModelStatistics`/mean-rule layer only and is not gated.
+- **LANDED 2026-11-22 (23-E PARTIAL: no-calendar branch).**
+  `kalos::run_tramo_regression_tests` + the layer it consumes, transcribed
+  bit-exact from the pinned JVM: `ModelStatistics.of`'s gate-consumed rows
+  (Ljung-Box + seasonal pair on the 23-C.2 kernels, `se`, fdlibm `bic`, the
+  `df <= 0` un-built all-NaN surface), `ConcentratedLikelihood.ser/tstats`
+  both arms (TRAMO sites read the ADDMU arm, denominator `dim − nx − k`),
+  the dcmpl-bucket `TRegressionTest.accept` (NaN counts in NEITHER bucket —
+  a session-start pin note had the polarity swapped, corrected with the
+  corpus adjudicating), the full `TramoKernel.pass2` refStats gate (rules
+  A–D + shape guards, pcr ladder, unconditional pass-1 remark,
+  `needAutoModelling = !changed`, last-chance rewrite) and the mean-rule
+  branch of `Fast`/`DefaultRegressionTest`, plus the `AmiOptions` checkMu /
+  round-0 / `reduceVa` / `lastSolution` / estimate-model-retry members
+  (retry ladder = transcribed control flow, no live witness — qualified
+  synthetically). Green on the 55-case double-captured byte-identical
+  corpus `validation/evidence/native/tramo-regression-tests/` (ctest #76,
+  663 replay checks; sweep 663+464 cross-checks; shim-invariant 23rd ledger
+  cell). The calendar branch is the 21-I.3 seam: ami td/lp/easter (Fast)
+  and calendar builder fields (Default) refuse fail closed with 21-I.3 in
+  the reason (corpus seam rows + load witnesses pin both sides); the
+  `Automatic{,Wald}` families and `TradingDaysController` are not ported.
+  Quarterly rows pin the D11 refusal. Contract `tramo-regression-tests`.
 - **23-F — `tramo_final_estimation` + kernel round driver**: `FinalEstimator`
   decode (fork-candidate against `final_estimator`/`final_information`), then
   the `TramoKernel.process` driver itself (round/pass/pass3 wiring, refAuto/
