@@ -83,6 +83,7 @@ add_library(kalos STATIC
   src/tramo_differencing_decision.cpp
   src/tramo_model_builder.cpp
   src/tramo_outlier_scan.cpp
+  src/tramo_regression_tests.cpp
   src/tramo_seats_model_validator.cpp
   src/tramo_transform_decision.cpp
   src/transformation_decision.cpp
@@ -223,6 +224,7 @@ if(KALOS_BUILD_TESTS)
     test_tramo_differencing_battery
     test_tramo_model_builder
     test_tramo_outlier_scan
+    test_tramo_regression_tests
     test_tramo_seats_model
     test_tramo_transform_decision
     test_transformation_decision
@@ -266,6 +268,12 @@ if(KALOS_BUILD_TESTS)
       # One full automatic search with outlier detection on the probe corpus
       # shape runs ~250 s (suite wall time ~5 min single-process); the
       # sanitizer lane multiplies this several-fold.
+      set_tests_properties(${test_name} PROPERTIES TIMEOUT 3600)
+    endif()
+    if(test_name STREQUAL "test_tramo_regression_tests")
+      # 23-E golden replay over the double-captured tramo-regression-tests
+      # corpus (ModelStatistics rows, both tstats arms, the refStats gate and
+      # the two regression-test machines); generous for the sanitizer lane.
       set_tests_properties(${test_name} PROPERTIES TIMEOUT 3600)
     endif()
   endforeach()
