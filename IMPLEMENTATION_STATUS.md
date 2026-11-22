@@ -3071,3 +3071,52 @@ checks) is bit-identical under `all`; `check-manifest.py` 167/112/271; `verify-m
 406. Envelope registers honored: D1 WK-only, D11 monthly-only, D6
 decomposable-only (CLOSED APPROVED at 24-B), var-0 CL path and the D7
 bias/auto-count defaults (Legacy bias, forecastCount -2) IN scope.
+
+## Calendar detection groundwork: slice 21-I.0 plans `docs/calendar-roadmap.md` — 2026-11-22
+
+The deferred 21-I surface (calendar / Easter / user-variable detection) gets
+its live-probe groundwork and slice plan, closing the biggest unknown in the
+23/24 blocking table. Live JVM probes of the pinned 3.9.0 stack (harness
+`tmp_opencode/i21probe/`, 11 captures each double-produced in two independent
+OpenJDK 21 JVMs, byte-identical; statics in `tmp_opencode/jdprobe/i21/`,
+66 javap dumps) establish two headline verdicts. First, **X-13 rsa4/rsa5c
+calendar detection is a pure AICcComparator battery**: `CalendarEffects
+DetectionModule` (candidates [no td, td2]/[no td, td7]) and
+`EasterDetectionModule` (candidates {none, easter [1], [8], [15]}) run inside
+regAIC, re-firing per estimation round (3× each on a TD-effect series), while
+`jdplus.toolkit.base.core.dstats.F` NEVER class-loads on those paths — the
+F/Wald pvalue machines belong exclusively to the auto-method branches and to
+the TRAMO fork (`TradingDaysController` + `AutomaticFRegressionTest`, loaded
+exactly on TRfull runs, with raw `Info{nhp,ss0,ss1,ss6,ssmc1,ssmc6,pftd1,
+pftd6,dof*}` oracles that keep TD at pftd=1.0 and drop it at
+pftd1=0.8798/pftd6=0.3065 against the 0.99 gate — the kernel is the landed
+23-C.2 `f_upper_p`). Second, the **generation layer is fully pinned byte for
+byte**: 4128 lines of raw matrices (tdCount/meanDays, contrasts+raw for all
+nine DayClusterings, LeapYear +0.75 / LengthOfPeriod days−mean, Easter
+computus 1985–2015 with `easter`=`easter2`, EasterVariable durations {1,5,8,
+15} × {Simple default, None}, JulianEasterVariable mixture, the NEGATIVE
+Ramp staircase, UserVariables 0-fill out of domain) plus name conventions
+(`td`, `lp`, `td2…td7`, `easter [8]`); the R-lane template bytes were
+re-verified this session (2×Rscript, identical, equal to the jar's
+`X13Spec.fromString` bytes for all six rsa templates; note `RSA2c`/`RSA5c`
+have no public statics). No user-variable/holiday DETECTION module exists in
+any 3.9.0 jar (user columns are pass-through), so the "user detection" half
+of 21-I is a spec no-op and holidays stay refused. The roadmap lands: the two
+machines and their liveness matrix, a reuse/fork table (reuse landed AICc,
+`regression_likelihood` and `f_upper_p`; one new Wald `tstat` kernel only if
+auto-methods enter; fork-preserving, honoring D10), a 4-slice ledger
+(21-I.1 generation → 21-I.2 X-13 battery → 21-I.3 TRAMO controller → 21-I.4
+integration/refusal ladder, with JVM oracle entry points and pinned-corpus
+sizes), a decision register I-1…I-9 for maintainer sign-off, and the
+downstream map (23-E calendar branch and the TRfull-FTEST part of 23-G
+unblocked by I.1+I.3; the rsa4/rsa5c gap by I.1+I.2). Surprises recorded:
+`DayClustering.toString()` throws (jar bug), TR5 + strong-TD NPEs inside the
+pinned `ModelComparator` (AMI stage, recorded as I-6, not calendar), and the
+rJava lane now needs an explicit `JAVA_HOME` (Java 17 default JVM otherwise).
+
+**Gates.** Docs-only slice: no build, tests, or manifest change (ctest stays
+74; `check-manifest.py`/`verify-migration.py` untouched, no source staged).
+The slice's own evidence gate — 11 probe captures double-captured
+byte-identical, R-lane template re-verification identical and byte-equal to
+the JVM lane — passed; tree changes are this entry plus
+`docs/calendar-roadmap.md`.

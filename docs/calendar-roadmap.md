@@ -1,0 +1,177 @@
+# Calendar roadmap — item 21-I (calendar, Easter, and user-variable detection)
+
+Planning decomposition of the deferred 21-I surface of item 21 (and of the
+calendar branches it blocks in items 23/24) into deliverable slices, in the
+shape of [item21-roadmap.md](item21-roadmap.md) and
+[tramo-seats-roadmap.md](tramo-seats-roadmap.md). Everything below is
+grounded in the pinned rjd3 3.9.0 jar family (`jdplus-{toolkit,sa,x13,
+tramoseats}-base-{api,core}-3.9.0.jar`) via `javap -p -c` dumps
+(`tmp_opencode/jdprobe/i21/`, 66 dumps) and LIVE JVM probes run 2026-11-22
+(`tmp_opencode/i21probe/`, every capture double-produced in two independent
+OpenJDK 21 JVMs, byte-identical; session record `tmp_opencode/
+kalos-21i-pinning.md`). The R-lane template bytes were re-verified the same
+day (rjd3x13 `x13_spec` × 2 JVM processes, byte-equal to the pinned
+`m4gap-dec-A/proto-*.txt` and to the jar-side `X13Spec.fromString` bytes).
+Nothing here is implemented — this is the plan, its dependency order, its
+per-slice commit boundaries, and the decision boundaries needing maintainer
+sign-off. It resolves the open 21 roadmap decision 9 ("calendar-detection and
+user-variable modules inside item 21 or separate") toward a separate 21-I
+queue, and gives the 23/24 blocking table (tramo-seats-roadmap §Dependencies)
+its long-sought content: WHAT the 21-I surface is, machine by machine.
+
+## The two calendar machines (probe-verified)
+
+The pinned stack contains TWO independent calendar-detection families that
+share only the column-generation layer:
+
+**A. X-13 regAIC battery (sa jar, drives rsa4/rsa5c through
+`X13SpecDecoder → RegArimaKernel.calendarTest/easterTest → regAIC`)** — an
+AICc-comparator search, NOT F-based:
+
+- `CalendarEffectsDetectionModule` (builder carries `AICcComparator` with the
+  proto-spec margin `RegressionSpec.getAicDiff()`): compares the no-calendar
+  base model against exactly one candidate — `td2` for rsa4, `td7` for rsa5c —
+  plus the spec's LoP/Easter handling per `TEST_REMOVE`/`TEST_ADD` semantics
+  (M4-pinned: under `TEST_REMOVE` the td columns are dropped after selection
+  but leap-year/easter remain ESTIMATED; `TEST_ADD` = 3-candidate search).
+- `EasterDetectionModule`: candidates `{easter [1], easter [8], easter [15]}`
+  against the no-easter base (`getLl0()`), best-of via the same comparator;
+  `best=−1` means keep none.
+- Both re-fire inside every estimation round: rsa4 on a TD-effect series
+  emits 3×`AutomaticTradingRegressionModule$Info` + 3×`EasterDetectionModule
+  $Info` events (round 0, after AMI, final); on a calendar-free series 1+1
+  (nothing kept → no re-round).
+- Live class-load proof (rsa4 AND rsa5c, clean and TD-effect series):
+  `CalendarEffectsDetectionModule`, `EasterDetectionModule`,
+  `AutomaticTradingRegressionModule`, `AICcComparator` LOADED;
+  `jdplus.toolkit.base.core.dstats.F` NEVER loaded;
+  `TradingDaysController`/`Automatic{F,Wald}RegressionTest` NEVER loaded.
+
+**B. TRAMO controllers (tramoseats jar, a FORK of family A)** — the FTEST
+machine, driven by `TramoKernel` + `TradingDaysController` + the AMI's
+`DefaultRegressionTest`/`FastRegressionTest`:
+
+- `TramoKernel` ctor adds `new TradingDaysController(TramoModelBuilder.td(
+  spec, DayClustering.TD2, ctx), spec.getProbabilityForFTest())` whenever the
+  TD spec `isAutomatic()` (TRfull: `automaticMethod=FTEST`, p=0.01); the
+  controller gates on `Ols(...).Ftest().getPvalue()` vs `ptd`.
+- `AutomaticFRegressionTest` emits the raw decision oracle
+  `$Info{nhp, ss0, ss1, ss6, ssmc1, ssmc6, pftd1, pftd6, dof0, dof1, dof6}`
+  with `ssmc1=ss1/(dof1−nhp)`, `F1=(ss0−ss1)/ssmc1`, `F6=(ss0−ss6)/
+  (ssmc6·6.0)`, `pftd = F(Fx, dof−nhp, Lower)` (guard F≤0 → p=0), keep-TD iff
+  `pftd > 1 − fpvalue`. `nhp` = `ArimaSpec.freeParametersCount()` of the base
+  test model (measured 2).
+- Live discrimination confirmed on the probe corpus: TD-effect series →
+  pftd1=pftd6=1.0 → td kept (`td` dim=1 + `lp` in the final model); clean
+  series → pftd1=0.8798…, pftd6=0.3065… < 0.99 → all calendar removed.
+- `AutomaticTRegressionTest`/`AutomaticWaldRegressionTest` are the sibling
+  auto-methods (Wald pvalue via `ConcentratedLikelihoodWithMissing.tstat
+  (I,I,Z)`; X-13-side twins `AutomaticTradingDaysRegressionTest`/
+  `AutomaticTradingDaysWaldTest` use thresholds `autoPvalue1`/`autoPvalue2`).
+  The pvalue kernel is the SAME `dstats.F`/`SpecialFunctions.FProbability`
+  that kalos 23-C.2 already mirrors as `detail::f_upper_p` (Lower tail =
+  1 − f_upper_p).
+
+**Column generation (shared, toolkit jar)** — pinned live matrices for the
+whole surface: `GenericTradingDaysFactory` (raw `tdCount` 7 columns,
+`meanDays` 12×7 long-run means), contrasts/raw for all nine `DayClustering`s
+(TD2/2c/2d/3/3c/4/4c/6/7 + TDuser, dims 1/1/1/2/2/3/3/5/6), `LengthOfPeriod`
+(LeapYear = +0.75 in Feb of leap years; LengthOfPeriod = days − domain mean),
+`Easter.easter/easter2/julianEaster/probEaster` 1985–2015, `EasterVariable`
+durations {1,5,8,15} × corrections {Simple (builder DEFAULT), None},
+`JulianEasterVariable` (gregorian/julian mixture), `Ramp` (sign convention:
+−1 before start, linear to 0 at end — the NEGATIVE staircase), and
+`UserVariables` (out-of-domain cells fill 0.0, no length check, description =
+group name). NAME conventions pinned: regression name always `td`/`lp`
+(`ITradingDaysVariable.defaultName(k)` ignores k), candidate tags
+`td2…td7/tduser`, `easter [8]`, `julian easter [d]`, `ramp a / b`.
+
+**User-variable/holiday DETECTION does not exist in the jar**: there is no
+`UserVariablesDetectionModule` class in any 3.9.0 jar (jar-listed); user
+variables and holidays are pure pass-through columns. 21-I therefore retires
+the "user detection" half of the 21-I label as a no-op spec statement, and
+holiday-corrected TD (`HolidaysCorrectedTradingDays`, stock days, TDuser)
+stays fail-closed unless a corpus demands it.
+
+## Liveness matrix (class-load + event evidence, double-captured)
+
+| run (input) | CEDM | EasterDet | ATD module | AICcComparator | TradingDaysCtrl | AutoFRegressionTest | dstats.F | verdict |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| X-13 rsa4 clean (96 obs) | loaded | loaded | loaded+Info | loaded | — | — | **not loaded** | AICc battery, all rejected (best 0/−1) |
+| X-13 rsa4 tdeff (156 obs) | loaded | loaded | loaded+Info ×3 | loaded | — | — | **not loaded** | td2 kept, re-fires 3× |
+| X-13 rsa5c clean/tdeff | loaded | loaded | loaded+Info | loaded | — | — | **not loaded** | [no td, td7] battery |
+| TRfull tdeff | — | — | — | — | **loaded** | **loaded** | **loaded** | FTEST keeps td+lp |
+| TRfull clean | — | — | — | — | **loaded** | **loaded** | **loaded** | FTEST drops all calendar |
+| TR4 / TR2 tdeff | — | — | — | — | — | — | loaded | no controller; AMI `DefaultRegressionTest`/`FastRegressionTest` path |
+| TR5 tdeff | — | — | — | — | — | — | loaded | pinned-jar NPE in `ModelComparator.compare` (AMI stage, not calendar; decision I-6) |
+
+Inventories: 473–786 jdplus classes per run under `-Xlog:class+load`
+(`tmp_opencode/i21probe/out/cl-*.txt`); `dstats.T`/`Chi2` load everywhere
+(`ModellingUtility`/regression-test machinery), `dstats.F` distinguishes the
+families exactly. Probe caveat: the OTHER family's `$Info` classes appear in
+every inventory (probe `instanceof` preloading) — only the main-class and
+`dstats` rows above are load-path evidence.
+
+## Reuse / fork table
+
+| Machine | kalos status | 21-I disposition |
+| --- | --- | --- |
+| AICc + likelihood comparison | LANDED (`transformation_decision.hpp`, `arma_refinement.hpp`, `regression_likelihood`) | REUSE — family A needs only candidate registration + comparator margin `getAicDiff()` |
+| F upper-tail pvalue | LANDED 23-C.2 (`detail::f_upper_p`, incBeta) | REUSE for family B (Lower = 1 − f_upper_p); family A needs NO F at all |
+| Wald statistic | not landed | NEW small kernel mirroring `ConcentratedLikelihoodWithMissing.tstat(I,I,Z)` (only if auto-methods enter the envelope, decision I-4) |
+| OLS + `Ftest()` assembly | LANDED (23-C surfaces) | REUSE; only the `AutomaticFRegressionTest$Info` bookkeeping is new |
+| TD/LoP/Easter/Ramp/User columns | NOT landed (23-A refuses everything but static TD2) | NEW unit (21-I.1), byte-for-byte from the gen capture |
+| Builder registration (`ami`/`regeffect` attrs, names) | pattern landed (23-A) | FOLLOW pattern, pin measured names (`td`, `lp`, `easter [8]`, …) |
+| TRAMO vs X-13 modules | — | FORK-PRESERVING: two module families in two namespaces; do NOT unify (decision I-3) |
+
+## 21-I slice ledger (recommended order: 21-I.1 → 21-I.2 → 21-I.3 → 21-I.4)
+
+| Slice | Unit (planned) | JVM oracle entry point | Corpus (pinned) | Size estimate |
+| --- | --- | --- | --- | --- |
+| 21-I.1 generation | `calendar_generation` (tdCount/meanDays/contrasts+raw for all clusterings, LoP, Easter computus + EasterVariable/JulianEasterVariable, Ramp, UserVariables pass-through, names) | `I21Probe gen` (`GenericTradingDaysFactory`, `Easter`, `Regression.matrix` raw getters) | `gen-.out` 4128 lines: 108-row tdCount, 9×(contrast+raw) full matrices, LoP 2×108, Easter 1985–2015, 4 durations ×2 corrections + julian, ramp/ramp2, user 0-fill, quarterly td2 | ~900 lines new unit + ~1200 oracle checks (matrix replay is data-driven from the capture) |
+| 21-I.2 X-13 regAIC calendar battery | `calendar_effects_detection` (CalendarEffectsDetectionModule + EasterDetectionModule candidates, AICcComparator margin, per-round re-fire, TEST_REMOVE/TEST_ADD semantics) | pinned proto bytes → `X13.specOf` → `X13Kernel.process(observer)` | `x13run-rsa4/5c-{clean,tdeff}.out` (141/141/227/230 lines): ATD/EAS Info ll/ssq/bicc arrays + best indices + final variable lists | ~600 lines + replay of the 8 Info events (ll0 + per-candidate arrays, `%.17g`) |
+| 21-I.3 TRAMO calendar controller | `tramo_trading_days_controller` (`TradingDaysController` gate, `Automatic{F,T,Wald}RegressionTest` builder, FTEST Info math on the landed OLS + `f_upper_p`) | `TramoSpec.fromString("TRfull")` → `TramoKernel.process(observer)` | `tramo-TRfull-{tdeff,clean}.out` (213/141 lines): full FT Info raw doubles, gate outcomes, final variable lists; TR2/TR4 controls (no controller) | ~500 lines + 2×9 doubles bit-exact Info replay + gate decisions |
+| 21-I.4 integration + refusal retirement | rsa4/rsa5c template calendar-block expansion (248-byte rows), end-to-end detection replay, `persephone3` refusal ladder | both lanes (R-lane bytes re-verified identical) | template bytes (m4gap + `x13tpl-.out` 193 lines) + the four x13run captures as end-to-end rows | ~300 lines + template byte checks; retires refusals per decision I-8 ladder |
+
+Non-goals: holiday-corrected TD / stock days / TDuser columns (no detection
+module exists; keep the 23-A refusals), `DayClustering.toString()` (jar bug,
+throws — never port), user-variable *detection* (does not exist), quarterly
+Easter/TD beyond pinning the one measured quarterly row (D11 precedent).
+
+## Decision register draft (sign-off before the owning slice)
+
+| # | Decision | Slice | Recommendation |
+| --- | --- | --- | --- |
+| I-1 | Ratify item-21 decision 9 as "separate 21-I queue" with this ledger | all | yes — the decoder modules are separable and both engines share the column layer |
+| I-2 | X-13 rsa4/rsa5c calendar detection = AICc battery ONLY (no F/Wald anywhere in the regAIC calendar path) | 21-I.2 | yes — `dstats.F` never loads on these paths (liveness matrix) |
+| I-3 | Preserve the TRAMO/X-13 module FORK (two namespaces, shared column layer, no second TD implementation — honors 23/24 decision D10) | 21-I.2/3 | yes |
+| I-4 | Auto-method TD tests beyond FTEST (T/Wald; X-13 `AutomaticTradingDays{,Wald}Test` with autoPvalue1/2) inside the first envelope? | 21-I.3 | NO — FTEST-only first (TRfull is the only template needing it); T/Wald fail-closed until a corpus demands them |
+| I-5 | Julian Easter and durations other than the template-pinned {1,8,15} candidates | 21-I.1/2 | generation may land them (matrices pinned); detection candidates stay {none,1,8,15}; julian detection refused (no live caller) |
+| I-6 | TR5 + strong-TD input class: pinned jar NPEs in `ModelComparator.compare` (AMI, not calendar) | 21-I.3 (record for 23) | do NOT emulate the crash; record and let the 23 envelope fail-closed on the input class |
+| I-7 | Detection re-fires per estimation round (3 rounds observed) — integration contract replays per-round, not once per fit | 21-I.2/4 | yes — pin the round-conditional firing |
+| I-8 | Refusal-retirement ladder for the `21-I` refusal in `persephone3` ("x13 automatic fit defers calendar/easter/TD/user detection") | 21-I.4 | retire in three steps: calendar-free rsa4/5c passes → TD-effect passes → full parity flag; holidays/user-TD/julian stay refused |
+| I-9 | UserVariables out-of-domain 0-fill and the negative-Ramp sign convention are pinned semantics (accept, document, unit-test) | 21-I.1 | yes — measured, deterministic |
+
+## What this unblocks (downstream map)
+
+- **23-E calendar branch** (TRfull `td(spec, TD2)` + controller): unblocked by
+  21-I.1 + 21-I.3 — the FTEST machine is fully specified with raw-value
+  oracles.
+- **23-G TRfull-FTEST part**: same; the "F-based trading days tests" trace
+  insertion is 21-I.3 replay evidence.
+- **24-E rsafull leg**: needs 23-E/23-G, hence 21-I.1/.3.
+- **X-13 rsa4/rsa5c gap (M4 refusal)**: needs 21-I.1 + 21-I.2 (+ template
+  bytes, already pinned) — the calendar half of the refusal becomes
+  implementable end to end; the automatic-TD *auto-method* half stays gated
+  per I-4.
+- **21-H full-auto consumer**: the calendar/easter branches of regAIC land
+  with 21-I.2 without touching the landed spine.
+
+## Acceptance rules (item-level, inherited)
+
+Every 21-I unit is pinned against the double-captured JVM evidence in
+`tmp_opencode/i21probe/out/capA/` (shas in the pinning notes §6): raw getter
+doubles bit-exact at `%.17g`, matrix rows byte-for-byte, decision indices and
+gate outcomes exact, class-load facts cited (never assumed). Corpus replays
+run in both rkalos lanes; no new tunables — thresholds arrive as spec data
+(`getAicDiff()`, `probabilityForFTest`), never as core constants.
