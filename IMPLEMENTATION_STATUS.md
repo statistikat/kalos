@@ -3120,3 +3120,64 @@ The slice's own evidence gate — 11 probe captures double-captured
 byte-identical, R-lane template re-verification identical and byte-equal to
 the JVM lane — passed; tree changes are this entry plus
 `docs/calendar-roadmap.md`.
+
+## Calendar design generation: `kalos::calendar_generation` lands 21-I.1 — 2026-11-22
+
+The design-algebra layer 23-A registered variables for (deferred there per
+D10) lands bit-exact: `include/kalos/calendar_generation.hpp` mirrors the
+LIVE pinned generation machines `Regression.matrix` drives —
+`GenericTradingDaysFactory` (tdCount, meanDays, all nine day-clustering
+contrasts), `LPFactory` (None/LeapYear/LengthOfPeriod), the `Easter`
+computus with `EasterVariable` (all four corrections × faithful endPosition)
+and `JulianEasterFactory` (JDN conversion), `RampFactory`,
+`TsVariablesFactory` placement and the pinned name/description conventions.
+Per decision I-5 generation covers julian Easter and every duration/
+frequency shape; the {none, 1, 8, 15} DETECTION batteries stay 21-I.2/.3 —
+this unit contains no detection decision. Decision I-9 (user 0-fill, ramp
+sign) pinned via the aligned-dump pairs.
+
+**Oracle.** The primary `gen.out` (4128 lines, sha `cb8d7ac0…01857d`) plus a
+NEW envelope-shape capture `gen2.out` (5904 lines, sha `075d58d6…e30f454`:
+start-offset/quarterly/annual/leapless domains, correction × endPos ×
+boundary-duration variants, eight user alignments, ramp clamps, the full
+`probJulianEaster`/`probEaster` tables) — both double-captured byte-identical
+in two OpenJDK 21 JVMs and now committed under
+`validation/evidence/native/calendar-generation/` (metadata.R pins jars,
+probe `I21Probe.java` sha `c66db448…ab08b2`, runner sha `aa1293d6…e60974`;
+the probe and runner are committed verbatim under `validation/reference/`).
+EVERY machine was first replayed bit-exact in a python reference against
+both corpora (3960 + 5672 matrix rows, ALL MATCH) before C++ was written;
+pinning-note corrections are recorded in the pinning file §8 and the
+contract. Key verdicts: `GenericTradingDays.raw` and `.contrasts` are
+BIT-IDENTICAL (the contrast flag is discarded on the variable path); the
+"reversed" ramp is the ALL-ZERO column (corrects the I.0 note); LeapYear's
+first-leap-year search is bounds-free arithmetic (a leapless range
+completes, −0.25 cells only) and the +0.75 strikes every 4 PERIODS (century
+non-leap years not skipped); LengthOfPeriod subtracts the CONSTANT 365.25/f;
+the Gregorian factory SETS its month-pair shares while the Julian factory
+ADDS (quarterly cells accumulate March+April), with x19 measured to the
+EXCLUSIVE March end and the window `[e−dur, e−1]`; PreComputed indexes
+25-entry mean tables. The probe-side `tdc` month labels are a display bug
+(rows are weekday vectors — verified); jar bugs are not ported
+(`DayClustering.toString` AIOOBE).
+
+**Envelope.** Fail-closed `std::invalid_argument` per the contract table:
+frequency outside {12,4,1} or unaligned month, durations outside [1, 28]
+(PreComputed [1, 25]), annual TD/Easter domains (where the jar silently
+leaves the column empty we REFUSE rather than emit unprobed zeros), user
+data not aligned to the domain frequency, `mean_days_yearly`/
+`ramp_description` beyond their captured ranges. Holiday families keep their
+23-A refusals.
+
+**Gates.** Fresh-tree ctest **75/75 in BOTH lanes** (new
+`test_calendar_generation`, 137 golden cases, 18383 checks, every matrix
+value compared as its captured IEEE-754 bit pattern); raw sweep
+`tools/verify_calendar_generation.cpp` re-drives BOTH captures through the
+public API (123 cases, 9632 row lines, 18305 checks, 0 failures, also clean
+under ASan/UBSan) and is shim-invariant by construction (no JVM transcen-
+dentals — only `strtod` round-trips); all nineteen earlier sweeps
+corpus-invariant (0 failures each); the new unit is bit-identical under the
+thatan/explog/all ±1ulp libm-noise shims and under
+`GLIBC_TUNABLES=glibc.cpu.hwcaps=-AVX2_FMA`; ASan/UBSan lane green for the
+unit (empty sanitizer output); `check-manifest.py` 169/112/275;
+`verify-migration.py` unchanged at 406.

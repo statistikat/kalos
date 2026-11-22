@@ -683,3 +683,22 @@ and two mid-run EcoException prediction-error aborts) and 6 pinned refusals
 classical airline and the fixMa crash D6); the two-variance split
 (`ucm.getModel()` var 1 vs the spec-echo stdev) is pinned at x_wn /
 x_seasonal. See [seats-wk-extraction-contract.md](seats-wk-extraction-contract.md).
+
+## Calendar design generation mirror
+
+`test_calendar_generation.cpp`, the double-captured JVM corpora under
+`validation/evidence/native/calendar-generation/` (`gen.out` primary +
+`gen2.out` envelope shapes), the replay tool
+`tools/verify_calendar_generation.cpp` and the generator
+`tools/gen_calendar_generation_golden.py` qualify `kalos::calendar_generation`
+(the live design-generation layer of 23-A's registered variables:
+`GenericTradingDaysFactory` counts/meanDays/cluster contrasts, `LPFactory`,
+the `Easter` computus with `EasterVariable`/`JulianEasterFactory`,
+`RampFactory`, `TsVariablesFactory` placement and the pinned name
+conventions). 137 golden cases replayed bit-for-bit (17916 captured IEEE
+patterns; the raw/contrast and default/Simple twin identities are pinned as
+double replays); envelope refusals cover annual TD/Easter domains (the jar's
+silent zero-fill is refused, not emitted), duration bounds [1, 28] /
+PreComputed [1, 25] and unaligned domains or user data. Decisions I-5 and I-9
+applied per the 21-I register. See
+[calendar-generation-contract.md](calendar-generation-contract.md).

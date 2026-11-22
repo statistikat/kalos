@@ -133,6 +133,19 @@ every inventory (probe `instanceof` preloading) — only the main-class and
 | 21-I.3 TRAMO calendar controller | `tramo_trading_days_controller` (`TradingDaysController` gate, `Automatic{F,T,Wald}RegressionTest` builder, FTEST Info math on the landed OLS + `f_upper_p`) | `TramoSpec.fromString("TRfull")` → `TramoKernel.process(observer)` | `tramo-TRfull-{tdeff,clean}.out` (213/141 lines): full FT Info raw doubles, gate outcomes, final variable lists; TR2/TR4 controls (no controller) | ~500 lines + 2×9 doubles bit-exact Info replay + gate decisions |
 | 21-I.4 integration + refusal retirement | rsa4/rsa5c template calendar-block expansion (248-byte rows), end-to-end detection replay, `persephone3` refusal ladder | both lanes (R-lane bytes re-verified identical) | template bytes (m4gap + `x13tpl-.out` 193 lines) + the four x13run captures as end-to-end rows | ~300 lines + template byte checks; retires refusals per decision I-8 ladder |
 
+**21-I.1 LANDED 2026-11-22** as `kalos::calendar_generation`
+(`include/kalos/calendar_generation.hpp`, ctest #75
+`test_calendar_generation`). The envelope-shape oracle `gen2-.out` was added
+and double-captured next to the primary `gen-.out`; both now live as the
+committed evidence `validation/evidence/native/calendar-generation/`. All
+five 21-I.0 recommendations that this slice could apply were applied per the
+register: I-5 (generation covers julian + all duration/loP/quarterly shapes;
+the {none, 1, 8, 15} detection batteries stay out of scope) and I-9 (user
+0-fill and the ramp sign convention pinned; the "reversed" ramp is the
+ALL-ZERO column — see the contract's machine list). Raw/contrast bit-identity
+and every machine correction are recorded in
+`docs/contracts/calendar-generation-contract.md`.
+
 Non-goals: holiday-corrected TD / stock days / TDuser columns (no detection
 module exists; keep the 23-A refusals), `DayClustering.toString()` (jar bug,
 throws — never port), user-variable *detection* (does not exist), quarterly
