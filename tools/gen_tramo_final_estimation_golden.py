@@ -19,8 +19,18 @@ replay layer tests/test_tramo_final_estimation.cpp):
   TC   in = [tsig, sample_length, p, d, q, bp, bd, bq, npar, par...,
              nvd, vd...]                          exp = [total, p, d, q, bp, bd, bq]
        text = the "arima spec changed" info detail, empty when absent
-  EST  inert: the live estimate() driver rows replay with the 23-F F.2
-       round loop; text = "<return> <nnsig> <orders...>"
+  EST  in = [n, mean, eps-bits, ur-bits, pass, ami, outliers,
+             orders(p,d,q,bp,bd,bq; p = -1 flags airline), fam-kind]
+       exp = [return, nnsig, mean_out, p, d, q, bp, bd, bq, np, par-bits...,
+              cl_state (0 estimation-null, 1 full, 2 cov-null),
+              cl_dim, ssq-bits, nc, coef-bits..., nv, vd-bits...,
+              n_events, (kind, depth)*...]
+       event kind codes: 1 push, 2 pop, 3 remark, 4 info, 5 error, 6 warn.
+       fam-kind: 0 none, 1 ls, 2 out2 (replay rebuilds the SECTION-1
+       family with detail::fdlibm_sin/fdlibm_cos - the probe recipe is
+       StrictMath-only, i.e. the bytecode FdLibm path that the landed
+       transcription mirrors bit-exactly, so the series is reproducible
+       from the case facts alone). `text` stays empty for EST rows.
 
 Integer slots carry their value; double slots carry raw bits. Regenerate:
   python3 tools/gen_tramo_final_estimation_golden.py \
@@ -100,7 +110,8 @@ def orders_from(line):
 
 def emit_array(out, name, values):
     out.append("static const uint64_t %s[] = {%s};" % (name,
-        ", ".join("0x%016xULL" % v for v in values) if values else "0"))
+        ", ".join("0x%016xULL" % (v & 0xFFFFFFFFFFFFFFFF) for v in values)
+        if values else "0"))
     return len(values)
 
 
@@ -192,11 +203,70 @@ def main():
                 if "obj arima spec changed det" in line:
                     text = line.split("det ")[1]
         elif ctype == "fe_est":
-            tin, texp = [], []
-            ret = next(l.split()[1:3] for l in block if l.startswith("est_return"))
-            oline = next((l for l in block if l.startswith("est_out")), None)
-            oints, _ = orders_from(oline) if oline else ([0] * 6, [])
-            text = " ".join(ret) + " " + " ".join(str(x) for x in oints)
+            # `in` facts come from the cases file (doubles via the capture's
+            # exact gb() bits); everything else is the observed final state.
+            cap_in = next(l for l in block if l.startswith("in "))
+            ctoks = cap_in.split()
+            f_eps = bits_of_fact(ctoks[ctoks.index("eps") + 1])
+            f_ur = bits_of_fact(ctoks[ctoks.index("ur") + 1])
+            f_mean = int(ctoks[ctoks.index("mean") + 1])
+            f_n = int(ctoks[ctoks.index("n") + 1])
+            f_pass = int(ctoks[ctoks.index("pass") + 1])
+            f_ami = int(ctoks[ctoks.index("ami") + 1])
+            f_out = int(ctoks[ctoks.index("outliers") + 1])
+            fam = toks[2]
+            assert int(toks[3]) == f_n and (toks[4] == "y") == (f_mean == 1)
+            if int(toks[7]) != f_pass or (toks[8] == "y") != (f_ami == 1) \
+                    or (toks[9] == "y") != (f_out == 1):
+                raise SystemExit("est row %s: cases/capture mismatch" % cid)
+            if fam not in ("none", "ls", "out2"):
+                raise SystemExit("est row %s: family %s not replayable" % (cid, fam))
+            if toks[10] == "air":
+                ovals = [-1, 0, 0, 0, 0, 0]
+            else:
+                ovals = [int(x) for x in toks[10].split(",")]
+                assert len(ovals) == 6
+            tin = [f_n, f_mean, f_eps, f_ur, f_pass, f_ami, f_out] + ovals \
+                + [{"none": 0, "ls": 1, "out2": 2}[fam]]
+            if any(l.startswith("threw ") for l in block):
+                raise SystemExit("est row %s: exception path not replayed" % cid)
+            ret = next(l.split() for l in block if l.startswith("est_return"))
+            oline = next(l for l in block if l.startswith("est_out"))
+            oints, opars = orders_from(oline)
+            mean_out = int(next(l.split()[1] for l in block
+                                if l.startswith("mean_out")))
+            # Cl/observation block: three states (no estimation, full,
+            # covariance-null - distinguished by where the probe's dump died).
+            if any(l.startswith("cl_unavailable") for l in block):
+                ua = next(l for l in block if l.startswith("cl_unavailable"))
+                if any(l.startswith("cl_dim ") for l in block):
+                    state = 2  # estimation present, asymptoticCovariance null
+                elif ua.split()[1] != "java.lang.NullPointerException":
+                    raise SystemExit("est row %s: unexpected cl failure" % cid)
+                else:
+                    state = 0  # getEstimation() null (setSpecification after cancel)
+            else:
+                state = 1
+            cl_dim, ssq, coefs, vds = 0, 0, [], []
+            if state in (1, 2):
+                cline = next(l.split() for l in block if l.startswith("cl_dim "))
+                cl_dim, ssq = int(cline[1]), bits_of_fact(cline[3])
+                coefs = [bits_of_fact(l.split()[1])
+                         for l in block if l.startswith("coef ")]
+            if state == 1:
+                vds = [bits_of_fact(l.split()[2])
+                       for l in block if l.startswith("vd ")]
+            events = []
+            kind_codes = {"push": 1, "pop": 2, "remark": 3, "info": 4,
+                          "error": 5, "warn": 6}
+            for l in block:
+                if l.startswith("evt "):
+                    et = l.split()
+                    events += [kind_codes[et[2]], int(et[3])]
+            texp = ([int(ret[1]), int(ret[3]), mean_out] + oints + [len(opars)]
+                    + opars + [state, cl_dim, ssq, len(coefs)] + coefs
+                    + [len(vds)] + vds + [len(events) // 2] + events)
+            text = ""
         else:
             raise SystemExit("unknown case type " + ctype)
         name = cid.replace("-", "_")

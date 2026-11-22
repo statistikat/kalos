@@ -190,8 +190,10 @@ void replay_all() {
             replay_tc(r);
             break;
         case golden_tfe::TFE_EST:
-            // Inert until the F.2 round-loop replay lands: pinned present.
-            CHECK(std::strlen(r.text) > 0);
+            // Inert until the F.2 round-loop replay lands: pinned present -
+            // request facts (n, mean, eps, ur, pass, ami, outliers, orders,
+            // family) in `in`, the observed final state in `exp`.
+            CHECK(r.in_n == 14);
             ++est;
             break;
         }
