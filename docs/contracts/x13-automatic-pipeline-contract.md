@@ -692,8 +692,11 @@ RUNPATH-pinned provider) — the divergent results do not reach any bit-claimed
 export. After routing, no bit claim READS host libm bits anymore: on another
 machine the same golden bits are produced by the same vendored code, which
 is exactly what machine independence requires. The shim battery confirms the
-mechanism: ledger-all@100 noise (1 ulp on EVERY distinct reached argument)
-is now inert for every routed suite.
+mechanism: under ledger-all@100 noise (1 ulp on EVERY distinct reached
+host-libm argument) all 22 bit-claim suites are byte-identical to their
+unaided runs (tools/ci-shim-invariance.sh; the last two reactions found
+were TEST-side expected-value recomputations through raw host pow/log,
+since routed to the same vendored lineage the goldens pin).
 
 Ledger — remaining raw host libm (all proof-closed or band-tier):
 - regression_likelihood.cpp Cholesky-diagonal log: census-proven UNREACHED
@@ -716,4 +719,18 @@ known-answer grids — informational against patched host libms — plus
 lapack_shim}.cpp + tools/ci-shim-invariance.sh (plain / ledger-all@100 /
 lapack1@100 battery; ledger cells are strict post-flip, lapack1 divergences
 reported for honest provider-headroom tracking).
+
+Provider headroom (lapack1@100 = 1 ulp on EVERY distinct LAPACK/BLAS
+top-level output; far beyond any real provider delta, kept as the strict
+worst case): four suites react, all in families already documented —
+estimation_control drifts only reported band statistics (ll delta
+1.71e-13 -> 1.99e-13, orders inside band); x13_automatic_oracle moves the
+diff-search tmean worst 3.1e-3 -> 6.25e-3, crossing the 5e-3 band on
+multi/diff0/tmean (1 of 13 cases); arma_identification flips one
+cancellation-boundary decision; diffuse_state_space loses one bit-equality
+on standardized innovations. No band was widened for this: at this noise
+level the diff-tmean family would need re-measurement as a product
+decision, and no provider in the qualification matrix comes close to
+all-outputs-1-ulp (the qualified provider reproduces the goldens exactly,
+75/75 on both lanes with the RUNPATH-pinned build).
 
