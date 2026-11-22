@@ -74,6 +74,7 @@ add_library(kalos STATIC
   src/ssq_levmar.cpp
   src/ssq_deviances.cpp
   src/state_space.cpp
+  src/tramo_arma_selection.cpp
   src/tramo_differencing_battery.cpp
   src/tramo_differencing_decision.cpp
   src/tramo_model_builder.cpp
@@ -210,6 +211,7 @@ if(KALOS_BUILD_TESTS)
     test_residual_information
     test_special_functions
     test_state_space
+    test_tramo_arma
     test_tramo_differencing
     test_tramo_differencing_battery
     test_tramo_model_builder

@@ -637,3 +637,33 @@ estimation-state facts of
 `validation/reference/fcdf_golden.txt`, double capture byte-identical); the
 multi-round driver and the io = y cases stay 23-F. See
 [tramo-differencing-decision-contract.md](tramo-differencing-decision-contract.md).
+
+## TRAMO arma selection mirror
+
+`test_tramo_arma.cpp`, the double-captured 16-case JVM corpus under
+`validation/evidence/native/tramo-arma-selection/` and the generator
+`tools/gen_tramo_arma_golden.py` qualify `kalos::select_tramo_arma` (item
+23-D): the LIVE `internal.ArmaModule.process` — the `comespa`/`maxInic`
+size gate with the default-model and already-airline branches, the
+`calcmaxspec` candidate envelope, the three-stage `ArmaModelSelector` grid
+(seasonal AR-block, ARMA, seasonal), the per-candidate Hannan-Rissanen +
+`isStable(true)` + `FastKalmanFilter.fastProcessing` fast-BIC sort, the
+`getPreferred` pick, the `mergeInto` watermark merge into the five-row
+`hrModels` panel and the eleven-gate `select()` tie-break (alpha tiers
+{0.003→0.0625, 0.03→0.25, else 1}, budgets {0.01, 0.0025, 0.0075},
+per-accept relief). The selector input is the `olsResiduals` hand-over
+(request data, length `n − (d + period·bd)`, `nobs` carried separately for
+the gate). All 14 replayed cases are IEEE-754 bit-exact (the `selected
+model:` colon, the five `dpanel` BICs and the full ProcessingLog event
+sequence), the quarterly case pins the D11 refusal and the constant series
+pins the upstream `olsResiduals` NPE (record-only); a `-Xlog:class+load`
+witness proves the HR + fast-conditional-BIC engine (HannanRissanen +
+`core.arima.estimation.FastKalmanFilter` + `core.arima.AutoCovarianceFunction`
+loaded, `RegSarimaComputer`/
+`GlsSarimaComputer`/`internal.HannanRissanenInitializer`/
+`LevenbergMarquardtMinimizer` zero-loaded — no ML). The unit reuses the
+qualified `hannan_rissanen_pipeline`, `pinned_fast_filter_residuals` and
+`check_roots` units bit-for-bit and adds only the FastBIC panel machine.
+`tools/verify_tramo_arma_selection.cpp` re-drives the raw corpus (14
+replayed, 1 refusal, 1 record-only, 0 failures); shim-invariant. See
+[tramo-arma-selection-contract.md](tramo-arma-selection-contract.md).

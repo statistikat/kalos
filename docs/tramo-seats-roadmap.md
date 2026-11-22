@@ -225,6 +225,31 @@ pinned values without a maintainer ruling (the 21 precedent).
   call site never executed on the probe series — `HannanRissanen` is not
   class-loaded there, so the corpus must force candidate estimation). (No relation
   to 21-E/F; expected to be a genuinely new engine port.)
+- **LANDED 2026-11-22 (23-D: ArmaModule + ArmaModelSelector FastBIC).**
+  `kalos::select_tramo_arma` transcribes the live `ArmaModule.process` —
+  the `comespa`/`maxInic` gate (monthly pcnt ∈ {3,2,0}, the 68/62 airline
+  thresholds, `checkespa`'s bare second-gate autlar sign), the
+  `calcmaxspec`/`checkmaxspec` order tables (the real divergence:
+  `calcmaxspec` bp = bq = 1 unconditional on bd, `checkmaxspec` bp = 1
+  only at bd == 0), the three-stage selector with the `getPreferred` pick,
+  the `mergeInto` watermark merge and the eleven-gate `select()` tie-break
+  (alpha tiers 0.0625/0.25/1.0, budgets 0.01/0.0025/0.0075, per-accept
+  relief) — on the qualified HR seam plus the FastBIC
+  `log(ssq/n) + k·log(n)/n` over the pinned `pinned_fast_filter_residuals`
+  (fdlibm logs), bit-exact on 14 module-line cases + the D11 quarterly
+  refusal of the 16-case double-captured corpus
+  `validation/evidence/native/tramo-arma-selection/` (probe in the
+  `tramo.internal` split package reading the package-private gates;
+  `--repro` 7 files byte-identical; SHA256SUMS verified; the constant
+  series pins the upstream `olsResiduals` NPE record-only). The
+  `-Xlog:class+load` witness (decoded bytecode corroborated) pins HR +
+  fast conditional BIC with ZERO `RegSarimaComputer`/`GlsSarimaComputer`/
+  `internal.HannanRissanenInitializer`/`LevenbergMarquardtMinimizer` loads
+  — no ML machine. OLS residuals are request data (upstream regression
+  stage); the multi-round driver stays 23-F. Sweep
+  `tools/verify_tramo_arma_selection.cpp` 14 replayed + 1 refusal + 1
+  record-only, 0 failures; shim-invariant (thatan/explog/all + no-AVX2).
+  Contract `tramo-arma-selection`.
 - **23-E — `run_tramo_regression_tests`**: `TradingDaysController` FTEST/Wald/T
   families plus the `FastRegressionTest`/`Default`/`Automatic{,Wald}` family and
   the `ModelStatistics` measures the `iterate`/`pass2` `refStats` gate consumes —

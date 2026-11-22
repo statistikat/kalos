@@ -2773,3 +2773,81 @@ empty sanitizer output and the identical battery summary;
 the battery content rode in `6fb8b72` (the staged index collided with an
 orchestrator workflow-guard commit); slice 23-C.2 is the pair `6fb8b72` +
 this addendum (dated entry + contracts-README index update).
+
+## TRAMO arma selection: slice 23-D lands `kalos::select_tramo_arma` — 2026-11-22
+
+**Scope.** The live `internal.ArmaModule.process` arma selection with the
+`ArmaModelSelector` FastBIC machine, monthly domain (register D11). The
+unit owns the `comespa`/`maxInic` gate with the default-model and
+already-airline branches, the `calcmaxspec` envelope, the three-stage
+selector grid (stage-1 seasonal AR-block on the (3,0) base, stage-2 ARMA
+on the preferred, stage-3 seasonal), the per-candidate HR +
+`isStable(true)` + FastBIC sort, `getPreferred`, the `mergeInto` watermark
+merge into the five-row panel and the eleven-gate `select()` tie-break; the
+selection stage touches NO maximum-likelihood engine. The selector input is
+the `olsResiduals` hand-over (request data; length `n − (d + period·bd)`),
+`nobs` rides separately for the gate. Reuses `hannan_rissanen_pipeline`,
+`pinned_fast_filter_residuals`, `check_roots` and the fdlibm logs
+bit-for-bit; the new code is only the FastBIC panel machine
+(`log(ssq/n) + k·log(n)/n`, ssq the finite-innovation forward fold).
+
+**Corpus and witness.** `validation/evidence/native/tramo-arma-selection/`
+(9 files, `SHA256SUMS.csv` verified): 16 cases (Changed/Unchanged/
+Unprocessed/Failed, pcnt 3/2/0, the wn flag, seasonal=false + the WN-return
+gate, noise, flat entries, log channel, quarterly refusal, constant-series
+upstream failure), double capture byte-identical (`--repro`, 7 data files);
+the probe lives in the `tramo.internal` split package to read the
+package-private `comespa`/`maxInic`/`calcmaxspec` as the module calls them;
+`-Xlog:class+load` witnesses (`load-witness.csv`, loadlogs a_base/a_srw)
+load HannanRissanen 3×, `core.arima.estimation.FastKalmanFilter` 1× and
+`core.arima.AutoCovarianceFunction` 3× with ZERO `RegSarimaComputer`/
+`GlsSarimaComputer`/`internal.HannanRissanenInitializer`/
+`LevenbergMarquardtMinimizer` loads — HR + fast conditional BIC, no ML,
+decoded and witnessed.
+
+**Replay.** `test_tramo_arma` (ctest #38): 15 live cases (14 module-line +
+the D11 quarterly refusal) bit-exact — `direct_sel`, five `dpanel` rows,
+`arm_result`, `after` and the full ProcessingLog event sequence with the
+CInfo detail (`armaInfo best=… m0=… b0=…`); the CInfo detail's glued
+`b2=<bic>` tokens are split at `=` and compared by re-parsed bit pattern
+(Java `%.17g` shortest-vs-C exact renderings differ textually). The
+constant-series case is record-only (its `olsResiduals` NPE upstream leaves
+no hand-over); the `pcnt`/`maxspec` gate lines and `resvals` vectors ride
+inert. Sweep `tools/verify_tramo_arma_selection.cpp` re-drives the raw
+corpus: 14 replayed, 1 D11 refusal, 1 record-only, 0 failures; the shared
+renderer `tests/tramo_arma_replay.h` is used by both.
+
+**Transcription findings (contract, pinning §13).** (1) `checkespa`'s
+second gate is the BARE autlar sign on `n − p − period·bp` — the pre-decode
+note carried a phantom subtraction; the `n = 56` flat capture discriminates
+(it flipped a_default from Changed to Unprocessed). (2) `calcmaxspec` and
+`checkmaxspec` keep DIVERGENT seasonal order tables: `calcmaxspec` sets
+bp = bq = 1 for m ∈ {1,2,3} UNCONDITIONALLY on bd, `checkmaxspec` only at
+bd == 0 (the earlier shared-table note was wrong). (3) The ProcessingLog
+convenience overloads `info(String, Object)`/`remark(String, Object)`
+default-route as `kind(null, message, detail)` — the human text arrives in
+the OPERATION argument and the Observer prints the first non-null string
+(the captured "selected model:" line pins the routing). (4) The probe
+needs `timeseries.Describe`-level construction in-package; the witness
+class names are the `core.arima.estimation` FastKalmanFilter (NOT the
+subsample-arima homonym). (5) The module's info line is "selected model: "
+WITH colon (the bytecode string constant; a note dropped it).
+
+**Fail-closed set.** Non-monthly period, empty/non-finite residuals:
+`std::invalid_argument` (D11; never the X-13 21-E/F fallback). HR seam
+exceptions, fast-filter aborts (the pinned ArimaException/AIOOBE mirror)
+and the null/empty-panel selection follow the live RuntimeException catch
+into Failed with the specification left as-is; negative probes in the unit
+pin the refusal.
+
+**Gates.** Fresh-tree ctest **72/72 in BOTH lanes** (new `test_tramo_arma`,
+#38); all seventeen existing sweeps re-run corpus-invariant at 0 failures
+(arma-refinement 423, decompose 81, differencing 39, estimation-control
+27, final-info 266, initial-ARMA 4368, outlier-scoring 98, regression 494,
+builder 22, validator 35/1026, transformation 11, x11 b/c/d 18/18/22,
+allocation 280, fit 528, automatic 71401); ASan/UBSan `test_tramo_arma`
+exit 0 (15 cases verified); shim-invariance of the new unit
+(modes thatan/explog/all + `GLIBC_TUNABLES=glibc.cpu.hwcaps=-AVX2_FMA`,
+unit and sweep bit-identical — the FastBIC logs are fdlibm-pinned);
+`check-manifest.py` **159/112/265**; `verify-migration.py` 406; evidence
+SHA256SUMS verified (8 files).
