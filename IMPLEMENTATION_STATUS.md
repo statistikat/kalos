@@ -3181,3 +3181,83 @@ thatan/explog/all ±1ulp libm-noise shims and under
 `GLIBC_TUNABLES=glibc.cpu.hwcaps=-AVX2_FMA`; ASan/UBSan lane green for the
 unit (empty sanitizer output); `check-manifest.py` 169/112/275;
 `verify-migration.py` unchanged at 406.
+
+## CI machine-independence completion: CI-FIX-2 vendors the hostlineage lineage and runs the shim-invariance battery — 2026-11-22
+
+**Finding.** The qualification machine's libm (Ubuntu glibc 2.39-0ubuntu8.8)
+is NOT the upstream glibc-2.39 generic dbl-64 C lineage its version number
+claims: sin/cos resolve through x86-64 multiarch IFUNCs and exp/log/pow/
+asin/acos/atan2 deviate from the pinned C sources on rare points. A
+three-way harness (vendored vs original-C compiled out-of-tree vs host,
+17M+ points per kernel) shows the vendored kernels are bit-identical to the
+ORIGINAL glibc code (0 mismatches, all 9 kernels) while the host is the odd
+one out. Dense-grid equality with an arbitrary distro libm is therefore
+unattainable by construction and was never the gate: the gates are
+corpus-reached-argument replay, machine-independent known-answer digests,
+and golden invariance.
+
+**Leg A — vendored hostlineage kernels.**
+`include/kalos/detail/hostlineage.hpp` + `src/hostlineage{,_tables}.cpp`:
+operation-for-operation transcriptions of glibc 2.39 dbl-64 sin/cos
+(+ branred big-argument reduction), exp, log, pow, hypot, atan2, acos
+(asin proof-only), multiarch FMA/TOINT branches compiled out (the generic-C
+path), eight constant tables generated and SHA-pinned against the exact
+upstream files (byte-identical when re-parsed as C). Licensing: an LGPL-2.1+
+transcription inside an MIT tree, flagged with the pre-existing JVM-fdlibm
+transcription for the licensing review — separate lineages, coexisting.
+Routed every corpus-reachable double-precision host-libm bit-claim site:
+31 calls across 14 files (hypot×6 files, cos/sin in ucarima_engine +
+seats_ucarima_model + seats_linear_filters fu_freq, pow×4, atan2, acos,
+exp×7 results builders, log×2) plus three TEST-side expected-value
+recomputations. Census replay of all 57 test corpora + 13 recorded sweep
+corpora + 16 golden-capture corpora (~88M distinct-argument replays):
+hypot/log/pow/atan2/acos/asin 0 divergences; sin/cos/exp show 888 host
+divergences (sin 651, cos 115, exp 122) — all PROVEN INERT: full ctest and
+all twenty sweeps stay bit-identical with the vendored bits in the path.
+`tools/verify_hostlineage.cpp` gate reworked: 59 pinned edge vectors +
+SHA-256 over the FULL dense-grid output bit stream of each kernel
+(machine/ISA/compiler-invariant under -ffp-contract=off; verified -O0/-O3),
+--census-only corpus fingerprinting, --host probe informational,
+--print-kat regeneration.
+
+**Leg B — CI provider pinning.** `.github/workflows/core.yml`: pin comment
+recording the locked tarball SHA (cd7e1298…, enforced by
+tools/build-openblas.py) and the qualification provider .so SHA (84de4eab…);
+the built-OpenBLAS cache key embeds the tarball SHA so a lock bump can
+never resurrect a stale provider; a never-failing Provider fingerprint step
+reports the LIVE provider .so hash and the runner libm identity on every
+leg; extended diagnostics behind the existing `|| true` guards keep the
+first-failing log visible. macOS legs stay informational-until-item-25 —
+honest posture, matrix unchanged.
+
+**Leg C — shim-invariance acceptance battery.** `tools/diagnostics/
+{libm_shim,lapack_shim}.cpp` (DIAGNOSTIC ONLY; deterministic ±1 ulp at the
+libm or provider boundary, plus the record mode that fed the census) and
+`tools/ci-shim-invariance.sh` driving 22 bit-claim suites through
+plain / ledger-all@100 / lapack1@100. Verdict: **22/22 ledger cells
+byte-identical** — every bit claim now reads vendored code, not host bits.
+The last two reactions found were test-side recomputations through raw
+host pow/log (since routed). The informational lapack1@100 cell (1 ulp on
+EVERY provider output — far beyond any real provider delta) reacts on
+exactly the four documented families: oracle diff-tmean worst 3.1e-3 →
+6.25e-3 crossing the 5e-3 band on 1/13 cases; EC band statistics drift
+orders inside band; one arma_identification boundary decision; one diffuse
+bit-equality. No band widened; the qualified provider reproduces the
+goldens exactly.
+
+**Gates.** Fresh ctest **75/75 in BOTH lanes** post-flip (ON 921s, OFF
+1041s, RUNPATH-pinned provider); all twenty verify sweeps against the
+flipped archive reproduce their recorded counts with 0 failures (WK 126/0,
+calendar 18305/0, tramo arma-selection 14+1+1, automatic 71401/0,
+decompose 81/0, bpass 18/18, EC 27/0 …), and seven of them record ZERO
+ledger-libm calls (provably inert by construction); ASan/UBSan clean on
+all eleven touched-kernel units; `check-manifest.py` 176/112/275;
+`verify-migration.py` unchanged at 406.
+
+**Gaps (honest).** Run #22's per-leg junit artifacts were unreachable from
+this environment (401/403, no token) — the run-#22 table in the CI-FIX-2
+verdict stays the record. macOS legs remain informational until the
+item-25 long-double decision (x87-vs-quadmath is a semantic choice, not a
+transcription). The lapack1@100 extreme cell marks the diff-tmean family
+as the one place where a hypothetical all-1-ulp provider would need a band
+re-measurement as a product decision.
