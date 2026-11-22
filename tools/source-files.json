@@ -30,6 +30,7 @@
     "include/kalos/detail/seats_acf_solver.hpp",
     "include/kalos/detail/seats_linear_filters.hpp",
     "include/kalos/detail/seats_ucarima_model.hpp",
+    "include/kalos/detail/seats_wk_estimators.hpp",
     "include/kalos/detail/special_functions.hpp",
     "include/kalos/detail/ssq_deviances.hpp",
     "include/kalos/detail/ssq_levmar.hpp",

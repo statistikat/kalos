@@ -22,9 +22,16 @@
 // LinearProcess.lazy acf (one- and two-sided denominators) and Symmetric-
 // Filter.decompose (length-1 scaling path + Toeplitz path + bare
 // MatrixException) - goldens from /tmp/opencode/ssf/AcfProbe.java
-// (acfA.txt == acfB.txt, double capture 2026-11-22).
+// (acfA.txt == acfB.txt, double capture 2026-11-22). Cluster 3 adds the WK
+// estimator builder (include/kalos/detail/seats_wk_estimators.hpp):
+// WienerKolmogorovEstimators over six hand-built UcarimaModel shapes
+// (general/special paths, unit roots, symmetric factorizing components,
+// single-component complement NULL fold), replaying
+// tests/wk_goldens.inc from /tmp/opencode/ssf/WKProbe.java
+// (wkA.txt == wkB.txt, double capture 2026-11-22).
 #include "kalos/detail/seats_linear_filters.hpp"
 #include "kalos/detail/seats_acf_solver.hpp"
+#include "kalos/detail/seats_wk_estimators.hpp"
 
 #include <cstdio>
 #include <cstdlib>
@@ -101,6 +108,8 @@ void chk_true(const std::string& tag, bool cond) {
 using namespace kalos::detail;
 using namespace kalos::detail::seats_lfilters;
 namespace sa = kalos::detail::seats_acf;
+namespace sm = kalos::detail::seats_model;
+namespace swk = kalos::detail::seats_wk;
 
 // Poly.get sweep with the AIOOBE-parity stop (probe poly() helper semantics).
 void poly_vals(const Poly& p, int n, vd& out, bool& threw) {
@@ -117,6 +126,308 @@ void poly_vals(const Poly& p, int n, vd& out, bool& threw) {
 }
 
 void series(RatFunc& rf, int n, vd& out) { out = rf.coefficients(n); }
+
+// ---- J: WK estimator builder (seats_wk_estimators.hpp) -------------------
+// Bit-exact replay of /tmp/opencode/ssf/WKProbe.java (WienerKolmogorov-
+// Estimators over six hand-built UcarimaModel shapes: general path, dual
+// stationary AR, SPECIAL path, unit roots, symmetric (factorizing) com-
+// ponents, single component). Goldens: tests/wk_goldens.inc (double
+// capture, wkA.txt == wkB.txt, 2026-11-22). The call ORDER mirrors the
+// probe line by line; ".filt"/acf exception lines carry the JVM's throw.
+#include "wk_goldens.inc"
+
+const char* wk_find(const std::string& tag) {
+  for (const auto& e : WK_G)
+    if (tag == e.tag) return e.gold;
+  return nullptr;
+}
+void wk_arr(const std::string& tag, const vd& got) {
+  const char* g = wk_find(tag);
+  if (!g) {
+    ++g_checks;
+    report("wk golden missing: " + tag);
+    return;
+  }
+  chk(tag, got, false, std::string(g));
+}
+void wk_d(const std::string& tag, double got) {
+  const char* g = wk_find(tag);
+  if (!g) {
+    ++g_checks;
+    report("wk golden missing: " + tag);
+    return;
+  }
+  chk1(tag, got, g);
+}
+void wk_null(const std::string& tag) {
+  ++g_checks;
+  const char* g = wk_find(tag);
+  if (!g || std::strcmp(g, "NULL") != 0) report(tag + ": expected NULL golden");
+}
+void wk_ex(const std::string& tag) {
+  ++g_checks;
+  const char* g = wk_find(tag);
+  if (!g || std::strcmp(g, "EX") != 0) report(tag + ": expected EX golden");
+}
+
+sm::AModel wk_am4(const vd& ar, const vd& del, const vd& ma, double var) {
+  sm::AModel a;
+  a.ar = p_of(vd(ar));
+  a.delta = p_of(vd(del));
+  a.symmetric = false;
+  a.has_ma = true;
+  a.ma1 = p_of(vd(ma)).c;  // BackFilter.ofInternal (trim)
+  a.var = var;
+  return a;
+}
+sm::AModel wk_am3(const vd& ar, const vd& del, const vd& sma) {
+  sm::AModel a;
+  a.ar = p_of(vd(ar));
+  a.delta = p_of(vd(del));
+  a.symmetric = true;
+  a.sma = sm::SymF(trim_copy(vd(sma)));  // SymmetricFilter.ofInternal
+  a.has_ma = false;
+  a.var = 0.0;
+  return a;
+}
+vd wk_wts(RationalFilter& rf, int lo, int hi) {
+  vd w;
+  for (int t = lo; t <= hi; ++t) w.push_back(rf.weight(t));
+  return w;
+}
+vd wk_acf_get(sa::Acf& ac, int n) {
+  vd v;
+  for (int i = 0; i < n; ++i) v.push_back(ac.get(i));
+  return v;
+}
+
+void wk_dump_est(const std::string& tag, swk::WkEstimators& E, int comp, bool side) {
+  std::string k = tag + ".c" + std::to_string(comp) + (side ? "T" : "F");
+  std::optional<swk::WkEstimator> e;
+  try {
+    e = E.final_estimator(comp, side);
+  } catch (const std::exception&) {
+    wk_ex(k);
+    return;
+  }
+  if (!e.has_value()) {
+    wk_null(k);
+    return;
+  }
+  try {
+    wk_arr(k + ".wkf", wk_wts(e->wkf, -6, 10));
+    wk_d(k + ".iv", e->est.get_innovation_variance());
+    wk_arr(k + ".lpf", wk_wts(e->est.get_filter(), -2, 12));
+  } catch (const std::exception&) {
+    wk_ex(k + ".filt");
+  }
+  try {
+    wk_arr(k + ".acf", wk_acf_get(e->est.get_auto_covariance_function(), 9));
+  } catch (const std::exception&) {
+    wk_ex(k + ".acf");
+  }
+}
+
+void wk_case(const std::string& tag, const sm::UcarimaModel& um, const sm::AModel& outer,
+             int n) {
+  swk::WkEstimators E(&um, outer);
+  for (int c = 0; c < n; ++c) {
+    wk_dump_est(tag, E, c, false);
+    wk_dump_est(tag, E, c, true);
+  }
+  for (int c = 0; c < n; ++c) {
+    std::string k = tag + ".e" + std::to_string(c);
+    std::optional<sm::AModel> em;
+    try {
+      em = E.final_error_model(c);
+    } catch (const std::exception&) {
+      wk_ex(k);
+      continue;
+    }
+    if (!em.has_value()) {
+      wk_null(k);
+      continue;
+    }
+    try {
+      wk_arr(k + ".ar", swk::am_stationary_ar(*em).p.c);
+      wk_arr(k + ".delta", swk::am_non_stationary_ar(*em).p.c);
+      wk_arr(k + ".sma", em->symmetric_ma().a);
+      wk_arr(k + ".ma", em->get_ma().p.c);
+      wk_d(k + ".iv", em->get_iv());
+      sa::Acf ac = sa::am_acf(*em);
+      wk_arr(k + ".acf", wk_acf_get(ac, 7));
+    } catch (const std::exception&) {
+      wk_ex(k);
+    }
+  }
+  for (int c = 0; c < n; ++c)
+    for (int side = 0; side < 2; ++side) {
+      std::string k = tag + ".s" + std::to_string(c) + std::to_string(side);
+      std::optional<swk::StationaryTransformation> st;
+      try {
+        st = E.final_stationary_estimator(c, side != 0);
+      } catch (const std::exception&) {
+        wk_ex(k);
+        continue;
+      }
+      if (!st.has_value()) {
+        wk_null(k);
+        continue;
+      }
+      try {
+        wk_arr(k + ".lpf", wk_wts(st->proc.get_filter(), -2, 12));
+        wk_d(k + ".iv", st->proc.get_innovation_variance());
+        wk_arr(k + ".delta", st->delta.p.c);
+      } catch (const std::exception&) {
+        wk_ex(k);
+      }
+    }
+  for (int c = 0; c < n; ++c) {
+    std::string k = tag + ".r" + std::to_string(c);
+    for (int hh : {-1, 0, 1, 2, 3}) {
+      std::string kk = k + ".h" + std::to_string(hh);
+      try {
+        std::optional<sa::LinearProc> rm = E.revision_model(c, hh);
+        if (!rm.has_value()) {
+          wk_null(kk);
+          continue;
+        }
+        wk_arr(kk + ".f", wk_wts(rm->get_filter(), -2, 14));
+        wk_d(kk + ".iv", rm->get_innovation_variance());
+      } catch (const std::exception&) {
+        wk_ex(kk);
+      }
+    }
+  }
+  {
+    const int pns[6][2] = {{0, 8}, {1, 8}, {3, 8}, {-1, 4}, {-2, 4}, {0, 1}};
+    for (int c = 0; c < n; ++c) {
+      std::string k = tag + ".rv" + std::to_string(c);
+      for (int s = 0; s < 2; ++s)
+        for (const auto& pn : pns) {
+          std::string kk = k + (s ? "T" : "F") + std::to_string(pn[0]) + "_" +
+                           std::to_string(pn[1]);
+          try {
+            wk_arr(kk, *E.revision_variance(c, s != 0, pn[0], pn[1]));
+          } catch (const std::exception&) {
+            wk_ex(kk);
+          }
+        }
+    }
+  }
+  {
+    const int pns[3][2] = {{0, 8}, {2, 8}, {-1, 4}};
+    for (int c = 0; c < n; ++c) {
+      std::string k = tag + ".rr" + std::to_string(c);
+      for (const auto& pn : pns) {
+        std::string kk = k + std::to_string(pn[0]) + "_" + std::to_string(pn[1]);
+        try {
+          wk_arr(kk, *E.relative_revision_variance(c, true, pn[0], pn[1]));
+        } catch (const std::exception&) {
+          wk_ex(kk);
+        }
+      }
+    }
+  }
+  {
+    const int pns[3][2] = {{0, 8}, {2, 8}, {-1, 4}};
+    for (int c = 0; c < n; ++c) {
+      std::string k = tag + ".tv" + std::to_string(c);
+      for (const auto& pn : pns) {
+        std::string kk = k + std::to_string(pn[0]) + "_" + std::to_string(pn[1]);
+        try {
+          wk_arr(kk, *E.total_error_variance(c, true, pn[0], pn[1]));
+        } catch (const std::exception&) {
+          wk_ex(kk);
+        }
+      }
+    }
+  }
+  for (int c = 0; c < n; ++c) {
+    std::string k = tag + ".ta" + std::to_string(c);
+    for (int hh : {0, 1}) {
+      std::string kk = k + ".h" + std::to_string(hh);
+      try {
+        sa::Acf f = E.total_error_acf(c, hh);
+        wk_arr(kk, wk_acf_get(f, 8));
+      } catch (const std::exception&) {
+        wk_ex(kk);
+      }
+    }
+    try {
+      sa::Acf f = E.revision_acf(c, 0);
+      wk_arr(k + ".r0", wk_acf_get(f, 8));
+    } catch (const std::exception&) {
+      wk_ex(k + ".r0");
+    }
+  }
+  for (int c = 0; c < n; ++c) {
+    std::string k = tag + ".vp" + std::to_string(c);
+    for (int tot = 0; tot < 2; ++tot)
+      for (int hk : {0, 1, 4}) {
+        std::string kk = k + (tot ? "T" : "F") + std::to_string(hk);
+        try {
+          wk_d(kk, E.variation_precision(c, 0, hk, tot != 0));
+        } catch (const std::exception&) {
+          wk_ex(kk);
+        }
+      }
+    try {
+      wk_d(k + ".vrv", E.variation_revision_variance(c, 1, 3, 5));
+    } catch (const std::exception&) {
+      wk_ex(k + ".vrv");
+    }
+    try {
+      wk_d(k + ".vrv2", E.variation_revision_variance(c, 0, 1, 2));
+    } catch (const std::exception&) {
+      wk_ex(k + ".vrv2");
+    }
+  }
+}
+
+void wk_replay() {
+  {  // A: general path, MA + white-noise components
+    sm::UcarimaModel um;
+    um.comps = {wk_am4({1.0, -0.2}, {1.0}, {1.0, 0.1}, 0.6),
+                wk_am4({1.0}, {1.0}, {1.0}, 0.4)};
+    sm::AModel outer = wk_am4({1.0, -0.4}, {1.0}, {1.0, 0.3}, 1.0);
+    wk_case("A", um, outer, 2);
+  }
+  {  // B: general path, both components stationary AR
+    sm::UcarimaModel um;
+    um.comps = {wk_am4({1.0, -0.3}, {1.0}, {1.0, 0.2}, 0.5),
+                wk_am4({1.0, 0.15}, {1.0}, {1.0, -0.3}, 0.3)};
+    sm::AModel outer = wk_am4({1.0, -0.5, 0.2}, {1.0}, {1.0, 0.3, 0.1}, 1.1);
+    wk_case("B", um, outer, 2);
+  }
+  {  // C: SPECIAL path (outer order 1 < component orders 1 + 1)
+    sm::UcarimaModel um;
+    um.comps = {wk_am4({1.0, -0.2}, {1.0}, {1.0, 0.1}, 0.5),
+                wk_am4({1.0, 0.3}, {1.0}, {1.0, -0.25}, 0.3)};
+    sm::AModel outer = wk_am4({1.0, -0.4}, {1.0}, {1.0, 0.35}, 0.9);
+    wk_case("C", um, outer, 2);
+  }
+  {  // D: unit roots (delta (1,-1)) + white-noise complement
+    sm::UcarimaModel um;
+    um.comps = {wk_am4({1.0}, {1.0, -1.0}, {1.0, -0.4}, 0.5),
+                wk_am4({1.0}, {1.0}, {1.0}, 0.3)};
+    sm::AModel outer = wk_am4({1.0, -0.3}, {1.0, -1.0}, {1.0, 0.25}, 1.0);
+    wk_case("D", um, outer, 2);
+  }
+  {  // E: symmetric (3-arg) components - factorized getMa paths
+    sm::UcarimaModel um;
+    um.comps = {wk_am3({1.0, -0.2}, {1.0}, {0.6, 0.25, 0.05}),
+                wk_am3({1.0, -0.5}, {1.0}, {0.35, 0.1, 0.0})};
+    sm::AModel outer = wk_am4({1.0, -0.3}, {1.0}, {1.0, 0.2}, 1.0);
+    wk_case("E", um, outer, 2);
+  }
+  {  // F: single component (getComplement -> NULL singleton path)
+    sm::UcarimaModel um;
+    um.comps = {wk_am4({1.0, -0.3}, {1.0}, {1.0, 0.4}, 1.0)};
+    sm::AModel outer = wk_am4({1.0, -0.3}, {1.0}, {1.0, 0.4}, 1.0);
+    wk_case("F", um, outer, 1);
+  }
+}
 
 }  // namespace
 
@@ -679,6 +990,8 @@ int main() {
                   "-0x0.0p0 -0x0.0p0 -0x0.0p0 -0x0.0p0 -0x0.0p0 -0x0.0p0 -0x0.0p0 " 
                   "-0x0.0p0 -0x0.0p0 -0x0.0p0 -0x0.0p0");
   }
+
+  wk_replay();
 
   std::printf("checks=%d failures=%d\n", g_checks, g_failures);
   return g_failures == 0 ? 0 : 1;

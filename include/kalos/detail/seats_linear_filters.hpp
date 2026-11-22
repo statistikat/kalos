@@ -514,6 +514,7 @@ struct RatFunc {
 // ---------------------------------------------------------------------------
 // BackFilter / ForeFilter (one-sided filters == their Polynomial, raw).
 // ---------------------------------------------------------------------------
+class ForeFilter;
 class BackFilter : public FinFilter {
  public:
   Poly p;
@@ -551,6 +552,30 @@ class BackFilter : public FinFilter {
     if (p0 == 0.0 || p0 == 1.0) return *this;
     return BackFilter(p_times_d(p, 1.0 / p0));
   }
+  // BackFilter.mirror (pinned BackFilter.txt 230): new ForeFilter(the SAME
+  // Polynomial) - no reversal; the ForeFilter convention indexes it forward.
+  ForeFilter mirror() const;  // defined after ForeFilter
+  // BackFilter.divide (pinned BackFilter.txt 82): Polynomial.divide(a, b)
+  // classic long division (Polynomial.txt 1412 - NOT the least-squares
+  // divide), Division(m_r, m_q) = (remainder, quotient), quotient kept.
+  // The quotient array (length deg(a)-deg(b)+1) is Arrays.copyOf'd and fed
+  // to the RAW Polynomial ctor - trailing zeros survive the invariant;
+  // deg(b) > deg(a) yields the ZERO quotient (Division(a, ZERO) at 15-26);
+  // the remainder (copyOf(c, deg(b)) through Coefficients.ofInternal, ZERO
+  // when deg(b) == 0) is discarded here. Inner update is c[j] - q*b.get().
+  BackFilter divide(const BackFilter& o) const {
+    int da = p.degree(), db = o.p.degree();
+    if (db > da) return BackFilter(Poly(vd{0.0}));
+    vd c(static_cast<std::size_t>(da) + 1), qq(static_cast<std::size_t>(da) + 1, 0.0);
+    for (int i = 0; i <= da; ++i) c[idx(i)] = pg(p, i);  // qq[i] = 0.0 by ctor
+    for (int i = da - db; i >= 0; --i) {
+      qq[idx(i)] = c[idx(db + i)] / pg(o.p, db);
+      for (int j = db + i - 1; j >= i; --j)
+        c[idx(j)] = c[idx(j)] - (qq[idx(i)] * pg(o.p, j - i));
+    }
+    vd qc(qq.begin(), qq.begin() + static_cast<std::ptrdiff_t>(da - db + 1));
+    return BackFilter(p_raw(std::move(qc)));
+  }
 };
 
 class ForeFilter : public FinFilter {
@@ -585,7 +610,10 @@ class ForeFilter : public FinFilter {
     if (p0 == 0.0 || p0 == 1.0) return *this;
     return ForeFilter(p_times_d(p, 1.0 / p0));
   }
+  BackFilter mirror() const { return BackFilter(p); }  // new BackFilter(polynomial)
 };
+
+inline ForeFilter BackFilter::mirror() const { return ForeFilter(p); }
 
 // ---------------------------------------------------------------------------
 // SymmetricFilter core: constructor, ofInternal, convolutionOf, bounds,
@@ -622,6 +650,36 @@ class SymmetricFilter : public FinFilter {
     return of_internal(r);
   }
   int degree() const { return p.degree(); }
+  // SymmetricFilter.times(double) (pinned SymmetricFilter.txt 661): wrap of
+  // polynomial.times(d).
+  SymmetricFilter times(double d) const { return SymmetricFilter(p_times_d(p, d)); }
+  // SymmetricFilter.times(SymmetricFilter) (pinned SymmetricFilter.txt 672).
+  // Product of two symmetric filters stored as one-sided polynomials; the
+  // r[0] term of an (i, i) pair is added as 2.0 * m (bytecode 259-271), the
+  // loop-1/loop-2 zero tests are dcmpl against 0.0 (-0.0 skips, NaN
+  // participates) and the loop-3 inner tests skip only exact +0.0.
+  SymmetricFilter times(const SymmetricFilter& f) const {
+    int d1 = p.degree(), d2 = f.p.degree();
+    vd r(static_cast<std::size_t>(d1 + d2 + 1), 0.0);
+    if (!(pg(p, 0) == 0.0))
+      for (int i = 0; i <= d1; ++i)
+        r[idx(i)] = r[idx(i)] + (pg(p, i) * pg(f.p, 0));
+    if (!(pg(f.p, 0) == 0.0))
+      for (int i = 1; i <= d2; ++i)
+        r[idx(i)] = r[idx(i)] + (pg(f.p, i) * pg(p, 0));
+    for (int i = 1; i <= d1; ++i) {
+      if (pg(p, i) == 0.0) continue;
+      for (int j = 1; j <= d2; ++j) {
+        if (pg(f.p, j) == 0.0) continue;
+        double m = pg(p, i) * pg(f.p, j);
+        r[idx(i + j)] = r[idx(i + j)] + m;
+        if (i > j) r[idx(i - j)] = r[idx(i - j)] + m;
+        else if (i < j) r[idx(j - i)] = r[idx(j - i)] + m;
+        else r[0] = r[0] + (2.0 * m);
+      }
+    }
+    return of_internal(r);
+  }
   int get_lower_bound() const override { return -p.degree(); }
   int get_upper_bound() const override { return p.degree(); }
   double weight(int t) const override { return pg(p, t < 0 ? -t : t); }
@@ -987,6 +1045,12 @@ class RationalFilter {
     back.prepare(a);
     fore.prepare(b);
   }
+
+  // RationalFilter.weights() (pinned RationalFilter.txt 357 + lambda
+  // lambda$weights$0 at 426): the IntToDoubleFunction bound to weight(t) -
+  // i.e. exactly weight(t). Mirrored for surface completeness; the WK
+  // builder calls weight(t) directly.
+  std::function<double(int)> weights() { return [this](int t) { return weight(t); }; }
 };
 
 }  // namespace seats_lfilters

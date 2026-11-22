@@ -549,9 +549,16 @@ inline int ur_divisors(int n, vi& out) {
   return static_cast<int>(out.size());
 }
 
-// UnitRootsSolver(0).factorize(Polynomial): pnorm-driven unit-root filter
-// (the 2*deg+1 descending loop with divisor elimination).
-inline UnitRoots ur_solver_factorize(const Poly& p) {
+// UnitRootsSolver(0) state after factorize: the roots plus the solver's
+// remainder() (the quotient chain result q). 24-C.1 cluster 3 addition:
+// ArimaModel.simplifyUr reads solver.remainder(), so the loop is exposed
+// whole; ur_solver_factorize keeps its original roots-only contract.
+struct UrSolverResult {
+  UnitRoots roots;
+  Poly remainder;
+};
+
+inline UrSolverResult ur_solver_run(const Poly& p) {
   UnitRoots ur;
   Poly q = p;
   int n = 2 * p.degree() + 1;
@@ -592,7 +599,11 @@ inline UnitRoots ur_solver_factorize(const Poly& p) {
     }
     tmp.clear();
   }
-  return ur;
+  return {std::move(ur), std::move(q)};
+}
+
+inline UnitRoots ur_solver_factorize(const Poly& p) {
+  return ur_solver_run(p).roots;
 }
 
 // ---------------------------------------------------------------------------
@@ -1203,7 +1214,13 @@ inline PolySimp poly_simplify_private(const Poly& big, const Poly& small) {
   }
   std::vector<cplx> zroots;
   try {
-    zroots = detail::p_roots(big, "simplify");  // Polynomial.roots() on big
+    // 24-C.1 cluster 3 RE-ADJUDICATION (was SECTION 15 divergence (a)/(b)):
+    // the pinned bytecode takes roots of ARG2 (the smaller polynomial) and a
+    // NaN imaginary part REFRESHES f2 (dcmpl ifle on im <= 0 falls through
+    // with the stale f2; NaN gets dcmpl -> 1 and refreshes it). Both pinned
+    // here; the decompose corpus never enters this path (its 49/1669 replay
+    // re-verified byte-identical after the fix).
+    zroots = detail::p_roots(small, "simplify");  // Polynomial.roots() on ARG2
   } catch (const std::invalid_argument&) {
     throw;  // envelope violation, never swallowed
   }
@@ -1217,12 +1234,15 @@ inline PolySimp poly_simplify_private(const Poly& big, const Poly& small) {
         f1[0] = -re;
         Poly q1 = p_raw(pl_divide(big.c, f1));
         common = p_raw(pl_times(common.c, q1.c));  // new Polynomial(raw)
-      } else if (im > 0.0) {                       // dcmpl ifle: im < 0 /
-        f2[0] = re * re + im * im;                 // NaN fall through with
-        f2[1] = -2.0 * re;                         // the stale f2
       }
-      Poly q2 = p_raw(pl_divide(big.c, f2));  // shared tail (pinned): also
-      common = p_raw(pl_times(common.c, q2.c));  // runs after the real branch
+      // 149: goto 184 - the shared f2 tail ALSO runs after the real branch;
+      // im <= 0.0 (dcmpl ifle) keeps the stale f2, NaN im refreshes it.
+      if (!(im <= 0.0)) {
+        f2[0] = re * re + im * im;
+        f2[1] = -2.0 * re;
+      }
+      Poly q2 = p_raw(pl_divide(big.c, f2));
+      common = p_raw(pl_times(common.c, q2.c));
     }
   }
   if (common.degree() > 0) {
@@ -1724,6 +1744,28 @@ inline bool um_is_valid(const UcarimaModel& um) {
   } catch (const MaError&) {
     return false;
   }
+}
+
+// UcarimaModel.getComplement(i) (pinned UcarimaModel.txt 110, 24-C.1 cluster
+// 3): NULL when the model has a single component; else the fold
+// NULL.plus(c, false) over the components with j != i and !c.isNull(). The
+// JVM caches the fold in complements[i] (synchronized) - a pure function of
+// the stored components, so the mirror recomputes per call. The JVM reads
+// complements[i] BEFORE the fold (bytecode 13-18): out-of-range i throws the
+// AIOOBE even when the fold would not touch index i (mirrored).
+inline AModel um_get_complement(const UcarimaModel& um, int i) {
+  int n = static_cast<int>(um.comps.size());
+  if (n <= 1) return am_null();  // if_icmpgt: length > 1 only
+  if (i < 0 || i >= n)
+    throw std::out_of_range("seats_ucarima_model: getComplement (AIOOBE parity)");
+  AModel r = am_null();
+  for (int j = 0; j < n; ++j) {
+    if (j == i) continue;
+    const AModel& c = um.comps[idx(j)];
+    if (c.is_null()) continue;
+    r = am_plus(r, c, false);
+  }
+  return r;
 }
 
 // UcarimaModel.setVarianceMax(-1, false) (pinned, including the branch
