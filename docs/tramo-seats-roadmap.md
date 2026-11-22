@@ -464,6 +464,39 @@ Dependencies on the unfinished X-13 queue (M4 report §6):
   contract doc. Ledger: unit `kalos::decompose_ucarima` closed for the
   decomposition-seam surface; D6 CLOSED APPROVED (row below).
 
+## 24-C — spec: `seats_extract_wk` (the Wiener–Kolmogorov extraction machine)
+
+**Unit.** `kalos::seats_extract_wk(request) -> extraction result`: the
+bit-exact C++ mirror of the live jdplus 3.9.0 SEATS extraction path for
+decomposed frozen models — initial + final component surfaces
+(`WienerKolmogorovEstimator` / `seats_WienerKolmogorovEstimator`), forecasts
+and backcasts through `ExactArimaForecasts`, Burman bias correction
+(`BurmanEstimates` + `DefaultBiasCorrector`, D7 in the first envelope) and
+conditional component error variances kept DISTINCT from parameter-estimation
+uncertainty (D9 boundary).
+
+**Envelope decisions (operating as recommended).** D1 WK-only:
+`components_method = kalman_smoother` refuses fail-closed (the goldens carry
+the JVM Kalman rows as context only); D11 monthly-first (quarterly corpus
+rows are captured, the unit refuses); D6 approximation-required and the
+crashing approximator stay 24-B refusals; `innovation_variance == 0` refuses
+(the ConcentratedLikelihood/Kalman variance path is out of scope).
+
+**Evidence.** `validation/evidence/native/seats-wk-extraction/` — 36-case
+corpus, live `SeatsKernel.process` double-capture byte-identical
+(`--repro`); fact rows `status`/`dom`/`init`/`final` at %.17g.
+
+**24-C.0 checkpoint (LANDED 2026-11-22).** Probe
+(`validation/reference/SeatsWkExtractionProbe.java`) + capture script
+(`capture-seats-wk-extraction.R`) + evidence tree; the shared structured
+UCARIMA/AModel seam extracted to
+`include/kalos/detail/seats_ucarima_model.hpp` (`kalos::detail::seats_model`,
+behavior-neutral, decompose golden byte-identical); the request grammar
+extended in place (forecast/backcast counts, components method, bias, series
++ start, all backward-compatible defaults). Remaining for the landing: the
+linearfilters/acf/solver transcription clusters, the WK estimator builder,
+ExactArimaForecasts SSF cluster, Burman/bias wiring, unit + sweep + contract.
+
 ## Maintainer decision register (sign-off before the owning slice)
 
 | # | Decision | Slice | Position recorded at M5-open |

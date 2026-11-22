@@ -65,6 +65,13 @@ namespace kalos {
 // Noisy switches setVarianceMax to the noisy-model branch.
 enum class seats_approx_mode { none, legacy, noisy };
 
+// Pinned DecompositionSpec.ComponentsEstimationMethod / BiasCorrection
+// (24-C). The live builder defaults (corpus default) are Burman and Legacy;
+// the enum declaration orders are {Burman, KalmanSmoother} and {None, Legacy}
+// — "New"/"Default" are NOT valid constant names (valueOf throws).
+enum class seats_components_method { burman, kalman_smoother };
+enum class seats_bias_correction { none, legacy };
+
 // The frozen fixed-parameter SARIMA request (the probe's `spec`/`phi`/...
 // lines). Orders ARE the parameter vector lengths (the SarimaSpec builder
 // contract). innovation_variance is the SeatsModelSpec.innovationVariance
@@ -88,6 +95,17 @@ struct tramo_seats_model_request {
     double smod = 0.8;
     double smod_pi = 0.8;
     seats_approx_mode mode = seats_approx_mode::legacy;
+    // ---- 24-C additions (defaults = DecompositionSpec builder defaults) ----
+    int forecast_count = -2;  // extrapolationCount sign convention
+    int backcast_count = 0;
+    seats_components_method components_method = seats_components_method::burman;
+    seats_bias_correction bias = seats_bias_correction::legacy;
+    // The observation series (the probe's values row, RAW domain: the log
+    // flag applies the transform inside the kernel). Only the 24-C
+    // extraction unit consumes it; 24-A/24-B ignore it.
+    std::vector<double> series;
+    int start_year = 1990;  // observation start (TsPeriod month is 1-based
+    int start_month = 1;    // here; TsPeriod.annualPosition() is 0-based)
 };
 
 // One raw (pre-variance-allocation) RootDecomposer split component, as the

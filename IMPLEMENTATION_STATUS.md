@@ -2851,3 +2851,63 @@ exit 0 (15 cases verified); shim-invariance of the new unit
 unit and sweep bit-identical — the FastBIC logs are fdlibm-pinned);
 `check-manifest.py` **159/112/265**; `verify-migration.py` 406; evidence
 SHA256SUMS verified (8 files).
+
+## SEATS WK extraction groundwork: slice 24-C.0 checkpoints the probe, corpus, evidence and shared seam — 2026-11-22
+
+Checkpoint commit for slice 24-C (`kalos::seats_extract_wk`, the Wiener–
+Kolmogorov extraction machine). No new unit lands yet; this commit lands the
+JVM ground truth and the shared structured-model seam the extraction unit
+will consume, so the byte-faithful transcription can proceed incrementally.
+
+**Evidence (double-captured, byte-identical).** `SeatsWkExtractionProbe
+.java` drives the LIVE public API (`SeatsKernel.process`) and emits the
+request grammar plus `status`/`dom`/`init`/`final` fact rows (%.17g raw
+getters); `capture-seats-wk-extraction.R` runs the 36-case corpus through
+TWO independent JVM processes — `--repro` reports the 4 data files
+byte-identical. Installed at `validation/evidence/native/seats-wk-extraction/`
+(cases 36, inputs 324, facts 4828, events 310 + metadata + SHA256SUMS).
+Corpus: 7 refusal/status-context rows (x_airline D6 approximation, x_stab_-
+none SeatsException, x_crash_fixma MatrixException, x_quarterly D11, x_var0,
+x_kalman + x_kalman_wn D1 KalmanSmoother context rows), the 24-B decomposable
+mirror set, and 11 knob rows (forecast/backcast counts, meanCorrection, log,
+bias None, generators C/E, n=60 with horizon −4). JVM quirks pinned for the
+port:
+`TsPeriod.annualPosition()` is 0-based; empty Backcast rows carry the
+actual start; x_ar3/x_stat_ar3 abort through the EcoException "Negative
+variance" surface; init/final row counts pin the D7 forecast/backcast
+envelope (defaults 21/19, horizon-open 29/29).
+
+**Shared seam (behavior-neutral by construction).** The structured
+UCARIMA/AModel mirror (38 free functions, lines 58–1804 of
+`src/decompose_ucarima.cpp`) moved verbatim into
+`include/kalos/detail/seats_ucarima_model.hpp` under
+`kalos::detail::seats_model` (each function prefixed `inline`); the cpp
+keeps an anonymous namespace with `using namespace detail::seats_model;` so
+`decompose_ucarima` is unchanged — `ctest -R decompose` passes with the
+golden byte-identical.
+
+**Request grammar (backward compatible).** `tramo_seats_model_request`
+gains the 24-C fields with live-builder defaults: `forecast_count = -2`
+(extrapolationCount sign convention), `backcast_count = 0`,
+`components_method = burman`, `bias = legacy`, `series` + `start_year`/
+`start_month` (1-based month; the probe's TsPeriod position is 0-based).
+24-A/24-B ignore them; `seats_components_method::kalman_smoother` is the
+D1 fail-closed refusal input (Kalman/Matrix estimator rows in the goldens
+are context only). D7 stays in the first envelope (Burman + −2 default).
+
+**Friction (environment, not code).** The harness exports
+`LD_LIBRARY_PATH=/usr/lib/libreoffice/program:/usr/lib/x86_64-linux-gnu`,
+which SHADOWS the RUNPATH pin to the in-tree LP64 OpenBLAS 3.3.4 and yields
+spurious `undefined symbol: LAPACKE_dsyev_work` runtime failures in any
+test whose dlopen order touches system libopenblas (run #18 class). Gates
+must run with `env -u LD_LIBRARY_PATH`; recorded in the pinning doc.
+
+**Gates.** ctest 72/72 both lanes; all eighteen existing sweeps
+corpus-invariant at the recorded counts (arma-refinement 423, decompose 81,
+differencing 39, estimation-control 27, final-info 266, initial-ARMA 4368,
+outlier-scoring 98, regression 494, builder 22, validator 35/1026,
+transformation 11, x11 b/c/d 18/18/22, allocation 280, fit 528, automatic
+71401, tramo-arma 14/1/1); ASan/UBSan `test_decompose_ucarima` exit 0
+(49 cases, 1669 checks) — the seam move is sanitizer-clean too;
+`check-manifest.py` updated for the two reference files + evidence tree;
+`verify-migration.py` 406.
