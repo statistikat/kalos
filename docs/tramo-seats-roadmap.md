@@ -157,7 +157,8 @@ pinned values without a maintainer ruling (the 21 precedent).
   span) used by `iterate`/`execOutliers`, and a robust one (AO+LS, hard-coded
   precision 1e-3) used inside `testTransformation` for the log-vs-level
   comparison (pinning notes §6.7).
-  Sign-off: D3 (outlier iteration semantics) before the second half.
+  Sign-off: D3 (outlier iteration semantics) before the second half — CLOSED APPROVED
+  2026-11-22 (option A, faithful multi-round port landing in 23-F; see register).
 - **LANDED 2026-11-22 (both halves as scoped: Unit A + round-0 Unit B).**
   `kalos::decide_tramo_transform` (Unit A: calcCv grid, the seasonality
   detector machine, the LogLevelModule pair through the CI-FDLIBM-routed
@@ -405,7 +406,7 @@ Dependencies on the unfinished X-13 queue (M4 report §6):
 |---|---|---|---|
 | D1 | SEATS extraction path envelope: WK-only first, Kalman/Matrix estimator later (probe: neither is loaded by the default path) | 24-C | recommend WK-only first, others fail-closed |
 | D2 | Spec coverage order: rsa3-first mirroring X-13, rsafull end-to-end deferred to 24-E and gated by 21-I | 23-G/24-E | recommend yes (roadmap acceptance still requires both before item 24 closes) |
-| D3 | TRAMO outlier iteration semantics: round/pass3 wiring, `curva`/`reduceVa`/pcr adaptation, maxOutliers/maxIter defaults | 23-B | open; the 21-C scan engine is the substrate, policy forked; brief evidence at the 23-B landing (`sc_so`/`sc_spanout` emptied picks, `sc_spannone` collapsed scan, `sc_pexao47` warm-seam refusal — contract `tramo-outlier-scan`) |
+| D3 | TRAMO outlier iteration semantics: round/pass3 wiring, `curva`/`reduceVa`/pcr adaptation, maxOutliers/maxIter defaults | 23-B | **CLOSED APPROVED 2026-11-22 (maintainer, option A)**: faithful multi-round port in 23-F — round/pass3 wiring + `curva`/`reduceVa`/pcr adaptation ported, `maxOutliers`/`maxIter` defaults decoded as constants where the jar shows them constant, pass wiring ported only where the live trace shows execution (24-A dead-code discipline); the 23-B `divergent=1` final-state rows (`sc_so`/`sc_spanout` emptied picks, `sc_spannone` collapsed scan — contract `tramo-outlier-scan`) become POSITIVE multi-round assertions in 23-F; round-0 unit stays as-is (correct component); option B (round-0-only + fail-closed) rejected |
 | D4 | FastBIC search: reuse HR unit as initializer vs faithful `ArmaModelSelector` port | 23-D | recommend faithful port of the selector with HR reuse inside (21-F lesson: decode before reusing) |
 | D5 | TRAMO call-site minimizer: pinned LM at the units, BFGS stays the core default (probed: TRAMO builds an LM minimizer) | 23-B…F | recommend the 21-D.2 precedent verbatim |
 | D6 | Non-decomposable model policy: which `ModelApproximationMode` values are in the envelope | 24-B | **CLOSED APPROVED at 24-B landing**: decomposable-only envelope — `approximation_required` decisions and `Noisy` mode refuse fail-closed with the pinned reasons; the crashing `DefaultModelApproximator` is NOT ported (validator classifies, unit refuses; contract `decompose-ucarima`) |
