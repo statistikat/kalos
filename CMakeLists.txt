@@ -53,6 +53,8 @@ add_library(kalos STATIC
   src/forecast_arma_information.cpp
   src/forecast_information.cpp
   src/hannan_rissanen.cpp
+  src/hostlineage.cpp
+  src/hostlineage_tables.cpp
   src/information.cpp
   src/initial_arma_identification.cpp
   src/interpolation_arma_information.cpp

@@ -26,6 +26,7 @@
     "include/kalos/detail/fdlibm.hpp",
     "include/kalos/detail/filter_utility.hpp",
     "include/kalos/detail/hannan_rissanen_pipeline.hpp",
+    "include/kalos/detail/hostlineage.hpp",
     "include/kalos/detail/lapack.hpp",
     "include/kalos/detail/sarima_stabilization.hpp",
     "include/kalos/detail/seats_acf_solver.hpp",
@@ -116,6 +117,9 @@
     "src/forecast_arma_information.cpp",
     "src/forecast_information.cpp",
     "src/hannan_rissanen.cpp",
+    "src/hostlineage.cpp",
+    "src/hostlineage_internal.hpp",
+    "src/hostlineage_tables.cpp",
     "src/information.cpp",
     "src/initial_arma_identification.cpp",
     "src/interpolation_arma_information.cpp",
@@ -170,8 +174,10 @@
     "src/x11_trend_selection.cpp",
     "src/x13_allocation.cpp",
     "src/x13_automatic.cpp",
-    "src/x13_fit.cpp"
-  
+    "src/x13_fit.cpp",
+    "tools/gen_hostlineage_tables.py",
+    "tools/hostlineage-glibc-sha256.json",
+    "tools/verify_hostlineage.cpp"
   ],
   "fixtures": [
     "validation/fixtures/backend/SHA256SUMS.csv",
@@ -563,6 +569,5 @@
     "validation/evidence/native/x13-horizon/inputs.csv",
     "validation/evidence/native/x13-horizon/metadata.R",
     "validation/evidence/native/x13-horizon/oracle-facts.csv"
-  
   ]
 }
