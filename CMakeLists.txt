@@ -81,6 +81,7 @@ add_library(kalos STATIC
   src/tramo_arma_selection.cpp
   src/tramo_differencing_battery.cpp
   src/tramo_differencing_decision.cpp
+  src/tramo_final_estimation.cpp
   src/tramo_model_builder.cpp
   src/tramo_outlier_scan.cpp
   src/tramo_regression_tests.cpp
@@ -222,6 +223,7 @@ if(KALOS_BUILD_TESTS)
     test_tramo_arma
     test_tramo_differencing
     test_tramo_differencing_battery
+    test_tramo_final_estimation
     test_tramo_model_builder
     test_tramo_outlier_scan
     test_tramo_regression_tests

@@ -119,7 +119,7 @@ template decode tables must carry a SEPARATE TRAMO list.
 | `initial_arma_identification`, `arma_refinement` (21-E/F) | not-applicable | X-13-specific `RegArmaBic`/`AutoModellingModule` machinery; TRAMO's live engine is `internal.ArmaModule` + `ArmaModelSelector.FastBIC` (new 23-D unit) |
 | `regression_variable_tests` (21-G) | not-applicable | TRAMO's regression test family is `Default/Fast/Automatic{,F,Wald}RegressionTest` + `TradingDaysController` — live split: `FastRegressionTest` on both runs, `DefaultRegressionTest` on rsa3, `AutomaticFRegressionTest`+controller on rsafull (`Automatic`/`AutomaticWald` not loaded); new 23-E unit |
 | `arma_diagnostics`, `special_functions`, `mlj_engine` (21-H slice 1) | reuse-as-is | `ModelStatistics.of(...)` is live-loaded and consumed inside `TramoKernel` itself: `iterate` pins `refStats`, `pass2` compares the current `getLjungBoxPvalue()`/`getSe()` against it (bytecode) — the same Ljung-Box/SE family the 21-H diagnostics units already reproduce |
-| `final_estimator`, `final_information` (21-H slice 1/H.0) | fork-candidate | `tramo.FinalEstimator` is live-loaded; whether its stencil/information path coincides with the qualified x13 producer is decided in 23-F after decode |
+| `final_estimator`, `final_information` (21-H slice 1/H.0) | forked (23-F F.1) | `tramo.FinalEstimator.test` is a fresh port (`tramo_final_estimation`, contract 23-F): no root gates, ratio 99999.0, 0/1 takeover flags, Bq without ratio update, plus the `checkUnitRoots`/`checkCommonRoots` promotion pair absent from the x13 loop — not interchangeable with `final_estimator_test`. The information stencil (tramo's `computeExactFinalDerivatives(true)` producer feeding the cascade's covariance diagonal) is decided when the F.2/F.3 round loop wires the estimation hand-overs |
 | `residual_information`/`arma_information` (20c.1b.2, TRAMO covariance contract) | reuse-as-is | already the TRAMO covariance convention (`method="tramo_residual"` residual-Jacobian modes) — the TRAMO-side coefficient uncertainty surface |
 | `arima_forecasts` (21-H.4) | not-applicable | X-13 extension machine; SEATS forecasts/backcasts come from the SEATS estimator stack (24-C) |
 | `x11_*` (22b), `x13_allocation`/`x13_fit`/`x13_automatic_fit` (22c/21-H) | not-applicable | SEATS replaces the X-11 leg; deterministic restoration is the TramoSeatsKernel bridge/finals (pinning notes §6.5), not `x13_restore` |
@@ -282,6 +282,23 @@ pinned values without a maintainer ruling (the 21 precedent).
   decode (fork-candidate against `final_estimator`/`final_information`), then
   the `TramoKernel.process` driver itself (round/pass/pass3 wiring, refAuto/
   refStats compare) — the `x13_automatic_fit` analogue (`tramo_fit`).
+- **LANDED 2026-11-22 (23-F F.1: decision layer, forked).** `tramo.FinalEstimator`
+  decoded (pinning SECTION 26) and adjudicated FORKED — the fork-candidate row
+  above is closed. `kalos::tramo_final_estimation` carries `tramo_mirror_roots`
+  (trimming `ofInternal` AR blocks + mirror + the bit-exact 24-A.1 `p_roots`
+  fast-solver mirror), `tramo_searchur_roots`/`tramo_searchur` (scaled
+  `Complex.abs`, strict/inclusive/strict count polarities), the
+  `tramo_check_unit_roots` promotion pair (`d < 2`/`bd < 1` gates),
+  `tramo_check_common_roots` (strict 0.044 cancellation + faithful dead-work
+  roots calls) and `tramo_final_estimator_test` (no root gates, ratio start
+  99999.0, Bq without ratio update, 0/1 takeover flags, sig2 plateau) with the
+  `(p,d,q)(Bp,Bd,Bq)` info detail. Green on the 75-case triple-captured
+  split-package corpus `validation/evidence/native/tramo-final-estimation/`
+  (ctest #44; 65 decision rows bit-exact + fork edges; 10 `fe_est` rows inert
+  until F.2; witness: zero x13 `regarima.FinalEstimator` loads). The five-round
+  `estimate()` loop, the multi-round `FastOutliersDetector` machine, the
+  `TramoKernel` iterate/pass/pass3 wiring and the D3 divergent=1 flip stay
+  F.2/F.3. Contract `tramo-final-estimation`.
 - **23-G — end-to-end TRAMO oracle** against the double-captured
   `TramoKernel.process` corpus (mirrors 21-H.2/H.3: probe observer, decision-
   bit qualification, measured tiers, sweep).

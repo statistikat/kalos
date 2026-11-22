@@ -693,6 +693,32 @@ as transcribed control flow (no live witness, see the contract).
 Shim-invariant (23rd ledger cell). See
 [tramo-regression-tests-contract.md](tramo-regression-tests-contract.md).
 
+## TRAMO final-estimation decision layer (23-F F.1)
+
+`test_tramo_final_estimation.cpp`, the triple-captured 75-case JVM corpus
+under `validation/evidence/native/tramo-final-estimation/` (two clean
+captures + a class-load-witness run, byte-identical) and the generator
+`tools/gen_tramo_final_estimation_golden.py` qualify the decision layer of
+`kalos::tramo_final_estimation` — the TRAMO side of the 21-H
+`final_estimator` fork, adjudicated FORKED:
+`tramo_mirror_roots`/`tramo_searchur_roots`/`tramo_searchur` (the
+mirror-coefficient root space over the trimming `ofInternal` AR blocks,
+scaled `Complex.abs`, the strict `dcmpl`/inclusive `dcmpg`/strict `re > 0`
+count with every NaN and infinity polarity), `tramo_check_unit_roots`
+(the `d < 2` / `bd < 1` gated promotion pair), `tramo_check_common_roots`
+(the strict seasonal-cancellation boundary with the faithful dead-work
+`roots()` calls kept for their exception escape) and
+`tramo_final_estimator_test` (no root gates, ratio start 99999.0 with the
+P/Bp/Q update sites and the Bq no-update takeover, the 0/1 takeover flags
+and the estimation-domain sig2 plateau), plus the
+`(p,d,q)(Bp,Bd,Bq)` info-detail rendering. All 65 decision rows replay
+bit-exactly (raw IEEE-754 bits) off the live bytecode (split-package
+probe, reflection for access only); the 10 `fe_est` rows driving the live
+five-round `estimate()` loop are inert until the F.2 round-loop driver.
+The witness pins `tramo.FinalEstimator` loaded from the pinned jar with
+zero `x13.regarima.FinalEstimator` loads. See
+[tramo-final-estimation-contract.md](tramo-final-estimation-contract.md).
+
 ## SEATS Wiener-Kolmogorov extraction mirror
 
 `test_seats_extract_wk.cpp`, the double-captured 36-case JVM corpus under

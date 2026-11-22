@@ -3345,3 +3345,83 @@ test-model estimation is hand-over data (captured at its corpus precision
 the `TradingDaysController` remain 21-I.3; the record-only
 ModelStatistics surfaces stay recorded, not transcribed. Contract
 `tramo-regression-tests`; roadmap row LANDED (PARTIAL).
+
+## TRAMO final-estimation decision layer: 23-F F.1 lands `kalos::tramo_final_estimation` (forked from 21-H) — 2026-11-22
+
+**Delivered.** The decision layer of the pinned `jdplus.tramoseats.
+base.core.tramo.FinalEstimator`, transcribed bit-exact and adjudicated
+FORKED against the landed 21-H `final_estimator` (roadmap fork-candidate
+row closed): `kalos/tramo_final_estimation.hpp` carries
+`tramo_mirror_roots` (`Polynomial.ofInternal` trimming + mirror + the
+bit-exact `detail::p_roots` fast-solver mirror, degrees 1–2 closed forms /
+≥3 the 24-A.1 QR cascade), `tramo_searchur_roots`/`tramo_searchur`
+(scaled `Complex.abs`, `|r| > ur` strict, `|im| ≤ 0.05` inclusive,
+`re > 0` strict — every NaN/infinity polarity corpus-pinned; promotion
+fires when an AR COEFFICIENT lands near +1 under the `1 + phi(B)` raw
+coefficient convention), `tramo_check_unit_roots` (the `p > 0 && d < 2` /
+`bp > 0 && bd < 1` promotion pair, inline MAXD/MAXBD literals),
+`tramo_check_common_roots` (strict `|bphi(1) − btheta(1)| < cancel`,
+cancel 0.044 builder default — live-fixed, no setter; the p/q dead-work
+`roots()` calls execute faithfully for their exception escape),
+`tramo_final_estimator_test` (no root gates — the 0.95 slot is stored and
+never read; ratio start 99999.0; P/Bp/Q update the ratio, Bq fires WITHOUT
+updating it; 0/1 takeover flags; estimation-domain sig2 plateau; `tsig =
+1.0` live-fixed — the Builder exposes no `significanceThreshold` setter)
+and `tramo_final_orders_to_string` (the "arima spec changed" info detail;
+the two-arg `info(String, Object)` routes to `(msg = null, obj = message,
+det = orders)`). The validation guards mirror the JVM read sites (the
+pinned `SarimaModel` cannot represent a short block).
+
+**Corpus.** `validation/evidence/native/tramo-final-estimation/` —
+75-case split-package probe (`Scratch23f.java`; reflection for ACCESS
+only: four private methods + the final tsig field; all decisions run the
+pinned bytecode), double capture byte-identical + third
+`-Xlog:class+load` witness run byte-identical (tramo `FinalEstimator` +
+`$Builder` loaded from the pinned jar, ZERO `x13.regarima.FinalEstimator`
+loads), `cases-fe1.txt` 18 searchur / 10 mirror-root / 19 unit-root /
+9 common-root / 9 live-landing cascade cases (with their exact
+asymptotic-covariance diagonals — the diagonal covers ARMA coordinates
+only, mean excluded) + 10 live `estimate()`-driver rows.
+`tests/jvm_tramo_final_estimation.h` (generator
+`tools/gen_tramo_final_estimation_golden.py`, raw IEEE-754 bits
+throughout); `test_tramo_final_estimation` replays all 65 decision rows
+bit-exactly + hand-built fork edges; the 10 `fe_est` rows are inert until
+the F.2 round loop (count-pinned).
+
+**Pinned corrections (SECTION 26.6 carries the dated notes).** (1) The
+root space is the MIRRORED AR COEFFICIENTS (`getRegularAR() =
+Polynomial.ofInternal([1 | phi])`, TRIMMING — golden `mr06` caught the
+port's initial no-trim error): promotion fires at coefficient ≈ +1. (2)
+`estimate()` field semantics: `nnsig` keeps an earlier round's value when
+a later `mapping.getDim() == 0` round short-circuits TRUE (es05/es08);
+`dim` counts mapped ARIMA parameters only. (3) `checkCommonRoots` cancels
+on RAW lag-1 coefficients with strict `<` (exactly-equal pins no-cancel);
+NaN never cancels. (4) The takeover fires when `t` is strictly BELOW the
+incumbent ratio — a cheaper block wins (ratio 0 blocks t 0; `tc05` pins a
+1-ulp takeover).
+
+**Boundary.** The five-round `estimate()` loop, the multi-round
+`FastOutliersDetector` machine, the `TramoKernel` iterate/pass/pass3
+wiring and the `tramo_fit` assembly are 23-F F.2/F.3 (the D3
+divergent=1 flip table lands there); the information stencil feeding the
+cascade's covariance diagonal is decided when the F.2/F.3 estimation
+hand-overs wire through the qualified seams. Round-0 scan behavior and
+the 23-B contract stay untouched (historical fixtures immutable).
+
+**Gates.** Fresh ctest **77/77 in BOTH lanes** (ON 1288 s, true serial
+1215 s; new #44 `test_tramo_final_estimation` Passed both; baseline 76
+pre-F). An early claim was DISCARDED under a recorded gate-hygiene
+incident (pinning SECTION 26.9): two overlapping ctest runs on one build
+tree (one with pre-fix binaries) and a shim battery sharing the tree —
+all killed and re-run exclusively on the final binaries; the numbers
+above are the exclusive fresh runs. ASan/UBSan lane green on the touched
+unit (dedicated `KALOS_SANITIZERS=ON` build, replay + fork edges clean);
+all twenty-two existing verify sweeps rc=0 at their recorded counts
+(WK 126/0, calendar 18305/0, automatic 71401/0, decompose 81/0, EC 27/0,
+allocation 280, fit 528, seats-model 1026, regression-tests 663+464 …)
+— zero drift; the shim-invariance battery is **24/24 ledger cells
+plain=0 INVARIANT** with `test_tramo_final_estimation` as the 24th cell
+(scaled-modulus `abs`/sqrt + exact IEEE arithmetic only, no new ledger
+arguments; lapack1 informational divergences match the prior profile);
+`check-manifest.py` 180 core / 112 fixture / 295 evidence;
+`verify-migration.py` unchanged at 406.

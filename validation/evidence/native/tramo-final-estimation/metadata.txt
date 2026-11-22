@@ -1,0 +1,32 @@
+Item 23-F F.1 FinalEstimator decision-layer corpus.
+
+Probe: Scratch23f.java (split package jdplus.tramoseats.base.core.tramo;
+reflection ONLY for the four private ladder methods searchur/checkUnitRoots/
+checkCommonRoots/test and the final tsig field; every decision runs the
+pinned bytecode).  Runner: run.sh (javac --release 21 + java 21 with the
+G2 intrinsic-disable recipe -XX:+UnlockDiagnosticVMOptions
+-XX:DisableIntrinsic=_dexp -XX:DisableIntrinsic=_dlog via _JAVA_OPTIONS).
+Jars: the pinned rjd3 3.9.0 set (jdplus-sa-base-api/core,
+jdplus-toolkit-base-api/core, protobuf-java-4.36.1, toolkit/sa protobuf+r,
+jdplus-tramoseats-base-* 3.9.0) under
+~R/x86_64-pc-linux-gnu-library/4.5/rjd3{jars,toolkit,tramoseats}/java.
+
+Requests: cases-fe1.txt (75 cases: fe_sr 18, fe_mr 10, fe_ru 19, fe_cur 9,
+fe_tc 9, fe_est 10).  Numeric tokens parse like the probe tok(): "nan",
+"inf", "-inf", 0x-hex raw-IEEE-754-bits, otherwise decimal (round-trip
+correctly rounded on both sides).  All %.17g values are printed with their
+raw IEEE-754 bits as value#hex16.
+
+Captures: fe1-capture-1.out / fe1-capture-2.out from independent JVM
+processes, byte-identical (REPRO gate); fe1-witness.out is a third run,
+byte-identical to the captures, whose class-loading trace
+(fe1-classload.log) shows jdplus.tramoseats.base.core.tramo.FinalEstimator
+and FinalEstimator$Builder loaded from the pinned
+jdplus-tramoseats-base-core-3.9.0.jar with ZERO loads of
+jdplus.x13.base.core.x13.regarima.FinalEstimator (the 21-H fork side).
+The fe_est rows drive the live estimate() driver (rounds/estimation); their
+replay lands with the 23-F F.2 driver layer and is inert in the F.1 golden.
+
+Regenerate the C++ golden:
+  python3 tools/gen_tramo_final_estimation_golden.py \
+      validation/evidence/native/tramo-final-estimation tests/jvm_tramo_final_estimation.h
