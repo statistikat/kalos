@@ -3261,3 +3261,87 @@ item-25 long-double decision (x87-vs-quadmath is a semantic choice, not a
 transcription). The lapack1@100 extreme cell marks the diff-tmean family
 as the one place where a hypothetical all-1-ulp provider would need a band
 re-measurement as a product decision.
+
+## TRAMO regression tests, no-calendar branch: 23-E PARTIAL lands `kalos::run_tramo_regression_tests` + the ModelStatistics/refStats-gate/mean-rule layer — 2026-11-22
+
+**Delivered.** The calendar-free branch of the tramo regression-test layer of
+the pinned jdplus 3.9.0 stack, transcribed bit-exact (decisions AND values):
+`kalos/tramo_regression_tests.hpp` carries `tramo_ami_check_mu`,
+`tramo_round0_accepts`, `tramo_reduce_va`, `tramo_last_solution_orders`,
+`tramo_estimate_model_retry`, `tramo_model_statistics` (the `ModelStatistics.
+of` rows the refStats gate consumes — Ljung-Box + fixed-df-2 seasonal pair on
+the 23-C.2 `auto_correlation`/`calc_lb_length` kernels with
+`detail::chi2_upper_p` (no new distribution kernel), `se = sqrt(ssq/(dof−k))`,
+fdlibm `bic`, the `df = m−k <= 0` un-built all-NaN JVM-throw surface,
+obs/effobs/outliers-count semantics), `tramo_test_tstats` (both
+`ConcentratedLikelihood.ser/tstats` arms — the TRAMO accept sites read the
+ADDMU arm, denominator `dim − nx − k`, so the 21-G plain-arm
+`RegressionTestStatistics::tstats` is NOT reused), `tramo_t_accepts`
+(dcmpl buckets), `tramo_ref_stats_gate` (the full `TramoKernel.pass2`:
+rules A–D + shapeA/shapeB guards, nr>nb skip, pcr +.025/+.015 ladder,
+accept `dcmpg(lbp, pcr) <= 0`, pass-1 reduceVa + UNCONDITIONAL remark,
+last-chance rewrite with `round := 1` and outlier-variable removal) and
+`run_tramo_regression_tests` (the Fast/Default machines' mean-rule branch;
+hand-overs are required request data, 21-G precedent). The likelihood
+skewness/stableMean/stableVariance rows are decision-inert — recorded in the
+corpus, not transcribed.
+
+**Pinned corrections (bytecode re-verified, corpus adjudicating; SECTION 25
+carries the dated notes).** (1) `dcmpl` pushes −1 for NaN: a NaN |t| counts
+in NEITHER T bucket and a NaN lbp is EXCLUDED from rules B/D — the
+session-start notes "NaN → HIGH" / "NaN enters B/D" had the dcmpl/dcmpg
+polarity swapped; there is NO divergence from the landed 21-G
+`t_test_accepts` after the correction. (2) pass2 sets
+`needAutoModelling = !changed` (bytecode 534-544; corpus `pg_null_ref`/
+`pg_remark` witnesses). (3) the pass-1 `log.remark` fires unconditionally
+after `reduceVa()` (489-501 pops the return). The `am_*` checkMu witnesses
+replay through the live `TramoSpec` decomposition (jshell: auto-model true
+exactly for TR3/TR4/TR5/TRfull, `getMean().isTest()` false for every
+constant).
+
+**Boundary.** Calendar-kernel requests are the 21-I.3 seam (roadmap I-4
+ruling): Fast ami td/lp/easter and Default calendar builder fields refuse
+fail closed with 21-I.3 in the reason; auto moving-holiday refuses (no
+filter exists in the pinned machine, no witness); quarterly rows refuse on
+D11. The corpus pins BOTH sides: seam cases ran fully on the JVM (their
+decisions are in the corpus) and their `--repro`-stable load logs show the
+controller classes loading ONLY there. `TradingDaysController` and
+`Automatic{,Wald}RegressionTest` are not ported.
+
+**Corpus + replay.** `validation/reference/TramoRegressionTestsProbe.java`
+(public entry points; pass2 reflectively driven) + the per-case capture
+script (JVM-21 guard, dexp/dlog intrinsic-disable recipe, ground-truth
+guards, load witnesses). Double capture, all nine data files byte-identical
+across JVM processes, SHA256SUMS verified; 55 cases: 10 ModelStatistics
+(incl. the df≤0 throw row and a record-only quarterly row), 12 Fast,
+10 Default, 16 pass2 gate (rule A/B/C/D + short variants, shapeA/B±, NaN
+ref, real ref, remark, last-solution, null-ref, keep), 7 AmiOptions.
+`tools/gen_tramo_regression_tests_golden.py` → bit-pattern tables;
+`tests/tramo_regression_replay.h` (shared ctest/sweep) rebuilds every
+request from the hand-over echoes and compares bit-for-bit, asserts the
+fail-closed refusals and qualifies the non-witnessed control members
+synthetically (retry ladder shapes, round-0 NaN, reduceVa NaN/floor,
+T-bucket boundary at |t| == t and |t| + 1ulp).
+
+**Gates.** Fresh ctest **76/76 in BOTH lanes** (ON 899s, OFF 906s,
+provider-pinned env; new #76 `test_tramo_regression_tests`, TIMEOUT 3600,
+663 checks); ASan/UBSan lane green on the touched units; all twenty-two
+verify sweeps rc=0 at their recorded counts (WK 126/0, calendar 18305/0,
+tramo arma-selection 14+1+1, automatic 71401/0, decompose 81/0, b/c/d
+18/18/22, EC 27/0, allocation 280, fit 528, seats-model 1026 …) with the new
+`verify_tramo_regression_tests` 663 replay + 464 corpus cross-checks
+(both coupling directions corpus↔golden); the shim-invariance battery is
+**23/23 ledger cells plain=0 INVARIANT** with `test_tramo_regression_tests`
+as the 23rd cell (the replay consumes only routed kernels + exact IEEE
+sqrt); `check-manifest.py` 178/112/286; `verify-migration.py` unchanged at
+406.
+
+**Gaps (honest).** `tramo_estimate_model_retry` is transcribed control flow
+without a live witness (the loop needs a full `estimateModel`; its
+reduceVa/mean-test leaves are corpus-qualified, the ladder shape
+synthetically) — qualified as PARTIAL in the contract. The Default
+test-model estimation is hand-over data (captured at its corpus precision
+1e-5), not unit work. The calendar branch, the automatic test families and
+the `TradingDaysController` remain 21-I.3; the record-only
+ModelStatistics surfaces stay recorded, not transcribed. Contract
+`tramo-regression-tests`; roadmap row LANDED (PARTIAL).
