@@ -256,7 +256,7 @@ public class TramoSeatsBridgeProbe {
             .getSeries(ComponentType.Series, ComponentInformation.StdevForecast));
     }
 
-    private static void rawAutomatic(String id, TsData series, String stage) {
+    static void rawAutomatic(String id, TsData series, String stage) {
         var preset = stage.startsWith("rsa1") ? TramoSeatsSpec.RSA1
             : stage.equals("rsafull") ? TramoSeatsSpec.RSAfull : TramoSeatsSpec.RSA3;
         var model = TramoKernel.of(preset.getTramo(), new ModellingContext())

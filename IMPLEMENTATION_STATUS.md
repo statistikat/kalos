@@ -4520,3 +4520,11 @@ Two independent pinned x86-64 JVMs produced identical residual scale, Ljung–Bo
 ### M5 selected-model RSA3 residual diagnostics
 
 `monthly_tramo_residual_ljung_box` uses the fitted ARMA parameter count for the public 24-lag independence statistic. Across nine original and restart fits the native scale, independence statistic/probability and normality statistic/probability matched all 45 JVM numerical values bit-for-bit, with the expected reference degrees of freedom. The existing 12 RSA1 and six RSA0 fixtures still pass. The three Release gates cover diagnostics, RSA0 and raw automatic fitting. The diagnostic replay also passed under serial ASan/UBSan with the short-domain and out-of-range parameter tests. [Contract](docs/contracts/tramo-seats-bridge-contract.md)
+
+### M5 / 23-G — stock reference rejection and last-chance model evidence
+
+Seven monthly inputs with residual correlation beyond the regular ARMA lags
+trigger the lower detection threshold in stock TR3. The public processing
+log checks all passes, including second-round acceptance, the last-chance
+model, mean retesting and the seasonal restart. Two independent JVM runs
+match on all seven fitted models, 909 residuals and 5,640 product values.
