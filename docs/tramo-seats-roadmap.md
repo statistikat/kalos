@@ -277,6 +277,9 @@ pinned values without a maintainer ruling (the 21 precedent).
   and calendar builder fields (Default) refuse fail closed with 21-I.3 in
   the reason (corpus seam rows + load witnesses pin both sides); the
   `Automatic{,Wald}` families and `TradingDaysController` are not ported.
+  [2026-11-23: 21-I.3 LANDED — the seam targets now run in
+  `kalos::calendar_detection` (ctest #80, calendar-detection contract);
+  the 23-E refusals stay, they just name a unit that exists.]
   Quarterly rows pin the D11 refusal. Contract `tramo-regression-tests`.
 - **23-F — `tramo_final_estimation` + kernel round driver**: `FinalEstimator`
   decode (fork-candidate against `final_estimator`/`final_information`), then

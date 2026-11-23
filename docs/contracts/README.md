@@ -802,3 +802,27 @@ silent zero-fill is refused, not emitted), duration bounds [1, 28] /
 PreComputed [1, 25] and unaligned domains or user data. Decisions I-5 and I-9
 applied per the 21-I register. See
 [calendar-generation-contract.md](calendar-generation-contract.md).
+
+## Calendar-detection machines (21-I.3)
+
+`test_calendar_detection.cpp` (#80), the double-captured 43-case JVM corpus
+under `validation/evidence/native/calendar-detection/` (48 journals incl.
+five class-load witnesses; all 50 data files byte-identical), the generator
+`tools/gen_calendar_detection_golden.py` (raw-bit payloads throughout - the
+pinned JVM's `%.17g` proved non-faithful), the shared replay
+`tests/calendar_detection_replay.h` and the sweep
+`tools/verify_calendar_detection.cpp` (229 replay + 320 corpus
+cross-checks) qualify `kalos/calendar_detection.hpp`: the shared
+`TradingDaysRegressionComparator` layer (`bestModel`, the dcmpl/dcmpg
+`waldTest` walk), the TRAMO ladder machines `AutomaticRegressionTest` /
+`AutomaticWaldRegressionTest`, `AutomaticFRegressionTest` (Info math on the
+landed OLS + `f_upper_p`, the three-branch walk), the sa machines
+`AutomaticTradingDaysRegressionTest` / `AutomaticTradingDaysWaldTest`
+(keep/swap/add/remove walk, early-return quirk, `has_lp` always true), the
+activated 23-E calendar seams (`FastRegressionTest` / `DefaultRegressionTest`
+calendar branches incl. the `JointTest` join arm, `lcholesky`/`solveLx`
+operand mirrors) and the public `kalos::calendar_joint_test` mirror (the
+step's dim-1 -> wdTest routing never reaches the corpus's dim-1 form).
+Zero new distribution kernels; TRAMO and sa fork grammars stay separate
+(register I-3/I-4). See
+[calendar-detection-contract.md](calendar-detection-contract.md).
