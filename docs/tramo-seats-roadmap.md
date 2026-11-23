@@ -370,6 +370,10 @@ pinned values without a maintainer ruling (the 21 precedent).
   `TramoSeatsKernel.of(RegSarimaModel)` bridge port, `TwoStepsDecomposition.
   merge`, and the result surface (which Stdev rows are exposed — finals merge
   drops them; extractor decision recorded).
+  **Delivered 2026-11-23:** structured, dated initial and bias-corrected WK
+  component series, including the extraction standard deviations (36-case
+  replay, 1,055 rows). The fitted-model bridge and deterministic-effects
+  merge remain open. [Extraction gate](contracts/seats-wk-extraction-contract.md)
 - **24-E — end-to-end TRAMO/SEATS oracle + composition**:
   `tramo_seats_fit` driver = 23-F + 24-D; acceptance corpus MUST cover rsa3
   AND rsafull end to end (roadmap acceptance), the latter gated by 21-I for

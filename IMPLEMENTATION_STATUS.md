@@ -3619,3 +3619,19 @@ bias-corrected component in the 36-case WK JVM corpus, including calendar,
 row presence, binary64 values, and existing error/refusal behavior. The
 TRAMO-to-SEATS bridge and deterministic-effects merge follow independently.
 [Extraction contract](docs/contracts/seats-wk-extraction-contract.md)
+
+**Implemented and qualified.** The fixed-model extractor exposes ordered,
+dated binary64 arrays for both phases, including the conditional standard
+deviations. Release and ASan/UBSan runs on macOS ARM64 reproduced the 36-case
+fixture with 1,208 existing checks, 1,055 structured component rows, and
+55,812 bit-exact observations. An additional one-month backcast across year
+zero checked the calendar on the structured and text results. The source
+manifest (187/112/331) and 406-file historical migration audit passed.
+
+The next 24-D gate is the fitted-model bridge. The pinned
+`TramoSeatsKernel.of(RegSarimaModel)` filters deterministic effects by their
+regression-effect attributes, repins the fitted coefficients, and supplies
+`ls_ssq / (ls_eff - ls_npar)` to SEATS. 23-F currently supplies witnessed
+model fits. Qualifying this handoff and the subsequent deterministic-effect
+merge requires reference input/output pairs from the combined kernel. The
+extraction result alone does not enable an end-to-end TRAMO/SEATS fit.
