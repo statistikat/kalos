@@ -15277,7 +15277,7 @@ inline const std::vector<FitExpect>& fit_expectations() {
       {"fit_so", "", "Strong", 3, 3, 1, 3},
       {"fit_spanout", "", "Strong", 3, 3, 1, 3},
       {"fit_gs2", "", "Weak", 1, 5, 2, 6},
-      {"fit_s30ml", "", "Strong", 3, 1, 3, 0},
+      {"fit_s30ml", "", "Strong", 3, 3, 1, 0},
       {"fit_aoonly", "", "Strong", 3, 3, 1, 3},
       {"fit_cv4", "", "Strong", 3, 3, 1, 6},
       {"fit_shortfail", "", "NotObservable", 0, 6, 1, 0},

@@ -25,6 +25,9 @@
 - Added an independent RSA0 original-series forecast standard-error projection
   using the preprocessing model’s public reporting scales.
 
+- Initialized empty regression designs in the warm SARIMA optimizer and
+  qualified the two explicit maximum-likelihood TRAMO scans.
+
 ## 0.1.0 — initial repository split
 
 Preserved the delivered Kalos numerical scope through 22b.2.

@@ -147,6 +147,13 @@ long long run_case(const FitExpect& e, std::size_t& live_total,
         CHECK(r.covariance.covariance.empty());
         CHECK(rq.final.captured_covariance_upper.empty());
     }
+    if (std::string(e.id) == "fit_s30ml") {
+        std::size_t live_scans = 0;
+        for (const auto& check : r.seam_checks)
+            if (check.unit == "tramo_outlier_rounds" && check.tier == "live")
+                ++live_scans;
+        CHECK(live_scans == 2);
+    }
     live_total += r.seams_live;
     fact_total += r.seams_fact;
     d9_total += r.covariance.covariance_upper.size();

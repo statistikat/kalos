@@ -3868,3 +3868,13 @@ EstimateSpec's 1e−7 tolerance applies to final estimation. TRAMO's 23-F
 spec generator previously copied the final tolerance into both fields.
 Both preserved captures regenerate the corrected golden. The 34-case
 fit suite, RSA0/RSA3 handoff regressions and fixed X-13 fit tests passed.
+
+### M5 / 23-G — empty regression designs in warm scans
+
+A warm SARIMA optimizer with no mean or outlier columns now starts with
+zero regression columns. A default-constructed design previously left its
+column count uninitialized. This accounts for the spurious 32-column limit
+seen on the short maximum-likelihood series and the instrumented multi-
+outlier runs. All 40 integrated entries now reproduce the JVM outcome and
+ordered outlier names, including both explicit maximum-likelihood scans.
+The stationary scan remains witnessed. The census is 67 live / 14 recorded.

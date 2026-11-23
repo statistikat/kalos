@@ -477,7 +477,7 @@ TramoFitResult tramo_fit(const TramoFitRequest& request) {
             check.note = "match " + stage_word(mapped) + " " +
                          orders_word(post);
         } else if (seam.kind == TramoKernelSeamKind::scan && !has_fixed_regressors &&
-                   in.entry_outliers.empty() && !spec.outliers_ml &&
+                   in.entry_outliers.empty() &&
                    (in.entry_orders.d > 0 || in.entry_orders.bd > 0)) {
             check_scan(spec, built, prestage.log, in, seam);
             check.tier = "live";
@@ -538,7 +538,7 @@ TramoFitResult tramo_fit(const TramoFitRequest& request) {
             check.tier = "fact";
             if (seam.kind == TramoKernelSeamKind::scan)
                 check.note =
-                    "outside the live scan design, ML or differencing envelope";
+                    "outside the live scan design or differencing envelope";
             else if (seam.kind == TramoKernelSeamKind::arma)
                 check.note = "no olsResiduals hand-over captured";
             else
