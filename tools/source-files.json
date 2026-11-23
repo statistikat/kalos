@@ -392,6 +392,7 @@
     "validation/evidence/native/tramo-calendar-ftest/SHA256SUMS.csv",
     "validation/evidence/native/tramo-calendar-ftest/full.txt",
     "validation/evidence/native/tramo-calendar-ftest/panel.txt",
+    "validation/evidence/native/tramo-calendar-ftest/residual-td.txt",
     "validation/evidence/native/tramo-differencing-battery/SHA256SUMS.csv",
     "validation/evidence/native/tramo-differencing-battery/battery-events.csv",
     "validation/evidence/native/tramo-differencing-battery/cases.csv",
