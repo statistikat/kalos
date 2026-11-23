@@ -193,6 +193,7 @@ if(KALOS_BUILD_TESTS)
     test_arma_refinement
     test_arma_residuals
     test_arima_forecasts
+    test_calendar_detection
     test_calendar_generation
     test_decompose_ucarima
     test_differencing_decision
@@ -282,6 +283,13 @@ if(KALOS_BUILD_TESTS)
       # 23-E golden replay over the double-captured tramo-regression-tests
       # corpus (ModelStatistics rows, both tstats arms, the refStats gate and
       # the two regression-test machines); generous for the sanitizer lane.
+      set_tests_properties(${test_name} PROPERTIES TIMEOUT 3600)
+    endif()
+    if(test_name STREQUAL "test_calendar_detection")
+      # 21-I.3 golden replay over the double-captured calendar-detection
+      # corpus (the shared comparator, the TRAMO/sa ATD ladders, the FTEST
+      # machine, the Fast/Default calendar steps and the JointTest form);
+      # generous for the sanitizer lane.
       set_tests_properties(${test_name} PROPERTIES TIMEOUT 3600)
     endif()
     if(test_name STREQUAL "test_tramo_kernel_rounds")

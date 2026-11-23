@@ -1,0 +1,44 @@
+"id","note","lines"
+"cm_all","comparator: lp, four TD columns, wald leg",11
+"cm_nolp","comparator: no lp arm (absent row 1)",9
+"cm_tdeff","comparator: strong-TD series (wald picks a column)",9
+"cm_nowald","comparator: aicc/bic only, additive series",11
+"ta_aicc","TRAMO ladder machine sel= aicc",34
+"ta_bic","TRAMO ladder machine sel= bic",34
+"ta_wald","TRAMO ladder machine sel= wald",34
+"ta_tdeff","TRAMO ladder machine on the strong-TD series",34
+"ta_nolp","TRAMO ladder machine without the leapYear wiring",34
+"ta_nomean","TRAMO ladder machine with testMean off",34
+"ta_noea","TRAMO ladder machine without the easter field",34
+"ft_fp01","TRAMO FTEST fp= 0.01",19
+"ft_fp05","TRAMO FTEST fp= 0.05",19
+"ft_tdeff","TRAMO FTEST on the strong-TD series (branch A witness)",19
+"ft_nomean","TRAMO FTEST with testMean off",19
+"ft_noea","TRAMO FTEST without the easter field",19
+"sa_aicc","sa ATD sel=aicc, ladder all, clean desc",35
+"sa_bic_td","sa ATD sel=bic with a stale plain td on the desc",35
+"sa_wald_all","sa Wald, ladder all",35
+"sa_wald_nested","sa Wald, ladder nested (no TD2c/TD3c)",29
+"sa_lpa","sa ATD with an ami lp on the desc (tail/quirk arms)",35
+"sa_td_sel0","sa ATD with the selected core already on the desc (keep arm)",35
+"sa_tdeff","sa ATD on the strong-TD series",35
+"fs_all","fast step: ami td+lp+easter (mhTest slot)",18
+"fs_tdonly","fast step: ami td only",16
+"fs_tdeff","fast step: strong-TD series",18
+"fs_nomean","fast step: testMean off",17
+"ds_t","default step: T arm (join off), wd-shaped TD2",12
+"ds_join","default step: joinTest arm on the TD2 window",13
+"ds_join_td7","default step: joinTest arm on the six-column TD7",18
+"ds_lp","default step: lp field alongside a kept td",13
+"ds_ea","default step: easter field (mhTest arm)",13
+"ds_unproc","default step: the Unprocessed guard",11
+"jt_w16","joint test: window pos 1 dim 6, k = 0",12
+"jt_k4","joint test: window pos 1 dim 6, k = the free parameters",12
+"jt_all","joint test: select-all short circuit",12
+"pt_aic","TRfull pipeline, tradingDays method= AIC",34
+"pt_bic","TRfull pipeline, tradingDays method= BIC",34
+"pt_wald","TRfull pipeline, tradingDays method= WALD",34
+"pt_ftest","TRfull pipeline, tradingDays method= FTEST",34
+"px_base","rsa4 pipeline, tradingDays.auto= base",34
+"px_aic","rsa4 pipeline, tradingDays.auto= AIC",34
+"px_wald5","rsa4 pipeline, tradingDays.auto= WALD5",34

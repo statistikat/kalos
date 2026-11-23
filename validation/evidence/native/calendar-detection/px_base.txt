@@ -1,0 +1,34 @@
+case PX px_base method base
+kind clean n 96
+values 404ae66666666666 404aae7b5cc46363 4049d33333333333 404abb4829913030 404b000000000000 404aa66666666666 4048cccccccccccd 40461184a33b9c9d 404579999999999a 40461e517008696a 4048e66666666666 404acccccccccccd 404b333333333333 404afb4829913030 404a200000000000 404b0814f65dfcfc 404b4ccccccccccd 404af33333333333 404919999999999c 40465e517008696a 4045c66666666666 40466b1e3cd53635 4049333333333332 404b19999999999a 404b800000000001 404b4814f65dfcfc 404a6ccccccccccd 404b54e1c32ac9ca 404b99999999999a 404b400000000002 4049666666666667 4046ab1e3cd53638 4046133333333333 4046b7eb09a20303 4049800000000000 404b666666666665 404bccccccccccce 404b94e1c32ac9ca 404ab9999999999a 404ba1ae8ff79696 404be66666666665 404b8ccccccccccd 4049b33333333334 4046f7eb09a20306 4046600000000000 404704b7d66ecfcc 4049ccccccccccce 404bb33333333332 404c19999999999a 404be1ae8ff79696 404b066666666666 404bee7b5cc46364 404c333333333333 404bd9999999999b 4049ffffffffffff 404744b7d66ecfd3 4046accccccccccd 40475184a33b9c9d 404a19999999999a 404bfffffffffffe 404c666666666665 404c2e7b5cc46363 404b533333333333 404c3b4829913030 404c7ffffffffffe 404c266666666664 404a4ccccccccccd 40479184a33b9c9b 4046f9999999999a 40479e5170086968 404a66666666666a 404c4ccccccccccc 404cb33333333337 404c7b4829913030 404ba00000000000 404c8814f65dfcfc 404ccccccccccccc 404c733333333338 404a99999999999c 4047de5170086968 4047466666666666 4047eb1e3cd5362e 404ab33333333335 404c99999999999b 404d000000000002 404cc814f65dfcfd 404beccccccccccd 404cd4e1c32ac9c9 404d19999999999a 404cbfffffffffff 404ae66666666667 40482b1e3cd5363f 4047933333333333 404837eb09a20302 404b000000000004 404ce66666666664
+x13tdspec px_base method=UNUSED automatic=false p1=0 p2=0 adjust=true rtest=Remove
+run OK set
+evt 1 push 0 regarima det -
+evt 2 push 1 automatic model identification det -
+evt 3 push 2 log-level test det -
+evt 4 info 3 - det obj AICC on logs=62.9343; AICC on levels=-5043.83; (AICC-preference)=-2.00000)
+evt 5 pop 2 - det -
+evt 6 push 2 automatic trading days selection det -
+evt 7 info 3 - det ATD best=0 names=[no td, td2] ll[0] n=96 eff=83 np=3 ssq=3a8fff2cc569dafe aicc=c0b3b5ddd043a24a bic=c0b3aee9ea855750 bic2=c04e5adadbca8cd2 bicc=c04ff628d25347ac ll[1] n=96 eff=83 np=5 ssq=3a91224bb2738cfe aicc=c0b3b3d570ee5a3c bic=c0b3a884ce40f1bc bic2=c04e50fe287cd469 bicc=c04fdfc0af67ba2f
+evt 8 pop 2 - det -
+evt 9 push 2 automatic easter selection det -
+evt 10 info 3 - det obj jdplus.sa.base.core.regarima.EasterDetectionModule$Info@1dde4cb2
+evt 11 pop 2 - det -
+evt 12 push 2 mean correction det -
+evt 13 pop 2 - det -
+evt 14 push 2 outliers selection det -
+evt 15 info 3 - det obj IOutliersDetectionModule.Info(types=[AO, LS, TC], outliers=[[91, 0], [81, 0], [77, 0]], va=3.800743465029901)
+evt 16 pop 2 - det -
+evt 17 push 2 automatic arima selection det -
+evt 18 info 3 - det obj jdplus.toolkit.base.core.regsarima.regular.IDifferencingModule$Info@34a3d150
+evt 19 info 3 - det obj ArmaModule.CInfo(models=[jdplus.x13.base.core.x13.regarima.ArmaModule$RegArmaBic@48f2bd5b, jdplus.x13.base.core.x13.regarima.ArmaModule$RegArmaBic@7b2bbc3, jdplus.x13.base.core.x13.regarima.ArmaModule$RegArmaBic@a1153bc, jdplus.x13.base.core.x13.regarima.ArmaModule$RegArmaBic@1aafa419, jdplus.x13.base.core.x13.regarima.ArmaModule$RegArmaBic@47eaca72], selection=(0,1)(0,1))
+evt 20 pop 2 - det -
+evt 21 push 2 outliers selection det -
+evt 22 info 3 - det obj IOutliersDetectionModule.Info(types=[AO, LS, TC], outliers=[[77, 0], [81, 0], [91, 0]], va=3.800743465029901)
+evt 23 pop 2 - det -
+evt 24 push 2 full estimation det -
+evt 25 pop 2 - det -
+evt 26 pop 1 - det -
+evt 27 pop 0 - det -
+evt 28 push 0 x11 det -
+evt 29 pop 0 - det -

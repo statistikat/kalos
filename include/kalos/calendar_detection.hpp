@@ -545,6 +545,31 @@ struct TramoDefaultCalendarStep {
 TramoDefaultCalendarStep run_tramo_default_calendar_step(
     const TramoDefaultCalendarStepRequest& request);
 
+// The public mirror of the jar's public class
+// JointTest(cl).variableSelection(first, dim).hyperParametersCount(nhp)
+// .build() - the quadratic form documented on
+// TramoDefaultCalendarStepRequest (the step machine above calls exactly
+// this when the td arm runs with join_test and dim >= 2; the corpus also
+// witnesses forms built directly off an estimation, dim == 1 included,
+// which the step's dim == 1 -> wdTest routing never reaches). covariance
+// is the column-major nx x nx unscaledCovariance (nx = the coefficient
+// count of `statistics`). Throw surfaces: std::invalid_argument when the
+// selection window lies outside the hand-over or the covariance is not
+// the full nx x nx matrix (jar surface ArrayIndexOutOfBounds / NPE);
+// std::domain_error for m_err_chol / m_err_sing and for a NaN p-value out
+// of f_upper_p (the jar's MatrixException / DStatException leave the
+// class unchecked).
+struct CalendarJointTestResult {
+    double f = 0.0;
+    double pvalue = 0.0;
+    int df1 = 0;  // |S| = dim
+    int df2 = 0;  // statistics.dim - nx - nhp
+};
+
+CalendarJointTestResult calendar_joint_test(
+    const TramoTestStatistics& statistics,
+    const std::vector<double>& covariance, int first, int dim, int nhp);
+
 }  // namespace kalos
 
 #endif  // KALOS_CALENDAR_DETECTION_HPP

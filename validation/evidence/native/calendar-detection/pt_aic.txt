@@ -1,0 +1,34 @@
+case PT pt_aic method AIC
+kind clean n 96
+values 404ae66666666666 404aae7b5cc46363 4049d33333333333 404abb4829913030 404b000000000000 404aa66666666666 4048cccccccccccd 40461184a33b9c9d 404579999999999a 40461e517008696a 4048e66666666666 404acccccccccccd 404b333333333333 404afb4829913030 404a200000000000 404b0814f65dfcfc 404b4ccccccccccd 404af33333333333 404919999999999c 40465e517008696a 4045c66666666666 40466b1e3cd53635 4049333333333332 404b19999999999a 404b800000000001 404b4814f65dfcfc 404a6ccccccccccd 404b54e1c32ac9ca 404b99999999999a 404b400000000002 4049666666666667 4046ab1e3cd53638 4046133333333333 4046b7eb09a20303 4049800000000000 404b666666666665 404bccccccccccce 404b94e1c32ac9ca 404ab9999999999a 404ba1ae8ff79696 404be66666666665 404b8ccccccccccd 4049b33333333334 4046f7eb09a20306 4046600000000000 404704b7d66ecfcc 4049ccccccccccce 404bb33333333332 404c19999999999a 404be1ae8ff79696 404b066666666666 404bee7b5cc46364 404c333333333333 404bd9999999999b 4049ffffffffffff 404744b7d66ecfd3 4046accccccccccd 40475184a33b9c9d 404a19999999999a 404bfffffffffffe 404c666666666665 404c2e7b5cc46363 404b533333333333 404c3b4829913030 404c7ffffffffffe 404c266666666664 404a4ccccccccccd 40479184a33b9c9b 4046f9999999999a 40479e5170086968 404a66666666666a 404c4ccccccccccc 404cb33333333337 404c7b4829913030 404ba00000000000 404c8814f65dfcfc 404ccccccccccccc 404c733333333338 404a99999999999c 4047de5170086968 4047466666666666 4047eb1e3cd5362e 404ab33333333335 404c99999999999b 404d000000000002 404cc814f65dfcfd 404beccccccccccd 404cd4e1c32ac9c9 404d19999999999a 404cbfffffffffff 404ae66666666667 40482b1e3cd5363f 4047933333333333 404837eb09a20302 404b000000000004 404ce66666666664
+tdspec pt_aic method=AIC automatic=true ptd=3f847ae147ae147b adjust=false rtest=None
+run OK set
+evt 1 push 0 tramo det -
+evt 2 push 1 automatic model identification det -
+evt 3 push 2 seasonality test det -
+evt 4 info 3 - det -
+evt 5 pop 2 - det -
+evt 6 push 2 log-level test det -
+evt 7 info 3 - det obj -LogLikelihood on logs=-3.69806; -LogLikelihood on levels=-59.2961; (log-preference)=-0.0512933)
+evt 8 pop 2 - det -
+evt 9 push 2 automatic trading days selection det -
+evt 10 info 3 - det ATD best=0 names=[no td, lp, td2, td2c, td3, td3c, td4, td7] ll[0] n=96 eff=83 np=4 ssq=3a8f8d107ee762d2 aicc=c0b3b44943a6d408 bic=c0b3ab1fa74df46b bic2=c04e55028cce94b1 bicc=c04ff123fb5c1a2e ll[1] n=96 eff=83 np=5 ssq=3a90334f1e5ebff3 aicc=c0b3b1ec70ecba65 bic=c0b3a69bce3f51e5 bic2=c04e4e0c09a26bca bicc=c04fe6ec86323038 ll[2] n=96 eff=83 np=6 ssq=3a8f742f9a60689c aicc=c0b3b1cd13a699aa bic=c0b3a464af5941f5 bic2=c04e4aa1711db2d3 bicc=c04fe3e7fe63126e ll[3] n=96 eff=83 np=6 ssq=3a90033546c03c51 aicc=c0b3b1fba1d58930 bic=c0b3a4933d88317b bic2=c04e4ae93cf70b89 bicc=c04fe19a415487fa ll[4] n=96 eff=83 np=7 ssq=3a8f639318597087 aicc=c0b3afd0662830c0 bic=c0b3a0602148a861 bic2=c04e446f3c951002 bicc=c04fdd5b202e5728 ll[5] n=96 eff=83 np=7 ssq=3a901008f8657185 aicc=c0b3af8d1d509255 bic=c0b3a01cd87109f6 bic2=c04e440778f85963 bicc=c04fda6357dac36a ll[6] n=96 eff=83 np=8 ssq=3a8eadd2d6fb303c aicc=c0b3ad414aa004a9 bic=c0b39bd9ab08b47f bic2=c04e3d74b166ded6 bicc=c04fd9784164b649 ll[7] n=96 eff=83 np=11 ssq=3a8daedac08e1ac5 aicc=c0b3a980e95a9ab2 bic=c0b3929d57fd7435 bic2=c04e2f368186de64 bicc=c04fc9401614b14d
+evt 11 pop 2 - det -
+evt 12 push 2 outliers selection det -
+evt 13 info 3 - det obj IOutliersDetectionModule.Info(types=[AO, LS, TC], outliers=[[91, 0], [81, 0], [77, 0]], va=3.415)
+evt 14 pop 2 - det -
+evt 15 push 2 full estimation det -
+evt 16 pop 2 - det -
+evt 17 push 2 differencing selection det -
+evt 18 info 3 - det obj jdplus.toolkit.base.core.regsarima.regular.IDifferencingModule$Info@4d339552
+evt 19 pop 2 - det -
+evt 20 push 2 arma selection det -
+evt 21 info 3 - det obj ArmaModule.CInfo(models=[ArmaModelSelector.FastBIC(arma=AR = 1.00000; MA = 1.00000 - 0.926631 B - 0.529737 B^12 + 0.490871 B^13; var =1.0, BIC=-64.32860149102508), ArmaModelSelector.FastBIC(arma=AR = 1.00000 + 0.573697 B^12; MA = 1.00000 - 0.904893 B; var =1.0, BIC=-64.30923432900401), ArmaModelSelector.FastBIC(arma=AR = 1.00000 + 0.433161 B; MA = 1.00000 - 0.506759 B - 0.116480 B^2 - 0.316394 B^3 - 0.672375 B^12 + 0.340732 B^13 + 0.0783180 B^14 + 0.212735 B^15; var =1.0, BIC=-64.30803410865857), ArmaModelSelector.FastBIC(arma=AR = 1.00000 + 0.464086 B^12; MA = 1.00000 - 0.945101 B - 0.0934695 B^12 + 0.0883381 B^13; var =1.0, BIC=-64.2854298013981), ArmaModelSelector.FastBIC(arma=AR = 1.00000 + 0.381699 B - 0.0264737 B^2; MA = 1.00000 - 0.565065 B - 0.106271 B^2 - 0.327444 B^3 - 0.685639 B^12 + 0.387430 B^13 + 0.0728638 B^14 + 0.224508 B^15; var =1.0, BIC=-64.27818816737596)], selection=(0,1)(0,1))
+evt 22 pop 2 - det -
+evt 23 push 2 outliers selection det -
+evt 24 info 3 - det obj IOutliersDetectionModule.Info(types=[AO, LS, TC], outliers=[[91, 0], [81, 0], [77, 0]], va=3.415)
+evt 25 pop 2 - det -
+evt 26 push 2 full estimation det -
+evt 27 pop 2 - det -
+evt 28 pop 1 - det -
+evt 29 pop 0 - det -

@@ -823,4 +823,17 @@ TramoDefaultCalendarStep run_tramo_default_calendar_step(
     return step;
 }
 
+CalendarJointTestResult calendar_joint_test(
+    const TramoTestStatistics& statistics,
+    const std::vector<double>& covariance, int first, int dim, int nhp) {
+    const JointTestOutcome o =
+        joint_test_build(statistics, covariance, first, dim, nhp);
+    CalendarJointTestResult r;
+    r.f = o.f;
+    r.pvalue = o.pvalue;
+    r.df1 = o.df1;
+    r.df2 = o.df2;
+    return r;
+}
+
 }  // namespace kalos
