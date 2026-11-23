@@ -25,6 +25,7 @@
 #include <kalos/tramo_arma_selection.hpp>
 #include <kalos/tramo_differencing_decision.hpp>
 
+#include <algorithm>
 #include <cmath>
 #include <cstring>
 #include <stdexcept>
@@ -182,6 +183,13 @@ TramoFitResult tramo_fit(const TramoFitRequest& request) {
                 (spec.transform_function == tramo_transform_function::log),
             "builder log flag disagrees with the transform function");
     {
+        // Jar-decoded pre-stage (javap TramoKernel.testSeasonality): the
+        // description is rewritten to SarimaOrders.m011(freq) = (0,1,1)(0,0,0)
+        // with ctx.seasonal := false only when autoModel is on and the
+        // seasonality verdict toInt() < 2 (the fit_gs2 / fit_shortfail shape:
+        // prestate orders (0,1,1)(0,0,0) with seasonal off). Every other row
+        // keeps the registered orders, so the builder mirror is the authority
+        // there; a mismatch is admitted only in the decoded downgrade shape.
         TramoOrders built_orders;
         built_orders.d = built.arima.d;
         built_orders.bd = built.arima.bd;
@@ -189,10 +197,17 @@ TramoFitResult tramo_fit(const TramoFitRequest& request) {
         built_orders.q = static_cast<int>(built.arima.theta.size());
         built_orders.bp = static_cast<int>(built.arima.bphi.size());
         built_orders.bq = static_cast<int>(built.arima.btheta.size());
-        require(orders_equal(built_orders, prestage.orders),
-                "builder orders " + orders_word(built_orders) +
-                    " disagree with the captured prestage orders " +
-                    orders_word(prestage.orders));
+        if (!orders_equal(built_orders, prestage.orders)) {
+            TramoOrders m011;
+            m011.d = 1;
+            m011.q = 1;
+            require(spec.using_auto_model && !prestage.seasonal &&
+                        orders_equal(prestage.orders, m011),
+                    "captured prestage orders " + orders_word(prestage.orders) +
+                        " match neither the builder registration " +
+                        orders_word(built_orders) + " nor the seasonality-"
+                        "downgraded (0,1,1)(0,0,0) shape");
+        }
     }
     if (prestage.regression_test == "Unprocessed")
         require(built.mean == prestage.mean,
@@ -230,21 +245,43 @@ TramoFitResult tramo_fit(const TramoFitRequest& request) {
             "log flag disagrees with the captured prestage");
 
     // ---- stage 3: the ami() round loop ------------------------------------
-    // The fully-specified, outlier-free template (TR0/fit_fsnone) takes the
-    // ami() estimation branch without the iterate loop (no round events, no
-    // module seams in the capture): the round driver is not invoked there.
-    if (!spec.using_auto_model && !spec.outliers_used) {
+    // Jar-decoded ami() branch (javap TramoKernel.ami / isFullySpecified):
+    // the round driver is skipped only when the transform is already decided
+    // and nothing is automatic - function != Auto && !autoModel &&
+    // !outliersDetection && !meanTest && !td.test && !td.automatic &&
+    // !easter.test (the last three clauses are vacuous here: the D10 refusal
+    // above gates the calendar family out). fit_nomean (auto transform,
+    // templates otherwise fixed) therefore runs at least one iterate - the
+    // seam stream is cross-checked against the decoded verdict.
+    const bool fully_specified =
+        spec.transform_function != tramo_transform_function::automatic &&
+        !spec.using_auto_model && !spec.outliers_used && !spec.mean_is_test;
+    if (fully_specified) {
         require(request.kernel.seams.empty(),
                 "a fully-specified request carries round-loop seams");
     } else {
+        require(!request.kernel.seams.empty(),
+                "a round-driver request carries no round-loop seams");
         result.kernel = tramo_run_kernel_rounds(request.kernel);
     }
 
     // ---- stage 4: the per-seam live cross-checks --------------------------
     const std::vector<TramoKernelSeam>& seams = request.kernel.seams;
+    // The evolving seasonality context (dated 2026-11-23 javap re-decode):
+    // the TramoKernel module factories (differencingModule(), armaModule())
+    // hand the builder seasonal(ctx.seasonal) - the context at module
+    // creation, not the pre-stage value. The seasonality controller seams
+    // carry the context mutations (TramoKernelSeam.seasonal_after, from the
+    // per-step rsnap witness); the gs2 / shortfail pass-3 modules are created
+    // after a "scontroller res Changed" flip back to seasonal.
+    bool ctx_seasonal = prestage.seasonal;
     std::size_t next_input = 0;
     for (std::size_t s = 0; s < seams.size(); ++s) {
         const TramoKernelSeam& seam = seams[s];
+        if (seam.kind == TramoKernelSeamKind::seasonality_controller) {
+            ctx_seasonal = seam.seasonal_after;
+            continue;
+        }
         if (seam.kind != TramoKernelSeamKind::differencing &&
             seam.kind != TramoKernelSeamKind::arma &&
             seam.kind != TramoKernelSeamKind::scan)
@@ -304,7 +341,7 @@ TramoFitResult tramo_fit(const TramoFitRequest& request) {
             dreq.bq0 = in.entry_orders.bq;
             dreq.mean0 = in.entry_mean;
             dreq.initial_round = true;
-            dreq.seasonal = prestage.seasonal;
+            dreq.seasonal = ctx_seasonal;
             dreq.ub1 = spec.ub1;
             dreq.ub2 = spec.ub2;
             dreq.cancel = spec.cancel;
@@ -355,7 +392,7 @@ TramoFitResult tramo_fit(const TramoFitRequest& request) {
             areq.bp0 = in.entry_orders.bp;
             areq.bd0 = in.entry_orders.bd;
             areq.bq0 = in.entry_orders.bq;
-            areq.seasonal = prestage.seasonal;
+            areq.seasonal = ctx_seasonal;
             areq.accept_white_noise = spec.accept_airline;
             const TramoArmaSelectionResult a = select_tramo_arma(areq);
             const TramoKernelStageResult mapped =
@@ -448,8 +485,12 @@ TramoFitResult tramo_fit(const TramoFitRequest& request) {
 
     // The differenced response the landing machine consumed, recomputed
     // natively (pinned log, then the RegArimaUtility.differencingFilter /
-    // BackFilter orientation of the 23-C pin: the mlj correlation times
-    // (-1)^(d + bd)).
+    // BackFilter orientation of the 23-C pin: the JVM hands the BackFilter
+    // the REVERSED polynomial, applied directly - the (-1)^(d + bd)
+    // equivalence of the 23-C note holds entry-wise, but a cancelling sum
+    // lands at JVM +0.0 where negating the ascending result would give
+    // -0.0 (the fit_fct_air witness at index 99), so the reversed filter is
+    // applied as the JVM builds it).
     std::vector<double> y = built.interpolated;
     if (fin.log) {
         for (double& v : y) {
@@ -457,18 +498,15 @@ TramoFitResult tramo_fit(const TramoFitRequest& request) {
             v = detail::fdlibm_log(v);
         }
     }
-    const std::vector<double> filter = mlj::differencing_filter(
+    std::vector<double> filter = mlj::differencing_filter(
         spec.annual_frequency, fin.orders.d, fin.orders.bd);
+    std::reverse(filter.begin(), filter.end());
     std::vector<double> w;
     if (filter.size() > 1) {
         require(y.size() > filter.size() - 1,
                 "series too short for the differencing filter");
         w.assign(y.size() - (filter.size() - 1), 0.0);
         mlj::apply_backfilter(filter, y, 0, w);
-        if ((fin.orders.d + fin.orders.bd) % 2 != 0) {
-            for (double& v : w)
-                v = -v;
-        }
     } else {
         w = y;
     }
