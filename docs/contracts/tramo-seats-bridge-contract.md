@@ -75,8 +75,8 @@ six-forecast run on the mixed AO/LS model give 65 product rows and 4,005
 binary64 observations. The exit gate requires their identities, calendars,
 lengths and values to match. On the mixed case the JVM changed the model
 during SEATS approximation. Its frozen WK result qualifies the subsequent
-merge independently. D6 requires the native extraction route to refuse that
-fit. The AO-only case cuts off a parameter and stays in the admitted envelope.
+merge independently. The native extractor now also refits the mixed model
+and reproduces the full pipeline at both horizons. The AO-only case cuts off a parameter and stays in the admitted envelope.
 
 The fitted bridge bytes reproduce unchanged on ARM64 and x86-64 Temurin
 21.0.11. Two of the valid fitted models expose architecture differences in
@@ -103,8 +103,8 @@ fixed handoff, extracts WK components and merges the product. Its extraction
 retains the dated initial and bias-corrected rows and standard deviations.
 Its finals contain estimates for value, forecast and backcast intervals.
 The default is zero backcasts and two years of forecasts. A WK error status
-produces empty finals. The mixed AO/LS model requires approximation and
-raises the established D6 refusal. Four decomposable fitted models reproduce
+produces empty finals. All five fitted models, including the seasonal MA
+refit on mixed AO/LS with two horizon settings, reproduce
 the complete x86-64 reference extraction-final and product rows at identical
 fitted inputs. Running a raw series and specification without captured fit
 witnesses and qualifying the mandatory rsa3 and rsafull end-to-end oracles

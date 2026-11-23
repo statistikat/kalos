@@ -40,7 +40,7 @@ REASON_VAR0 = ("seats_extract_wk: innovation variance 0 selects the JVM "
 REASON_NOISY = ("seats_extract_wk: Noisy approximation mode is outside the "
                 "D6 envelope")
 REASON_APPROX = ("seats_extract_wk: approximation_required decision is "
-                 "outside the qualified monthly airline retry envelope")
+                 "outside the qualified monthly retry envelope")
 
 
 def cstr(s):
@@ -59,7 +59,7 @@ def cstr(s):
     return "".join(out)
 
 
-def refusal_reason(c, var, orders):
+def refusal_reason(c, var, mean, orders):
     """The unit's check order (seats_extract_wk): frequency, method,
     variance, Noisy mode, approximation_required."""
     if int(c["freq"]) != 12:
@@ -72,7 +72,8 @@ def refusal_reason(c, var, orders):
         return REASON_NOISY
     p, d, q, bp, bd, _ = orders
     airline = (p, d, bp, bd) == (0, 1, 0, 1) and q <= 1
-    if c["ddecompose"] == "null" and c["mode"] != "None" and not airline:
+    seasonal_refit = orders == (2, 1, 0, 1, 1, 0) and not mean
+    if c["ddecompose"] == "null" and c["mode"] != "None" and not (airline or seasonal_refit):
         # mode None + null decomposition is the kernel's SeatsException
         # status row (mirrored), not a refusal.
         return REASON_APPROX
@@ -86,7 +87,7 @@ def main(corpus_dir, dst):
             cases[r["id"]] = r
             order.append(r["id"])
     req, values = {i: [] for i in order}, {}
-    var = {}
+    var, mean = {}, {}
     with open(os.path.join(corpus_dir, "inputs.csv")) as f:
         for r in csv.DictReader(f):
             ln = r["line"]
@@ -94,6 +95,7 @@ def main(corpus_dir, dst):
                 req[r["id"]].append(ln)
                 if ln.startswith("req log "):
                     var[r["id"]] = float(ln.split()[6])
+                    mean[r["id"]] = bool(int(ln.split()[4]))
             elif ln.startswith("values "):
                 values[r["id"]] = ln[len("values "):]
     orders = {}
@@ -105,7 +107,7 @@ def main(corpus_dir, dst):
             if r["key"] in FACT_KEYS:
                 facts[r["id"]].append(r["key"] + " " + r["value"])
 
-    reason = {cid: refusal_reason(cases[cid], var[cid], orders.get(cid, ())) for cid in order}
+    reason = {cid: refusal_reason(cases[cid], var[cid], mean[cid], orders[cid]) for cid in order}
     for cid in order:
         if len(req[cid]) != 7:
             sys.exit("case %s: expected 7 req lines, found %d"

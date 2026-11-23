@@ -3908,6 +3908,22 @@ ASan/UBSan replay passed 1,267 checks, including 1,095 component rows and
 Higher-order models that require an estimator, including the mixed AO/LS
 fitted bridge, still need a separate approximation port and qualification.
 
+### M5 / 24-D — fitted mixed AO/LS model through SEATS
+
+The public JVM changes the mixed model from (2,1,0)(1,1,0) to (2,1,0)(0,1,1).
+Kalos now estimates that replacement from the effect-adjusted series using the
+SEATS toolkit's Hannan–Rissanen initialization and 1e−7 convergence precision.
+Two independent JVM runs confirmed the three fitted parameters and the revised
+innovation variance. All five fitted bridge cases now reproduce the complete
+x86-64 reference WK and merged components, including both mixed-case horizons
+(0/24 and 3/6 backcasts/forecasts). The six runs compare 65 merged rows and
+4,005 values and preserve conditional uncertainty through the refit.
+
+Release extraction, fitted bridge and RSA0 tests passed 3/3. The fitted bridge
+also passed ASan/UBSan; the independent raw extraction sweep passed 132/132.
+Other approximation families, autonomous TR3/Full fitting and the wider
+end-to-end qualification remain open.
+
 ### M5 / 24-E — public RSA0 preprocessing residual oracle
 
 The six public RSA0 cases now record the dated `residuals.tsres` series and

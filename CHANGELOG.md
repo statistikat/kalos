@@ -5,6 +5,7 @@
 - Added the public monthly RSA0 residual Ljung–Box diagnostic with its
   zero-mean convention and paired JVM evidence.
 
+- Added SEATS seasonal AR-to-MA re-estimation for the fitted mixed AO/LS model.
 - Added the monthly SEATS Legacy airline approximation, with JVM-verified
   seasonal MA thresholds and component extraction after a successful retry.
 

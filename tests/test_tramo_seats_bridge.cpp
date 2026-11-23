@@ -189,7 +189,7 @@ int main() {
     const auto merges = read_merge_cases(KALOS_MERGE_X64);
     const auto arm_merges = read_merge_cases(KALOS_MERGE_FACTS);
     assert(merges.size() == 6 && arm_merges.size() == 6);
-    std::size_t observations = 0, merged_values = 0, native_runs = 0;
+    std::size_t observations = 0, merged_values = 0, native_runs = 0, approximation_runs = 0;
     for (const auto& c : cases) {
         TramoFitRequest request;
         build_fit(c.id, request);
@@ -261,23 +261,16 @@ int main() {
                 for (const auto& row : observed_only.finals)
                     assert(row.information == seats_information::value);
             }
-            if (m.approximation) {
-                bool refused = false;
-                try { (void)run_tramo_seats_pipeline(fit, m.backcasts, m.forecasts); }
-                catch (const std::invalid_argument& e) {
-                    refused = std::string(e.what()).find("approximation_required") != std::string::npos;
-                }
-                assert(refused);
-            } else {
-                const auto product = run_tramo_seats_pipeline(fit, m.backcasts, m.forecasts);
-                assert(product.extraction.fact("status") == "ok");
-                ok &= check_rows(product.extraction.final_components(), m.wk, m.id + " WK");
-                ok &= check_rows(product.finals, m.merged, m.id + " native pipeline");
-                ++native_runs;
-            }
+            const auto product = run_tramo_seats_pipeline(fit, m.backcasts, m.forecasts);
+            assert(product.extraction.fact("status") == "ok");
+            ok &= check_rows(product.extraction.final_components(), m.wk, m.id + " WK");
+            ok &= check_rows(product.finals, m.merged, m.id + " native pipeline");
+            ++native_runs;
+            if (m.approximation) ++approximation_runs;
         }
 
     }
+    ok &= native_runs == merges.size() && approximation_runs == 2;
     std::cout << cases.size() << " fitted bridge handoffs, " << observations
               << " bit-exact adjusted observations, " << merged_values
               << " isolated merged values, " << native_runs << " admitted native pipeline comparisons\n";

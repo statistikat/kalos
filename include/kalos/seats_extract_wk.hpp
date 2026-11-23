@@ -21,8 +21,8 @@
 // .md): monthly series (D11), the Burman/WK estimator only - KalmanSmoother
 // is D1, a non-zero innovation variance (var 0 takes the JVM
 // ConcentratedLikelihood variance path). Legacy approximation covers the
-// monthly (0,1,q)(0,1,BQ) case with q <= 1. The fixed airline and its
-// degenerate fixMa status are qualified. Other required approximations and
+// monthly (0,1,q)(0,1,BQ) case with q <= 1 and the seasonal AR-to-MA
+// refit for a mean-free (2,1,0)(1,1,0) model. Other required approximations and
 // Noisy mode are outside this surface.
 // A decomposition that came back null under mode None is a DATA outcome,
 // not a refusal: the JVM SeatsException status row is mirrored. Mid-run

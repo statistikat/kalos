@@ -42,14 +42,22 @@ auto x = kalos::seats_extract_wk(req);
    estimate needs the full TRAMO likelihood, not ported).
 4. `seats_extract_wk: Noisy approximation mode is outside the D6 envelope`
    (24-B parity).
-5. `seats_extract_wk: approximation_required decision is outside the qualified monthly airline retry envelope` for a Legacy retry outside the monthly (0,1,q)(0,1,BQ) family with q at most one.
+5. `seats_extract_wk: approximation_required decision is outside the qualified monthly retry envelope` for a Legacy retry outside the two fitted-model families described below.
 
-When that monthly model needs approximation, the toolkit keeps its ordinary MA
+When a monthly (0,1,q)(0,1,BQ) model with q at most one needs approximation, the toolkit keeps its ordinary MA
 coefficient and chooses a seasonal MA of −0.2 if the negated ordinary coefficient
 is strictly between 0.36 and 0.7, or −0.1 otherwise. An absent or zero ordinary
 coefficient produces q=0. The same model recurs at every subsequent retry, so
 a second failed decomposition determines the terminal failure. The extraction
 uses the original observations, mean setting and innovation variance.
+
+For a mean-free (2,1,0)(1,1,0) model the Legacy seasonal approximation
+replaces the seasonal AR with a seasonal MA. The estimator applies the
+configured level or log transform to the SEATS input, starts from
+Hannan–Rissanen, and fits the three free parameters at precision 1e-7.
+The innovation variance is residual SSQ divided by effective observations
+less four (three coefficients and variance). The validator then applies the
+configured parameter cutoff before the next decomposition.
 
 ## Mirror-status rows (data, not refusals)
 
@@ -117,8 +125,7 @@ aborted the run.
 
 ## Open questions / later work
 
-- D6 approximations that change differencing or require re-estimation remain open,
-  including the mixed AO/LS fitted handoff.
+- Other seasonal refits, order reductions and retries that change differencing remain open.
 - The `dom` null branch (`TsDomain.DEFAULT_EMPTY` printing "n 0 start 1970
   0") is unreachable inside the envelope (corpus: x_kalman context rows).
 - Kalman smoothing (D1), Noisy mode (D6), the quarterly

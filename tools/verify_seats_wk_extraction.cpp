@@ -75,7 +75,7 @@ const char* kReasonVar0 =
     "ConcentratedLikelihood variance path (outside the ported domain)";
 const char* kReasonApprox =
     "seats_extract_wk: approximation_required decision is outside the "
-    "qualified monthly airline retry envelope";
+    "qualified monthly retry envelope";
 
 std::string cfmt(const char* fmt, int v) {
   char buf[256];
@@ -91,6 +91,7 @@ struct CaseRec {
   std::string id, start, mode, method, status, ddecompose;
   int freq = 12;
   bool monthly_airline = false;
+  bool seasonal_refit_orders = false;
   std::string refusal_reason;  // "" = replay tier
   std::vector<std::string> req;
   std::string values;
@@ -200,6 +201,7 @@ int main(int argc, char** argv) {
         int p, d, q, bp, bd, bq;
         std::istringstream values(t[2]);
         if (!(values >> p >> d >> q >> bp >> bd >> bq)) return 2;
+        cases[t[0]].seasonal_refit_orders = p == 2 && d == 1 && q == 0 && bp == 1 && bd == 1 && bq == 0;
         cases[t[0]].monthly_airline = p == 0 && d == 1 && q <= 1 && bp == 0 && bd == 1;
       }
       if (is_fact_key(t[1])) cases[t[0]].facts.push_back(t[1] + " " + t[2]);
@@ -211,9 +213,13 @@ int main(int argc, char** argv) {
   for (const std::string& id : order) {
     CaseRec& c = cases[id];
     double var = 0.0;
+    bool mean = true;
     for (const std::string& ln : c.req) {
       const std::vector<std::string> tk = replay_tsm::tokens(ln);
-      if (tk.size() == 7 && tk[1] == "log") var = std::atof(tk[6].c_str());
+      if (tk.size() == 7 && tk[1] == "log") {
+        var = std::atof(tk[6].c_str());
+        mean = tk[4] == "1";
+      }
     }
     if (c.freq != 12)
       c.refusal_reason = cfmt(kReasonFreq, c.freq);
@@ -221,7 +227,8 @@ int main(int argc, char** argv) {
       c.refusal_reason = kReasonKalman;
     else if (var == 0.0)
       c.refusal_reason = kReasonVar0;
-    else if (c.ddecompose == "null" && c.mode != "None" && !c.monthly_airline)
+    else if (c.ddecompose == "null" && c.mode != "None" &&
+             !c.monthly_airline && !(c.seasonal_refit_orders && !mean))
       c.refusal_reason = kReasonApprox;
     if (c.refusal_reason.empty() && c.facts.empty())
       fail(id, "replay tier without fact rows");
