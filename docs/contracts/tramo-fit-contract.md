@@ -201,3 +201,11 @@ panel reproduce the return, changed-parameter count, orders, dated outlier
 order and fitted ARMA coefficient bits. The census is 112 live / 14
 recorded. Initial, intermediate and final public fitted-record assembly
 are separate parts of the automatic path.
+
+The differencing selector consumes the model-scale response after
+subtracting the fitted automatic-outlier effects. The estimate's variable
+names, orders and mean must match the module entry. A refit or model
+restoration invalidates the cached effects. All 20 selectors agree with
+the public path, including the five-variable model after the seasonality
+controller and the short-series HR failure. On an unchanged airline
+fallback the returned description preserves its entering orders.

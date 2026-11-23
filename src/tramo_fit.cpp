@@ -179,7 +179,15 @@ struct EstimationEntry {
     std::vector<DetectedOutlier> variables;
 };
 
-void check_final_estimation(const TramoFitSpec& spec, const std::vector<double>& y,
+struct FittedOutlierEffects {
+    TramoOrders orders;
+    bool mean;
+    std::vector<double> parameters;
+    std::vector<std::string> names;
+    std::vector<double> corrected_response;
+};
+
+FittedOutlierEffects check_final_estimation(const TramoFitSpec& spec, const std::vector<double>& y,
                             EstimationEntry& entry, const TramoKernelSeam& expected) {
     TramoFinalEstimatorRunRequest options;
     const auto& o = entry.orders;
@@ -208,6 +216,18 @@ void check_final_estimation(const TramoFitSpec& spec, const std::vector<double>&
     require(std::equal(estimate.parameters_after.begin(), estimate.parameters_after.end(),
                        expected.parameters.begin(), expected.parameters.end(), bit_equal),
             "live final estimation parameters disagree with the module witness");
+    FittedOutlierEffects effects{entry.orders, entry.mean, estimate.parameters_after, std::move(names), {}};
+    if (!columns.empty() && estimate.cl_coefs.size() == columns.size() + static_cast<std::size_t>(entry.mean)) {
+        // RegArimaUtility.regressionEffect accumulates the effects before
+        // the differencing module subtracts their sum from the model response.
+        std::vector<double> total(y.size(), 0.0);
+        for (std::size_t j = 0; j < columns.size(); ++j)
+            for (std::size_t i = 0; i < y.size(); ++i)
+                total[i] += estimate.cl_coefs[j + entry.mean] * columns[j][i];
+        effects.corrected_response = y;
+        for (std::size_t i = 0; i < y.size(); ++i) effects.corrected_response[i] -= total[i];
+    }
+    return effects;
 }
 
 bool outliers_equal(const std::vector<std::string>& a,
@@ -425,8 +445,17 @@ TramoFitResult tramo_fit(const TramoFitRequest& request) {
     bool ctx_seasonal = prestage.seasonal;
     std::size_t next_input = 0;
     std::optional<EstimationEntry> final_entry;
+    std::optional<FittedOutlierEffects> effects;
     for (std::size_t s = 0; s < seams.size(); ++s) {
         const TramoKernelSeam& seam = seams[s];
+        if ((seam.kind == TramoKernelSeamKind::estimation && seam.estimation_taken) ||
+            (seam.kind == TramoKernelSeamKind::pass2_gate && seam.reverted))
+            effects.reset();
+        if (effects && (seam.kind == TramoKernelSeamKind::seasonality_controller ||
+                        seam.kind == TramoKernelSeamKind::model_controller) &&
+            (seam.parameters != effects->parameters || seam.outliers != effects->names ||
+             !orders_equal(seam.orders, effects->orders) || seam.mean != effects->mean))
+            effects.reset();
         if (s == 0 && seam.kind == TramoKernelSeamKind::estimation && prestage.outliers.empty()) {
             final_entry = EstimationEntry{prestage.orders, prestage.mean, {}};
             continue;
@@ -445,11 +474,12 @@ TramoFitResult tramo_fit(const TramoFitRequest& request) {
             TramoFitSeamCheck check{s, "final_estimator_run", "fact", "entry regression design unavailable"};
             if (!has_fixed_regressors && final_entry) {
                 const auto y = differenced_response(built.interpolated, prestage.log, built.annual_frequency, 0, 0);
-                check_final_estimation(spec, y, *final_entry, seam);
+                effects = check_final_estimation(spec, y, *final_entry, seam);
                 check.tier = "live";
                 check.note = "match final estimation decision, orders and parameters";
                 ++result.seams_live;
             } else {
+                effects.reset();
                 ++result.seams_fact;
             }
             result.seam_checks.push_back(std::move(check));
@@ -502,16 +532,18 @@ TramoFitResult tramo_fit(const TramoFitRequest& request) {
 
         const bool can_derive_arma = !has_fixed_regressors &&
             (in.entry_outliers.empty() || !in.entry_variables.empty());
-        if (seam.kind == TramoKernelSeamKind::differencing &&
-            in.entry_outliers.empty() && !spec.outliers_ml &&
-            in.round == 1) {
-            // Live 23-C re-run: the initial-round, outlier-free ladder over
-            // the mirrored builder response. The differencingModule()
-            // factory sets Builder.initial(round == 1) (javap offsets
-            // 52-65), and every corpus diff seam is a round-1 call.
+        const bool fitted_effects = effects && !effects->corrected_response.empty() &&
+            effects->names == in.entry_outliers && orders_equal(effects->orders, in.entry_orders) &&
+            effects->mean == in.entry_mean;
+        if (seam.kind == TramoKernelSeamKind::differencing && !has_fixed_regressors &&
+            (in.entry_outliers.empty() || fitted_effects)) {
             TramoDifferencingRequest dreq;
-            dreq.series = built.interpolated;
-            dreq.log_input = prestage.log;
+            if (in.entry_outliers.empty()) {
+                dreq.series = built.interpolated;
+                dreq.log_input = prestage.log;
+            } else {
+                dreq.series = effects->corrected_response;
+            }
             dreq.period = spec.annual_frequency;
             dreq.d0 = in.entry_orders.d;
             dreq.bd0 = in.entry_orders.bd;
@@ -520,7 +552,8 @@ TramoFitResult tramo_fit(const TramoFitRequest& request) {
             dreq.bp0 = in.entry_orders.bp;
             dreq.bq0 = in.entry_orders.bq;
             dreq.mean0 = in.entry_mean;
-            dreq.initial_round = true;
+            dreq.initial_round = in.round == 1;
+            dreq.eps = spec.intermediate_precision;
             dreq.seasonal = ctx_seasonal;
             dreq.ub1 = spec.ub1;
             dreq.ub2 = spec.ub2;
@@ -629,8 +662,7 @@ TramoFitResult tramo_fit(const TramoFitRequest& request) {
                 check.note = "no olsResiduals hand-over captured";
             else
                 check.note =
-                    "outside the 23-C live envelope (outlier columns, "
-                    "ml, or a re-round ladder)";
+                    "no current fitted outlier effects for the differencing input";
         }
         result.seam_checks.push_back(check);
         if (check.tier == "live")

@@ -40,6 +40,9 @@
 
 - Computed monthly TR0 forecast uncertainty directly from its finite MA state.
 
+- Ran automatic TRAMO differencing with fitted outlier effects and preserved
+  the airline model on the short-series fallback.
+
 ## 0.1.0 — initial repository split
 
 Preserved the delivered Kalos numerical scope through 22b.2.

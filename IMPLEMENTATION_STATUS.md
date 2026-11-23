@@ -3953,3 +3953,15 @@ the same capture. Release CTest passed these nine cases and the 1,637
 existing diagnostic rows.
 [Contract](docs/contracts/tramo-seats-bridge-contract.md) ·
 [Public oracle](validation/evidence/native/tramo-seats-bridge/rsa0-ljung-box-x86_64.txt)
+
+### M5 / 23-G — native outlier-adjusted differencing decisions
+
+All 20 differencing decisions now run on the actual series and, where
+applicable, the preceding fitted outlier effects. The module uses the
+kernel's 1e−5 intermediate precision. For the 30-observation case the
+pinned raw HR solve raises an index error on its wide matrix. The JVM's
+outer module handler emits a selection-failed remark and leaves the
+already-airline orders intact. The native failure path now preserves
+those orders. The 34-case suite reports 125 live and one recorded check,
+the stationary AR(2) scan. Physical round assembly and export of the
+public automatic fit record remain separate.

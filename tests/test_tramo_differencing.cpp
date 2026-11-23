@@ -269,6 +269,8 @@ void test_comespd_airline() {
     CHECK(d.default_model);
     CHECK(!d.airline_applied);
     CHECK(d.result == TramoDifferencingDecision::Result::Unprocessed);
+    CHECK(d.spec_p == r.p0 && d.spec_d == r.d0 && d.spec_q == r.q0);
+    CHECK(d.spec_bp == r.bp0 && d.spec_bd == r.bd0 && d.spec_bq == r.bq0);
 }
 
 } // namespace

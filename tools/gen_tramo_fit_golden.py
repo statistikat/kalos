@@ -304,8 +304,7 @@ def main():
                 integrated = int(orders_at_entry[1]) + int(orders_at_entry[4]) > 0
                 n_live += int(integrated)
                 n_fact += int(not integrated)
-            elif kind == "diff" and not seam_outs(t) and not ml and \
-                    round_ == 1:
+            elif kind == "diff":
                 n_live += 1
             else:
                 n_fact += 1
