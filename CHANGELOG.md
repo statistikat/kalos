@@ -36,6 +36,8 @@
 - Reproduced automatic TRAMO final estimation with dated outlier regressors,
   including all 45 final-estimator calls on the fitting panel.
 
+- Computed monthly TR0 forecast uncertainty directly from its finite MA state.
+
 ## 0.1.0 — initial repository split
 
 Preserved the delivered Kalos numerical scope through 22b.2.

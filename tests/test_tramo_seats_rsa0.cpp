@@ -1,6 +1,8 @@
 // Public-kernel oracle from raw series through RSA0 products. The native
 // call receives only the same series and date that entered the JVM kernel.
 #include "kalos/tramo_seats_pipeline.hpp"
+#include "kalos/forecast_information.hpp"
+#include "kalos/preparation.hpp"
 
 #include <algorithm>
 #include <cstdint>
@@ -87,6 +89,37 @@ void check_forecast_errors(const std::string& id, const kalos::tramo_seats_rsa0_
         check(exact(actual, read_bits(evidence)), id + " WK forecast errors");
 }
 
+// Compare the specialized finite-MA conditioning with the independent
+// general covariance calculation at positive, negative and zero MA values.
+void check_general_forecast(const kalos::tramo_tr0_result& original) {
+    using namespace kalos;
+    for (const auto coefficients : {std::pair{0., 0.}, std::pair{.75, -.88}, std::pair{-.98, .91}}) {
+        auto fit = original;
+        auto& model = fit.model;
+        model.theta = {coefficients.first};
+        model.btheta = {coefficients.second};
+        constexpr int horizon = 39;
+        std::array<ArmaParameterBlock, 4> blocks{};
+        blocks[1] = {model.theta, {1}};
+        blocks[3] = {model.btheta, {1}};
+        const TimeDomain observed(model.start_year, model.start_month, 12, model.series.size());
+        auto drift = prepare_regression(align_regressors(observed, {}, 0, horizon), {}, 1, 1, 0, false, true);
+        drift.design.values = std::move(drift.regressors.values);
+        const MaskedSeries series{model.series, std::vector<std::uint8_t>(model.series.size(), 0)};
+        const auto dense = forecast_information(series, drift.design, 0, horizon, ArmaParameterMap(blocks), {}, 12, 1, 1);
+        const auto result = tramo_tr0_forecast_errors(fit, horizon);
+        check(result.status == "available" && dense.status == "available", "independent forecast covariance");
+        const int df = fit.effective_observations - fit.estimated_parameters;
+        for (int i = 0; i < horizon; ++i) {
+            const double process = (*dense.known_regression_covariance)(i, i) / dense.variance;
+            const double regression = (*dense.regression_covariance)(i, i) / dense.variance;
+            const double expected = std::sqrt(process * (fit.residual_ssq / df) + regression * (fit.residual_ssq / (df + 1)));
+            check(std::abs(result.standard_errors[i] - expected) <= 2e-8 * (1. + expected),
+                  "non-default horizon or MA coefficient forecast error");
+        }
+    }
+}
+
 void refusals() {
     auto check_refused = [](const std::vector<double>& values, int month) {
         try { (void)kalos::estimate_tramo_tr0(values, 1990, month); }
@@ -129,6 +162,7 @@ int main() {
             std::vector<double> series(count);
             for (auto& v : series) v = read_bits(row);
             result = kalos::run_tramo_seats_rsa0(series, year, month);
+            if (id == "fit_tr0_air") check_general_forecast(result.preprocessing);
             check_residuals(id, result.preprocessing, residuals);
             check_forecast_errors(id, result, forecast_errors);
         } else if (key == "fit") {

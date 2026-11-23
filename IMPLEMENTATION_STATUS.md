@@ -3923,3 +3923,16 @@ all fitted ARMA coefficients match exactly. The 34-case census is 112 live
 and 14 recorded checks, with all 74 D9 covariance entries passing.
 Automatic round-loop assembly and the final public RSA3 model still need
 independent gates.
+
+### M6 — monthly RSA0 forecast uncertainty performance
+
+The native forecast-error projection now uses the 13-lag airline state and
+computes the requested variances directly. It consumes constant state
+storage plus the returned horizon. All 144 public JVM forecast errors
+pass at maximum absolute error 2.63e−13 and scaled error 9.47e−15. A
+separate test checks the general covariance algorithm for 117 more values,
+including opposite-sign and zero coefficients and horizons beyond three
+seasonal cycles. Release and ASan/UBSan RSA0 tests pass. In same-process
+diagnostic timings on this ARM64 host, the 24-month projection itself took
+approximately 0.03 ms on AirPassengers. The package-level benchmark is
+tracked separately.

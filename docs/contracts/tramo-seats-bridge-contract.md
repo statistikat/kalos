@@ -154,3 +154,12 @@ differences. The fitted mean is removed before filtering the stationary
 response with the fitted MA model. The scalar uses the concentrated sum
 of squares and the residual degrees of freedom after the mean and two
 free MA coefficients. Both fields are bit-exact on the six RSA0 cases.
+
+For public `y_ef`, the complete monthly TR0 model conditions its 13 past
+MA innovations on the differenced observations. Filtering a unit response
+supplies the mean uncertainty. At each requested month the regular and
+seasonal integration weights propagate the conditional boundary covariance
+and accumulate independent future innovation variance. Runtime is linear in
+the input and forecast lengths at the fixed monthly order. The two variance
+scales remain unchanged. The general endpoint-covariance projection is an
+independent test at three additional MA configurations and 39 horizons.
