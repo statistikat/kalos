@@ -3674,3 +3674,14 @@ The native bridge can now replay these frozen model inputs. A nonzero additive
 effect and additional regressor classes need their own witnesses before
 expanding that scope. Final-component restoration and the end-to-end TRAMO
 and TRAMO/SEATS oracles remain open. [Bridge contract and replay](docs/contracts/tramo-seats-bridge-contract.md)
+
+### 24-D prerequisite — fitted outlier coordinates
+
+Bridge replay exposed an error in the 23-F fixture generator. It used the
+first date of the differenced residuals when translating a fitted outlier's
+date into an observation index. The January 1994 AO in `fit_tr1_ao` therefore
+appeared at index 35 in the 1990-start series, while its JVM contribution
+is at index 48. The correction uses the input estimation calendar for all
+45 affected fixture records. The header regenerated identically from the
+two original captures. Its 34-case replay passed, including date-to-index
+checks for the returned variables, 74 D9 entries and the 27/54 seam counts.

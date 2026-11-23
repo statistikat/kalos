@@ -711,8 +711,8 @@ inline void build_fit_fit_tr2_air(TramoFitRequest& rq) {
   rq.final.log = true; rq.final.mean = true;
   rq.final.outlier_names = {"AO (1982-05-01)", "AO (1985-02-01)"};
   rq.final.variables = {
-      {"AO (1982-05-01)", TramoOutlierKind::Ao, 15, B(0x3f698a251b541e62ULL), {}},
-      {"AO (1985-02-01)", TramoOutlierKind::Ao, 48, B(0xbf9346131c7df333ULL), {}},
+      {"AO (1982-05-01)", TramoOutlierKind::Ao, 28, B(0x3f698a251b541e62ULL), {}},
+      {"AO (1985-02-01)", TramoOutlierKind::Ao, 61, B(0xbf9346131c7df333ULL), {}},
   };
   rq.final.parameters = {B(0xbfb8f26c422c5c4aULL), B(0xbfe24e8b600ee45cULL)};
   rq.final.coefficients = {B(0xbf313b854080d9b2ULL), B(0x3f698a251b541e62ULL), B(0xbf9346131c7df333ULL), B(0x3fbafa39463bb7ceULL), B(0xbfb38def44732a4eULL)};
@@ -2430,7 +2430,7 @@ inline void build_fit_fit_fct_air(TramoFitRequest& rq) {
   rq.final.log = false; rq.final.mean = true;
   rq.final.outlier_names = {"AO (1991-03-01)"};
   rq.final.variables = {
-      {"AO (1991-03-01)", TramoOutlierKind::Ao, 122, B(0xc0457c1dce9d70b1ULL), {}},
+      {"AO (1991-03-01)", TramoOutlierKind::Ao, 134, B(0xc0457c1dce9d70b1ULL), {}},
   };
   rq.final.parameters = {B(0xbfe575ec3b43d5e6ULL), B(0xbfc59b036685b2e0ULL)};
   rq.final.coefficients = {B(0x403ea80d1a6045a9ULL), B(0xc0457c1dce9d70b1ULL)};
@@ -2817,7 +2817,7 @@ inline void build_fit_fit_tr1_ao(TramoFitRequest& rq) {
   rq.final.log = true; rq.final.mean = true;
   rq.final.outlier_names = {"AO (1994-01-01)"};
   rq.final.variables = {
-      {"AO (1994-01-01)", TramoOutlierKind::Ao, 35, B(0x3fcd2de91b95448cULL), {}},
+      {"AO (1994-01-01)", TramoOutlierKind::Ao, 48, B(0x3fcd2de91b95448cULL), {}},
   };
   rq.final.parameters = {B(0xbfefffe2feeadfe7ULL), B(0xbfdd3f8e6786a498ULL)};
   rq.final.coefficients = {B(0xbf0686cdaff035dbULL), B(0x3fcd2de91b95448cULL)};
@@ -3757,7 +3757,7 @@ inline void build_fit_fit_ao(TramoFitRequest& rq) {
   rq.final.log = true; rq.final.mean = true;
   rq.final.outlier_names = {"AO (1994-01-01)"};
   rq.final.variables = {
-      {"AO (1994-01-01)", TramoOutlierKind::Ao, 36, B(0x3fcd4e5c61035351ULL), {}},
+      {"AO (1994-01-01)", TramoOutlierKind::Ao, 48, B(0x3fcd4e5c61035351ULL), {}},
   };
   rq.final.parameters = {B(0xbfde8617f3bd35bdULL)};
   rq.final.coefficients = {B(0x3f8722ffb44a40f7ULL), B(0x3fcd4e5c61035351ULL)};
@@ -4235,7 +4235,7 @@ inline void build_fit_fit_ls(TramoFitRequest& rq) {
   rq.final.log = true; rq.final.mean = true;
   rq.final.outlier_names = {"LS (1995-01-01)"};
   rq.final.variables = {
-      {"LS (1995-01-01)", TramoOutlierKind::Ls, 48, B(0x3fd002b08b42df7bULL), {}},
+      {"LS (1995-01-01)", TramoOutlierKind::Ls, 60, B(0x3fd002b08b42df7bULL), {}},
   };
   rq.final.parameters = {B(0xbfe07e40d663ecefULL), B(0xbfcb238a84afbbeeULL)};
   rq.final.coefficients = {B(0x3f859f9b263daa63ULL), B(0x3fd002b08b42df7bULL)};
@@ -4705,9 +4705,9 @@ inline void build_fit_fit_multi(TramoFitRequest& rq) {
   rq.final.log = true; rq.final.mean = false;
   rq.final.outlier_names = {"AO (1992-07-01)", "LS (1994-01-01)", "LS (1995-11-01)"};
   rq.final.variables = {
-      {"AO (1992-07-01)", TramoOutlierKind::Ao, 17, B(0x3fcf75a6ce9cd0e4ULL), {}},
-      {"LS (1994-01-01)", TramoOutlierKind::Ls, 35, B(0x3fd27c7069f275c5ULL), {}},
-      {"LS (1995-11-01)", TramoOutlierKind::Ls, 57, B(0x3fc57cb33b54fbbaULL), {}},
+      {"AO (1992-07-01)", TramoOutlierKind::Ao, 30, B(0x3fcf75a6ce9cd0e4ULL), {}},
+      {"LS (1994-01-01)", TramoOutlierKind::Ls, 48, B(0x3fd27c7069f275c5ULL), {}},
+      {"LS (1995-11-01)", TramoOutlierKind::Ls, 70, B(0x3fc57cb33b54fbbaULL), {}},
   };
   rq.final.parameters = {B(0xbfc31922680f86eeULL), B(0xbfd6e06d84ca21cfULL), B(0x3fe0d73b214e3351ULL)};
   rq.final.coefficients = {B(0x3fcf75a6ce9cd0e4ULL), B(0x3fd27c7069f275c5ULL), B(0x3fc57cb33b54fbbaULL)};
@@ -5186,7 +5186,7 @@ inline void build_fit_fit_so(TramoFitRequest& rq) {
   rq.final.log = true; rq.final.mean = true;
   rq.final.outlier_names = {"AO (1994-01-01)"};
   rq.final.variables = {
-      {"AO (1994-01-01)", TramoOutlierKind::Ao, 36, B(0x3fcd4e5c61035351ULL), {}},
+      {"AO (1994-01-01)", TramoOutlierKind::Ao, 48, B(0x3fcd4e5c61035351ULL), {}},
   };
   rq.final.parameters = {B(0xbfde8617f3bd35bdULL)};
   rq.final.coefficients = {B(0x3f8722ffb44a40f7ULL), B(0x3fcd4e5c61035351ULL)};
@@ -5664,7 +5664,7 @@ inline void build_fit_fit_spanout(TramoFitRequest& rq) {
   rq.final.log = true; rq.final.mean = true;
   rq.final.outlier_names = {"AO (1994-01-01)"};
   rq.final.variables = {
-      {"AO (1994-01-01)", TramoOutlierKind::Ao, 36, B(0x3fcd4e5c61035351ULL), {}},
+      {"AO (1994-01-01)", TramoOutlierKind::Ao, 48, B(0x3fcd4e5c61035351ULL), {}},
   };
   rq.final.parameters = {B(0xbfde8617f3bd35bdULL)};
   rq.final.coefficients = {B(0x3f8722ffb44a40f7ULL), B(0x3fcd4e5c61035351ULL)};
@@ -6271,9 +6271,9 @@ inline void build_fit_fit_gs2(TramoFitRequest& rq) {
   rq.final.log = true; rq.final.mean = false;
   rq.final.outlier_names = {"AO (1995-01-01)", "LS (1996-08-01)", "LS (1997-07-01)"};
   rq.final.variables = {
-      {"AO (1995-01-01)", TramoOutlierKind::Ao, 47, B(0x3fecd3e72376e428ULL), {}},
-      {"LS (1996-08-01)", TramoOutlierKind::Ls, 66, B(0xbfdfdd25f90c8488ULL), {}},
-      {"LS (1997-07-01)", TramoOutlierKind::Ls, 77, B(0x3fdf94a7255f9a44ULL), {}},
+      {"AO (1995-01-01)", TramoOutlierKind::Ao, 60, B(0x3fecd3e72376e428ULL), {}},
+      {"LS (1996-08-01)", TramoOutlierKind::Ls, 79, B(0xbfdfdd25f90c8488ULL), {}},
+      {"LS (1997-07-01)", TramoOutlierKind::Ls, 90, B(0x3fdf94a7255f9a44ULL), {}},
   };
   rq.final.parameters = {B(0x3fce0606296c3e3aULL), B(0xbfc214212bf34a60ULL), B(0xbfe70c3a5e512c83ULL)};
   rq.final.coefficients = {B(0x3fecd3e72376e428ULL), B(0xbfdfdd25f90c8488ULL), B(0x3fdf94a7255f9a44ULL)};
@@ -7159,7 +7159,7 @@ inline void build_fit_fit_aoonly(TramoFitRequest& rq) {
   rq.final.log = true; rq.final.mean = true;
   rq.final.outlier_names = {"AO (1994-01-01)"};
   rq.final.variables = {
-      {"AO (1994-01-01)", TramoOutlierKind::Ao, 36, B(0x3fcd4e5c61035351ULL), {}},
+      {"AO (1994-01-01)", TramoOutlierKind::Ao, 48, B(0x3fcd4e5c61035351ULL), {}},
   };
   rq.final.parameters = {B(0xbfde8617f3bd35bdULL)};
   rq.final.coefficients = {B(0x3f8722ffb44a40f7ULL), B(0x3fcd4e5c61035351ULL)};
@@ -7629,9 +7629,9 @@ inline void build_fit_fit_cv4(TramoFitRequest& rq) {
   rq.final.log = true; rq.final.mean = false;
   rq.final.outlier_names = {"AO (1992-07-01)", "LS (1994-01-01)", "LS (1995-11-01)"};
   rq.final.variables = {
-      {"AO (1992-07-01)", TramoOutlierKind::Ao, 17, B(0x3fcf75a6ce9cd0e4ULL), {}},
-      {"LS (1994-01-01)", TramoOutlierKind::Ls, 35, B(0x3fd27c7069f275c5ULL), {}},
-      {"LS (1995-11-01)", TramoOutlierKind::Ls, 57, B(0x3fc57cb33b54fbbaULL), {}},
+      {"AO (1992-07-01)", TramoOutlierKind::Ao, 30, B(0x3fcf75a6ce9cd0e4ULL), {}},
+      {"LS (1994-01-01)", TramoOutlierKind::Ls, 48, B(0x3fd27c7069f275c5ULL), {}},
+      {"LS (1995-11-01)", TramoOutlierKind::Ls, 70, B(0x3fc57cb33b54fbbaULL), {}},
   };
   rq.final.parameters = {B(0xbfc31922680f86eeULL), B(0xbfd6e06d84ca21cfULL), B(0x3fe0d73b214e3351ULL)};
   rq.final.coefficients = {B(0x3fcf75a6ce9cd0e4ULL), B(0x3fd27c7069f275c5ULL), B(0x3fc57cb33b54fbbaULL)};
@@ -8647,12 +8647,12 @@ inline void build_fit_fit_mrstack(TramoFitRequest& rq) {
   rq.final.log = true; rq.final.mean = true;
   rq.final.outlier_names = {"AO (1990-11-01)", "AO (1992-02-01)", "AO (1993-05-01)", "AO (1994-08-01)", "AO (1995-11-01)", "AO (1997-02-01)"};
   rq.final.variables = {
-      {"AO (1990-11-01)", TramoOutlierKind::Ao, -2, B(0x3fa7d43404064066ULL), {}},
-      {"AO (1992-02-01)", TramoOutlierKind::Ao, 13, B(0xbfaf3d5d407ca932ULL), {}},
-      {"AO (1993-05-01)", TramoOutlierKind::Ao, 28, B(0x3fb1bbf3d67ff9a6ULL), {}},
-      {"AO (1994-08-01)", TramoOutlierKind::Ao, 43, B(0xbfa92ea43ef82da1ULL), {}},
-      {"AO (1995-11-01)", TramoOutlierKind::Ao, 58, B(0x3faf8164397eeb0aULL), {}},
-      {"AO (1997-02-01)", TramoOutlierKind::Ao, 73, B(0x3f9d01dfbb7a4161ULL), {}},
+      {"AO (1990-11-01)", TramoOutlierKind::Ao, 10, B(0x3fa7d43404064066ULL), {}},
+      {"AO (1992-02-01)", TramoOutlierKind::Ao, 25, B(0xbfaf3d5d407ca932ULL), {}},
+      {"AO (1993-05-01)", TramoOutlierKind::Ao, 40, B(0x3fb1bbf3d67ff9a6ULL), {}},
+      {"AO (1994-08-01)", TramoOutlierKind::Ao, 55, B(0xbfa92ea43ef82da1ULL), {}},
+      {"AO (1995-11-01)", TramoOutlierKind::Ao, 70, B(0x3faf8164397eeb0aULL), {}},
+      {"AO (1997-02-01)", TramoOutlierKind::Ao, 85, B(0x3f9d01dfbb7a4161ULL), {}},
   };
   rq.final.parameters = {B(0xbfe03ec8e0dfbf6eULL)};
   rq.final.coefficients = {B(0x3f872ce4de818e64ULL), B(0x3fa7d43404064066ULL), B(0xbfaf3d5d407ca932ULL), B(0x3fb1bbf3d67ff9a6ULL), B(0xbfa92ea43ef82da1ULL), B(0x3faf8164397eeb0aULL), B(0x3f9d01dfbb7a4161ULL)};
@@ -9165,7 +9165,7 @@ inline void build_fit_fit_mrls(TramoFitRequest& rq) {
   rq.final.log = true; rq.final.mean = true;
   rq.final.outlier_names = {"AO (1990-01-01)"};
   rq.final.variables = {
-      {"AO (1990-01-01)", TramoOutlierKind::Ao, -12, B(0xbf9c7237d771da2aULL), {}},
+      {"AO (1990-01-01)", TramoOutlierKind::Ao, 0, B(0xbf9c7237d771da2aULL), {}},
   };
   rq.final.parameters = {B(0xbfe00be06d241de8ULL)};
   rq.final.coefficients = {B(0x3f8683c8873ae137ULL), B(0xbf9c7237d771da2aULL)};
@@ -12113,10 +12113,10 @@ inline void build_fit_fit_trfull_air(TramoFitRequest& rq) {
   rq.final.log = true; rq.final.mean = true;
   rq.final.outlier_names = {"AO (1982-05-01)", "TC (1983-03-01)", "AO (1985-02-01)", "AO (1991-03-01)"};
   rq.final.variables = {
-      {"AO (1982-05-01)", TramoOutlierKind::Ao, 15, B(0x3fbc641bee025d1aULL), {}},
-      {"TC (1983-03-01)", TramoOutlierKind::Tc, 25, B(0xbfb6aed862887732ULL), {}},
-      {"AO (1985-02-01)", TramoOutlierKind::Ao, 48, B(0xbfb26f6632b9f196ULL), {}},
-      {"AO (1991-03-01)", TramoOutlierKind::Ao, 121, B(0xbfb5da05df8272ebULL), {}},
+      {"AO (1982-05-01)", TramoOutlierKind::Ao, 28, B(0x3fbc641bee025d1aULL), {}},
+      {"TC (1983-03-01)", TramoOutlierKind::Tc, 38, B(0xbfb6aed862887732ULL), {}},
+      {"AO (1985-02-01)", TramoOutlierKind::Ao, 61, B(0xbfb26f6632b9f196ULL), {}},
+      {"AO (1991-03-01)", TramoOutlierKind::Ao, 134, B(0xbfb5da05df8272ebULL), {}},
   };
   rq.final.parameters = {B(0xbfe14d751cedda53ULL)};
   rq.final.coefficients = {B(0x3f6819b60ca4dccaULL), B(0x3fbc641bee025d1aULL), B(0xbfb6aed862887732ULL), B(0xbfb26f6632b9f196ULL), B(0xbfb5da05df8272ebULL)};
@@ -12646,10 +12646,10 @@ inline void build_fit_fit_td_air(TramoFitRequest& rq) {
   rq.final.log = true; rq.final.mean = true;
   rq.final.outlier_names = {"AO (1982-05-01)", "TC (1983-03-01)", "AO (1985-02-01)", "AO (1991-03-01)"};
   rq.final.variables = {
-      {"AO (1982-05-01)", TramoOutlierKind::Ao, 15, B(0x3fbc641bee025d1aULL), {}},
-      {"TC (1983-03-01)", TramoOutlierKind::Tc, 25, B(0xbfb6aed862887732ULL), {}},
-      {"AO (1985-02-01)", TramoOutlierKind::Ao, 48, B(0xbfb26f6632b9f196ULL), {}},
-      {"AO (1991-03-01)", TramoOutlierKind::Ao, 121, B(0xbfb5da05df8272ebULL), {}},
+      {"AO (1982-05-01)", TramoOutlierKind::Ao, 28, B(0x3fbc641bee025d1aULL), {}},
+      {"TC (1983-03-01)", TramoOutlierKind::Tc, 38, B(0xbfb6aed862887732ULL), {}},
+      {"AO (1985-02-01)", TramoOutlierKind::Ao, 61, B(0xbfb26f6632b9f196ULL), {}},
+      {"AO (1991-03-01)", TramoOutlierKind::Ao, 134, B(0xbfb5da05df8272ebULL), {}},
   };
   rq.final.parameters = {B(0xbfe14d751cedda53ULL)};
   rq.final.coefficients = {B(0x3f6819b60ca4dccaULL), B(0x3fbc641bee025d1aULL), B(0xbfb6aed862887732ULL), B(0xbfb26f6632b9f196ULL), B(0xbfb5da05df8272ebULL)};
@@ -13179,10 +13179,10 @@ inline void build_fit_fit_aic_air(TramoFitRequest& rq) {
   rq.final.log = true; rq.final.mean = true;
   rq.final.outlier_names = {"AO (1982-05-01)", "TC (1983-03-01)", "AO (1985-02-01)", "AO (1991-03-01)"};
   rq.final.variables = {
-      {"AO (1982-05-01)", TramoOutlierKind::Ao, 15, B(0xbf69bb5c133c72bbULL), {}},
-      {"TC (1983-03-01)", TramoOutlierKind::Tc, 25, B(0x3fba9f9dbf7e1269ULL), {}},
-      {"AO (1985-02-01)", TramoOutlierKind::Ao, 48, B(0xbfb73e70bd997a12ULL), {}},
-      {"AO (1991-03-01)", TramoOutlierKind::Ao, 121, B(0xbfb26fe609ecce34ULL), {}},
+      {"AO (1982-05-01)", TramoOutlierKind::Ao, 28, B(0xbf69bb5c133c72bbULL), {}},
+      {"TC (1983-03-01)", TramoOutlierKind::Tc, 38, B(0x3fba9f9dbf7e1269ULL), {}},
+      {"AO (1985-02-01)", TramoOutlierKind::Ao, 61, B(0xbfb73e70bd997a12ULL), {}},
+      {"AO (1991-03-01)", TramoOutlierKind::Ao, 134, B(0xbfb26fe609ecce34ULL), {}},
   };
   rq.final.parameters = {B(0xbfe0d7acf5c73937ULL)};
   rq.final.coefficients = {B(0x3f6e8a5afc97fcccULL), B(0xbf69bb5c133c72bbULL), B(0x3fba9f9dbf7e1269ULL), B(0xbfb73e70bd997a12ULL), B(0xbfb26fe609ecce34ULL), B(0xbfb5402a05e264f4ULL)};
@@ -13713,10 +13713,10 @@ inline void build_fit_fit_bic_air(TramoFitRequest& rq) {
   rq.final.log = true; rq.final.mean = true;
   rq.final.outlier_names = {"AO (1982-05-01)", "TC (1983-03-01)", "AO (1985-02-01)", "AO (1991-03-01)"};
   rq.final.variables = {
-      {"AO (1982-05-01)", TramoOutlierKind::Ao, 15, B(0x3fbc641bee025d1aULL), {}},
-      {"TC (1983-03-01)", TramoOutlierKind::Tc, 25, B(0xbfb6aed862887732ULL), {}},
-      {"AO (1985-02-01)", TramoOutlierKind::Ao, 48, B(0xbfb26f6632b9f196ULL), {}},
-      {"AO (1991-03-01)", TramoOutlierKind::Ao, 121, B(0xbfb5da05df8272ebULL), {}},
+      {"AO (1982-05-01)", TramoOutlierKind::Ao, 28, B(0x3fbc641bee025d1aULL), {}},
+      {"TC (1983-03-01)", TramoOutlierKind::Tc, 38, B(0xbfb6aed862887732ULL), {}},
+      {"AO (1985-02-01)", TramoOutlierKind::Ao, 61, B(0xbfb26f6632b9f196ULL), {}},
+      {"AO (1991-03-01)", TramoOutlierKind::Ao, 134, B(0xbfb5da05df8272ebULL), {}},
   };
   rq.final.parameters = {B(0xbfe14d751cedda53ULL)};
   rq.final.coefficients = {B(0x3f6819b60ca4dccaULL), B(0x3fbc641bee025d1aULL), B(0xbfb6aed862887732ULL), B(0xbfb26f6632b9f196ULL), B(0xbfb5da05df8272ebULL)};
@@ -14246,10 +14246,10 @@ inline void build_fit_fit_wald_air(TramoFitRequest& rq) {
   rq.final.log = true; rq.final.mean = true;
   rq.final.outlier_names = {"AO (1982-05-01)", "TC (1983-03-01)", "AO (1985-02-01)", "AO (1991-03-01)"};
   rq.final.variables = {
-      {"AO (1982-05-01)", TramoOutlierKind::Ao, 15, B(0x3fbc641bee025d1aULL), {}},
-      {"TC (1983-03-01)", TramoOutlierKind::Tc, 25, B(0xbfb6aed862887732ULL), {}},
-      {"AO (1985-02-01)", TramoOutlierKind::Ao, 48, B(0xbfb26f6632b9f196ULL), {}},
-      {"AO (1991-03-01)", TramoOutlierKind::Ao, 121, B(0xbfb5da05df8272ebULL), {}},
+      {"AO (1982-05-01)", TramoOutlierKind::Ao, 28, B(0x3fbc641bee025d1aULL), {}},
+      {"TC (1983-03-01)", TramoOutlierKind::Tc, 38, B(0xbfb6aed862887732ULL), {}},
+      {"AO (1985-02-01)", TramoOutlierKind::Ao, 61, B(0xbfb26f6632b9f196ULL), {}},
+      {"AO (1991-03-01)", TramoOutlierKind::Ao, 134, B(0xbfb5da05df8272ebULL), {}},
   };
   rq.final.parameters = {B(0xbfe14d751cedda53ULL)};
   rq.final.coefficients = {B(0x3f6819b60ca4dccaULL), B(0x3fbc641bee025d1aULL), B(0xbfb6aed862887732ULL), B(0xbfb26f6632b9f196ULL), B(0xbfb5da05df8272ebULL)};

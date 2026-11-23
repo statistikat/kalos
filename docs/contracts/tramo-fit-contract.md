@@ -63,6 +63,10 @@ Measured census over the 34-row golden: **27 live / 54 fact**; the test
 asserts the per-case counts against the golden, so the census can never
 silently drift.
 
+Fitted outlier positions are zero-based on the original estimation domain.
+The 24-D handoff uses this date when creating each deterministic-effect
+column. Differenced full residuals can start later and have a separate domain.
+
 ## D9 — the regression-block covariance
 
 `RegSarimaModel.coefficientsCovariance` is `ConcentratedLikelihood

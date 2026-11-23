@@ -88,6 +88,12 @@ long long run_case(const FitExpect& e, std::size_t& live_total,
     for (std::size_t i = 0; i < r.parameters.size(); ++i)
         CHECK(to_bits(r.parameters[i]) == to_bits(rq.final.parameters[i]));
     CHECK(r.variables.size() == rq.final.variables.size());
+    for (const auto& var : r.variables) {
+        const auto date = var.name.find('(') + 1;
+        const int year = std::stoi(var.name.substr(date, 4));
+        const int month = std::stoi(var.name.substr(date + 5, 2));
+        CHECK(var.position == (year - rq.start_year) * 12 + month - rq.start_month);
+    }
     CHECK(r.cl_dim == rq.final.dim);
     CHECK(r.cl_nx == rq.final.nx);
     CHECK(r.cl_nmissing == rq.final.nmissing);

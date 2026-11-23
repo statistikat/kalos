@@ -264,7 +264,6 @@ def main():
         cov_bits = [bits(x) for x in cov_t[2:]] if cov_t else []
         sk = rline("stats obs")
         fres = rline("fres")
-        fy, fm = int(fres[2][0:4]), int(fres[2][5:7])
         fres_bits = [bits(x) for x in fres[3:]]
 
         nx, dim, kfree = int(ck[4]), int(ck[2]), int(ck[-1])
@@ -401,7 +400,9 @@ def main():
         a("  rq.final.variables = {")
         for i, nm in enumerate(names):
             typ, rest = nm.split()[0], nm.split()[1].strip("()")
-            pos = (int(rest[0:4]) - fy) * 12 + (int(rest[5:7]) - fm)
+            # Positions belong to the original estimation domain. The full
+            # residuals start later when ordinary/seasonal differencing is used.
+            pos = (int(rest[0:4]) - y0) * 12 + (int(rest[5:7]) - m0)
             a('      {"%s", TramoOutlierKind::%s, %d, B(0x%016xULL), {}},'
               % (nm, OUTLIER_KIND[typ], pos,
                  coef_bits[(1 if mean_flag else 0) + i]))
