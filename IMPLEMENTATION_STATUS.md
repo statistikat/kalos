@@ -3425,3 +3425,122 @@ plain=0 INVARIANT** with `test_tramo_final_estimation` as the 24th cell
 arguments; lapack1 informational divergences match the prior profile);
 `check-manifest.py` 180 core / 112 fixture / 295 evidence;
 `verify-migration.py` unchanged at 406.
+
+## 23-F F.2 catch-up (landed 2026-11-23 across e7e0784..b70f9ff; entry written at F.3) — 2026-11-23
+
+F.2 landed in two machines and never got its status entry; both are green
+and ACTIVE. (1) **Multi-round outlier machine** (`kalos::tramo_outlier_rounds`,
+commits e7e0784 corpus / f1f5c8b unit): the `FastOutliersDetector.process`
+port over the dual-machine Scratch23g corpus (`tramo-outlier-rounds`, 37
+cases, identity + agreement + witness gates), 37/37 full-trace bit-exact in
+the extended `test_tramo_outlier_scan`. Decoded constants: builder→ctor ARG
+CROSS (ODM `maxRound(50)/maxOutliers(30)` runs with fields round-cap 30 /
+count-cap 50, SECTION 27.2), the add-gate at scan count 7 with `mvx` re-arm,
+and the optimizeModel firing rule (`install` iff identity||mvx||round==0;
+the non-install branch sets stable:=true and SKIPS optimize — 27.6). The
+**27.2→27.6 pivot correction**: the FULL `ConcentratedLikelihoodComputer`
+(used by `process`) decomposes with nfixed = 0, FULLY PIVOTED (measured JVM
+pivot [0 1 2 3 6 4 5]), no rank==ncols requirement — 27.2's "xfixed=true"
+belonged to DEFAULT_COMPUTER (the estimateModel/landing seam); the fix is
+`pinned_deviances_evaluate_multi` + `decompose(xx, 0)` (mr_ml2 root cause).
+(2) **Round-loop driver** (`tramo_final_estimator_run`, 1574a2c goldens /
+b70f9ff driver): one `push("full estimation")`, AT MOST five round bodies
+(i<5), estimation assigned BEFORE the gates, the `dim==0` and `!ami`
+short-circuits (nnsig untouched), `checkCommonRoots` false ⇒ nnsig=2 WITH
+the setBp(0)/setBq(0) rewrite at cancel 0.044 STRICT, the silent
+`outliers && pass <= 1` and exhaustion falses, the `estimation faied` jar
+typo only in the RuntimeException catch. The **tail adjudication RETIRES
+the fast=true claim of c6fedf2**: the FE computer is built
+`computeExactFinalDerivatives`, so the Point tail is the
+RegArmaProcessor.compute EXACT branch (calcResiduals at the landing, the
+design-free deviance machine = ssq·factor on the residuals, the
+SarimaMapping2 FD stencil — indefinite info allowed; golden es01 info11 =
+−10.1078 is impossible for the Gauss–Newton curvature), and the score/info
+scale is 0.5·nobs/fx on cdf nobs. **10/10 `fe_est` rows ACTIVE** at raw bit
+equality (return/nnsig/orders/pars/state/cl/vd/events; SECTION 30.3/30.4
+witness table). Gates at b70f9ff: ctest 77/77 BOTH lanes exclusively
+(903.79 s / 893.11 s), sanitizer green on the four touched units, 22 sweeps
+at recorded counts, shim battery 24/24 ledger cells INVARIANT, manifest
+183/112/309 post-commit, migration 406.
+
+## 23-F F.3 evidence (landed 2026-11-23, 3886a8c; entry written same day) — 2026-11-23
+
+Probe corpus `validation/evidence/native/tramo-kernel-rounds/` (Scratch23r):
+the REAL `TramoKernel.process(TramoContext)` and a bytecode-faithful MANUAL
+driver of the same iterate/pass/pass3 logic run over the same spec in ONE
+JVM, 35 cases; the per-case identity gate asserts jar vs manual equality of
+the full ProcessingLog stream, the final model bits (spec/orders/mean/
+outliers/pars) and the aggregate — 35/35 all-1, double capture byte-
+identical, witness mode clean (zero unexpected loads). The corpus pins the
+gate semantics the unit needed: `pass2(!changed, m)` operand negation
+(q_air pass 2), the `round " + pass` step text, the round-2 no-outlier
+guard (q_air iterate #3), the pcr ladder 0.95→0.975→0.99→1.005, the
+lastSolution pass-3 re-estimate, and the last-chance warning; the quarterly
+`kr_q_air` row is the D11 refusal witness. Dated adjudication (SECTION 30.8
+guard): the Scratch23r manual driver transcribes refStats rules C/D with a
+deviation that is NON-DISCRIMINATING on the corpus (all 34 monthly gate
+rows revert 0); fresh javap re-confirmed the landed 23-E transcription
+byte-correct — the unit uses the landed gate unchanged, corpus bytes
+untouched. Evidence gates: SHA256SUMS.csv replay (evidence never
+re-captured); manifest 183/112/320 at that commit.
+
+## TRAMO kernel round driver: 23-F F.3 lands `kalos::tramo_run_kernel_rounds` — decision D3 executes — 2026-11-23
+
+Unit (commits 0cfc768 unit + golden + test / 54a3011 sweep / 9dc49e3
+manifest / this docs entry): the `TramoKernel.ami()` ten-iterate round-
+driver seam — `initProcessing` (calcCv trigger on `dcmpl(curva,0)==0` with
+the ACTUAL non-missing count: `kr_missing` pins 94 not 96), the iterate
+guards (`needDifferencing = needAuto && !g && (d<2 || bd>=1)`, `g =
+round==2 && outliers.isEmpty()`; outliers site has NO round-2 guard), the
+change accumulator (differencing ASSIGNS, arma OVERWRITES with
+`!(spec.equals(orders0) && mean==mean0)`, scan ORs), the pass-1 difference
+drop (+ outlier removal + estimation invalidation), the `estimateModel`
+ladder with the ONE persistent retry counter and the pass-1
+`reduceVa(curva)` arm over the landed 23-E `tramo_estimate_model_retry`,
+the round-0 re-arm/snapshot/accept via the landed `tramo_round0_accepts`
+(silent converge — no `iterate done`), the `pass2(!changed, m)` gate over
+the landed `tramo_ref_stats_gate` UNCHANGED (fresh javap re-confirmed the
+23-E rules A–D; the probe driver's C/D text is non-discriminating, dated
+note in the contract), the pass3 reset (`pass=1, pass3=true, needAuto=true`),
+the raw-tsig mean-test `pass = 4` kill and the result-IGNORING controller
+sweep. Heavy stages and module log blocks ride as ordered seam facts; every
+JVM echo (taken, scan cv, retry idx/tsig, round0 accept/lbp, gate revert/
+skip-nrnb/lbp/se, pass2 ret/pcr, iterate end) is a cross-check and every
+desync throws (fail-closed). 34 monthly cases replay bit-exactly (event
+stream, per-iterate snapshots, init bits, iterations, convergence) plus the
+quarterly `kr_q_air` D11 refusal; the Ljung-Box p-values of all 65 stats
+rows recompute bit-exactly from the captured e-arrays through the landed
+primitives (ModelStatistics.of = acf(e, 0.0) NO mean correction,
+defaultAutoCorrelationsCount = the landed `calc_lb_length`, df = k − nhp —
+javap ModelStatistics.of re-confirmed).
+
+**D3 flip CLOSED (option A):** `sc_so`/`sc_spanout`/`sc_spannone`
+(divergent=1 in 23-B) are POSITIVE multi-round assertions — `kr_scso`,
+`kr_spanout`, `kr_spannone` replay as 2-iterate ladders — and the pass3
+divergences `kr_gs2`/`kr_shortfail` replay 3-iterate; asserted in
+`test_tramo_kernel_rounds` and witnessed on every gate lane. Implemented-
+unwitnessed monthly (throw-qualified, contract-listed): the `armaq1`
+pass-3 rewrite, the estimation-failure arm + its reduceVa, the gate
+`first` form, revert/restore, last-chance rewrite, regfail/estmodelfail
+ends.
+
+**Boundary.** `tramo_fit`/`TramoSeatsFit` assembly and the end-to-end
+`TramoKernel.process` oracle stay 23-G/24-D; the calendar-test controllers
+inside the sweep are 21-I seams (their results feed nothing in the kernel);
+quarterly TRAMO stays refused (D11).
+
+**Gates.** Fresh ctest **78/78 in BOTH lanes** (lane-OMP tree 23f3-laneB
+2854 s; true-serial tree 23f3-laneC 2893 s; new `test_tramo_kernel_rounds`
+Passed both; baseline 77 pre-F.3). ASan/UBSan dedicated build
+(23f3-laneD): the full replay green, zero sanitizer reports. All
+twenty-two existing verify sweeps rc=0 AT RECORDED COUNTS — zero drift —
+plus the new `verify_tramo_kernel_rounds` PASS (35 cases, 1641 checks:
+raw-corpus cross-qualification of identity flags/init bits/jar event
+stream/rsnap fields/seam census/gate echo bits, then full replay + LB
+recompute). Shim-invariance battery post-lane on the lane-B tree:
+**25/25 ledger cells plain=0 ledger100=PASS INVARIANT** with
+`test_tramo_kernel_rounds` as the 25th cell (lapack1 informational
+divergences unchanged: estimation_control/x13_automatic_oracle rc=0,
+arma_identification/diffuse_state_space rc=134 — the declared profile);
+`check-manifest.py` 185/112/320 post-commit; `verify-migration.py` 406;
+evidence `SHA256SUMS.csv` replayed 10/10 (corpus not re-captured).

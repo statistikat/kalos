@@ -161,11 +161,19 @@ qualify them replay-wise: a fabricated fact at any of these sites throws.
 
 ## Gates
 
-(gate results appended after the exclusive battery; ctest
-`test_tramo_kernel_rounds` #78, TIMEOUT 3600 in both lanes; sweep
-`tools/verify_tramo_kernel_rounds.cpp` direct-compile lane, cross-qualifies
-the raw corpus against the golden table — identity flags, init bits, the
-full jar event stream, every rsnap field, the seam census, the gate/round0/
-pass2 echo bits and the stats census — then replays all cases and recomputes
-the Ljung-Box p-values bit-exactly from the captured e-arrays via the landed
-primitives.)
+Fresh ctest **78/78 in BOTH lanes** on exclusive fresh trees (lane-OMP
+2854.46 s, true-serial `KALOS_OPENMP=OFF` 2892.61 s; TIMEOUT 3600;
+`test_tramo_kernel_rounds` Passed both). ASan/UBSan dedicated
+`KALOS_SANITIZERS=ON` build: full replay green, zero sanitizer reports.
+All twenty-two existing verify sweeps rc=0 at their recorded counts (zero
+drift) plus this sweep: `verify_tramo_kernel_rounds` PASS, 35 cases,
+1641 checks, 0 failures — raw-corpus cross-qualification (identity flags,
+init bits, every jar event, every rsnap field, the seam census, the
+gate/round0/pass2 echo bits, the stats census), then the full replay and
+the bit-exact Ljung-Box recompute from the captured e-arrays (65/65).
+`check-manifest.py` 185 core / 112 fixture / 320 evidence;
+`verify-migration.py` unchanged at 406; the evidence `SHA256SUMS.csv`
+replays 10/10 (corpus not re-captured); shim-invariance battery post-lane
+**25/25 ledger cells plain=0 ledger100=PASS INVARIANT** with
+`test_tramo_kernel_rounds` as the 25th cell (lapack1 informational
+divergences unchanged from the declared profile).
