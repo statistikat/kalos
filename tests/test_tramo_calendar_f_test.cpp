@@ -28,8 +28,8 @@ bool same_bits(const std::vector<double>& left, const std::vector<double>& right
         std::memcmp(left.data(), right.data(), left.size() * sizeof(double)) == 0);
 }
 
-bool check_trading_days_controller() {
-    std::ifstream oracle(KALOS_TD_CONTROLLER_PANEL);
+bool check_trading_days_controller(const char* path, std::optional<double> critical_value = std::nullopt) {
+    std::ifstream oracle(path);
     std::vector<double> series;
     std::map<int, std::vector<double>> residuals;
     kalos::TramoTradingDaysControllerResult result{};
@@ -48,7 +48,7 @@ bool check_trading_days_controller() {
             bool mean;
             std::string alpha;
             row >> mean >> alpha;
-            result = kalos::tramo_airline_trading_days_controller(series, 1990, 1, mean, read_bits(alpha), 1e-7);
+            result = kalos::tramo_airline_trading_days_controller(series, 1990, 1, mean, read_bits(alpha), 1e-7, critical_value);
             attempts = 0;
             fit = nullptr;
             ++cases;
@@ -67,13 +67,18 @@ bool check_trading_days_controller() {
                 panel.ljung_box_p, panel.season_box, panel.season_box_p, panel.skew_abs,
                 panel.skew_p, tests.mean_statistic, panel.stable_mean_p, tests.variance_ratio};
             const auto expected = read_vector(row);
-            ok = mean == fit->mean && columns == int(fit->working_days) && same_bits(actual, expected);
+            ok = mean == fit->mean && columns == int(fit->working_days) + int(fit->outliers.size()) && same_bits(actual, expected);
             if (!ok && actual.size() == expected.size()) {
                 for (std::size_t i = 0; i < actual.size(); ++i)
                     if (expected[i] != actual[i])
                         std::cerr << "  " << label << " field " << i << " got " << std::hexfloat << actual[i]
                                   << ", expected " << expected[i] << "\n";
             }
+        } else if (kind == "outliers") {
+            std::vector<std::array<int, 2>> outliers;
+            int position, type;
+            while (row >> position >> type) outliers.push_back({position, type});
+            ok = fit && fit->outliers == outliers;
         } else if (kind == "params" || kind == "beta") {
             ok = fit && same_bits(read_vector(row), kind == "params" ? fit->ma_parameters : fit->coefficients);
         } else if (kind == "variance_p") {
@@ -95,13 +100,19 @@ bool check_trading_days_controller() {
             row >> status >> count >> mean >> columns;
             ok = status == (result.changed ? "Changed" : "Unchanged")
                 && count == attempts && attempts == static_cast<int>(result.candidates.size())
-                && mean == result.selected().mean && columns == int(result.selected().working_days);
+                && mean == result.selected().mean && columns == int(result.selected().working_days) + int(result.selected().outliers.size());
         } else return false;
         if (!ok) {
             std::cerr << "Trading-day controller differs in case " << cases << " (length " << length
                       << ", effect " << effect << "), " << kind << "\n";
             return false;
         }
+    }
+    if (critical_value) {
+        try {
+            kalos::tramo_airline_trading_days_controller(series, 1990, 1, true, .01, 1e-7, 0.0);
+            return false;
+        } catch (const std::invalid_argument&) {}
     }
     std::cout << cases << " late trading-day controller cases\n";
     return cases == 32;
@@ -226,5 +237,6 @@ int main() {
     ok &= invalid(std::vector<double>(22, 1.0), .01);
     ok &= invalid(series.at(0), std::numeric_limits<double>::quiet_NaN());
     std::cout << cases << " public TRAMO calendar F-test comparisons\n";
-    return check_trading_days_controller() && check_residual_trading_days() && check_full_template() && ok ? 0 : 1;
+    return check_trading_days_controller(KALOS_TD_CONTROLLER_PANEL) &&
+        check_trading_days_controller(KALOS_TD_CONTROLLER_OUTLIERS, 3.5) && check_residual_trading_days() && check_full_template() && ok ? 0 : 1;
 }

@@ -4482,3 +4482,16 @@ recording the four fitted models and RSA3 products. The series exercise
 three different final orders and a retained level shift. Two fresh x86-64
 JVMs reproduced the fitted models, 372 residuals and 2,580 component and
 forecast values.
+### M5 late trading-day model comparison with automatic outliers
+
+The monthly airline controller now fits the original description with AO, LS
+and TC detection, repeats detection after introducing a working-days contrast,
+and repeats it again when a candidate loses its mean. The comparison uses the
+selected outlier count and fitted regression order for each candidate.
+
+Two independent JVM runs produced 32 decisions and 71 fitted descriptions.
+Kalos selected working days in 19 cases and retained the original model in 13.
+All model parameters, regression coefficients, statistics, outlier positions
+and types, and 6,720 distinct residual values match the reference. This covers
+the airline controller. The stock TRfull route also needs calendar columns in
+the automatic order search, final estimation and SEATS product assembly.

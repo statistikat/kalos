@@ -9,6 +9,8 @@
 
 - Apply the monthly automatic TRAMO controllers in order, including selected
   candidate transfers and the initial seasonality restart.
+- The late working-days controller can redetect AO, LS and TC variables when comparing monthly airline fits.
+
 - Monthly TRAMO outlier scans now account for calendar regressors in selection and re-estimation.
 
 - Build the complete monthly seasonality-controller diagnostic panel from
