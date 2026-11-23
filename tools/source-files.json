@@ -395,6 +395,7 @@
     "validation/evidence/native/tramo-arma-selection/loadlog-a_srw.txt",
     "validation/evidence/native/tramo-arma-selection/metadata.R",
     "validation/evidence/native/tramo-calendar-ftest/SHA256SUMS.csv",
+    "validation/evidence/native/tramo-calendar-ftest/calendar-outliers.txt",
     "validation/evidence/native/tramo-calendar-ftest/fast-calendar.txt",
     "validation/evidence/native/tramo-calendar-ftest/full.txt",
     "validation/evidence/native/tramo-calendar-ftest/panel.txt",
