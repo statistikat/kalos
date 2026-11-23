@@ -78,7 +78,7 @@ inline void build_fit_fit_tr0_air(TramoFitRequest& rq) {
   rq.spec.outliers_ml = false;
   rq.spec.accept_airline = false;
   rq.spec.precision = B(0x3e7ad7f29abcaf48ULL);
-  rq.spec.intermediate_precision = B(0x3e7ad7f29abcaf48ULL);
+  rq.spec.intermediate_precision = B(0x3ee4f8b588e368f1ULL);
   rq.spec.mean_is_test = false;
   rq.spec.mean_used = true;
   rq.spec.td_automatic = false; rq.spec.td_test = false;
@@ -383,7 +383,7 @@ inline void build_fit_fit_tr1_air(TramoFitRequest& rq) {
   rq.spec.outliers_ml = false;
   rq.spec.accept_airline = false;
   rq.spec.precision = B(0x3e7ad7f29abcaf48ULL);
-  rq.spec.intermediate_precision = B(0x3e7ad7f29abcaf48ULL);
+  rq.spec.intermediate_precision = B(0x3ee4f8b588e368f1ULL);
   rq.spec.mean_is_test = false;
   rq.spec.mean_used = true;
   rq.spec.td_automatic = false; rq.spec.td_test = false;
@@ -694,7 +694,7 @@ inline void build_fit_fit_tr2_air(TramoFitRequest& rq) {
   rq.spec.outliers_ml = false;
   rq.spec.accept_airline = false;
   rq.spec.precision = B(0x3e7ad7f29abcaf48ULL);
-  rq.spec.intermediate_precision = B(0x3e7ad7f29abcaf48ULL);
+  rq.spec.intermediate_precision = B(0x3ee4f8b588e368f1ULL);
   rq.spec.mean_is_test = false;
   rq.spec.mean_used = true;
   rq.spec.td_automatic = false; rq.spec.td_test = true;
@@ -1184,7 +1184,7 @@ inline void build_fit_fit_tr3_air(TramoFitRequest& rq) {
   rq.spec.outliers_ml = false;
   rq.spec.accept_airline = false;
   rq.spec.precision = B(0x3e7ad7f29abcaf48ULL);
-  rq.spec.intermediate_precision = B(0x3e7ad7f29abcaf48ULL);
+  rq.spec.intermediate_precision = B(0x3ee4f8b588e368f1ULL);
   rq.spec.mean_is_test = false;
   rq.spec.mean_used = true;
   rq.spec.td_automatic = false; rq.spec.td_test = false;
@@ -1426,7 +1426,7 @@ inline void build_fit_fit_accept_air(TramoFitRequest& rq) {
   rq.spec.outliers_ml = false;
   rq.spec.accept_airline = true;
   rq.spec.precision = B(0x3e7ad7f29abcaf48ULL);
-  rq.spec.intermediate_precision = B(0x3e7ad7f29abcaf48ULL);
+  rq.spec.intermediate_precision = B(0x3ee4f8b588e368f1ULL);
   rq.spec.mean_is_test = false;
   rq.spec.mean_used = true;
   rq.spec.td_automatic = false; rq.spec.td_test = false;
@@ -1906,7 +1906,7 @@ inline void build_fit_fit_mean_air(TramoFitRequest& rq) {
   rq.spec.outliers_ml = false;
   rq.spec.accept_airline = false;
   rq.spec.precision = B(0x3e7ad7f29abcaf48ULL);
-  rq.spec.intermediate_precision = B(0x3e7ad7f29abcaf48ULL);
+  rq.spec.intermediate_precision = B(0x3ee4f8b588e368f1ULL);
   rq.spec.mean_is_test = true;
   rq.spec.mean_used = true;
   rq.spec.td_automatic = false; rq.spec.td_test = false;
@@ -2413,7 +2413,7 @@ inline void build_fit_fit_fct_air(TramoFitRequest& rq) {
   rq.spec.outliers_ml = false;
   rq.spec.accept_airline = false;
   rq.spec.precision = B(0x3e7ad7f29abcaf48ULL);
-  rq.spec.intermediate_precision = B(0x3e7ad7f29abcaf48ULL);
+  rq.spec.intermediate_precision = B(0x3ee4f8b588e368f1ULL);
   rq.spec.mean_is_test = false;
   rq.spec.mean_used = true;
   rq.spec.td_automatic = false; rq.spec.td_test = false;
@@ -2508,7 +2508,7 @@ inline void build_fit_fit_fsnone(TramoFitRequest& rq) {
   rq.spec.outliers_ml = false;
   rq.spec.accept_airline = false;
   rq.spec.precision = B(0x3e7ad7f29abcaf48ULL);
-  rq.spec.intermediate_precision = B(0x3e7ad7f29abcaf48ULL);
+  rq.spec.intermediate_precision = B(0x3ee4f8b588e368f1ULL);
   rq.spec.mean_is_test = false;
   rq.spec.mean_used = true;
   rq.spec.td_automatic = false; rq.spec.td_test = false;
@@ -2800,7 +2800,7 @@ inline void build_fit_fit_tr1_ao(TramoFitRequest& rq) {
   rq.spec.outliers_ml = false;
   rq.spec.accept_airline = false;
   rq.spec.precision = B(0x3e7ad7f29abcaf48ULL);
-  rq.spec.intermediate_precision = B(0x3e7ad7f29abcaf48ULL);
+  rq.spec.intermediate_precision = B(0x3ee4f8b588e368f1ULL);
   rq.spec.mean_is_test = false;
   rq.spec.mean_used = true;
   rq.spec.td_automatic = false; rq.spec.td_test = false;
@@ -3264,7 +3264,7 @@ inline void build_fit_fit_noout(TramoFitRequest& rq) {
   rq.spec.outliers_ml = false;
   rq.spec.accept_airline = false;
   rq.spec.precision = B(0x3e7ad7f29abcaf48ULL);
-  rq.spec.intermediate_precision = B(0x3e7ad7f29abcaf48ULL);
+  rq.spec.intermediate_precision = B(0x3ee4f8b588e368f1ULL);
   rq.spec.mean_is_test = false;
   rq.spec.mean_used = true;
   rq.spec.td_automatic = false; rq.spec.td_test = false;
@@ -3740,7 +3740,7 @@ inline void build_fit_fit_ao(TramoFitRequest& rq) {
   rq.spec.outliers_ml = false;
   rq.spec.accept_airline = false;
   rq.spec.precision = B(0x3e7ad7f29abcaf48ULL);
-  rq.spec.intermediate_precision = B(0x3e7ad7f29abcaf48ULL);
+  rq.spec.intermediate_precision = B(0x3ee4f8b588e368f1ULL);
   rq.spec.mean_is_test = false;
   rq.spec.mean_used = true;
   rq.spec.td_automatic = false; rq.spec.td_test = false;
@@ -4218,7 +4218,7 @@ inline void build_fit_fit_ls(TramoFitRequest& rq) {
   rq.spec.outliers_ml = false;
   rq.spec.accept_airline = false;
   rq.spec.precision = B(0x3e7ad7f29abcaf48ULL);
-  rq.spec.intermediate_precision = B(0x3e7ad7f29abcaf48ULL);
+  rq.spec.intermediate_precision = B(0x3ee4f8b588e368f1ULL);
   rq.spec.mean_is_test = false;
   rq.spec.mean_used = true;
   rq.spec.td_automatic = false; rq.spec.td_test = false;
@@ -4688,7 +4688,7 @@ inline void build_fit_fit_multi(TramoFitRequest& rq) {
   rq.spec.outliers_ml = false;
   rq.spec.accept_airline = false;
   rq.spec.precision = B(0x3e7ad7f29abcaf48ULL);
-  rq.spec.intermediate_precision = B(0x3e7ad7f29abcaf48ULL);
+  rq.spec.intermediate_precision = B(0x3ee4f8b588e368f1ULL);
   rq.spec.mean_is_test = false;
   rq.spec.mean_used = true;
   rq.spec.td_automatic = false; rq.spec.td_test = false;
@@ -5169,7 +5169,7 @@ inline void build_fit_fit_so(TramoFitRequest& rq) {
   rq.spec.outliers_ml = false;
   rq.spec.accept_airline = false;
   rq.spec.precision = B(0x3e7ad7f29abcaf48ULL);
-  rq.spec.intermediate_precision = B(0x3e7ad7f29abcaf48ULL);
+  rq.spec.intermediate_precision = B(0x3ee4f8b588e368f1ULL);
   rq.spec.mean_is_test = false;
   rq.spec.mean_used = true;
   rq.spec.td_automatic = false; rq.spec.td_test = false;
@@ -5647,7 +5647,7 @@ inline void build_fit_fit_spanout(TramoFitRequest& rq) {
   rq.spec.outliers_ml = false;
   rq.spec.accept_airline = false;
   rq.spec.precision = B(0x3e7ad7f29abcaf48ULL);
-  rq.spec.intermediate_precision = B(0x3e7ad7f29abcaf48ULL);
+  rq.spec.intermediate_precision = B(0x3ee4f8b588e368f1ULL);
   rq.spec.mean_is_test = false;
   rq.spec.mean_used = true;
   rq.spec.td_automatic = false; rq.spec.td_test = false;
@@ -6251,7 +6251,7 @@ inline void build_fit_fit_gs2(TramoFitRequest& rq) {
   rq.spec.outliers_ml = false;
   rq.spec.accept_airline = false;
   rq.spec.precision = B(0x3e7ad7f29abcaf48ULL);
-  rq.spec.intermediate_precision = B(0x3e7ad7f29abcaf48ULL);
+  rq.spec.intermediate_precision = B(0x3ee4f8b588e368f1ULL);
   rq.spec.mean_is_test = false;
   rq.spec.mean_used = true;
   rq.spec.td_automatic = false; rq.spec.td_test = false;
@@ -6667,7 +6667,7 @@ inline void build_fit_fit_s30ml(TramoFitRequest& rq) {
   rq.spec.outliers_ml = true;
   rq.spec.accept_airline = false;
   rq.spec.precision = B(0x3e7ad7f29abcaf48ULL);
-  rq.spec.intermediate_precision = B(0x3e7ad7f29abcaf48ULL);
+  rq.spec.intermediate_precision = B(0x3ee4f8b588e368f1ULL);
   rq.spec.mean_is_test = false;
   rq.spec.mean_used = true;
   rq.spec.td_automatic = false; rq.spec.td_test = false;
@@ -7142,7 +7142,7 @@ inline void build_fit_fit_aoonly(TramoFitRequest& rq) {
   rq.spec.outliers_ml = false;
   rq.spec.accept_airline = false;
   rq.spec.precision = B(0x3e7ad7f29abcaf48ULL);
-  rq.spec.intermediate_precision = B(0x3e7ad7f29abcaf48ULL);
+  rq.spec.intermediate_precision = B(0x3ee4f8b588e368f1ULL);
   rq.spec.mean_is_test = false;
   rq.spec.mean_used = true;
   rq.spec.td_automatic = false; rq.spec.td_test = false;
@@ -7612,7 +7612,7 @@ inline void build_fit_fit_cv4(TramoFitRequest& rq) {
   rq.spec.outliers_ml = false;
   rq.spec.accept_airline = false;
   rq.spec.precision = B(0x3e7ad7f29abcaf48ULL);
-  rq.spec.intermediate_precision = B(0x3e7ad7f29abcaf48ULL);
+  rq.spec.intermediate_precision = B(0x3ee4f8b588e368f1ULL);
   rq.spec.mean_is_test = false;
   rq.spec.mean_used = true;
   rq.spec.td_automatic = false; rq.spec.td_test = false;
@@ -8153,7 +8153,7 @@ inline void build_fit_fit_shortfail(TramoFitRequest& rq) {
   rq.spec.outliers_ml = false;
   rq.spec.accept_airline = false;
   rq.spec.precision = B(0x3e7ad7f29abcaf48ULL);
-  rq.spec.intermediate_precision = B(0x3e7ad7f29abcaf48ULL);
+  rq.spec.intermediate_precision = B(0x3ee4f8b588e368f1ULL);
   rq.spec.mean_is_test = false;
   rq.spec.mean_used = true;
   rq.spec.td_automatic = false; rq.spec.td_test = false;
@@ -8630,7 +8630,7 @@ inline void build_fit_fit_mrstack(TramoFitRequest& rq) {
   rq.spec.outliers_ml = false;
   rq.spec.accept_airline = false;
   rq.spec.precision = B(0x3e7ad7f29abcaf48ULL);
-  rq.spec.intermediate_precision = B(0x3e7ad7f29abcaf48ULL);
+  rq.spec.intermediate_precision = B(0x3ee4f8b588e368f1ULL);
   rq.spec.mean_is_test = false;
   rq.spec.mean_used = true;
   rq.spec.td_automatic = false; rq.spec.td_test = false;
@@ -9148,7 +9148,7 @@ inline void build_fit_fit_mrls(TramoFitRequest& rq) {
   rq.spec.outliers_ml = false;
   rq.spec.accept_airline = false;
   rq.spec.precision = B(0x3e7ad7f29abcaf48ULL);
-  rq.spec.intermediate_precision = B(0x3e7ad7f29abcaf48ULL);
+  rq.spec.intermediate_precision = B(0x3ee4f8b588e368f1ULL);
   rq.spec.mean_is_test = false;
   rq.spec.mean_used = true;
   rq.spec.td_automatic = false; rq.spec.td_test = false;
@@ -9610,7 +9610,7 @@ inline void build_fit_fit_missing(TramoFitRequest& rq) {
   rq.spec.outliers_ml = false;
   rq.spec.accept_airline = false;
   rq.spec.precision = B(0x3e7ad7f29abcaf48ULL);
-  rq.spec.intermediate_precision = B(0x3e7ad7f29abcaf48ULL);
+  rq.spec.intermediate_precision = B(0x3ee4f8b588e368f1ULL);
   rq.spec.mean_is_test = false;
   rq.spec.mean_used = true;
   rq.spec.td_automatic = false; rq.spec.td_test = false;
@@ -9778,7 +9778,7 @@ inline void build_fit_fit_nomean(TramoFitRequest& rq) {
   rq.spec.outliers_ml = false;
   rq.spec.accept_airline = false;
   rq.spec.precision = B(0x3e7ad7f29abcaf48ULL);
-  rq.spec.intermediate_precision = B(0x3e7ad7f29abcaf48ULL);
+  rq.spec.intermediate_precision = B(0x3ee4f8b588e368f1ULL);
   rq.spec.mean_is_test = false;
   rq.spec.mean_used = false;
   rq.spec.td_automatic = false; rq.spec.td_test = false;
@@ -10217,7 +10217,7 @@ inline void build_fit_fit_pure(TramoFitRequest& rq) {
   rq.spec.outliers_ml = false;
   rq.spec.accept_airline = false;
   rq.spec.precision = B(0x3e7ad7f29abcaf48ULL);
-  rq.spec.intermediate_precision = B(0x3e7ad7f29abcaf48ULL);
+  rq.spec.intermediate_precision = B(0x3ee4f8b588e368f1ULL);
   rq.spec.mean_is_test = false;
   rq.spec.mean_used = true;
   rq.spec.td_automatic = false; rq.spec.td_test = false;
@@ -10692,7 +10692,7 @@ inline void build_fit_fit_nearur(TramoFitRequest& rq) {
   rq.spec.outliers_ml = false;
   rq.spec.accept_airline = false;
   rq.spec.precision = B(0x3e7ad7f29abcaf48ULL);
-  rq.spec.intermediate_precision = B(0x3e7ad7f29abcaf48ULL);
+  rq.spec.intermediate_precision = B(0x3ee4f8b588e368f1ULL);
   rq.spec.mean_is_test = false;
   rq.spec.mean_used = true;
   rq.spec.td_automatic = false; rq.spec.td_test = false;
@@ -11567,7 +11567,7 @@ inline void build_fit_fit_q_air(TramoFitRequest& rq) {
   rq.spec.outliers_ml = false;
   rq.spec.accept_airline = false;
   rq.spec.precision = B(0x3e7ad7f29abcaf48ULL);
-  rq.spec.intermediate_precision = B(0x3e7ad7f29abcaf48ULL);
+  rq.spec.intermediate_precision = B(0x3ee4f8b588e368f1ULL);
   rq.spec.mean_is_test = false;
   rq.spec.mean_used = true;
   rq.spec.td_automatic = false; rq.spec.td_test = false;
@@ -12096,7 +12096,7 @@ inline void build_fit_fit_trfull_air(TramoFitRequest& rq) {
   rq.spec.outliers_ml = false;
   rq.spec.accept_airline = false;
   rq.spec.precision = B(0x3e7ad7f29abcaf48ULL);
-  rq.spec.intermediate_precision = B(0x3e7ad7f29abcaf48ULL);
+  rq.spec.intermediate_precision = B(0x3ee4f8b588e368f1ULL);
   rq.spec.mean_is_test = false;
   rq.spec.mean_used = true;
   rq.spec.td_automatic = true; rq.spec.td_test = false;
@@ -12629,7 +12629,7 @@ inline void build_fit_fit_td_air(TramoFitRequest& rq) {
   rq.spec.outliers_ml = false;
   rq.spec.accept_airline = false;
   rq.spec.precision = B(0x3e7ad7f29abcaf48ULL);
-  rq.spec.intermediate_precision = B(0x3e7ad7f29abcaf48ULL);
+  rq.spec.intermediate_precision = B(0x3ee4f8b588e368f1ULL);
   rq.spec.mean_is_test = false;
   rq.spec.mean_used = true;
   rq.spec.td_automatic = true; rq.spec.td_test = false;
@@ -13162,7 +13162,7 @@ inline void build_fit_fit_aic_air(TramoFitRequest& rq) {
   rq.spec.outliers_ml = false;
   rq.spec.accept_airline = false;
   rq.spec.precision = B(0x3e7ad7f29abcaf48ULL);
-  rq.spec.intermediate_precision = B(0x3e7ad7f29abcaf48ULL);
+  rq.spec.intermediate_precision = B(0x3ee4f8b588e368f1ULL);
   rq.spec.mean_is_test = false;
   rq.spec.mean_used = true;
   rq.spec.td_automatic = true; rq.spec.td_test = false;
@@ -13696,7 +13696,7 @@ inline void build_fit_fit_bic_air(TramoFitRequest& rq) {
   rq.spec.outliers_ml = false;
   rq.spec.accept_airline = false;
   rq.spec.precision = B(0x3e7ad7f29abcaf48ULL);
-  rq.spec.intermediate_precision = B(0x3e7ad7f29abcaf48ULL);
+  rq.spec.intermediate_precision = B(0x3ee4f8b588e368f1ULL);
   rq.spec.mean_is_test = false;
   rq.spec.mean_used = true;
   rq.spec.td_automatic = true; rq.spec.td_test = false;
@@ -14229,7 +14229,7 @@ inline void build_fit_fit_wald_air(TramoFitRequest& rq) {
   rq.spec.outliers_ml = false;
   rq.spec.accept_airline = false;
   rq.spec.precision = B(0x3e7ad7f29abcaf48ULL);
-  rq.spec.intermediate_precision = B(0x3e7ad7f29abcaf48ULL);
+  rq.spec.intermediate_precision = B(0x3ee4f8b588e368f1ULL);
   rq.spec.mean_is_test = false;
   rq.spec.mean_used = true;
   rq.spec.td_automatic = true; rq.spec.td_test = false;
@@ -14727,7 +14727,7 @@ inline void build_fit_fit_oc_air(TramoFitRequest& rq) {
   rq.spec.outliers_ml = false;
   rq.spec.accept_airline = false;
   rq.spec.precision = B(0x3e7ad7f29abcaf48ULL);
-  rq.spec.intermediate_precision = B(0x3e7ad7f29abcaf48ULL);
+  rq.spec.intermediate_precision = B(0x3ee4f8b588e368f1ULL);
   rq.spec.mean_is_test = false;
   rq.spec.mean_used = true;
   rq.spec.td_automatic = false; rq.spec.td_test = false;
@@ -15210,7 +15210,7 @@ inline void build_fit_fit_easter_air(TramoFitRequest& rq) {
   rq.spec.outliers_ml = false;
   rq.spec.accept_airline = false;
   rq.spec.precision = B(0x3e7ad7f29abcaf48ULL);
-  rq.spec.intermediate_precision = B(0x3e7ad7f29abcaf48ULL);
+  rq.spec.intermediate_precision = B(0x3ee4f8b588e368f1ULL);
   rq.spec.mean_is_test = false;
   rq.spec.mean_used = true;
   rq.spec.td_automatic = false; rq.spec.td_test = false;
@@ -15262,39 +15262,39 @@ struct FitExpect {
 inline const std::vector<FitExpect>& fit_expectations() {
   static const std::vector<FitExpect> k_all = {
       {"fit_tr0_air", "", "-", 3, 0, 0, 1},
-      {"fit_tr1_air", "", "-", 3, 0, 2, 1},
-      {"fit_tr2_air", "refused:d10-calendar", "-", 3, 0, 2, 15},
-      {"fit_tr3_air", "", "Strong", 3, 2, 2, 0},
-      {"fit_accept_air", "", "Strong", 3, 0, 1, 0},
-      {"fit_mean_air", "", "Strong", 3, 2, 2, 0},
-      {"fit_fct_air", "", "Strong", 3, 1, 3, 3},
+      {"fit_tr1_air", "", "-", 3, 2, 0, 1},
+      {"fit_tr2_air", "refused:d10-calendar", "-", 3, 2, 0, 15},
+      {"fit_tr3_air", "", "Strong", 3, 4, 0, 0},
+      {"fit_accept_air", "", "Strong", 3, 1, 0, 0},
+      {"fit_mean_air", "", "Strong", 3, 4, 0, 0},
+      {"fit_fct_air", "", "Strong", 3, 3, 1, 3},
       {"fit_fsnone", "", "-", 3, 0, 0, 1},
-      {"fit_tr1_ao", "", "-", 3, 0, 2, 3},
-      {"fit_noout", "", "Strong", 3, 2, 2, 1},
-      {"fit_ao", "", "Strong", 3, 1, 3, 3},
-      {"fit_ls", "", "Strong", 3, 1, 3, 3},
-      {"fit_multi", "", "Strong", 3, 1, 3, 6},
-      {"fit_so", "", "Strong", 3, 1, 3, 3},
-      {"fit_spanout", "", "Strong", 3, 1, 3, 3},
-      {"fit_gs2", "", "Weak", 1, 2, 5, 6},
+      {"fit_tr1_ao", "", "-", 3, 2, 0, 3},
+      {"fit_noout", "", "Strong", 3, 4, 0, 1},
+      {"fit_ao", "", "Strong", 3, 3, 1, 3},
+      {"fit_ls", "", "Strong", 3, 3, 1, 3},
+      {"fit_multi", "", "Strong", 3, 3, 1, 6},
+      {"fit_so", "", "Strong", 3, 3, 1, 3},
+      {"fit_spanout", "", "Strong", 3, 3, 1, 3},
+      {"fit_gs2", "", "Weak", 1, 5, 2, 6},
       {"fit_s30ml", "", "Strong", 3, 1, 3, 0},
-      {"fit_aoonly", "", "Strong", 3, 1, 3, 3},
-      {"fit_cv4", "", "Strong", 3, 1, 3, 6},
-      {"fit_shortfail", "", "NotObservable", 0, 4, 3, 0},
-      {"fit_mrstack", "", "Strong", 3, 1, 3, 28},
-      {"fit_mrls", "", "Strong", 3, 1, 3, 3},
-      {"fit_missing", "refused:missing-values", "Weak", 1, 2, 2, 1},
+      {"fit_aoonly", "", "Strong", 3, 3, 1, 3},
+      {"fit_cv4", "", "Strong", 3, 3, 1, 6},
+      {"fit_shortfail", "", "NotObservable", 0, 6, 1, 0},
+      {"fit_mrstack", "", "Strong", 3, 3, 1, 28},
+      {"fit_mrls", "", "Strong", 3, 3, 1, 3},
+      {"fit_missing", "refused:missing-values", "Weak", 1, 4, 0, 1},
       {"fit_nomean", "", "-", 3, 0, 0, 0},
       {"fit_pure", "", "Strong", 3, 2, 0, 0},
-      {"fit_nearur", "", "Strong", 3, 2, 2, 0},
-      {"fit_q_air", "refused:d11-frequency", "Weak", 1, 4, 5, 0},
-      {"fit_trfull_air", "refused:d10-calendar", "Strong", 3, 1, 3, 15},
-      {"fit_td_air", "refused:d10-calendar", "Strong", 3, 1, 3, 15},
-      {"fit_aic_air", "refused:d10-calendar", "Strong", 3, 1, 3, 21},
-      {"fit_bic_air", "refused:d10-calendar", "Strong", 3, 1, 3, 15},
-      {"fit_wald_air", "refused:d10-calendar", "Strong", 3, 1, 3, 15},
-      {"fit_oc_air", "refused:oc-precorrection", "Strong", 3, 2, 2, 0},
-      {"fit_easter_air", "refused:d10-calendar", "Strong", 3, 2, 2, 0},
+      {"fit_nearur", "", "Strong", 3, 4, 0, 0},
+      {"fit_q_air", "refused:d11-frequency", "Weak", 1, 9, 0, 0},
+      {"fit_trfull_air", "refused:d10-calendar", "Strong", 3, 3, 1, 15},
+      {"fit_td_air", "refused:d10-calendar", "Strong", 3, 3, 1, 15},
+      {"fit_aic_air", "refused:d10-calendar", "Strong", 3, 3, 1, 21},
+      {"fit_bic_air", "refused:d10-calendar", "Strong", 3, 3, 1, 15},
+      {"fit_wald_air", "refused:d10-calendar", "Strong", 3, 3, 1, 15},
+      {"fit_oc_air", "refused:oc-precorrection", "Strong", 3, 4, 0, 0},
+      {"fit_easter_air", "refused:d10-calendar", "Strong", 3, 4, 0, 0},
   };
   return k_all;
 }

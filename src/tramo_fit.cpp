@@ -26,6 +26,7 @@
 
 #include <kalos/tramo_arma_selection.hpp>
 #include <kalos/tramo_differencing_decision.hpp>
+#include <kalos/tramo_outlier_rounds.hpp>
 
 #include <algorithm>
 #include <cmath>
@@ -110,6 +111,50 @@ std::string orders_word(const TramoOrders& o) {
 
 bool orders_equal(const TramoOrders& a, const TramoOrders& b) {
     return orders_word(a) == orders_word(b);
+}
+
+void check_scan(const TramoFitSpec& spec, const tramo_build_result& built, bool log,
+                const TramoFitSeamInputs& in, const TramoKernelSeam& expected) {
+    TramoOutlierScanRequest request{};
+    request.y = built.interpolated;
+    request.frequency = built.annual_frequency;
+    request.mean = in.entry_mean;
+    request.log = log;
+    const auto& o = in.entry_orders;
+    request.p = o.p;
+    request.d = o.d;
+    request.q = o.q;
+    request.bp = o.bp;
+    request.bd = o.bd;
+    request.bq = o.bq;
+    request.ao = spec.ao;
+    request.ls = spec.ls;
+    request.tc = spec.tc;
+    request.so = spec.so;
+    request.tc_rate = spec.delta_tc;
+    request.precision = spec.intermediate_precision;
+    request.maximum_likelihood = spec.outliers_ml;
+    // The pinned builder stores its two default caps in crossed fields.
+    request.max_round = 30;
+    request.max_outliers = 50;
+    request.cv = expected.critical_value;
+    request.upper_bound = built.estimation_length;
+    const auto scan = tramo_outlier_rounds(request);
+    const auto outcome = scan.status == TramoOutlierRoundsResult::Status::Failed ? TramoKernelStageResult::failed :
+        scan.outliers.empty() ? TramoKernelStageResult::unchanged : TramoKernelStageResult::changed;
+    require(outcome == expected.result, "live scan outcome disagrees with the module witness");
+    std::vector<OutlierType> factories;
+    if (spec.ao) factories.push_back(OutlierType::Additive);
+    if (spec.ls) factories.push_back(OutlierType::LevelShift);
+    if (spec.tc) factories.push_back(OutlierType::TransitoryChange);
+    if (spec.so) factories.push_back(OutlierType::SeasonalOutlier);
+    std::vector<std::string> names;
+    for (const auto& selected : scan.outliers)
+        names.push_back(monthly_outlier_name(factories.at(selected[1]), selected[0],
+                                            built.domain_year, built.domain_position + 1));
+    require(names == expected.outliers, "live scan selection disagrees with the ordered outlier witness");
+    require(orders_equal(o, expected.orders) && expected.mean == in.entry_mean,
+            "live scan description disagrees with the module witness");
 }
 
 bool outliers_equal(const std::vector<std::string>& a,
@@ -431,6 +476,12 @@ TramoFitResult tramo_fit(const TramoFitRequest& request) {
             check.tier = "live";
             check.note = "match " + stage_word(mapped) + " " +
                          orders_word(post);
+        } else if (seam.kind == TramoKernelSeamKind::scan && !has_fixed_regressors &&
+                   in.entry_outliers.empty() && !spec.outliers_ml &&
+                   (in.entry_orders.d > 0 || in.entry_orders.bd > 0)) {
+            check_scan(spec, built, prestage.log, in, seam);
+            check.tier = "live";
+            check.note = "match " + stage_word(seam.result) + ", ordered outlier selection";
         } else if (seam.kind == TramoKernelSeamKind::arma &&
                    (can_derive_arma || !in.ols_residuals.empty())) {
             TramoArmaSelectionRequest areq;
@@ -487,9 +538,7 @@ TramoFitResult tramo_fit(const TramoFitRequest& request) {
             check.tier = "fact";
             if (seam.kind == TramoKernelSeamKind::scan)
                 check.note =
-                    "the outliers machine is qualified in the "
-                    "tramo-outlier-rounds corpus; the fit seam rides as a "
-                    "fact (curva witness)";
+                    "outside the live scan design, ML or differencing envelope";
             else if (seam.kind == TramoKernelSeamKind::arma)
                 check.note = "no olsResiduals hand-over captured";
             else

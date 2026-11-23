@@ -299,6 +299,11 @@ def main():
             if kind == "arma":
                 n_live += 1 if idx in resid else 0
                 n_fact += 0 if idx in resid else 1
+            elif kind == "scan" and not seam_outs(t) and not ml:
+                orders_at_entry = t[t.index("orders") + 1].split("@")[0].split(",")
+                integrated = int(orders_at_entry[1]) + int(orders_at_entry[4]) > 0
+                n_live += int(integrated)
+                n_fact += int(not integrated)
             elif kind == "diff" and not seam_outs(t) and not ml and \
                     round_ == 1:
                 n_live += 1
@@ -351,8 +356,9 @@ def main():
         a("  rq.spec.accept_airline = %s;"
           % ("true" if kv("accept") == "1" else "false"))
         a("  rq.spec.precision = B(0x%016xULL);" % g17(kv("tol")))
-        a("  rq.spec.intermediate_precision = B(0x%016xULL);"
-          % g17(kv("tol")))
+        # TramoKernel.AmiOptions.builder() fixes the intermediate tolerance
+        # at 1e-5. readAmiOptions applies EstimateSpec.tol to final precision.
+        a("  rq.spec.intermediate_precision = B(0x%016xULL);" % g17("1.0e-5"))
         a("  rq.spec.mean_is_test = %s;"
           % ("true" if kv("meanTest") == "1" else "false"))
         a("  rq.spec.mean_used = %s;"

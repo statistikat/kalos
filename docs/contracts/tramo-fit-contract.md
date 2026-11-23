@@ -164,3 +164,16 @@ the differenced outlier design and solves the full OLS problem. An existing
 request with only the labels and a residual witness continues to use that
 witness. Typed variables must follow the recorded order and cover the entry
 design. The admitted panel now needs no supplied ARMA residual vectors.
+
+### 23-G outlier module cross-check
+
+The fit also runs the multi-round scan at integrated, complete monthly
+entries with no pre-existing regressors beyond the mean, no remaining
+outliers on entry, the full estimation interval and the default estimation
+mode. Factory columns map back to their AO/LS/TC/SO types in encounter
+order. Both the processing outcome and each dated selection must agree with
+the recorded module state. The native detector uses the captured critical
+value and the 1e−5 intermediate tolerance of TramoKernel.AmiOptions.
+The 38 successful comparisons include changed, unchanged and failed module
+outcomes. Post-scan coefficients continue to arrive through the fitting
+seams. The 65 live / 16 recorded census supersedes the earlier 23-F census.

@@ -3851,3 +3851,20 @@ provider/OpenMP pairing, runs the full standalone CTest suite, and exercises
 the installed consumer with provider reconfiguration and refusal checks.
 The job publishes the Windows JUnit report. Windows qualification awaits
 the hosted result.
+
+### M5 / 23-G — live automatic outlier detection in the fit
+
+The TRAMO fit now re-runs the multi-round outlier detector on the observed
+entry series, selected log channel, monthly orders, model mean, original
+factory mix and critical value. The native outcomes and ordered dated
+outlier selections agree at all 38 qualified scan entries. Two explicit
+maximum-likelihood scans and one stationary scan retain witnessed results.
+The measured fit census is now 65 live module checks and 16 witnessed
+entries. This covers detector decisions; the post-scan fitted parameters
+and subsequent model-estimation stages have separate gates.
+
+The pinned AmiOptions builder uses 1e−5 for intermediate precision.
+EstimateSpec's 1e−7 tolerance applies to final estimation. TRAMO's 23-F
+spec generator previously copied the final tolerance into both fields.
+Both preserved captures regenerate the corrected golden. The 34-case
+fit suite, RSA0/RSA3 handoff regressions and fixed X-13 fit tests passed.

@@ -132,7 +132,7 @@ struct TramoFitSpec {
     double ub1 = 0.97, ub2 = 0.91;
     // EstimateSpec.
     double precision = 1e-7;            // EstimateSpec.getTol()
-    double intermediate_precision = 1e-7;
+    double intermediate_precision = 1e-5;
     // RegressionSpec.
     bool mean_is_test = false;          // RegressionSpec.getMean().isTest()
     bool mean_used = true;              // RegressionSpec.getMean().isUsed()
