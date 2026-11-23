@@ -643,6 +643,21 @@ TramoArmaSelectionResult select_tramo_arma(const TramoArmaSelectionRequest& requ
         result.has_selection = false;
         result.panel.clear();
         result.events.push_back("remark arma selection failed");
+    } catch (const std::exception&) {
+        // Dated 2026-11-23 (javap evidence): ArmaModelSelector carries no
+        // Exception table at all (no per-candidate try in sort()/Arma()),
+        // and ArmaModule.process catches the escape into
+        // ProcessingResult.Failed. A HannanRissanen pipeline RuntimeException
+        // (the pinned short-window design class) therefore kills the module
+        // as Failed exactly like a SelectionAbort - it is never a throw to
+        // the caller (fit_shortfail witness: the JVM survives short residual
+        // blocks through the comespa/airline entry gates, not a selector-
+        // internal candidate catch).
+        result.selection_failed = true;
+        result.result = TramoArmaSelectionResult::Result::Failed;
+        result.has_selection = false;
+        result.panel.clear();
+        result.events.push_back("remark arma selection failed");
     }
     result.events.push_back("pop");
 
