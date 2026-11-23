@@ -104,10 +104,12 @@ unit's job).
   `slb = 0, slbp = 1` at n = 7); `observations = estimation-domain length`,
   `effobs = cl.dim()`, `outliersCount` = number of ami-flagged outlier
   VARIABLES (distinct from the pass2 `nb` = `countRegressors`, which sums
-  `core.dim()` — the gate request carries both). The
-  skewness/stableMean/stableVariance surfaces are NOT consumed by any tramo
-  decision; they are decision-inert, recorded in the corpus
-  (`msrx`/`frin`-style companions), not transcribed.
+  `core.dim()` — the gate request carries both). The model comparator also uses absolute
+  skewness and the skewness, mean stability and variance stability probabilities.
+  `tramo_model_comparison_panel` builds all its fields from this same likelihood.
+  For the two sample comparisons, JDemetra drops up to 120 months at each end.
+  Each sample variance uses a known zero mean. The pooled t test uses both sample
+  means, and the upper-tail F test uses the second variance divided by the first.
 - `tramo_test_tstats`: operation-for-operation `ConcentratedLikelihood.
   ser/tstats` with `nobs = free_parameters` — every TRAMO accept site calls
   `tstats(k, true)`, the ADDMU arm with denominator `dim − nx − k`; the
@@ -182,8 +184,6 @@ controller classes loading exactly there.
 
 - Calendar kernels (21-I.3): TradingDaysController T/Wald, the automatic
   test families, the Default calendar branch, adjusted/joined series.
-- The record-only ModelStatistics surfaces (skewness, stable mean/variance)
-  and the `msrx` blocks: decision-inert, documented, not transcribed.
 - `estimate_model_retry` is PARTIALLY qualified: the loop control flow is
   integer-only (no arithmetic to pin) and has NO live witness (reaching it
   needs a full `estimateModel`, out of this boundary). The reduceVa failure

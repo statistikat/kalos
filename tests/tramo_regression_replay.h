@@ -10,6 +10,8 @@
 #include "jvm_tramo_regression_tests.h"
 
 #include "kalos/tramo_regression_tests.hpp"
+#include "kalos/arma_diagnostics.hpp"
+#include "kalos/tramo_differencing_battery.hpp"
 
 #include <cmath>
 #include <cstdint>
@@ -160,6 +162,30 @@ inline void replay_ms(Reporter& rep, const kalos::test::JvmRtMsCase& c) {
     check_bits(rep, c.id, "slb", s.seasonal_ljung_box, as_double(c.slb));
     check_bits(rep, c.id, "slbp", s.seasonal_ljung_box_pvalue,
                as_double(c.slbp));
+    const auto panel = tramo_model_comparison_panel(r);
+    check_int(rep, c.id, "comparator panel", panel.has_value(), c.built);
+    if (panel) {
+        check_bits(rep, c.id, "panel.bic", panel->bic, as_double(c.bic));
+        check_bits(rep, c.id, "panel.lb", panel->ljung_box, as_double(c.lb));
+        check_bits(rep, c.id, "panel.lbp", panel->ljung_box_p, as_double(c.lbp));
+        check_bits(rep, c.id, "panel.slb", panel->season_box, as_double(c.slb));
+        check_bits(rep, c.id, "panel.slbp", panel->season_box_p, as_double(c.slbp));
+        check_int(rep, c.id, "panel.nout", panel->nout, c.outliers_count);
+        check_int(rep, c.id, "panel.nobs", panel->nobs, c.observations_count);
+        check_bits(rep, c.id, "panel.skew", panel->skew_abs, as_double(c.stability[0]));
+        check_bits(rep, c.id, "panel.skewp", panel->skew_p, as_double(c.stability[1]));
+        check_bits(rep, c.id, "panel.stabMp", panel->stable_mean_p, as_double(c.stability[3]));
+        check_bits(rep, c.id, "panel.stabVp", panel->stable_var_p, as_double(c.stability[5]));
+    }
+    if (s.built) {
+        const auto tests = tramo_comparator_residual_tests(r.residuals);
+        check_bits(rep, c.id, "skew", tests.absolute_skewness, as_double(c.stability[0]));
+        check_bits(rep, c.id, "skewp", tests.skewness_p, as_double(c.stability[1]));
+        check_bits(rep, c.id, "stabM", tests.mean_statistic, as_double(c.stability[2]));
+        check_bits(rep, c.id, "stabMp", tests.stable_mean_p, as_double(c.stability[3]));
+        check_bits(rep, c.id, "stabV", tests.variance_ratio, as_double(c.stability[4]));
+        check_bits(rep, c.id, "stabVp", tests.stable_variance_p, as_double(c.stability[5]));
+    }
     check_int(rep, c.id, "lb_length", s.lb_length, c.lb_length);
     if (c.outliers_count >= 0)
         check_int(rep, c.id, "outliers_count", s.outliers_count,

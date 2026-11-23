@@ -219,6 +219,11 @@ def main(corpus_dir, dst):
             else:
                 exp = dict(built=0, lb=nan, lbp=nan, se=nan, bic=nan,
                            slb=nan, slbp=nan, outl=-1, obs=-1, effobs=-1)
+            extra = c.find(cid, "msrx")
+            fields = extra.split()[1:] if extra else []
+            values = {name: flt(value) for name, value in zip(fields[::2], fields[1::2])}
+            stability = ", ".join(hx(values.get(name, nan)) for name in
+                                  ("skew", "skewp", "stabM", "stabMp", "stabV", "stabVp"))
             a_res = arrays.emit("mres_" + cid, resid)
             a_co = arrays.emit("mco_" + cid, cl["coef"])
             a_cv = arrays.emit("mcv_" + cid, cl["cov"])
@@ -226,7 +231,7 @@ def main(corpus_dir, dst):
             a_tp = arrays.emit("mtp_" + cid, cl["tsd"])
             ms_rows.append("    {%s, %d, %d, %d, %d, %s, %s, %s, %s, %d, "
                            "%d, %s, %d, %d, %s, %s, %s, %s, %s, %s, %d, "
-                           "%d, %d, %d, %s, %s}," % (
+                           "%d, %d, %d, %s, %s, {%s}}," % (
                                cstr(cid), freq, k, max(exp["outl"], 0),
                                max(exp["obs"], 0),
                                V(a_res), V(a_co), V(a_cv),
@@ -236,7 +241,7 @@ def main(corpus_dir, dst):
                                hx(exp["lb"]), hx(exp["lbp"]), hx(exp["se"]),
                                hx(exp["bic"]), hx(exp["slb"]), hx(exp["slbp"]),
                                m, exp["outl"], exp["obs"], exp["effobs"],
-                               V(a_ta), V(a_tp)))
+                               V(a_ta), V(a_tp), stability))
 
         elif kind in ("FR", "DR"):
             is_dr = kind == "DR"
@@ -450,6 +455,7 @@ def main(corpus_dir, dst):
                "unchecked (throw row)")
     out.append("    JvmRtVec tstats_addmu, tstats_plain;  // msc echo, both "
                "arms")
+    out.append("    std::uint64_t stability[6];  // skew, mean and variance tests and probabilities")
     out.append("};")
     out.append("")
     out.append("struct JvmRtRun {")

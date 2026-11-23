@@ -12,6 +12,7 @@
 // candidate construction is asserted against the captured candidate stream
 // and every Changed transfer against the post-step panel. What the replay
 // cannot see fails closed - the negative probes at the bottom pin that.
+#include "kalos/arma_diagnostics.hpp"
 #include "kalos/detail/special_functions.hpp"
 #include "kalos/tramo_differencing_battery.hpp"
 
@@ -472,6 +473,13 @@ void replay(const kalos::test::TbCase& tc) {
         if (st->resid.empty() && st->mstat.nobs == 0) {
             fail(p.id, "unparsed state " + tag);
             continue;
+        }
+        const auto tests = kalos::tramo_comparator_residual_tests(st->resid);
+        if (!bits_eq(tests.absolute_skewness, st->mstat.skew_abs) ||
+            !bits_eq(tests.skewness_p, st->mstat.skew_p) ||
+            !bits_eq(tests.stable_mean_p, st->mstat.stable_mean_p) ||
+            !bits_eq(tests.stable_variance_p, st->mstat.stable_var_p)) {
+            fail(p.id, "computed comparator residual tests differ in " + tag);
         }
         if (st->ftest.present) {
             const double p_native = f_upper_p(st->ftest.value, st->ftest.df1, st->ftest.df2);

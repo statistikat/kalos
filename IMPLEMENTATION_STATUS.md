@@ -3989,6 +3989,19 @@ at the RSA1 checkpoint matched their Git blobs. The historical validation
 also passed for all 406 entries. Windows CI runs both the export manifest and
 historical validation before building the provider.
 
+### M5 / 21-I.4 — model comparison diagnostics
+
+Monthly candidate fits can now build the complete JDemetra comparison panel
+from the likelihood and its compact residuals. The calculation includes
+absolute skewness, the normal skewness test, the pooled two-sample t test and
+the upper-tail variance ratio. Four previously captured quantities matched
+exactly on each of 90 states from the differencing battery. Eight monthly
+likelihood cases also matched all six raw statistics and probabilities,
+including a seven-residual fit and degenerate inputs. An undefined Ljung–Box
+test yields no comparison panel. The regression replay passed 808 checks.
+Six Release and four sanitizer tests passed. Integration into the late
+trading-day candidate refit is in progress.
+
 ### M5 / 21-I.4 — residual trading-day test
 
 The late TRfull controller can now decide from concentrated-likelihood residuals

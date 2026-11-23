@@ -26,6 +26,7 @@
   and regression-test decisions from the fitted likelihood. It reports the
   fixed-column regression covariance in the original variable order.
 
+- Added monthly TRAMO model comparison diagnostics for skewness and stability of the residual mean and variance.
 - Added the late TRfull residual working-day F test on the fitted monthly domain.
 - Added the stock TRfull initial mean, leap-year and Easter decisions on level or log monthly data.
 - Reduced CPU time for monthly fixed-order SARIMA fits by skipping zero
