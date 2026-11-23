@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Refit raw monthly TR3 and RSA3 after a late seasonality restart.
+
 - Added raw monthly TR3 preprocessing and RSA3 seasonal adjustment for fits
   accepted by the first automatic comparison and controller sweep.
 

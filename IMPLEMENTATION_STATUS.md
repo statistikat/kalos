@@ -4450,3 +4450,16 @@ standard errors matched their original fitted-decomposition references.
 Zero, one and seven months, invalid horizons and out-of-range covariance
 were checked. The raw RSA1, raw RSA0 and fixed-model bridge suites passed
 in Release and serial ASan/UBSan builds. [Contract and capture](docs/contracts/tramo-seats-bridge-contract.md)
+
+### M5 / 23-G and 24-D — raw TR3 seasonality restart
+
+The raw monthly identification route repeats differencing, ARMA selection,
+outlier detection, estimation and the controller sweep when the seasonality
+controller requests a restart. The second sweep observes the stored seasonality
+reference. The public `fit_gs2` case exercises this path from 96 observations.
+Together with the new multiple-outlier cases, all nine public RSA3 models match
+the independent JVM captures for fitted parameters, regression coefficients,
+824 residuals and 5,760 observed and forecast values, bit for bit. The
+F4 fit and automatic pipeline Release tests passed. The remaining raw TR3
+gates are retry after a rejected reference comparison and re-estimation after
+the fast regression test removes the mean.

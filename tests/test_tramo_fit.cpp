@@ -86,12 +86,9 @@ long long run_case(const FitExpect& e, std::size_t& live_total,
         if (regenerated) std::cout << e.id << ": regenerated " << regenerated << " ARMA input observations\n";
     }
     if (std::string(e.id) == "fit_gs2") {
-        bool restart = false;
-        try { (void)estimate_tramo_tr3(rq.series, rq.start_year, rq.start_month); }
-        catch (const std::invalid_argument& error) {
-            restart = std::string(error.what()).find("requires an automatic-model restart") != std::string::npos;
-        }
-        CHECK(restart);
+        const auto restarted = estimate_tramo_tr3(rq.series, rq.start_year, rq.start_month);
+        CHECK(restarted.final_model_computed && restarted.parameters == r.parameters &&
+              restarted.full_residuals == r.full_residuals && restarted.regression_coefficients == r.regression_coefficients);
     }
     CHECK(r.status == "available");
     CHECK(r.final_model_computed);

@@ -256,8 +256,10 @@ The supported input is complete monthly data spanning at least two years.
 `run_tramo_seats_rsa3(series, year, month, backcasts, forecasts)` use
 the stock monthly preset with no processing trace as input. The initial
 route covers a passed reference comparison, a retained fast regression
-test, and a completed controller sweep. The six public snapshots in
-`tramo-seats-bridge/rsa3-x86_64.txt` are the numerical reference.
-Additional automatic passes and the seasonality restart currently raise
-a stage-specific exception. SEATS uses the same fitted pipeline, horizon
+test, and a completed controller sweep. A seasonality restart repeats identification
+with the new seasonal state and reruns the late controllers. Nine public
+snapshots in `tramo-seats-bridge/rsa3-x86_64.txt` and
+`tramo-seats-bridge/rsa3-additional-x86_64.txt` cover this route.
+A rejected first reference comparison and a removed fast-regression mean
+currently raise a stage-specific exception. SEATS uses the same fitted pipeline, horizon
 semantics, and decomposition-policy checks as the raw RSA1 route.
