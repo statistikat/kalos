@@ -63,6 +63,21 @@ struct PinnedMachinePoint {
     double coefficient = 0.0;    // sol.b(0) (design present)
     double uc00 = 0.0;           // sol.unscaledCovariance()(0, 0)
     double tstat = 0.0;          // coefficient / sqrt((uc00 * ssq_err) / n)
+    // The full least-squares solution vector (the pinned getB(), zero-padded
+    // past the rank) = ConcentratedLikelihood.allCoefficients, filled by the
+    // multi machine (item 23-F F.2); the 1x1 conveniences above mirror it.
+    std::vector<double> b;
+};
+
+// The two ConcentratedLikelihoodComputer shapes (item 23-F F.2): Full is
+// DEFAULT_FULL_COMPUTER (xfixed = false: the whole whitened design enters
+// HouseholderWithPivoting with column pivoting and there is no rank
+// requirement); Fixed is DEFAULT_COMPUTER (xfixed = true: every design column
+// is fixed and a rank below the column count is the "Gls failed" throw,
+// mirrored as nullopt).
+enum class PinnedComputerShape {
+    Full,
+    Fixed,
 };
 
 // Evaluates the machine at one coordinate vector.
@@ -90,12 +105,17 @@ std::optional<PinnedMachinePoint> pinned_deviances_evaluate(
 // OLS and DEFAULT_COMPUTER seams replay), the residual assembly keeps the
 // per-column dneg/addAY order and the e/ssqE/logLikelihood assembly is
 // byte-identical to the single-column machine. A rank loss is not an error
-// here (the xfixed rank throw belongs to the landing seam, not to this
-// computer); nullopt mirrors the pinned throws. pt.coefficient/uc00/tstat
-// (the 1x1 conveniences) are not filled here.
+// under the Full shape (the xfixed rank throw belongs to the landing seam,
+// not to this computer); nullopt mirrors the pinned throws. pt.coefficient/
+// uc00/tstat (the 1x1 conveniences) are not filled here; pt.b carries the
+// full solution vector (allCoefficients). The shape parameter selects the
+// computer: Fixed runs the DEFAULT_COMPUTER shape of the zero-parameter
+// FinalEstimator round - every whitened column fixed, a rank below the
+// column count mirroring the "Gls failed" throw as nullopt.
 std::optional<PinnedMachinePoint> pinned_deviances_evaluate_multi(
     const std::vector<double>& y, std::size_t p, std::size_t bp, std::size_t q, std::size_t bq,
-    int period, const std::vector<std::vector<double>>& design, const std::vector<double>& jvm);
+    int period, const std::vector<std::vector<double>>& design, const std::vector<double>& jvm,
+    PinnedComputerShape shape = PinnedComputerShape::Full);
 
 // Pinned Polynomial.times (the full convolution behind the rational filter
 // compositions of the item 23-B scan machine: composing the pi weights with

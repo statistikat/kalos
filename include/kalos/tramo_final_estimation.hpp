@@ -169,6 +169,112 @@ struct TramoFinalEstimatorTestResult {
 TramoFinalEstimatorTestResult tramo_final_estimator_test(
     const TramoFinalEstimatorTestRequest& request);
 
+// ---------------------------------------------------------------------------
+// Item 23-F F.2: the live FinalEstimator.estimate(RegSarimaModelling) driver.
+// One call replays the pinned round loop end to end (decodes in
+// tmp_opencode/kalos-m5-pinning.md SECTION 29, per-round confirmation in the
+// Scratch23n corpus validation/evidence/native/tramo-final-estimation/
+// n23-capture-*.out): the single push("full estimation")/pop pair, at most
+// five round bodies, and per round the RegSarimaModelling.estimate hand-over
+// to RegSarimaComputer over the HannanRissanen start and the pinned
+// Levenberg-Marquardt chain, the zero-parameter concentrated-likelihood
+// shortcut (DEFAULT_COMPUTER, "Gls failed" refused), the exact-derivatives
+// Point tail of RegArmaProcessor.compute (calcResiduals at the landing
+// allCoefficients, the design-free ssq_e deviance re-run under the
+// SarimaMapping2 stencil, scaled by 0.5 * nobs / fx on the cdf nobs;
+// asymptoticCovariance = SymmetricMatrix.inverse), then the checkUnitRoots /
+// checkCommonRoots / test cascade with the setSpecification resets (empty
+// parameters, nulled estimation). The series is rebuilt bit-exactly from the
+// family facts (SECTION 29.6: fdlibm sin/cos reproduce the probe's
+// StrictMath series on
+// all 1008 values); the design is the optional raw constant column and the
+// response carries no missing values, exactly as the fe_est corpus.
+// ---------------------------------------------------------------------------
+
+// The SECTION-1 input family behind the fe_est cases: base = 50 + 0.05 t +
+// 5 sin(2 pi t / 12) + 3 cos(4 pi t / 12) + 0.5 sin(14 pi t / 12) with
+// t = 1..n; LevelShift adds 20 from t = 49; TwoOutliers adds 12 at index 10
+// and subtracts 18 at index 60. Families reaching past the response throw
+// std::invalid_argument (fail-closed; the JVM probe would fail the same
+// case before estimate()).
+enum class TramoEstFamily {
+    None,
+    LevelShift,
+    TwoOutliers,
+};
+
+struct TramoFinalEstimatorRunRequest {
+    TramoEstFamily family = TramoEstFamily::None;
+    int n = 0;
+    bool mean = true;                    // desc.setMean (concentrated constant)
+    double eps = 1e-4;                   // FinalEstimator builder precision
+    double ur = 0.96;                    // builder unitRootThreshold
+    int pass = 0;                        // builder pass
+    bool ami = true;                     // builder ami
+    bool outliers = false;               // builder outliers
+    bool airline = false;                // setAirline(true): (0,1,1)(0,1,1)
+    TramoFinalOrders orders;             // the specification when not airline
+};
+
+// Per-round audit rows (the probe's m R<k> lines): the mapping dimension,
+// the HannanRissanen start provenance (fitted/zerovariance/defaulted, empty
+// on the zero-parameter shortcut), the landing in JVM coordinates, the
+// ladder decisions and the round's exit.
+struct TramoFinalEstimatorRoundRecord {
+    int round = 0;
+    int dim = 0;
+    std::string hr_source;
+    std::vector<double> landing; // JVM [phi | bphi | theta | btheta]; empty on dim == 0
+    int checkur = -1;            // -1 not run, else unchanged flag 0/1
+    int checkcr = -1;
+    int test_total = -1;
+    int nnsig_after = 0;
+    bool shortcircuit = false;   // the dim == 0 or !ami early return
+    std::string outcome;         // continue | return_true | return_false
+    // Point-tail witnesses (empty when the round had no landing point): the
+    // exact-derivatives score grad * (-0.5 * nobs / fx), the information
+    // hessian * (0.5 * nobs / fx) row-major (both from the final_information
+    // producer over the residual-machine deviance), and the tail fx =
+    // Likelihood.ssq() * factor at the landing.
+    std::vector<double> tail_score;
+    std::vector<double> tail_information;
+    double tail_ssq_e = 0.0;
+};
+
+struct TramoFinalEstimatorRunResult {
+    bool returned = false;  // the estimate() return value
+    int nnsig = 0;          // getChangedParametersCount after the call
+    bool mean_out = false;
+    TramoFinalOrders orders_after;
+    std::vector<double> parameters_after; // desc.arima() parameters; empty
+                                          // after a setSpecification
+    // The final estimation state: 0 = null (a setSpecification was last),
+    // 1 = full estimation with landing point, 2 = zero-parameter estimation
+    // (no point: asymptoticCovariance would throw, the probe's NPE seam).
+    int cl_state = 0;
+    int cl_dim = 0;                 // concentratedLikelihood.dim()
+    double cl_ssq = 0.0;            // concentratedLikelihood.ssq()
+    std::vector<double> cl_coefs;   // allCoefficients
+    std::vector<double> covariance_diagonal; // state 1 only
+    // Point tail witness: the scaled information matrix (row-major dim x dim)
+    // the last point-tail round inverted; empty when no point tail ran.
+    std::vector<double> landing_information;
+    // ProcessingLog mirror: (kind, depth) with 1 push, 2 pop, 3 remark,
+    // 4 info; a normal call is exactly {(1, 0), (2, 0)} per witness.
+    std::vector<std::pair<int, int>> events;
+    std::vector<TramoFinalEstimatorRoundRecord> rounds;
+};
+
+// Static input violations (non-positive n, negative orders, a non-airline
+// specification without parametersCount match, non-finite eps/ur) throw
+// std::invalid_argument. A round whose pinned machine fails (the
+// "estimation faied" remark path of estimate()) is NOT an exception here:
+// it ends the call with returned == false, the remark event and the state
+// left where the throw happened, exactly as the pinned catch (the corpus
+// never takes this path).
+TramoFinalEstimatorRunResult tramo_final_estimator_run(
+    const TramoFinalEstimatorRunRequest& request);
+
 } // namespace kalos
 
 #endif

@@ -128,6 +128,10 @@ struct PassOutcome {
     std::size_t evaluations = 0;
     double log_likelihood = unavailable();
     std::array<std::vector<double>, 4> coefficients;
+    // Item 23-F F.2 landing seam (set when the pinned sum-of-squares path
+    // ran and request_landing_point was asked; the FinalEstimator round
+    // driver reads it as the machine-failure seam).
+    bool landing_derivatives = false;
 };
 
 bool pinned_solver(const SarimaEstimationRequest& request) {
@@ -441,6 +445,9 @@ PassOutcome run_pass_pinned_lm(const SarimaEstimationRequest& request,
     }
     const auto landing = flip_ar(from_jvm_coordinates(lm.parameters, p, bp, q));
     outcome.optimizer_status = pinned_lm_status(lm.stop);
+    if (request.request_landing_point) {
+        outcome.landing_derivatives = true;
+    }
     if (provider.machine_active()) {
         // The pinned landing likelihood is the machine's concentrated
         // likelihood at the landing (21-D.2); it is bit-identical to the
@@ -927,6 +934,9 @@ SarimaEstimationResult optimize_sarima_from(const SarimaEstimationRequest& reque
     result.log_likelihood = pass.log_likelihood;
     result.converged = pass.optimizer_status == "converged_gradient";
     result.status = result.converged ? "converged" : std::move(pass.optimizer_status);
+    if (request.request_landing_point && pass.landing_derivatives) {
+        result.has_landing_point = true;
+    }
     return result;
 }
 

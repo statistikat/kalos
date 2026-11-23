@@ -1234,7 +1234,8 @@ std::optional<PinnedMachinePoint> pinned_deviances_evaluate(
 
 std::optional<PinnedMachinePoint> pinned_deviances_evaluate_multi(
     const std::vector<double>& y, std::size_t p, std::size_t bp, std::size_t q, std::size_t bq,
-    int period, const std::vector<std::vector<double>>& design, const std::vector<double>& jvm) {
+    int period, const std::vector<std::vector<double>>& design, const std::vector<double>& jvm,
+    PinnedComputerShape shape) {
     if (jvm.size() != p + bp + q + bq || period < 2 || y.empty() || design.empty()) {
         return std::nullopt;
     }
@@ -1297,13 +1298,20 @@ std::optional<PinnedMachinePoint> pinned_deviances_evaluate_multi(
     // so process hands HouseholderWithPivoting nfixed = nmissing (0 for a
     // missing-free design), i.e. full column pivoting. There is no
     // rank-equals-columns requirement here (that is the xfixed computer,
-    // which is the estimateModel landing seam, pinned_gls_point).
-    decomp.decompose(xx, 0);
+    // which is the estimateModel landing seam, pinned_gls_point). The Fixed
+    // shape (item 23-F F.2, the zero-parameter FinalEstimator round) fixes
+    // every whitened column and takes the rank requirement: rank below the
+    // column count is the pinned "Gls failed" throw.
+    decomp.decompose(xx, shape == PinnedComputerShape::Fixed ? xx.size() : 0);
     const ls_solution_n sol = least_squares_n(decomp, w, kRcond);
     if (sol.singular) {
         return std::nullopt;
     }
     pt.rank = sol.rank;
+    pt.b = sol.b;
+    if (shape == PinnedComputerShape::Fixed && sol.rank < xx.size()) {
+        return std::nullopt; // "Gls failed" (EcoException at the caller)
+    }
     if (sol.rank == 0) {
         // ConcentratedLikelihoodComputer: the rank-0 branch profiles no
         // regressor and uses w.ssq() with the raw residuals.

@@ -1,16 +1,17 @@
-// Item 23-F F.1 replay test: drives the kalos::tramo_final_estimation
-// decision layer (FinalEstimator.searchur/checkUnitRoots/checkCommonRoots/
-// test of the pinned tramo side of the 21-H fork) over the generated golden
-// JVM corpus (tests/jvm_tramo_final_estimation.h) and pins the fork-critical
-// hand-built edges. All double comparisons are raw IEEE-754 bit equality;
-// the fe_est rows (live estimate() driver) are inert until the 23-F F.2
-// round loop lands and are only counted here.
+// Item 23-F replay test: drives the kalos::tramo_final_estimation decision
+// layer (FinalEstimator.searchur/checkUnitRoots/checkCommonRoots/test of the
+// pinned tramo side of the 21-H fork) and the F.2 estimate() round-loop
+// driver over the generated golden JVM corpus
+// (tests/jvm_tramo_final_estimation.h) and pins the fork-critical hand-built
+// edges. All double comparisons are raw IEEE-754 bit equality, the fe_est
+// rows included.
 #include "kalos/tramo_final_estimation.hpp"
 
 #include "jvm_tramo_final_estimation.h"
 
 #include <cmath>
 #include <cstdint>
+#include <cstdio>
 #include <cstring>
 #include <iostream>
 #include <limits>
@@ -40,6 +41,18 @@ std::vector<double> to_values(const std::uint64_t* bits, int count) {
         out[i] = bits_to_double(bits[i]);
     }
     return out;
+}
+
+std::uint64_t double_to_bits(double v) {
+    std::uint64_t b;
+    std::memcpy(&b, &v, sizeof(double));
+    return b;
+}
+
+std::string hex16(std::uint64_t b) {
+    char buf[20];
+    std::snprintf(buf, sizeof(buf), "%016llx", static_cast<unsigned long long>(b));
+    return buf;
 }
 
 TramoFinalOrders orders_at(const std::uint64_t* slots) {
@@ -166,6 +179,81 @@ void replay_tc(const golden_tfe::Row& r) {
     CHECK(result.info_detail == r.text);
 }
 
+// The live estimate() driver (F.2): replay the round loop and diff every
+// observed fact against the capture, raw bit equality per exp slot.
+void replay_est(const golden_tfe::Row& r) {
+    int k = 0;
+    TramoFinalEstimatorRunRequest req;
+    req.n = static_cast<int>(r.in[k++]);
+    req.mean = r.in[k++] != 0;
+    req.eps = bits_to_double(r.in[k++]);
+    req.ur = bits_to_double(r.in[k++]);
+    req.pass = static_cast<int>(r.in[k++]);
+    req.ami = r.in[k++] != 0;
+    req.outliers = r.in[k++] != 0;
+    req.airline = static_cast<int>(r.in[k]) < 0;
+    if (!req.airline) {
+        req.orders = orders_at(r.in + k);
+    }
+    k += 6;
+    req.family = static_cast<TramoEstFamily>(static_cast<int>(r.in[k++]));
+    CHECK(k == r.in_n);
+
+    const TramoFinalEstimatorRunResult res = tramo_final_estimator_run(req);
+
+    std::vector<std::pair<std::string, std::uint64_t>> got;
+    auto push = [&got](const std::string& what, std::uint64_t bits) {
+        got.emplace_back(what, bits);
+    };
+    push("return", res.returned ? 1 : 0);
+    push("nnsig", static_cast<std::uint64_t>(res.nnsig));
+    push("mean_out", res.mean_out ? 1 : 0);
+    const int o6[6] = {res.orders_after.p, res.orders_after.d, res.orders_after.q,
+        res.orders_after.bp, res.orders_after.bd, res.orders_after.bq};
+    for (int i = 0; i < 6; ++i) {
+        push("order[" + std::to_string(i) + "]", static_cast<std::uint64_t>(o6[i]));
+    }
+    push("np", res.parameters_after.size());
+    for (std::size_t i = 0; i < res.parameters_after.size(); ++i) {
+        push("par[" + std::to_string(i) + "]", double_to_bits(res.parameters_after[i]));
+    }
+    push("state", static_cast<std::uint64_t>(res.cl_state));
+    if (res.cl_state == 0) {
+        push("cl_dim", 0);
+        push("ssq", 0);
+        push("nc", 0);
+    } else {
+        push("cl_dim", static_cast<std::uint64_t>(res.cl_dim));
+        push("ssq", double_to_bits(res.cl_ssq));
+        push("nc", res.cl_coefs.size());
+        for (std::size_t i = 0; i < res.cl_coefs.size(); ++i) {
+            push("coef[" + std::to_string(i) + "]", double_to_bits(res.cl_coefs[i]));
+        }
+    }
+    const int nv = res.cl_state == 1 ? static_cast<int>(res.covariance_diagonal.size()) : 0;
+    push("nv", static_cast<std::uint64_t>(nv));
+    for (int i = 0; i < nv; ++i) {
+        push("vd[" + std::to_string(i) + "]", double_to_bits(res.covariance_diagonal[i]));
+    }
+    push("nev", res.events.size());
+    for (std::size_t i = 0; i < res.events.size(); ++i) {
+        push("ekind[" + std::to_string(i) + "]", static_cast<std::uint64_t>(res.events[i].first));
+        push("edepth[" + std::to_string(i) + "]",
+            static_cast<std::uint64_t>(res.events[i].second));
+    }
+
+    CHECK(got.size() == static_cast<std::size_t>(r.exp_n));
+    const std::size_t n = std::min(got.size(), static_cast<std::size_t>(r.exp_n));
+    for (std::size_t i = 0; i < n; ++i) {
+        if (got[i].second != r.exp[i]) {
+            throw std::runtime_error(std::string("fe_est ") + r.id + " slot "
+                + std::to_string(i) + " " + got[i].first + " native "
+                + hex16(got[i].second) + " jvm " + hex16(r.exp[i]) + " (line "
+                + std::to_string(__LINE__) + ")");
+        }
+    }
+}
+
 void replay_all() {
     int count = 0;
     const golden_tfe::Row* rows = golden_tfe::table(count);
@@ -190,10 +278,7 @@ void replay_all() {
             replay_tc(r);
             break;
         case golden_tfe::TFE_EST:
-            // Inert until the F.2 round-loop replay lands: pinned present -
-            // request facts (n, mean, eps, ur, pass, ami, outliers, orders,
-            // family) in `in`, the observed final state in `exp`.
-            CHECK(r.in_n == 14);
+            replay_est(r);
             ++est;
             break;
         }

@@ -106,6 +106,40 @@ live `estimate()` driver such an escape is caught by its RuntimeException
 handler (remark "estimation faied" — the jar typo, verbatim) and belongs
 to the F.2 layer.
 
+## Round loop and Point tail (F.2)
+
+`tramo_final_estimator_run` mirrors `estimate()` over the qualified
+`estimate_sarima_fixed` seam: one `"full estimation"` push before the loop
+(the log context stays open across rounds), AT MOST five round bodies
+(`iconst_5 if_icmplt`), and per round `estimate(computer)` assigns the
+estimation — including the point-only tail — before any gate reads it.
+Short-circuits after the assignment (`dim == 0`, corpus `es02`/`es05-R1`/
+`es08-R1`; `!ami`, corpus `es03`) pop and return true with the fresh
+estimation in place; the `nnsig` field keeps its previous value there
+(`es08` returns true with `nnsig == 2` left by an earlier round). A false
+`checkCommonRoots` sets `nnsig = 2` AND rewrites (`bp == 1 && bq == 1` with
+`|bphi(1) - btheta(1)| < cancel = 0.044`: `setBp(0)`, `setBq(0)`,
+`setSpecification` -> estimation null, pars cleared, corpus `es05`/`es08`);
+otherwise `nnsig = test()`. `nnsig == 0` returns true, `nnsig == 1`
+continues, and `nnsig >= 2` with `outliers && pass <= 1` pops and returns
+false WITHOUT a remark; the loop exhaustion is the same silent false. The
+`"estimation faied"` remark (jar typo, verbatim) fires ONLY in the
+RuntimeException catch.
+
+The Point tail is `RegArmaProcessor.compute`'s exact-derivatives branch
+(the FE builder's `computeExactFinalDerivatives`), produced by the 21-H
+`final_information` unit: `LinearModel.calcResiduals` regresses the landing
+allCoefficients off the differenced response (the mean column included),
+the DESIGN-FREE deviance machine re-runs on those residuals under the
+SarimaMapping2 stencil, and the score/information scale with
+`0.5 * nobs / fx` (`fx = Likelihood.ssq() * factor`, the pinned `ssq_e`)
+on the cdf nobs `|y_d| - X.getColumnsCount() - dim`. The concentrated
+deviance can be indefinite at the landing (`es01` variance 1 = `-0.0989…`,
+negative), which the pinned `SymmetricMatrix.inverse` Cholesky-then-
+Doolittle fallback absorbs; a singular inverse mirrors the MatrixException
+into the round catch. The Gauss-Newton curvature of the minimizer is NOT
+this quantity and reaches no observable here.
+
 ## Corpus and gates
 
 `validation/evidence/native/tramo-final-estimation/`: the split-package
@@ -125,10 +159,9 @@ decision rows bit-exactly plus hand-built fork edges (ratio start and
 takeover direction, Bq no-update, NaN/strict-boundary polarities, the
 cancel exactly-equal boundary, validation throws).
 
-The 10 `fe_est` rows are inert at F.1: they drive the live five-round
-`estimate()` loop whose estimation hand-overs (the qualified
-`estimate_sarima_fixed` seam, the final-information producer, the nnsig
-field semantics — a `dim == 0` short-circuit returns true WITHOUT touching
-the field, corpus `es05`/`es08`, and `dim` counts mapped ARIMA parameters
-only, mean excluded) land with the 23-F F.2 round-loop driver; the test
-counts them (10) to pin their presence.
+The 10 `fe_est` rows are ACTIVE with F.2: `tramo_final_estimator_run`
+replays them bit-exactly on every slot (return, `nnsig`, mean, orders,
+landing parameters, estimation state, cl dim/ssq/allCoefficients, the
+asymptotic-covariance diagonal and the event log), including the
+two-round cancel flows (`es05`, `es08`) and the point tail witnesses
+(score/information) diffed bit-for-bit against the per-round capture.
