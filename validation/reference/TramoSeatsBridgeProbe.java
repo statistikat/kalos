@@ -369,12 +369,14 @@ public class TramoSeatsBridgeProbe {
             }
         });
         require(model != null && rounds.equals(List.of("round 0", "round 1", "round 4")), "fast mean retry");
-        rawAutomatic("fit_fast_mean_" + seed + "_" + mode, data, stage);
+        String id = "fit_fast_mean_" + seed + "_" + mode;
+        if (stage.equals("rsa3-mean-retry-diagnostics")) residualDiagnostics(id, data, TramoSeatsSpec.RSA3);
+        else rawAutomatic(id, data, stage);
     }
 
     public static void main(String[] args) throws Exception {
         String stage = args.length > 1 ? args[1] : "bridge";
-        if (stage.equals("rsa3-mean-retry")) {
+        if (stage.equals("rsa3-mean-retry") || stage.equals("rsa3-mean-retry-diagnostics")) {
             for (int[] pair : new int[][]{{26, 0}, {51, 5}, {66, 0}, {73, 2}}) rsa3MeanRetry(stage, pair[0], pair[1]);
             return;
         }

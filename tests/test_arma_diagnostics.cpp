@@ -129,7 +129,7 @@ void check_rsa0_residual_test(const std::string& file, const std::string& key, C
     if (cases != 6 || edges != 3) throw std::runtime_error("incomplete RSA0 diagnostic reference");
 }
 
-void check_public_residual_diagnostics(const std::string& preset,
+void check_public_residual_diagnostics(const std::string& diagnostic_file,
         const std::vector<std::pair<std::string, std::string>>& references, std::size_t expected_cases) {
     const std::string directory = KALOS_TRAMO_DIAGNOSTIC_DIR;
     struct Input {
@@ -166,7 +166,7 @@ void check_public_residual_diagnostics(const std::string& preset,
             }
         }
     }
-    std::ifstream tests(directory + "/" + preset + "-residual-diagnostics-x86_64.txt");
+    std::ifstream tests(directory + "/" + diagnostic_file + "-x86_64.txt");
     std::size_t checks = 0;
     while (std::getline(tests, line)) {
         std::istringstream row(line);
@@ -198,11 +198,12 @@ void check_public_residual_diagnostics(const std::string& preset,
 } // namespace
 
 int main() {
-    check_public_residual_diagnostics("rsa1", {
+    check_public_residual_diagnostics("rsa1-residual-diagnostics", {
         {"", "rsa1-x86_64.txt"}, {"level_", "rsa1-level-effects-x86_64.txt"},
         {"level_tc_", "rsa1-level-tc-x86_64.txt"}, {"log_tc_", "rsa1-log-tc-x86_64.txt"}}, 12);
-    check_public_residual_diagnostics("rsa3", {
+    check_public_residual_diagnostics("rsa3-residual-diagnostics", {
         {"", "rsa3-x86_64.txt"}, {"", "rsa3-additional-x86_64.txt"}}, 9);
+    check_public_residual_diagnostics("rsa3-mean-retry-diagnostics", {{"", "rsa3-mean-retry-x86_64.txt"}}, 4);
     const auto short_sample = kalos::monthly_tramo_residual_ljung_box(std::vector<double>(24, 1), 3);
     if (!short_sample.built || short_sample.df != 21 || !std::isnan(short_sample.value) || !std::isnan(short_sample.p))
         throw std::runtime_error("invalid short monthly TRAMO residual test");
