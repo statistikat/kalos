@@ -213,6 +213,8 @@ promoted — decisions 1-9 stay open per the roadmap ledger).
 | request | status |
 |---|---|
 | frequency != 12 | `unsupported:x13 automatic fit monthly series only` |
+| horizon months > the 2^24-month cap (entry guard, REVIEW-1.B appendix) | `unsupported:x13 automatic fit horizon magnitude exceeds the cap` |
+| observed length + horizon months > the 2^24-month cap (entry guard) | `unsupported:x13 automatic fit extended series length exceeds the cap` |
 | missing/non-finite observations | `unsupported:x13 automatic fit requires a complete finite series` |
 | sigma policy unset | `unsupported:x13 fit requires an explicit sigma policy` (shared) |
 | calendar/easter-detection/automatic-TD/user detection requested | `unsupported:x13 automatic fit defers calendar/easter/TD/user detection (21-I)` |
@@ -228,7 +230,9 @@ on whatever the processor retained (the 21-C "available" semantics).
 
 The X-11 spec horizons are month counts and a negative value means |h|
 annual frequencies, exactly as the pinned `X13AutomaticProcess` reads them;
-the driver normalizes both request fields the same way. The horizons feed
+the driver normalizes both request fields the same way — in `int64`, at the
+public entry, bounded by the `kHorizonMonthCap` of the entry-horizon-bound
+appendix below (REVIEW-1.B). The horizons feed
 the downstream composition ONLY — estimation, the decision chain and the
 landing coefficients are horizon-invariant (verified: the horizon captures'
 orders/arma facts are byte-identical to the zero-horizon oracle captures of
@@ -734,3 +738,45 @@ decision, and no provider in the qualification matrix comes close to
 all-outputs-1-ulp (the qualified provider reproduces the goldens exactly,
 75/75 on both lanes with the RUNPATH-pinned build).
 
+
+## Appendix — entry horizon bound (REVIEW-1.B, 2026-11-23)
+
+The external review (adaption_in_the_implemetation_needed.md, "Bound
+automatic X-13 horizons before estimation") found the 21-H.4 normalization
+`-h * 12` computed in `int` inside the downstream composition: a negative
+annual count could overflow on negation or on the product, and the expanded
+length fed the composition's vector allocations and index arithmetic only
+after estimation had started. Pinned semantics, now enforced at the public
+entry (`x13_automatic_fit`, before the fail-closed status matrix and before
+any allocation):
+
+* Normalization to months happens in `int64`: a field `h < 0` means
+  `|h| * 12` months (`INT_MIN * 12` is representable in `int64`, so the
+  former overflow domain is arithmetic-safe by construction); `h >= 0` is
+  already a month count. The 21-H.4 field semantics are otherwise
+  unchanged (the month/annual equivalents of the section above stay exact,
+  and small horizons stay non-gates).
+* `kHorizonMonthCap = 2^24` months bounds (a) each normalized magnitude and
+  (b) the extended series length `observed_length + backcast_months +
+  forecast_months`. Evidence: the composition indexes the extended calendar
+  with `int` arithmetic widened by at most 16 columns (2^24 · 2^4 = 2^28,
+  8× headroom below 2^31) and its widest per-row allocation is
+  2^24 · 8 = 2^27 bytes against the 64-bit `ptrdiff_t` allocation headroom
+  of the supported platforms. The cap admits every legitimate use (annual
+  X-13 horizons are small month counts) and every pinned corpus row: the
+  13-case oracle (horizons {0, 0}) and all four horizon fixtures (max
+  horizon 6) stay accepted, replayed bit-identically.
+* Refusals answer the two statuses of the matrix above with an EMPTY
+  decision chain — the witness that no machine, no allocation and no
+  estimation work ran for them — and are checked in `
+  tests/test_x13_automatic.cpp` (T01b: `INT_MIN`, `INT_MAX`, cap+1, the
+  sum-beyond-cap pair, magnitude-at-cap vs extended-at-cap boundaries, the
+  accepted extended-length-exactly-at-cap boundary, the negative annual
+  form, and the precedence pins: shape throws and the monthly refusal
+  above the horizon gate; the horizon gate above the finite/sigma/deferred/
+  span gates).
+* Composition consumes the entry-checked month counts (the `int -h*12`
+  site is gone); for every ACCEPTED request the normalized values are the
+  exact values the composition computed before, so the accepted path is
+  bit-preserving — proven by the untouched 21-H.3 oracle and 21-H.4
+  horizon replays.

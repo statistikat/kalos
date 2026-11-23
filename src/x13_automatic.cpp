@@ -314,9 +314,18 @@ struct Modelling {
 
 class AutomaticPipeline {
  public:
+  // The checked month horizons (REVIEW-1.B): normalized from the request
+  // fields to months in int64 at the public entry and bounded by the
+  // documented kHorizonMonthCap before this object is constructed, so
+  // composition consumes verified values (the int -h*12 product the review
+  // flagged is gone by construction).
   AutomaticPipeline(const X13AutomaticRequest& request,
-                    X13AutomaticFitResult& result)
-      : request_(request), result_(result) {}
+                    X13AutomaticFitResult& result, int checked_backcast,
+                    int checked_forecast)
+      : request_(request),
+        result_(result),
+        checked_backcast_(checked_backcast),
+        checked_forecast_(checked_forecast) {}
 
   // The failed: stage/round of the last calc position (entry-point use).
   const std::string& stage() const { return stage_; }
@@ -1909,13 +1918,12 @@ class AutomaticPipeline {
     fit_result.mode_requested = request_.mode;
     fit_result.mode_effective = forceMode(out.log, request_.mode);
     // The pinned process semantics (item 21-H.4): the spec horizons are
-    // month counts; a negative value means |h| annual frequencies.
-    const int nb = request_.backcast < 0
-                       ? -request_.backcast * kAnnualFrequency
-                       : request_.backcast;
-    const int nf = request_.forecast < 0
-                       ? -request_.forecast * kAnnualFrequency
-                       : request_.forecast;
+    // month counts; a negative value means |h| annual frequencies. The
+    // normalization and the extended-calendar bound ran at the public
+    // entry (REVIEW-1.B) before any allocation; composition consumes the
+    // checked month counts here.
+    const int nb = checked_backcast_;
+    const int nf = checked_forecast_;
     fit_result.backcast = nb;
     fit_result.forecast = nf;
 
@@ -2057,6 +2065,8 @@ class AutomaticPipeline {
 
   const X13AutomaticRequest& request_;
   X13AutomaticFitResult& result_;
+  const int checked_backcast_;   // months, entry-normalized and capped
+  const int checked_forecast_;   // months, entry-normalized and capped
   std::vector<OutlierVariable> empty_variables_;
 
   Modelling model_;
@@ -2114,6 +2124,48 @@ X13AutomaticFitResult x13_automatic_fit(const X13AutomaticRequest& request) {
         "x13 automatic fit outlier detection needs at least one type");
   }
 
+  // Horizon normalization and bound (REVIEW-1.B, pinned by the pipeline
+  // contract appendix): the 21-H.4 semantics - month counts, a negative
+  // value meaning |h| annual frequencies - are evaluated in int64 AT THE
+  // ENTRY, before the fail-closed status matrix and before any allocation
+  // (the review: "horizon normalization happens after" the envelope
+  // checks, and composition computed -h*12 in int). The int64 product of
+  // two bounded int values cannot overflow. kHorizonMonthCap bounds every
+  // normalized magnitude and the extended series length
+  // observed_length + backcast_months + forecast_months against the
+  // downstream allocation/index envelope: the composition's int index
+  // arithmetic widens the extended length by at most 16 columns
+  // (2^24 * 2^4 = 2^28, headroom to 2^31), and the widest per-row
+  // allocation is 2^24 * 8 = 2^27 bytes against the 64-bit ptrdiff_t
+  // headroom of this platform. The cap admits every legitimate use (the
+  // X-13 annual horizons are small month counts) and every corpus row:
+  // the 13-case oracle (horizons 0) and the four horizon fixtures (max
+  // horizon 6) stay accepted - the pinned replay proves the accepted path
+  // bit-for-bit unchanged.
+  constexpr int64_t kHorizonMonthCap = int64_t{1} << 24;
+  const int64_t backcast_months =
+      request.backcast < 0
+          ? -static_cast<int64_t>(request.backcast) * kAnnualFrequency
+          : static_cast<int64_t>(request.backcast);
+  const int64_t forecast_months =
+      request.forecast < 0
+          ? -static_cast<int64_t>(request.forecast) * kAnnualFrequency
+          : static_cast<int64_t>(request.forecast);
+  if (backcast_months > kHorizonMonthCap ||
+      forecast_months > kHorizonMonthCap) {
+    out.status =
+        "unsupported:x13 automatic fit horizon magnitude exceeds the cap";
+    return out;
+  }
+  if (static_cast<int64_t>(request.input.size()) + backcast_months +
+          forecast_months > kHorizonMonthCap) {
+    out.status =
+        "unsupported:x13 automatic fit extended series length exceeds the cap";
+    return out;
+  }
+  const int backcast_checked = static_cast<int>(backcast_months);
+  const int forecast_checked = static_cast<int>(forecast_months);
+
   // The fail-closed matrix, in the contract order (the monthly refusal
   // already ran above, as the first shape-independent domain gate).
   for (const double value : request.input) {
@@ -2142,7 +2194,7 @@ X13AutomaticFitResult x13_automatic_fit(const X13AutomaticRequest& request) {
     return out;
   }
 
-  AutomaticPipeline pipeline(request, out);
+  AutomaticPipeline pipeline(request, out, backcast_checked, forecast_checked);
   try {
     pipeline.run();
   } catch (const std::runtime_error& error) {
