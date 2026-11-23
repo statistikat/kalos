@@ -487,6 +487,7 @@
     "validation/evidence/native/tramo-seats-bridge/merge-x86_64.txt",
     "validation/evidence/native/tramo-seats-bridge/merge.txt",
     "validation/evidence/native/tramo-seats-bridge/reference.json",
+    "validation/evidence/native/tramo-seats-bridge/rsa0-x86_64.txt",
     "validation/evidence/native/tramo-seats-model/SHA256SUMS.csv",
     "validation/evidence/native/tramo-seats-model/cases.csv",
     "validation/evidence/native/tramo-seats-model/inputs.csv",

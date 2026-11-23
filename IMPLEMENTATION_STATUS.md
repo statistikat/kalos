@@ -3764,3 +3764,15 @@ route without 23-F witness injection still needs the 23-G estimator and
 round-driver oracle. The 24-E end-to-end gate requires rsa3 and rsafull;
 21-I remains the dependency for TRfull's calendar tests.
 [Public API and contract](docs/contracts/tramo-seats-bridge-contract.md)
+
+### M5 / 23-G and 24-E — public TR0/RSA0 reference panel
+
+Six original monthly series drove the public TR0 and RSA0 JVM kernels
+directly. The reference captures the two fitted MA coefficients, mean
+coefficient, log likelihood, residual SSQ, effective and estimated parameter
+counts and every final component. All six public fits were decomposable.
+Two fresh x86-64 Temurin 21.0.11 processes produced the same 60 dated
+final rows. Replay uses the existing pinned 3.9.0 classpath and the new
+`--stage rsa0` option. Capture SHA-256
+`a9eb8b11f7b062db2578de650bbe5a8ef323a28138cc7d47c97e3b4d280c4669`.
+[Public kernel capture](validation/evidence/native/tramo-seats-bridge/rsa0-x86_64.txt)

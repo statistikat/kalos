@@ -22,7 +22,7 @@ def main():
     parser.add_argument("--jdk", type=Path, required=True, help="Java 21.0.11 JDK home")
     parser.add_argument("--jar-dir", type=Path, action="append", required=True,
                         help="directory containing pinned jars (repeatable)")
-    parser.add_argument("--stage", choices=["bridge", "merge"], default="bridge")
+    parser.add_argument("--stage", choices=["bridge", "merge", "rsa0"], default="bridge")
     parser.add_argument("--output", type=Path, help="write a new capture instead of verifying the frozen file")
     args = parser.parse_args()
     reference = json.loads((EVIDENCE / "reference.json").read_text())
@@ -43,6 +43,10 @@ def main():
             output_name = "merge-x86_64.txt"
         else:
             raise SystemExit(f"no frozen merge reference for JVM architecture {arch!r}")
+    if args.stage == "rsa0":
+        if arch not in {"x86_64", "amd64"}:
+            raise SystemExit("RSA0 uses the pinned x86-64 numerical profile")
+        output_name = "rsa0-x86_64.txt"
     jars = []
     for name, digest in reference["jars"].items():
         jar = next((d / name for d in args.jar_dir if (d / name).is_file()), None)
@@ -61,7 +65,7 @@ def main():
         args.output.write_bytes(first)
     elif first != (EVIDENCE / output_name).read_bytes():
         raise SystemExit("live capture differs from the frozen bridge evidence")
-    print(f"{args.stage}: five fitted models, two independent JVMs, SHA-256 {hashlib.sha256(first).hexdigest()}")
+    print(f"{args.stage}: two independent JVMs, SHA-256 {hashlib.sha256(first).hexdigest()}")
 
 
 if __name__ == "__main__":

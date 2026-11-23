@@ -25,6 +25,7 @@ import jdplus.toolkit.base.api.timeseries.regression.ModellingContext;
 import jdplus.toolkit.base.core.regsarima.regular.RegSarimaModel;
 import jdplus.tramoseats.base.api.seats.SeatsModelSpec;
 import jdplus.tramoseats.base.api.tramo.TramoSpec;
+import jdplus.tramoseats.base.api.tramoseats.TramoSeatsSpec;
 import jdplus.tramoseats.base.core.tramo.TramoKernel;
 import jdplus.tramoseats.base.core.tramoseats.TramoSeatsKernel;
 
@@ -148,7 +149,40 @@ public class TramoSeatsBridgeProbe {
         System.out.println("changed " + changed);
     }
 
+    // The public kernel receives only the original dated series and RSA0.
+    // These rows never use the private fitted bridge or the isolated WK path.
+    private static final Set<String> RSA0 = Set.of(
+        "fit_tr0_air", "fit_noout", "fit_ls", "fit_ao", "fit_multi", "fit_nearur");
+
+    private static void rawRsa0(String id, TsData series) {
+        var context = new ModellingContext();
+        var logged = new ProcessingLog() {};
+        var fit = TramoKernel.of(TramoSpec.TR0, context).process(series, logged);
+        require(fit != null, id + " TR0");
+        var arima = fit.arima();
+        var stats = fit.getEstimation().getStatistics();
+        System.out.println("case " + id);
+        series("input", series);
+        require(!fit.getDescription().isLogTransformation() && arima.getD() == 1 && arima.getBd() == 1
+                && arima.getPhi().isEmpty() && arima.getBphi().isEmpty()
+                && arima.getTheta().length() == 1 && arima.getBtheta().length() == 1, "TR0 airline");
+        var coefficients = fit.getEstimation().getCoefficients();
+        require(coefficients.length() == 1 && fit.getDescription().getVariables()[0].getName().equals("const"),
+                "TR0 mean");
+        System.out.printf("fit %s %s %s %s %s %d %d%n", bits(arima.getTheta().get(0)),
+            bits(arima.getBtheta().get(0)), bits(coefficients.get(0)), bits(stats.getLogLikelihood()),
+            bits(stats.getSsqErr()), stats.getEffectiveObservationsCount(), stats.getEstimatedParametersCount());
+        var result = TramoSeatsKernel.of(TramoSeatsSpec.RSA0, new ModellingContext()).process(series, logged);
+        if (result == null) {
+            System.out.println("product absent");
+        } else {
+            System.out.printf("product present changed %b%n", result.getDecomposition().isModelChanged());
+            components("merged", result.getFinals());
+        }
+    }
+
     public static void main(String[] args) throws Exception {
+        boolean raw = args.length > 1 && args[1].equals("rsa0");
         Method bridge = TramoSeatsKernel.class.getDeclaredMethod("of", RegSarimaModel.class);
         bridge.setAccessible(true);
         List<String> lines = Files.readAllLines(Path.of(args[0]));
@@ -157,15 +191,17 @@ public class TramoSeatsBridgeProbe {
             if (!lines.get(i).startsWith("KER ")) continue;
             String[] header = lines.get(i).split(" ");
             String id = header[1];
-            if (!TEMPLATES.containsKey(id)) continue;
+            if (!(raw ? RSA0 : TEMPLATES.keySet()).contains(id)) continue;
             require(seen.add(id), id + " duplicated");
             int n = header.length;
             require(header[n-3].equals("12") && lines.get(i+1).startsWith("values "), id);
             TsPeriod start = TsPeriod.monthly(Integer.parseInt(header[n-2]), Integer.parseInt(header[n-1]));
             double[] values = Arrays.stream(lines.get(i+1).substring(7).split(" "))
                 .mapToDouble(Double::parseDouble).toArray();
-            observe(bridge, id, TEMPLATES.get(id), TsData.of(start, DoubleSeq.of(values)), args.length > 1 && args[1].equals("merge"));
+            TsData data = TsData.of(start, DoubleSeq.of(values));
+            if (raw) rawRsa0(id, data);
+            else observe(bridge, id, TEMPLATES.get(id), data, args.length > 1 && args[1].equals("merge"));
         }
-        require(seen.equals(TEMPLATES.keySet()), "incomplete corpus");
+        require(seen.equals(raw ? RSA0 : TEMPLATES.keySet()), "incomplete corpus");
     }
 }
