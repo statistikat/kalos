@@ -4241,3 +4241,14 @@ shifted historical series. Native replay matches every fitted parameter,
 regression coefficient, likelihood, all 166 residuals and 1,200 observed
 and forecast product values. The existing six RSA1 product fits and the
 fitted bridge replay also passed. [Contract and capture](docs/contracts/tramo-seats-bridge-contract.md)
+
+### M5 / 23-G — first automatic reference comparison
+
+For all 18 first candidates, the pass-2 model comparison now uses the two
+independently fitted models. It reproduces the accepted/reverted state,
+chosen orders and mean, number of outliers, next pass/round, threshold
+and detection flags. The seasonal AR shape rule reads seasonal AR before
+regular MA in the public JDemetra+ parameter vector. An explicit reversion
+test separates these two coefficients and checks the restored model.
+The late seasonality and differencing controllers remain the next
+dependency for raw RSA3.

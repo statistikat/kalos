@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Compared the first automatic TRAMO candidate with the independent
+  reference fit and corrected seasonal AR indexing at model reversion.
+
 - TRAMO computes its first automatic candidate from dated data through
   differencing, ARMA selection, renewed outlier detection and estimation.
 

@@ -188,6 +188,28 @@ std::string lb_witness() {
            std::to_string(rows) + " rows bit-exact from the e-array\n";
 }
 
+void seasonal_ar_reversion() {
+    TramoKernelRoundsRequest rq;
+    build_case("kr_air", rq);
+    for (auto& seam : rq.seams) {
+        if (seam.kind != TramoKernelSeamKind::pass2_gate) continue;
+        // Shape F reads bphi(1). SarimaModel.parameters puts that
+        // coefficient before theta(1), which would keep this model.
+        seam.arima_orders = {0, 1, 1, 1, 0, 1};
+        seam.parameters = {-0.8, 0.4, 0.2};
+        seam.reverted = true;
+        seam.rule = "F";
+        seam.gate_ljung_box_complement = seam.gate_reference_ljung_box_complement;
+        const auto result = tramo_run_kernel_rounds(rq);
+        for (const auto& decision : result.decisions) {
+            if (decision.kind != TramoKernelSeamKind::pass2_gate) continue;
+            CHECK(decision.reverted && decision.orders_after.d == 1 && decision.orders_after.bd == 1);
+            return;
+        }
+    }
+    throw std::runtime_error("missing seasonal AR comparison");
+}
+
 void seasonal_difference_drop() {
     // Both (1,1) and (2,0) use two differences; their monthly polynomial
     // degrees are 13 and 2. The JVM clears the prior outliers at this site.
@@ -284,6 +306,7 @@ std::uint64_t hex_str(std::uint64_t b) { return b; }
 int main() {
     try {
         std::printf("%s", lb_witness().c_str());
+        seasonal_ar_reversion();
         seasonal_difference_drop();
         d3_flip_checks();
         std::printf("D3 flip table: positive multi-round + pass3-reset "
