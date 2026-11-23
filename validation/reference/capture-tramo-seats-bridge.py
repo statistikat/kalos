@@ -24,7 +24,7 @@ def main():
                         help="directory containing pinned jars (repeatable)")
     parser.add_argument("--stage", choices=["bridge", "merge", "rsa0", "rsa0-forecast-errors",
                         "rsa0-residuals", "rsa0-ljung-box", "rsa0-doornik-hansen", "rsa1", "rsa1-level-effects", "rsa1-level-tc", "rsa1-log-tc", "rsa3", "rsafull",
-                        "calendar-ftest", "trfull-calendar", "residual-td", "td-controller", "spectrum-cos"], default="bridge")
+                        "calendar-ftest", "trfull-calendar", "residual-td", "td-controller", "fast-calendar", "spectrum-cos"], default="bridge")
     parser.add_argument("--output", type=Path, help="write a new capture instead of verifying the frozen file")
     args = parser.parse_args()
     reference = json.loads((EVIDENCE / "reference.json").read_text())
@@ -46,7 +46,7 @@ def main():
         else:
             raise SystemExit(f"no frozen merge reference for JVM architecture {arch!r}")
     calendar_outputs = {"calendar-ftest": "panel.txt", "trfull-calendar": "full.txt", "residual-td": "residual-td.txt",
-                        "td-controller": "td-controller.txt"}
+                        "td-controller": "td-controller.txt", "fast-calendar": "fast-calendar.txt"}
     if args.stage in calendar_outputs:
         if arch not in {"x86_64", "amd64"}:
             raise SystemExit("TRAMO calendar F-test uses the pinned x86-64 numerical profile")
@@ -63,7 +63,7 @@ def main():
         jars.append(str(jar))
     calendar_probes = {"calendar-ftest": "CalendarFTestProbe", "trfull-calendar": "TramoFullCalendarProbe",
                        "residual-td": "TramoResidualTradingDaysProbe",
-                       "td-controller": "TramoTradingDaysControllerProbe"}
+                       "td-controller": "TramoTradingDaysControllerProbe", "fast-calendar": "TramoFastCalendarProbe"}
     probe = calendar_probes.get(args.stage, "TramoSeatsBridgeProbe")
     arguments = [] if args.stage in calendar_probes else [CASES, args.stage]
     if args.stage == "rsafull":
@@ -72,7 +72,7 @@ def main():
             raise SystemExit("TRfull calendar source cases digest differs")
         arguments.append(calendar_inputs)
     sources = [HERE / (probe + ".java")]
-    if args.stage in {"trfull-calendar", "residual-td", "td-controller"}:
+    if args.stage in {"trfull-calendar", "residual-td", "td-controller", "fast-calendar"}:
         sources.append(HERE / "CalendarFTestProbe.java")
     with tempfile.TemporaryDirectory() as directory:
         subprocess.run([args.jdk / "bin/javac", "--release", "21", "-cp", os.pathsep.join(jars),
