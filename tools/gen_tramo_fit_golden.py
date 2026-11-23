@@ -128,6 +128,13 @@ def seam_outs(t):
     return parse_names(t[oi + 1:end])
 
 
+def outlier_coordinate(name, start_year, start_month):
+    code, label = name.split()
+    date = label.strip("()")
+    position = (int(date[:4]) - start_year) * 12 + int(date[5:7]) - start_month
+    return OUTLIER_KIND[code], position
+
+
 def emit_trivial_case(out, case, kv, fbk):
     """The fully-specified, outlier-free templates (fit_tr0_air, fit_fsnone)
     take the ami() estimation branch: no round steps, no prestage or seam
@@ -383,13 +390,19 @@ def main():
             spc, rnobs, res_bits = resid.get(idx, (-1, 0, []))
             if kind == "arma" and idx not in resid:
                 fail(cid + ": arma seam %d without fitresid" % idx)
+            variables = []
+            if kind == "arma" and all(name.startswith(("AO ", "LS ")) for name in outs):
+                for name in outs:
+                    outlier_kind, pos = outlier_coordinate(name, y0, m0)
+                    variables.append('{"%s", TramoOutlierKind::%s, %d, 0.0, {}}' % (name, outlier_kind, pos))
             a("      {%d, {%s, %s, %s, %s, %s, %s}, %s, {%s}, %d, %d, %d,"
-              " {%s}, %d, %d}," % (
+              " {%s}, %d, %d%s}," % (
                   idx, p, d, q, bp, bd, bq, "true" if mean0 else "false",
                   ", ".join('"%s"' % x for x in outs),
                   ps, rd, entry_nobs,
                   ", ".join("B(0x%016xULL)" % x for x in res_bits),
-                  rnobs if kind == "arma" else 0, spc))
+                  rnobs if kind == "arma" else 0, spc,
+                  ", {" + ", ".join(variables) + "}" if variables else ""))
         a("  };")
 
         # ---- final record ----------------------------------------------------
@@ -401,12 +414,9 @@ def main():
           % ", ".join('"%s"' % x for x in names))
         a("  rq.final.variables = {")
         for i, nm in enumerate(names):
-            typ, rest = nm.split()[0], nm.split()[1].strip("()")
-            # Positions belong to the original estimation domain. The full
-            # residuals start later when ordinary/seasonal differencing is used.
-            pos = (int(rest[0:4]) - y0) * 12 + (int(rest[5:7]) - m0)
+            outlier_kind, pos = outlier_coordinate(nm, y0, m0)
             a('      {"%s", TramoOutlierKind::%s, %d, B(0x%016xULL), {}},'
-              % (nm, OUTLIER_KIND[typ], pos,
+              % (nm, outlier_kind, pos,
                  coef_bits[(1 if mean_flag else 0) + i]))
         a("  };")
         a("  rq.final.parameters = %s;" % bitvec(pars_bits))

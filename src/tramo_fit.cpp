@@ -21,6 +21,7 @@
 
 #include "kalos/detail/fdlibm.hpp"
 #include "kalos/detail/ssq_deviances.hpp"
+#include "kalos/outlier_scoring.hpp"
 #include "mlj_engine.hpp"
 
 #include <kalos/tramo_arma_selection.hpp>
@@ -59,6 +60,36 @@ std::vector<double> differenced_response(std::vector<double> y, bool log, int pe
     std::vector<double> result(y.size() - filter.size() + 1);
     mlj::apply_backfilter(filter, y, 0, result);
     return result;
+}
+
+std::vector<double> arma_residuals(const tramo_build_result& built, bool log,
+                                    const TramoFitSeamInputs& in) {
+    const int period = built.annual_frequency;
+    const int d = in.entry_orders.d, bd = in.entry_orders.bd;
+    auto y = differenced_response(built.interpolated, log, period, d, bd);
+    std::vector<std::vector<double>> columns;
+    if (in.entry_mean) columns.emplace_back(y.size(), 1.0);
+    require(in.entry_variables.size() == in.entry_outliers.size(), "incomplete ARMA entry design");
+    for (std::size_t j = 0; j < in.entry_variables.size(); ++j) {
+        const auto& var = in.entry_variables[j];
+        require(var.name == in.entry_outliers[j] && var.position >= 0 &&
+                    static_cast<std::size_t>(var.position) < built.interpolated.size(),
+                "invalid ARMA entry outlier name or position");
+        require(var.type == TramoOutlierKind::Ao || var.type == TramoOutlierKind::Ls,
+                "ARMA entry design requires AO or LS");
+        std::vector<double> column(built.interpolated.size());
+        const auto type = var.type == TramoOutlierKind::Ao ? OutlierType::Additive : OutlierType::LevelShift;
+        fill_outlier_column(type, var.position, period, 0., column);
+        require(var.column.empty() || var.column == column, "ARMA outlier column disagrees with factory");
+        columns.push_back(differenced_response(std::move(column), false, period, d, bd));
+    }
+    if (columns.empty()) return y;
+    const auto beta = detail::pinned_ols_coefficients(y, columns);
+    require(beta && beta->size() == columns.size(), "ARMA input regression failed");
+    for (std::size_t j = 0; j < columns.size(); ++j)
+        for (std::size_t i = 0; i < y.size(); ++i)
+            y[i] += -(*beta)[j] * columns[j][i];
+    return y;
 }
 
 std::string stage_word(TramoKernelStageResult r) {
@@ -341,7 +372,8 @@ TramoFitResult tramo_fit(const TramoFitRequest& request) {
             break;
         }
 
-        const bool only_optional_mean = in.entry_outliers.empty() && !has_fixed_regressors;
+        const bool can_derive_arma = !has_fixed_regressors &&
+            (in.entry_outliers.empty() || !in.entry_variables.empty());
         if (seam.kind == TramoKernelSeamKind::differencing &&
             in.entry_outliers.empty() && !spec.outliers_ml &&
             in.round == 1) {
@@ -400,17 +432,10 @@ TramoFitResult tramo_fit(const TramoFitRequest& request) {
             check.note = "match " + stage_word(mapped) + " " +
                          orders_word(post);
         } else if (seam.kind == TramoKernelSeamKind::arma &&
-                   (only_optional_mean || !in.ols_residuals.empty())) {
+                   (can_derive_arma || !in.ols_residuals.empty())) {
             TramoArmaSelectionRequest areq;
-            if (only_optional_mean) {
-                areq.residuals = differenced_response(built.interpolated, prestage.log,
-                    spec.annual_frequency, in.entry_orders.d, in.entry_orders.bd);
-                if (in.entry_mean) {
-                    const auto beta = detail::pinned_ols_coefficients(areq.residuals,
-                        {std::vector<double>(areq.residuals.size(), 1.0)});
-                    require(beta && beta->size() == 1, "ARMA input mean regression failed");
-                    for (auto& value : areq.residuals) value -= beta->front();
-                }
+            if (can_derive_arma) {
+                areq.residuals = arma_residuals(built, prestage.log, in);
                 areq.nobs = built.estimation_length;
                 if (!in.ols_residuals.empty()) {
                     require(areq.nobs == in.nobs && areq.residuals.size() == in.ols_residuals.size() &&

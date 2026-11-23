@@ -3831,3 +3831,14 @@ with maximum absolute error 2.42e−13. The 144 paired WK conditional errors
 remain bit-exact. The regression checks zero and one-month requests as well
 as the default 24-month horizon.
 [Forecast error contract](docs/contracts/tramo-seats-bridge-contract.md)
+
+### M5 / 23-G — ARMA handoff with AO and LS design columns
+
+ARMA module entries can now supply ordered, typed AO/LS positions. The fit
+rebuilds each raw factory column, differences it on the same calendar as the
+response, solves the full pivoted OLS regression and forms the residuals
+in column order. Replaying all admitted cases without any ARMA residual
+arrays reproduces every selection: 18 cases, 1,704 residual values. That
+includes the mixed AO/LS and pass-three controller cases. Both reference
+captures regenerate the same golden. The remaining automatic fit dependencies
+include outlier scan/estimation stages and the final estimator.

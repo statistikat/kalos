@@ -158,3 +158,9 @@ mean, the fit reconstructs the selected response and differences, solves
 the mean on the differenced domain, and passes those residuals to the
 selector. The OLS vector and observation count can be omitted in those
 entries. When supplied they must match in length and binary64 bits.
+
+With dated AO/LS variables in `entry_variables` the selector reconstructs
+the differenced outlier design and solves the full OLS problem. An existing
+request with only the labels and a residual witness continues to use that
+witness. Typed variables must follow the recorded order and cover the entry
+design. The admitted panel now needs no supplied ARMA residual vectors.

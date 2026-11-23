@@ -66,7 +66,7 @@ long long run_case(const FitExpect& e, std::size_t& live_total,
     }
     std::size_t regenerated = 0;
     for (auto& input : rq.seam_inputs) {
-        if (input.entry_outliers.empty() && !input.ols_residuals.empty()) {
+        if ((input.entry_outliers.empty() || !input.entry_variables.empty()) && !input.ols_residuals.empty()) {
             regenerated += input.ols_residuals.size();
             input.ols_residuals.clear();
             input.nobs = 0;
