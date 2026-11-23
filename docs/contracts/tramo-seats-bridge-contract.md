@@ -239,4 +239,15 @@ changes contribute to the irregular component. Their monthly decay of
 The observed bridge and extended component merge use the same outlier
 factory and fitted decay. Reproduce the two public JVM captures with
 `capture-tramo-seats-bridge.py --stage rsa1-level-tc`. Other decay rates,
-logarithmic TCs and seasonal outliers remain outside this qualification.
+and seasonal outliers remain outside this qualification.
+
+
+### Log-model transitory changes
+
+Starting at the midpoint of each original series, multiply observations
+by one plus a 10% impulse that decays by 0.7 per month. Stock RSA1 selects
+a log TC alone on `fit_noout`, a log TC and LS on `fit_ls`, and a log TC
+with AO and multiple LS effects on `fit_multi`. Two independent captures
+from the public x86-64 JVM agree on all three models and 1,800 final
+component values. Reproduce them with
+`capture-tramo-seats-bridge.py --stage rsa1-log-tc`.

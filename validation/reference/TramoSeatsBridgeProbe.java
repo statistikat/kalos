@@ -300,7 +300,9 @@ public class TramoSeatsBridgeProbe {
         if (stage.equals("spectrum-cos")) { spectrumCos(); return; }
         boolean raw = stage.startsWith("rsa");
         boolean levelEffects = stage.startsWith("rsa1-level-");
-        Set<String> cases = stage.equals("rsa1-level-tc") ? Set.of("fit_multi")
+        boolean logTc = stage.equals("rsa1-log-tc");
+        Set<String> cases = logTc ? Set.of("fit_noout", "fit_ls", "fit_multi")
+            : stage.equals("rsa1-level-tc") ? Set.of("fit_multi")
             : levelEffects ? Set.of("fit_ao", "fit_ls")
             : raw ? RAW_CASES : TEMPLATES.keySet();
         Method bridge = TramoSeatsKernel.class.getDeclaredMethod("of", RegSarimaModel.class);
@@ -319,6 +321,13 @@ public class TramoSeatsBridgeProbe {
             double[] values = Arrays.stream(lines.get(i+1).substring(7).split(" "))
                 .mapToDouble(Double::parseDouble).toArray();
             if (levelEffects) for (int j = 0; j < values.length; ++j) values[j] -= 1000;
+            if (logTc) {
+                double impulse = 1.0;
+                for (int j = values.length / 2; j < values.length; ++j) {
+                    values[j] *= 1.0 + 0.1 * impulse;
+                    impulse *= 0.7;
+                }
+            }
             TsData data = TsData.of(start, DoubleSeq.of(values));
             if (stage.startsWith("rsa0")) rawRsa0(id, data, stage);
             else if (raw) rawAutomatic(id, data, stage);

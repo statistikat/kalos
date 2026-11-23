@@ -4273,3 +4273,13 @@ captures. Native replay reproduced all eight outliers, the mean,
 coefficients, likelihood, 83 residuals and 600 public product values.
 The bridge also tests refusals for log-scale TC, alternate decay and
 seasonal outliers. [Contract and capture](docs/contracts/tramo-seats-bridge-contract.md)
+
+
+### M5 / 24-D — multiplicative transitory-change restoration
+
+The bridge now restores stock TC effects on logarithmic fits, including
+combinations with AO and LS. Two fresh JVM runs agreed on the three
+positive-series inputs. Native replay matched all three models, 249
+residuals and 1,800 observed and forecast values bit-for-bit. The initial
+six RSA1 fits, all three additive outlier fits and the fixed-model bridge
+also passed. [Contract and capture](docs/contracts/tramo-seats-bridge-contract.md)

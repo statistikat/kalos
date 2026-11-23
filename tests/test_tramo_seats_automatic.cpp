@@ -122,6 +122,7 @@ int main() {
     run("rsa1", 6, 3960);
     run("rsa1-level-effects", 2, 1200);
     run("rsa1-level-tc", 1, 600);
+    run("rsa1-log-tc", 3, 1800);
     auto invalid = [](std::vector<double> values, int month) {
         try { (void)kalos::estimate_tramo_tr1(values, 1990, month); }
         catch (const std::invalid_argument&) { return; }
