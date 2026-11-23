@@ -4516,3 +4516,7 @@ tests passed. Retry after a rejected reference comparison remains open.
 ### M5 public raw RSA3 residual diagnostic references
 
 Two independent pinned x86-64 JVMs produced identical residual scale, Ljung–Box and Doornik–Hansen statistics for the six original and three additional raw RSA3 fits. The nine Ljung–Box tests have 21, 22 or 23 degrees of freedom according to the selected ARMA order. The frozen capture SHA-256 is `3811bf5c301e7e0dfe08827fa6e11beac6e3d0754399d4cd0ac759a2e4fb3716`. [Reference](validation/evidence/native/tramo-seats-bridge/rsa3-residual-diagnostics-x86_64.txt)
+
+### M5 selected-model RSA3 residual diagnostics
+
+`monthly_tramo_residual_ljung_box` uses the fitted ARMA parameter count for the public 24-lag independence statistic. Across nine original and restart fits the native scale, independence statistic/probability and normality statistic/probability matched all 45 JVM numerical values bit-for-bit, with the expected reference degrees of freedom. The existing 12 RSA1 and six RSA0 fixtures still pass. The three Release gates cover diagnostics, RSA0 and raw automatic fitting. The diagnostic replay also passed under serial ASan/UBSan with the short-domain and out-of-range parameter tests. [Contract](docs/contracts/tramo-seats-bridge-contract.md)

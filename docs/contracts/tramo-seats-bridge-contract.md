@@ -289,3 +289,15 @@ WK series errors. The direct public-error gate uses the RSA0 budget of
 `2e-8 * (1 + abs(reference))`. Zero months return `no_requested_predictions`
 and a positive-horizon out-of-range covariance returns `covariance_range`
 with no partial values. Shorter requested horizons use the same dated prefix.
+
+### Public residual tests after monthly TR3 identification
+
+`monthly_tramo_residual_ljung_box(residuals, arma_parameters)` evaluates the
+public 24-lag independence statistic around zero on the fitted residuals.
+Supply the selected regular and seasonal AR and MA parameter count
+(`p + q + bp + bq`). Its reference distribution has `24 - arma_parameters`
+degrees of freedom. The public `residuals.ser` and `residuals.doornikhansen`
+use the existing residual-scale and normality functions on the same fitted
+model. The frozen `rsa3-residual-diagnostics-x86_64.txt` gives all three
+outputs for the original six public RSA3 fits and the three additional fits
+covering seasonality restart and multiple outliers.

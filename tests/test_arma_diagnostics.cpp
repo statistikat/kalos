@@ -129,27 +129,27 @@ void check_rsa0_residual_test(const std::string& file, const std::string& key, C
     if (cases != 6 || edges != 3) throw std::runtime_error("incomplete RSA0 diagnostic reference");
 }
 
-void check_rsa1_residual_diagnostics() {
+void check_public_residual_diagnostics(const std::string& preset,
+        const std::vector<std::pair<std::string, std::string>>& references, std::size_t expected_cases) {
     const std::string directory = KALOS_TRAMO_DIAGNOSTIC_DIR;
     struct Input {
         double ssq = 0;
-        int effective = 0, estimated = 0;
+        int effective = 0, estimated = 0, arma_parameters = 0;
         std::vector<double> residuals;
     };
     std::map<std::string, Input> inputs;
     std::string id, line, key;
-    const std::map<std::string, std::string> references{
-        {"", "rsa1-x86_64.txt"}, {"level_", "rsa1-level-effects-x86_64.txt"},
-        {"level_tc_", "rsa1-level-tc-x86_64.txt"}, {"log_tc_", "rsa1-log-tc-x86_64.txt"}
-    };
     for (const auto& [prefix, name] : references) {
         std::ifstream file(directory + "/" + name);
-        if (!file) throw std::runtime_error("missing RSA1 fitted reference");
+        if (!file) throw std::runtime_error("missing fitted diagnostic reference");
         while (std::getline(file, line)) {
             std::istringstream row(line);
             row >> key;
             if (key == "case") { row >> id; id = prefix + id; }
-            if (key == "likelihood") {
+            if (key == "parameters") {
+                std::string coefficient;
+                while (row >> coefficient) ++inputs[id].arma_parameters;
+            } else if (key == "likelihood") {
                 std::string ignored;
                 std::uint64_t ssq;
                 auto& fit = inputs[id];
@@ -162,12 +162,12 @@ void check_rsa1_residual_diagnostics() {
                 std::uint64_t bits;
                 while (row >> std::hex >> bits) fit.residuals.push_back(golden_diag::bits(bits));
                 if (count != fit.effective || fit.residuals.size() != static_cast<std::size_t>(count))
-                    throw std::runtime_error("invalid RSA1 residual count");
+                    throw std::runtime_error("invalid public residual count");
             }
         }
     }
-    std::ifstream tests(directory + "/rsa1-residual-diagnostics-x86_64.txt");
-    int checks = 0;
+    std::ifstream tests(directory + "/" + preset + "-residual-diagnostics-x86_64.txt");
+    std::size_t checks = 0;
     while (std::getline(tests, line)) {
         std::istringstream row(line);
         row >> key;
@@ -178,24 +178,40 @@ void check_rsa1_residual_diagnostics() {
         if (key == "residuals.ser") {
             if (!same(kalos::tramo_residual_standard_error(fit.ssq, fit.effective, fit.estimated), statistic)) ++failures;
         } else {
-            row >> pvalue;
+            std::string chi, with;
+            double df;
+            row >> pvalue >> chi >> with >> df;
+            if (!row || chi != "Chi2" || with != "with") throw std::runtime_error("invalid diagnostic distribution");
             if (key == "residuals.lb") {
-                const auto test = kalos::monthly_airline_residual_ljung_box(fit.residuals);
-                if (!test.built || test.df != 22 || !same(test.value, statistic) || !same(test.p, pvalue)) ++failures;
+                const auto test = kalos::monthly_tramo_residual_ljung_box(fit.residuals, fit.arma_parameters);
+                if (!test.built || test.df != df || !same(test.value, statistic) || !same(test.p, pvalue)) ++failures;
             } else if (key == "residuals.doornikhansen") {
                 const auto test = kalos::tramo_residual_normality(fit.residuals);
-                if (!test || test->df != 2 || !same(test->value, statistic) || !same(test->p, pvalue)) ++failures;
+                if (!test || test->df != df || !same(test->value, statistic) || !same(test->p, pvalue)) ++failures;
             } else throw std::runtime_error("unrecognized public diagnostic");
         }
         ++checks;
     }
-    if (inputs.size() != 12 || checks != 36) throw std::runtime_error("incomplete RSA1 diagnostic evidence");
+    if (inputs.size() != expected_cases || checks != 3 * expected_cases) throw std::runtime_error("incomplete diagnostic evidence");
 }
 
 } // namespace
 
 int main() {
-    check_rsa1_residual_diagnostics();
+    check_public_residual_diagnostics("rsa1", {
+        {"", "rsa1-x86_64.txt"}, {"level_", "rsa1-level-effects-x86_64.txt"},
+        {"level_tc_", "rsa1-level-tc-x86_64.txt"}, {"log_tc_", "rsa1-log-tc-x86_64.txt"}}, 12);
+    check_public_residual_diagnostics("rsa3", {
+        {"", "rsa3-x86_64.txt"}, {"", "rsa3-additional-x86_64.txt"}}, 9);
+    const auto short_sample = kalos::monthly_tramo_residual_ljung_box(std::vector<double>(24, 1), 3);
+    if (!short_sample.built || short_sample.df != 21 || !std::isnan(short_sample.value) || !std::isnan(short_sample.p))
+        throw std::runtime_error("invalid short monthly TRAMO residual test");
+    for (const int count : {-1, 24}) {
+        try {
+            (void)kalos::monthly_tramo_residual_ljung_box(std::vector<double>(25, 1), count);
+            throw std::runtime_error("invalid fitted ARMA count accepted");
+        } catch (const std::invalid_argument&) {}
+    }
     check_rsa0_residual_test("rsa0-ljung-box-x86_64.txt", "residuals.lb",
         [](const auto& values, auto statistic, auto pvalue) {
             const auto test = kalos::rsa0_residual_ljung_box(values);
