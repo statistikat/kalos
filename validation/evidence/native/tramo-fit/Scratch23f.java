@@ -780,7 +780,8 @@ public class Scratch23f {
           if (c2 != null) {
             lines.add("fitcl dim " + c2.dim() + " nx " + c2.nx() + " nmiss "
                 + c2.nmissing() + " ssq " + g17(c2.ssq()) + " ldet "
-                + g17(c2.logDeterminant()) + " sf " + (c2.isScalingFactor() ? 1 : 0));
+                + g17(c2.logDeterminant()) + " sf " + (c2.isScalingFactor() ? 1 : 0)
+                + " k " + m.getDescription().getArimaSpec().freeParametersCount());
             lines.add("fitcoef " + bs(c2.allCoefficients().toArray()));
             FastMatrix uc = c2.unscaledCovariance();
             StringBuilder ub = new StringBuilder();
@@ -904,6 +905,7 @@ public class Scratch23f {
         lines.add("fitseam " + seam + " diff pass " + pass + " round " + round
             + " orders " + ordersLine(dE.specification())
             + " mean " + (dE.isMean() ? 1 : 0)
+            + " nobs " + dE.regarima().getObservationsCount()
             + " outs " + outlierNames(dE));
         ProcessingResult res = (ProcessingResult) invokeIface(dm, "process",
             new Class<?>[]{RegSarimaModelling.class}, m);

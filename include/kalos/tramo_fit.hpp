@@ -113,10 +113,15 @@ struct TramoFitSpec {
     bool outliers_ml = false;
     // AutoModelSpec.
     bool accept_airline = false;
-    double pcr = 0.95, tsig = 1.0, reduce_va = 0.12, cancel = 0.044;
+    // (Header amendment 2026-11-23: resolved captures show every TR template
+    // getCancel() = 0.05 and getTol() = 1e-7 — the b512ec2 defaults 0.044 /
+    // 1e-4 mis-spoke; request data arrives from the resolved line anyway.
+    // The outliers module's estimation precision is options.
+    // intermediatePrecision, javap-pinned at the outliersModule() factory.)
+    double pcr = 0.95, tsig = 1.0, reduce_va = 0.12, cancel = 0.05;
     double ub1 = 0.97, ub2 = 0.91;
     // EstimateSpec.
-    double precision = 1e-4;            // EstimateSpec.getTol()
+    double precision = 1e-7;            // EstimateSpec.getTol()
     double intermediate_precision = 1e-7;
     // RegressionSpec.
     bool mean_is_test = false;          // RegressionSpec.getMean().isTest()
@@ -186,12 +191,24 @@ struct TramoFitFinalRecord {
 };
 
 // Request data for the live per-seam cross-checks the stage envelopes
-// cannot recompute themselves: the arma seam carries the olsResiduals the
-// module consumed (the 23-D contract owns them as the JVM-pinned hand-over).
+// cannot recompute themselves (the probe's fitseam/fitresid lines; header
+// amendment 2026-11-23, pre-capture: the landed b512ec2 shape carried only
+// the arma residual hand-over, but the differencing/scan live checks read
+// the module ENTRY state - what the module saw on entry, as opposed to the
+// kr seam fact's post-state - so one record per module-entry seam is the
+// faithful carrier).
 struct TramoFitSeamInputs {
-    std::size_t seam = 0;               // the arma seam index
+    std::size_t seam = 0;               // the module-entry seam index
+    // Description state at the module call (fitseam line):
+    TramoOrders entry_orders;
+    bool entry_mean = false;
+    std::vector<std::string> entry_outliers;   // names ("-"/empty = none)
+    int pass = 0, round = 0;            // kernel fields at the call
+    int entry_nobs = 0;                 // regarima().getObservationsCount()
+    // arma seams (the 23-D contract owns them as the JVM-pinned hand-over):
     std::vector<double> ols_residuals;  // RegArimaUtility.olsResiduals at the call
     int nobs = 0;                       // regarima().getObservationsCount()
+    int spc = -1;                       // the comespa gate readout (-1: none)
 };
 
 struct TramoFitRequest {
@@ -205,8 +222,8 @@ struct TramoFitRequest {
     // The kernel-loop request (spec facts, pre-stage facts, seam facts) -
     // exactly the F.3 request the kr corpus replays.
     TramoKernelRoundsRequest kernel;
-    // Per-arma-seam residual hand-overs (sorted by seam index).
-    std::vector<TramoFitSeamInputs> arma_inputs;
+    // Per-module-entry seam records (diff/arma/scan), sorted by seam index.
+    std::vector<TramoFitSeamInputs> seam_inputs;
     // The final-model record.
     TramoFitFinalRecord final;
 };
