@@ -336,6 +336,39 @@ if(KALOS_BUILD_TESTS)
     WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
     ENVIRONMENT "KALOS_NUM_THREADS=2;OMP_NUM_THREADS=2;OPENBLAS_NUM_THREADS=1"
     TIMEOUT 3600)
+  # REVIEW-1.A: standalone-header compile battery (the libc++ guard the
+  # external review asked for). One include-only TU is generated per public
+  # header under include/kalos; each is compiled alone with -Wall -Werror,
+  # so a public header that reaches a standard entity through another
+  # header's transitive include stops the build here instead of on a
+  # libc++ leg (observed behavior: an OBJECT library joins `all`, so every
+  # full build IS the battery; the registered ctest test re-drives the
+  # target explicitly via cmake --build --target - a no-op rebuild when
+  # current, a real compile anywhere else).
+  file(GLOB_RECURSE KALOS_STANDALONE_HEADERS CONFIGURE_DEPENDS
+    "${CMAKE_CURRENT_SOURCE_DIR}/include/kalos/*.hpp")
+  set(KALOS_STANDALONE_TUS "")
+  foreach(kalos_header IN LISTS KALOS_STANDALONE_HEADERS)
+    file(RELATIVE_PATH kalos_header_rel "${CMAKE_CURRENT_SOURCE_DIR}/include"
+         "${kalos_header}")
+    string(REGEX REPLACE "[/.]" "__" kalos_header_slug "${kalos_header_rel}")
+    set(kalos_header_tu
+        "${CMAKE_CURRENT_BINARY_DIR}/standalone-headers/${kalos_header_slug}.cpp")
+    file(WRITE "${kalos_header_tu}" "#include \"${kalos_header_rel}\"\n")
+    list(APPEND KALOS_STANDALONE_TUS "${kalos_header_tu}")
+  endforeach()
+  add_library(kalos_standalone_headers OBJECT ${KALOS_STANDALONE_TUS})
+  target_link_libraries(kalos_standalone_headers PRIVATE kalos::kalos)
+  if(MSVC)
+    target_compile_options(kalos_standalone_headers PRIVATE /W4 /WX)
+  else()
+    target_compile_options(kalos_standalone_headers PRIVATE -Wall -Werror)
+  endif()
+  list(LENGTH KALOS_STANDALONE_TUS KALOS_STANDALONE_COUNT)
+  add_test(NAME kalos_standalone_headers
+    COMMAND ${CMAKE_COMMAND} --build ${CMAKE_CURRENT_BINARY_DIR}
+            --target kalos_standalone_headers --parallel 4)
+  set_tests_properties(kalos_standalone_headers PROPERTIES TIMEOUT 3600)
 endif()
 include(GNUInstallDirs)
 include(CMakePackageConfigHelpers)
