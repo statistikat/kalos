@@ -3727,3 +3727,14 @@ merge capture with SHA-256
 The fixed-input JVM comparison identifies architecture-specific WK arithmetic
 in TR3 AirPassengers and LS. The x86 profile is the existing Kalos math
 target. Both exact captures remain available for testing component restoration.
+
+### M4 refusal reference portability
+
+The complete nine historical RSA0/RSA1/RSA2c reference demand records
+reproduced on Temurin 21.0.11 x86-64. On the native ARM64 JVM, eight
+records differed only in fitted coefficients. A second x86-64 run with
+six math intrinsics disabled reproduced all nine ARM64 records byte for
+byte. A replay checks the complete record hashes as well as three named
+coefficient fields using the pinned jars and source series. These tests
+qualify the M4 refusal evidence. Native template execution belongs to M5b.
+[Capture and replay](validation/evidence/native/x13-refusal-jvm-profiles/README.md)
