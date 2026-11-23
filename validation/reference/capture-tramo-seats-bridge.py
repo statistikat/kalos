@@ -24,7 +24,7 @@ def main():
                         help="directory containing pinned jars (repeatable)")
     parser.add_argument("--stage", choices=["bridge", "merge", "rsa0", "rsa0-forecast-errors",
                         "rsa0-residuals", "rsa0-ljung-box", "rsa0-doornik-hansen", "rsa1", "rsa3",
-                        "calendar-ftest"], default="bridge")
+                        "calendar-ftest", "trfull-calendar"], default="bridge")
     parser.add_argument("--output", type=Path, help="write a new capture instead of verifying the frozen file")
     args = parser.parse_args()
     reference = json.loads((EVIDENCE / "reference.json").read_text())
@@ -45,10 +45,10 @@ def main():
             output_name = "merge-x86_64.txt"
         else:
             raise SystemExit(f"no frozen merge reference for JVM architecture {arch!r}")
-    if args.stage == "calendar-ftest":
+    if args.stage in {"calendar-ftest", "trfull-calendar"}:
         if arch not in {"x86_64", "amd64"}:
             raise SystemExit("TRAMO calendar F-test uses the pinned x86-64 numerical profile")
-        output_name = "../tramo-calendar-ftest/panel.txt"
+        output_name = "../tramo-calendar-ftest/" + ("panel.txt" if args.stage == "calendar-ftest" else "full.txt")
     if args.stage.startswith("rsa"):
         if arch not in {"x86_64", "amd64"}:
             raise SystemExit("raw TRAMO-SEATS presets use the pinned x86-64 numerical profile")
@@ -59,11 +59,15 @@ def main():
         if jar is None or sha256(jar) != digest:
             raise SystemExit(f"missing pinned jar or checksum mismatch: {name}")
         jars.append(str(jar))
-    probe = "CalendarFTestProbe" if args.stage == "calendar-ftest" else "TramoSeatsBridgeProbe"
-    arguments = [] if args.stage == "calendar-ftest" else [CASES, args.stage]
+    calendar_probes = {"calendar-ftest": "CalendarFTestProbe", "trfull-calendar": "TramoFullCalendarProbe"}
+    probe = calendar_probes.get(args.stage, "TramoSeatsBridgeProbe")
+    arguments = [] if args.stage in calendar_probes else [CASES, args.stage]
+    sources = [HERE / (probe + ".java")]
+    if args.stage == "trfull-calendar":
+        sources.append(HERE / "CalendarFTestProbe.java")
     with tempfile.TemporaryDirectory() as directory:
         subprocess.run([args.jdk / "bin/javac", "--release", "21", "-cp", os.pathsep.join(jars),
-                        "-d", directory, HERE / (probe + ".java")], check=True)
+                        "-d", directory, *sources], check=True)
         command = [java, "-Dline.separator=\n", "-XX:+UnlockDiagnosticVMOptions", "-XX:DisableIntrinsic=_dexp,_dlog",
                    "-cp", os.pathsep.join([directory, *jars]), probe, *arguments]
         first = subprocess.check_output(command)
