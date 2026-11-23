@@ -1,4 +1,4 @@
-"""Replay the five pinned bridge observations in two fresh JVMs."""
+"""Replay fitted-model, public RSA0, and calendar references in two fresh JVMs."""
 import argparse
 import hashlib
 import json
@@ -22,7 +22,7 @@ def main():
     parser.add_argument("--jdk", type=Path, required=True, help="Java 21.0.11 JDK home")
     parser.add_argument("--jar-dir", type=Path, action="append", required=True,
                         help="directory containing pinned jars (repeatable)")
-    parser.add_argument("--stage", choices=["bridge", "merge", "rsa0", "rsa0-forecast-errors", "rsa0-residuals", "rsa0-ljung-box"], default="bridge")
+    parser.add_argument("--stage", choices=["bridge", "merge", "rsa0", "rsa0-forecast-errors", "rsa0-residuals", "rsa0-ljung-box", "calendar-ftest"], default="bridge")
     parser.add_argument("--output", type=Path, help="write a new capture instead of verifying the frozen file")
     args = parser.parse_args()
     reference = json.loads((EVIDENCE / "reference.json").read_text())
@@ -43,6 +43,10 @@ def main():
             output_name = "merge-x86_64.txt"
         else:
             raise SystemExit(f"no frozen merge reference for JVM architecture {arch!r}")
+    if args.stage == "calendar-ftest":
+        if arch not in {"x86_64", "amd64"}:
+            raise SystemExit("TRAMO calendar F-test uses the pinned x86-64 numerical profile")
+        output_name = "../tramo-calendar-ftest/panel.txt"
     if args.stage.startswith("rsa0"):
         if arch not in {"x86_64", "amd64"}:
             raise SystemExit("RSA0 uses the pinned x86-64 numerical profile")
@@ -53,11 +57,13 @@ def main():
         if jar is None or sha256(jar) != digest:
             raise SystemExit(f"missing pinned jar or checksum mismatch: {name}")
         jars.append(str(jar))
+    probe = "CalendarFTestProbe" if args.stage == "calendar-ftest" else "TramoSeatsBridgeProbe"
+    arguments = [] if args.stage == "calendar-ftest" else [CASES, args.stage]
     with tempfile.TemporaryDirectory() as directory:
         subprocess.run([args.jdk / "bin/javac", "--release", "21", "-cp", os.pathsep.join(jars),
-                        "-d", directory, HERE / "TramoSeatsBridgeProbe.java"], check=True)
+                        "-d", directory, HERE / (probe + ".java")], check=True)
         command = [java, "-Dline.separator=\n", "-XX:+UnlockDiagnosticVMOptions", "-XX:DisableIntrinsic=_dexp,_dlog",
-                   "-cp", os.pathsep.join([directory, *jars]), "TramoSeatsBridgeProbe", CASES, args.stage]
+                   "-cp", os.pathsep.join([directory, *jars]), probe, *arguments]
         first = subprocess.check_output(command)
         if first != subprocess.check_output(command):
             raise SystemExit("two independent JVM captures differ")
