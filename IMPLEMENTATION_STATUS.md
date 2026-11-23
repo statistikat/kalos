@@ -3979,6 +3979,16 @@ tests passed 4/4. The 34 calendar comparisons passed ASan/UBSan. The late
 trading-day controller, subsequent
 rounds on fitted descriptions and the end-to-end TRfull gate remain open.
 
+### Windows evidence checkout
+
+A fresh Windows-style checkout converted a locked R fixture to CRLF and failed
+the historical migration check. Git now preserves the stored bytes of the
+exported core, validation fixtures and research evidence. With automatic CRLF
+conversion enabled, all 195 core entries, 112 fixtures and 358 evidence files
+at the RSA1 checkpoint matched their Git blobs. The historical validation
+also passed for all 406 entries. Windows CI runs both the export manifest and
+historical validation before building the provider.
+
 ### M5 / 21-I.4 — residual trading-day test
 
 The late TRfull controller can now decide from concentrated-likelihood residuals

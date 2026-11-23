@@ -1,0 +1,13 @@
+# Downstream package locks identify these files by the bytes in Git.
+CMakeLists.txt -text
+LICENSE -text
+LICENSE.md -text
+backends/** -text
+cmake/** -text
+dependencies/** -text
+include/** -text
+src/** -text
+validation/** -text
+tools/gen_hostlineage_tables.py -text
+tools/hostlineage-glibc-sha256.json -text
+tools/verify_hostlineage.cpp -text
