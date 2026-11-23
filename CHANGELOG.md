@@ -10,6 +10,8 @@
   a two-JVM replay against the pinned JDemetra jars.
 - Added the monthly, fitted TRAMO-to-SEATS model handoff for the five
   qualified AO/LS and no-effect reference cases.
+- Fixed duplicate symbols when linking both UCARIMA decomposition and
+  Wiener–Kolmogorov extraction in one downstream binary.
 
 ## 0.1.0 — initial repository split
 

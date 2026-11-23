@@ -3710,3 +3710,12 @@ their captured WK input permits isolated merge testing within the approved
 D6 policy. Two fresh JVMs matched the capture, SHA-256
 `ca671ddd71d9689ef0a2d5ab786bd7f5f098d580579b1b33186a88fb60d48054`.
 [Merge contract](docs/contracts/tramo-seats-bridge-contract.md)
+
+### Cross-binding integration — combined SEATS linkage
+
+The R shared-library integration exposed 18 externally linked function
+definitions in the shared UCARIMA detail header. Both the decomposition and
+WK translation units defined those symbols. The header definitions are now
+inline. The installed-consumer regression links and runs both public
+operations in one executable, alongside the provider check. That regression
+and both decomposition/WK corpus tests passed on macOS ARM64.
