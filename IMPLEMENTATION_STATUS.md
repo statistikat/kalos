@@ -4546,3 +4546,14 @@ Two independent pinned x86-64 JVMs produced the same forecasts and uncertainties
 ### M5 selected-order RSA3 public forecast uncertainty
 
 The fitted monthly TR3 companion-state projection now returns original-series forecast errors at caller-supplied horizons. On 13 public fits all 312 original-scale forecast errors were within 1.56e-14 scaled error (qualification limit 2e-8). All 312 separate WK errors and all 8,340 merged observed and forecast values remained bit-exact. Tests also cover 0, 1 and 7 months, negative and overflowing horizons, an invalid fitted design and typed covariance failure. The three diagnostic, RSA0 and automatic-product gates passed in Release and serial ASan/UBSan. [Forecast projection and replay](tests/test_tramo_seats_automatic.cpp)
+
+### M5 / 23-F — stationary scans on lower thresholds and last-chance models
+
+Thirteen additional stationary scan traces cover the stock MA(1), white
+noise, seasonal AR(1), and the two ARMA(3,1) last-chance designs with
+a mean. Two x86-64 JVMs reproduced every trace. The initial and reduced
+thresholds, subsequent optimization, forward and backward scan statistics
+and selected outliers all match bitwise in the Release scan replay.
+The higher-degree SARIMA stabilizer now uses the pinned QR polynomial
+root solver. Its eigenvalue order fixes the two formerly divergent cubic
+warm starts. The F4 fit and monthly battery tests also passed.
