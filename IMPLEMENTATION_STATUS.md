@@ -3842,3 +3842,12 @@ arrays reproduces every selection: 18 cases, 1,704 residual values. That
 includes the mixed AO/LS and pass-three controller cases. Both reference
 captures regenerate the same golden. The remaining automatic fit dependencies
 include outlier scan/estimation stages and the final estimator.
+
+### M6 — standalone Windows qualification job
+
+The hosted matrix now includes a native Windows Server 2022 / UCRT64 job.
+It builds the locked LP64 OpenBLAS from source, requires a working
+provider/OpenMP pairing, runs the full standalone CTest suite, and exercises
+the installed consumer with provider reconfiguration and refusal checks.
+The job publishes the Windows JUnit report. Windows qualification awaits
+the hosted result.
