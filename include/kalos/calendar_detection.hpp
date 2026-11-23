@@ -56,13 +56,13 @@
 // Numeric notes (pinned by tmp_opencode/kalos-21i-pinning.md SECTION 9 and
 // the fresh javap dumps):
 // - No new distribution kernel: every p-value routes through
-//   detail::f_upper_p (23-C.2). The FTEST Info math computes
-//   pftd1 = 1 - F(dof1, dof6).cumulate(ssmc1/ssmc6) and
-//   pftd6 = 1 - F(dof6, dof1).cumulate(ssmc6/ssmc1) (the Info constructor
-//   receives its likelihood arguments SWAPPED relative to their field
-//   names: Info(ll0, WD-row, TD-row, nhp) stores field ll1 = 2nd argument
-//   and field ll6 = 3rd argument; the mirror names the arguments by their
-//   wiring role). 1 - x is evaluated as dconst_1 dsub after cumulate.
+//   detail::f_upper_p (23-C.2). The FTEST Info math is the Lower tail of
+//   FIXED-df1 F tests (F(1, dof_wd - nhp) for the WD comparison, F(6,
+//   dof_td - nhp) for the TD comparison; the Info constructor receives its
+//   likelihood arguments SWAPPED relative to their field names: Info(cl0,
+//   WD-row, TD-row, nhp) stores field ll1 = 2nd argument and field ll6 =
+//   3rd argument; the mirror names the arguments by their wiring role).
+//   Lower = 1 - f_upper_p, evaluated as dconst_1 dsub inside the getter.
 // - All comparisons mirror the exact bytecode comparator polarity
 //   (dcmpg/dcmpl and the ifle/ifge/iflt/if_icmp* arm), so NaN operands
 //   decide exactly as the JVM does; Math.abs is the IEEE abs,
@@ -128,19 +128,29 @@ struct CalendarModelRow {
 int calendar_best_model(const std::vector<CalendarModelRow>& rows,
                         bool selector_aicc);
 
-// TradingDaysRegressionComparator.waldTest over the rows. dof =
-// ref.degreesOfFreedom - 2 (the FIRST-present row is the reference),
-// s2 = ref.ssq / dof; p[k] = 1.0 when deltaNx == 0 or f <= 0 or f is NaN,
-// else f_upper_p(deltaNx, dof, f) with
-// f = (ssq[best] - ssq[k]) / ((double)deltaNx * s2); descend best while
-// p[best] > pmodel (dcmpl arm); then the j-swap loop over
-// p[j] < pmodel (dcmpg arm) with the pconstraint constraint on the
-// recomputed pairwise f (the exact operand order of the bytecode, see the
-// contract table). The jar dereferences rows[0] and rows[last] outside
-// their present checks: a request with an absent first or last row makes
-// the machine fail (the JVM NullPointerException surface) - encoded as
-// result = failed inside the machine functions, calendar_wald_test itself
-// throws std::invalid_argument for the malformed shape.
+// TradingDaysRegressionComparator.waldTest over the rows. The reference is
+// the LAST row: dof = rows.back().degrees_of_freedom - 2,
+// s2 = rows.back().ssq / dof. Caches: nx[0]/ssq[0] from the first row,
+// nx[last]/ssq[last] from the last, per-inner-row reads only where present
+// (an absent inner row keeps nx = 0 / ssq = 0 and is NOT skipped by the
+// p-loop). p-loop over i in [1, last]: deltaNx = nx[i] - nx[0];
+// p[i] = 1.0 when deltaNx == 0; else with
+// f = (ssq[0] - ssq[i]) / ((double)deltaNx * s2),
+// p[i] = f > 0.0 (dcmpl, NaN enters) ? f_upper_p(deltaNx, dof, f) : 1.0.
+// Then descend: while (best > 0 && p[best] > pmodel) --best (dcmpl, NaN
+// descends). If best <= 1 return it; else the j-loop over j in [best-1, 1]
+// descending: when p[j] < pmodel (dcmpg, NaN enters), recompute
+// deltaNx = nx[best] - nx[j],
+// f = (ssq[j] - ssq[best]) / ((double)deltaNx * s2),
+// and when f > 0.0 (dcmpl, NaN enters) take
+// q = f_upper_p(deltaNx, dof, f); best = j when q > pconstraint (dcmpl,
+// NaN swaps). The returned `f` echoes carry the recomputed pairwise f per
+// row for golden cross-checks (0.0 where never computed).
+// The jar dereferences rows[0] and rows[last] outside any present check:
+// a request with an absent first or last row is malformed (the JVM
+// NullPointerException surface) - calendar_wald_test throws
+// std::invalid_argument and the machine functions translate it to
+// result = failed.
 struct CalendarWaldTestResult {
     int best = 0;
     std::vector<double> p;  // per-row p as left by the loops (1.0 default)
@@ -155,14 +165,23 @@ CalendarWaldTestResult calendar_wald_test(
 // AutomaticFRegressionTest$Info math
 // ---------------------------------------------------------------------------
 
-// The Info constructor arithmetic. Arguments are named by their wiring
-// role and passed in the bytecode order of the call site
-// new Info(ll0, WD-model, TD-model, descFreeParameters):
-// ssmc1 = (ssq0 - ssqWd) / (nxDenominator... (nx_wd - nx0)),
-// ssmc6 = (ssq0 - ssqTd) / (nx_td - nx0),
-// pftd1 = 1 - F(dof_wd - nhp, dof_td - nhp).cumulate(ssmc1 / ssmc6),
-// pftd6 = 1 - F(dof_td - nhp, dof_wd - nhp).cumulate(ssmc6 / ssmc1).
-// Field names follow the jar (ss1/ssmc1/pftd1 read the 2nd argument).
+// The Info constructor arithmetic (fresh bytecode; the pre-existing
+// pinning had this wrong). Call-site argument order is
+// new Info(cl0, cl_wd, cl_td, nhp) - the fields are
+// ll1 = cl_wd (2nd argument), ll6 = cl_td (3rd argument):
+// ss0/ss1/ss6 = the three cl.ssq() reads;
+// ssmc1 = ss1 / (double)(dof_wd - nhp),
+// ssmc6 = ss6 / (double)(dof_td - nhp),
+// f1 = (ss0 - ss1) / ssmc1, then (dcmpg guard, NaN or f1 <= 0 -> pftd1 =
+// 0.0) pftd1 = F(1, dof_wd - nhp).getProbability(f1, Lower)
+//                                    = 1 - f_upper_p(f1, 1, dof_wd - nhp),
+// f6 = (ss0 - ss6) / (ssmc6 * 6.0), then the same guard
+// pftd6 = F(6, dof_td - nhp).getProbability(f6, Lower)
+//                                    = 1 - f_upper_p(f6, 6, dof_td - nhp).
+// "Lower" is 1 - Upper on the same F (the landed f_upper_p covers both);
+// the 1 - x subtraction mirrors the JVM operand order inside the getter.
+// Only the degrees_of_freedom/ssq of the rows are read; nx feeds the
+// update()/info consumers elsewhere.
 struct CalendarFtestInfo {
     double ss0 = 0.0;
     double ss1 = 0.0;   // ssq of the 2nd argument (WD model)

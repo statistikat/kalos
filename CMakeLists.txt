@@ -41,6 +41,7 @@ add_library(kalos STATIC
   src/arma_refinement.cpp
   src/arma_residuals.cpp
   src/arima_forecasts.cpp
+  src/calendar_detection.cpp
   src/calendar_generation.cpp
   src/decompose_ucarima.cpp
   src/differencing_decision.cpp
