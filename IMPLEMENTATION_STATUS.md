@@ -4430,3 +4430,11 @@ comparison rejects the first candidate, the late fast mean test clears the
 estimate, or the seasonality controller requests an identification restart.
 The original 96-observation restart case explicitly exercises that boundary.
 The stock monthly route requires complete observations spanning two years.
+
+### M5 / 23-G — raw RSA3 restart and outlier reference
+
+The public stock RSA3 oracle now includes the 96-month model whose
+late controller switches seasonality and restarts identification, plus
+two additional multiple-outlier series. Two independently launched
+JVMs agree on all three public products, including the 251 residuals
+and 1,800 observed/forecast component values.

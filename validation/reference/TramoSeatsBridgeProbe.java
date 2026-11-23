@@ -344,7 +344,8 @@ public class TramoSeatsBridgeProbe {
         boolean levelEffects = stage.startsWith("rsa1-level-");
         boolean logTc = stage.equals("rsa1-log-tc");
         Set<String> logTcCases = Set.of("fit_noout", "fit_ls", "fit_multi");
-        Set<String> cases = logTc ? logTcCases
+        Set<String> cases = stage.equals("rsa3-additional") ? Set.of("fit_gs2", "fit_mrstack", "fit_mrls")
+            : logTc ? logTcCases
             : stage.equals("rsa1-level-tc") ? Set.of("fit_multi")
             : levelEffects ? Set.of("fit_ao", "fit_ls")
             : raw ? RAW_CASES : TEMPLATES.keySet();
