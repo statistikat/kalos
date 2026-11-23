@@ -3891,3 +3891,12 @@ likelihood case and a stationary AR(2) fit. Of 45 final estimation calls,
 29 still require an entry design or predecessor state. Counting this
 fourth module brings the fit census to 83 live and 43 recorded checks.
 The complete raw RSA3 round driver and public product oracle remain open.
+
+### M5 / 24-E — public RSA0 preprocessing residual oracle
+
+The six public RSA0 cases now record the dated `residuals.tsres` series and
+scalar `residuals.ser`. The product's residual series also equals the
+independent public TR0 fit's full residuals for every case. Two fresh
+pinned x86-64 Temurin 21.0.11 processes reproduce all 570 monthly residuals
+and six standard errors byte-for-byte. The capture SHA-256 is
+`1b7aac78629c1be7eefa45325af04d925ef104a422bc6213f5b4c4fd511b7283`.

@@ -154,12 +154,23 @@ public class TramoSeatsBridgeProbe {
     private static final Set<String> RSA0 = Set.of(
         "fit_tr0_air", "fit_noout", "fit_ls", "fit_ao", "fit_multi", "fit_nearur");
 
-    private static void rawRsa0(String id, TsData series, boolean forecastErrors) {
+    private static void rawRsa0(String id, TsData series, String stage) {
         var context = new ModellingContext();
         var logged = new ProcessingLog() {};
         var fit = TramoKernel.of(TramoSpec.TR0, context).process(series, logged);
         require(fit != null, id + " TR0");
-        if (forecastErrors) {
+        if (stage.equals("rsa0-residuals")) {
+            var sa = TramoSeatsKernel.of(TramoSeatsSpec.RSA0, new ModellingContext()).process(series, logged);
+            var residuals = sa.getData("residuals.tsres", TsData.class);
+            var ser = sa.getData("residuals.ser", Double.class);
+            require(residuals != null && residuals.equals(fit.fullResiduals()), "public residuals.tsres");
+            require(ser != null && Double.isFinite(ser), "public residuals.ser");
+            System.out.println("case " + id);
+            series("residuals.tsres", residuals);
+            System.out.println("residuals.ser " + bits(ser));
+            return;
+        }
+        if (stage.equals("rsa0-forecast-errors")) {
             var sa = TramoSeatsKernel.of(TramoSeatsSpec.RSA0, new ModellingContext()).process(series, logged);
             var forecasts = fit.forecasts(24);
             var publicErrors = sa.getData("y_ef(24)", TsData.class);
@@ -193,8 +204,8 @@ public class TramoSeatsBridgeProbe {
     }
 
     public static void main(String[] args) throws Exception {
-        boolean forecastErrors = args.length > 1 && args[1].equals("rsa0-forecast-errors");
-        boolean raw = forecastErrors || (args.length > 1 && args[1].equals("rsa0"));
+        String stage = args.length > 1 ? args[1] : "bridge";
+        boolean raw = stage.startsWith("rsa0");
         Method bridge = TramoSeatsKernel.class.getDeclaredMethod("of", RegSarimaModel.class);
         bridge.setAccessible(true);
         List<String> lines = Files.readAllLines(Path.of(args[0]));
@@ -211,7 +222,7 @@ public class TramoSeatsBridgeProbe {
             double[] values = Arrays.stream(lines.get(i+1).substring(7).split(" "))
                 .mapToDouble(Double::parseDouble).toArray();
             TsData data = TsData.of(start, DoubleSeq.of(values));
-            if (raw) rawRsa0(id, data, forecastErrors);
+            if (raw) rawRsa0(id, data, stage);
             else observe(bridge, id, TEMPLATES.get(id), data, args.length > 1 && args[1].equals("merge"));
         }
         require(seen.equals(raw ? RSA0 : TEMPLATES.keySet()), "incomplete corpus");
