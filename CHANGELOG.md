@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Support stationary monthly seasonal ARMA(1,1) outlier scans with regular
+  AR(2) or ARMA(1,1) and an estimated mean.
+
 - Refit raw monthly TR3 and RSA3 after a late seasonality restart.
 
 - Added raw monthly TR3 preprocessing and RSA3 seasonal adjustment for fits

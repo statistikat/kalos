@@ -4495,3 +4495,11 @@ All model parameters, regression coefficients, statistics, outlier positions
 and types, and 6,720 distinct residual values match the reference. This covers
 the airline controller. The stock TRfull route also needs calendar columns in
 the automatic order search, final estimation and SEATS product assembly.
+
+### M5 / 23-F — stationary outlier scans before a fast-mean retry
+
+Three public RSA3 first automatic candidates use a stationary seasonal
+ARMA(1,1) paired with regular AR(2) or ARMA(1,1), with a mean. Their
+complete detector traces were captured twice with the original multi-round
+detector probe. The Release scan replay matched all three traces alongside
+the existing cases, including first-pick scores and the retained level shift.
