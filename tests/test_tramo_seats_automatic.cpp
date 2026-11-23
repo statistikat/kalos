@@ -121,6 +121,7 @@ void run(const std::string& preset, std::size_t expected_cases, std::size_t expe
 int main() {
     run("rsa1", 6, 3960);
     run("rsa1-level-effects", 2, 1200);
+    run("rsa1-level-tc", 1, 600);
     auto invalid = [](std::vector<double> values, int month) {
         try { (void)kalos::estimate_tramo_tr1(values, 1990, month); }
         catch (const std::invalid_argument&) { return; }

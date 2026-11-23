@@ -581,7 +581,7 @@ void check_final_record(const TramoFitFinalRecord& got, const TramoFitFinalRecor
 }
 
 void assemble_fitted_result(TramoFitResult& result, const TramoFitFinalRecord& fin,
-                            const std::vector<double>* covariance_witness = nullptr) {
+                            double tc_rate, const std::vector<double>* covariance_witness = nullptr) {
     result.ssq = fin.ssq;
     result.cl_dim = fin.dim;
     result.cl_nx = fin.nx;
@@ -610,6 +610,8 @@ void assemble_fitted_result(TramoFitResult& result, const TramoFitFinalRecord& f
     result.orders = fin.orders;
     result.parameters = fin.parameters;
     result.variables = fin.variables;
+    for (auto& variable : result.variables)
+        if (variable.type == TramoOutlierKind::Tc) variable.tc_rate = tc_rate;
     result.regression_coefficients = fin.coefficients;
     result.ls_obs = fin.ls_obs;
     result.ls_eff = fin.ls_eff;
@@ -718,7 +720,7 @@ TramoFitResult estimate_tramo_tr1(const std::vector<double>& series, int start_y
     const auto effects = fit_estimation(spec, y, entry, 1);
     require(effects.fit.returned && effects.fit.cl_state != 0, "TR1 final estimation failed");
     const auto record = project_fitted_record(effects, series, log, 12);
-    assemble_fitted_result(result, record);
+    assemble_fitted_result(result, record, spec.delta_tc);
     result.final_model_computed = true;
     return result;
 }
@@ -1241,7 +1243,7 @@ TramoFitResult tramo_fit(const TramoFitRequest& request) {
                 "capture at index " + std::to_string(i));
     }
 
-    assemble_fitted_result(result, fin, covariance_witness);
+    assemble_fitted_result(result, fin, spec.delta_tc, covariance_witness);
     return result;
 }
 

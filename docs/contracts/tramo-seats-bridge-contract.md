@@ -228,3 +228,15 @@ the AO to irregular, with both effects included in the series forecasts
 and seasonally adjusted rows. Two fresh, pinned x86-64 JVMs agreed on
 all model, residual and public output bits. Reproduce these fixtures with
 `capture-tramo-seats-bridge.py --stage rsa1-level-effects`.
+
+
+### Level-model transitory changes
+
+The stock monthly RSA1 fit of `fit_multi`, shifted down by 1,000, detects
+one AO, five level shifts and two transitory changes. Both transitory
+changes contribute to the irregular component. Their monthly decay of
+0.7 continues across the end of the observed domain into the forecasts.
+The observed bridge and extended component merge use the same outlier
+factory and fitted decay. Reproduce the two public JVM captures with
+`capture-tramo-seats-bridge.py --stage rsa1-level-tc`. Other decay rates,
+logarithmic TCs and seasonal outliers remain outside this qualification.

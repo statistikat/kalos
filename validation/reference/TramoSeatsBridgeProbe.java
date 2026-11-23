@@ -299,8 +299,9 @@ public class TramoSeatsBridgeProbe {
         String stage = args.length > 1 ? args[1] : "bridge";
         if (stage.equals("spectrum-cos")) { spectrumCos(); return; }
         boolean raw = stage.startsWith("rsa");
-        boolean levelEffects = stage.equals("rsa1-level-effects");
-        Set<String> cases = levelEffects ? Set.of("fit_ao", "fit_ls")
+        boolean levelEffects = stage.startsWith("rsa1-level-");
+        Set<String> cases = stage.equals("rsa1-level-tc") ? Set.of("fit_multi")
+            : levelEffects ? Set.of("fit_ao", "fit_ls")
             : raw ? RAW_CASES : TEMPLATES.keySet();
         Method bridge = TramoSeatsKernel.class.getDeclaredMethod("of", RegSarimaModel.class);
         bridge.setAccessible(true);

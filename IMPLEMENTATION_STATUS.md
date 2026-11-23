@@ -4262,3 +4262,14 @@ regular MA in the public JDemetra+ parameter vector. An explicit reversion
 test separates these two coefficients and checks the restored model.
 The late seasonality and differencing controllers remain the next
 dependency for raw RSA3.
+
+
+### M5 / 24-D — additive transitory-change restoration
+
+The fitted bridge and raw RSA1 preserve each fitted TC's stock monthly
+decay on the observed and forecast domains. On the shifted `fit_multi`
+series, the two-TC model matched the public x86-64 JVM in two separate
+captures. Native replay reproduced all eight outliers, the mean,
+coefficients, likelihood, 83 residuals and 600 public product values.
+The bridge also tests refusals for log-scale TC, alternate decay and
+seasonal outliers. [Contract and capture](docs/contracts/tramo-seats-bridge-contract.md)
