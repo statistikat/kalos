@@ -3651,3 +3651,26 @@ The original assertion passed against checksum-pinned and Homebrew OpenBLAS
 documented skip, and the 21-F refinement sweep passed 423 checks. All 14
 evidence-file hashes matched. The identification, refinement and WK extraction
 tests also passed in the OpenMP and ASan/UBSan builds. The full serial Release suite passed **79/79 CTests** on the pinned provider, including the X-13 automatic fit and horizon oracles.
+
+### M5 / 24-D — fitted-model bridge reference gate (2026-11-23)
+
+The gate replays five monthly fits (TR0, TR1 and TR3) from the frozen 23-F
+observations in independent pinned JVMs. It records the fitted-model inputs
+and the observed output of the real TRAMO-to-SEATS bridge, and checks bitwise
+agreement on the dated series, differencing orders, fixed SARIMA coefficients,
+mean/log flags and transmitted variance. The component merge has its own gate.
+
+**Reference gate passed.** The actual bridge from JDemetra 3.9.0 was captured
+and independently replayed on Temurin 21.0.11+10, macOS ARM64, with six
+checksum-pinned jars. The five fitted-model handoffs contain 576 dated
+observations. TR0 and TR3 on AirPassengers changed zero values, TR1 with an
+AO changed one, TR3 with an LS changed 60, and TR3 with an AO and two LS
+changed 70. Each fitted coefficient block, the mean and log flags, the
+transmitted variance, and all corrected series values passed the direct
+bridge checks. Capture SHA-256:
+`498366de6882a369198922e85b2c81fd9cccf4499a80f246147b3bcba14225f1`.
+
+The native bridge can now replay these frozen model inputs. A nonzero additive
+effect and additional regressor classes need their own witnesses before
+expanding that scope. Final-component restoration and the end-to-end TRAMO
+and TRAMO/SEATS oracles remain open. [Bridge contract and replay](docs/contracts/tramo-seats-bridge-contract.md)

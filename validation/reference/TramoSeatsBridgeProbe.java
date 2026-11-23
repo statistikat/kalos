@@ -1,0 +1,134 @@
+import java.lang.reflect.Method;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.HexFormat;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import jdplus.sa.base.api.ComponentType;
+import jdplus.sa.base.api.SaVariable;
+import jdplus.toolkit.base.api.data.DoubleSeq;
+import jdplus.toolkit.base.api.data.Parameter;
+import jdplus.toolkit.base.api.data.ParameterType;
+import jdplus.toolkit.base.api.processing.ProcessingLog;
+import jdplus.toolkit.base.api.timeseries.TsData;
+import jdplus.toolkit.base.api.timeseries.TsPeriod;
+import jdplus.toolkit.base.api.timeseries.regression.ModellingContext;
+import jdplus.toolkit.base.core.regsarima.regular.RegSarimaModel;
+import jdplus.tramoseats.base.api.seats.SeatsModelSpec;
+import jdplus.tramoseats.base.api.tramo.TramoSpec;
+import jdplus.tramoseats.base.core.tramo.TramoKernel;
+import jdplus.tramoseats.base.core.tramoseats.TramoSeatsKernel;
+
+/** Capture both sides of the private jdplus 3.9.0 fitted-model bridge. */
+public class TramoSeatsBridgeProbe {
+    private static final Map<String, String> TEMPLATES = Map.of(
+        "fit_tr0_air", "TR0", "fit_tr3_air", "TR3", "fit_tr1_ao", "TR1",
+        "fit_ls", "TR3", "fit_multi", "TR3");
+
+    private static String bits(double value) {
+        return HexFormat.of().toHexDigits(Double.doubleToRawLongBits(value));
+    }
+
+    private static void require(boolean ok, String field) {
+        if (!ok) throw new AssertionError(field);
+    }
+
+    private static void series(String label, TsData data) {
+        TsPeriod start = data.getStart();
+        StringBuilder line = new StringBuilder(label).append(' ').append(start.year())
+            .append(' ').append(start.annualPosition() + 1).append(' ').append(data.length());
+        for (double value : data.getValues().toArray()) line.append(' ').append(bits(value));
+        System.out.println(line);
+    }
+
+    private static void coefficients(String block, DoubleSeq fitted, Parameter[] fixed) {
+        require(fitted.length() == fixed.length, block + " length");
+        StringBuilder line = new StringBuilder(block).append(' ').append(fixed.length);
+        for (int i = 0; i < fixed.length; ++i) {
+            require(fixed[i].getType() == ParameterType.Fixed, block + " type");
+            require(bits(fitted.get(i)).equals(bits(fixed[i].getValue())), block + " value");
+            line.append(' ').append(bits(fitted.get(i))).append("/Fixed");
+        }
+        System.out.println(line);
+    }
+
+    private static void observe(Method bridge, String id, String template, TsData ts)
+            throws ReflectiveOperationException {
+        var model = TramoKernel.of(TramoSpec.fromString(template), new ModellingContext())
+            .process(ts, new ProcessingLog() {});
+        require(model != null, id + " fitted model");
+        SeatsModelSpec seats = (SeatsModelSpec) bridge.invoke(null, model);
+        var description = model.getDescription();
+        var arima = model.arima();
+        var spec = seats.getSarimaSpec();
+        var stats = model.getEstimation().getStatistics();
+        var input = model.interpolatedSeries(false);
+        var effect = model.deterministicEffect(null,
+            v -> !SaVariable.isRegressionEffect(v, ComponentType.Undefined));
+        var restored = model.backTransform(effect, true);
+        var expected = seats.isLog() ? TsData.divide(input, restored) : TsData.subtract(input, restored);
+        require(seats.isLog() == description.isLogTransformation(), "transform");
+        require(seats.isMeanCorrection() == model.isMeanCorrection(), "mean");
+        require(arima.getD() == spec.getD() && arima.getBd() == spec.getBd(), "differences");
+        double variance = stats.getSsqErr() /
+            (stats.getEffectiveObservationsCount() - stats.getEstimatedParametersCount());
+        require(bits(variance).equals(bits(seats.getInnovationVariance())), "variance");
+        require(expected.getDomain().equals(seats.getSeries().getDomain()), "domain");
+
+        System.out.println("case " + id + " " + template);
+        System.out.printf("model log %b mean %b frequency %d d %d bd %d%n", seats.isLog(),
+            seats.isMeanCorrection(), arima.getPeriod(), spec.getD(), spec.getBd());
+        System.out.printf("likelihood ssq %s effective %d estimated %d transmitted %s%n",
+            bits(stats.getSsqErr()), stats.getEffectiveObservationsCount(),
+            stats.getEstimatedParametersCount(), bits(seats.getInnovationVariance()));
+        coefficients("phi", arima.getPhi(), spec.getPhi());
+        coefficients("bphi", arima.getBphi(), spec.getBphi());
+        coefficients("theta", arima.getTheta(), spec.getTheta());
+        coefficients("btheta", arima.getBtheta(), spec.getBtheta());
+        var variables = description.getVariables();
+        var estimates = model.getEstimation().getCoefficients();
+        require(variables.length == estimates.length(), "one fitted column per variable");
+        for (int i = 0; i < variables.length; ++i) {
+            var variable = variables[i];
+            System.out.printf("variable %s effect %s coefficient %s%n", variable.getName(),
+                SaVariable.regressionEffect(variable), bits(estimates.get(i)));
+            if (!SaVariable.isRegressionEffect(variable, ComponentType.Undefined))
+                series("variable_effect", model.deterministicEffect(null, v -> v == variable));
+        }
+        series("interpolated", input);
+        series("effect", effect);
+        series("backtransformed_effect", restored);
+        series("seats_series", seats.getSeries());
+        int changed = 0;
+        for (int i = 0; i < ts.length(); ++i) {
+            String actual = bits(seats.getSeries().getValue(i));
+            require(actual.equals(bits(expected.getValue(i))), "series[" + i + "]");
+            if (!actual.equals(bits(input.getValue(i)))) ++changed;
+        }
+        System.out.println("changed " + changed);
+    }
+
+    public static void main(String[] args) throws Exception {
+        Method bridge = TramoSeatsKernel.class.getDeclaredMethod("of", RegSarimaModel.class);
+        bridge.setAccessible(true);
+        List<String> lines = Files.readAllLines(Path.of(args[0]));
+        Set<String> seen = new HashSet<>();
+        for (int i = 0; i < lines.size(); ++i) {
+            if (!lines.get(i).startsWith("KER ")) continue;
+            String[] header = lines.get(i).split(" ");
+            String id = header[1];
+            if (!TEMPLATES.containsKey(id)) continue;
+            require(seen.add(id), id + " duplicated");
+            int n = header.length;
+            require(header[n-3].equals("12") && lines.get(i+1).startsWith("values "), id);
+            TsPeriod start = TsPeriod.monthly(Integer.parseInt(header[n-2]), Integer.parseInt(header[n-1]));
+            double[] values = Arrays.stream(lines.get(i+1).substring(7).split(" "))
+                .mapToDouble(Double::parseDouble).toArray();
+            observe(bridge, id, TEMPLATES.get(id), TsData.of(start, DoubleSeq.of(values)));
+        }
+        require(seen.equals(TEMPLATES.keySet()), "incomplete corpus");
+    }
+}

@@ -372,8 +372,9 @@ pinned values without a maintainer ruling (the 21 precedent).
   drops them; extractor decision recorded).
   **Delivered 2026-11-23:** structured, dated initial and bias-corrected WK
   component series, including the extraction standard deviations (36-case
-  replay, 1,055 rows). The fitted-model bridge and deterministic-effects
-  merge remain open. [Extraction gate](contracts/seats-wk-extraction-contract.md)
+  replay, 1,055 rows). Five fitted-model bridge reference pairs are frozen
+  (576 observations, TR0/TR1/TR3). The native handoff and the deterministic-
+  effects merge remain open. [Bridge reference](contracts/tramo-seats-bridge-contract.md) [Extraction gate](contracts/seats-wk-extraction-contract.md)
 - **24-E — end-to-end TRAMO/SEATS oracle + composition**:
   `tramo_seats_fit` driver = 23-F + 24-D; acceptance corpus MUST cover rsa3
   AND rsafull end to end (roadmap acceptance), the latter gated by 21-I for
