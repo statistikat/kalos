@@ -36,6 +36,33 @@ int main() {
     assert(std::abs(finite_covariance(0, 1) - (1.1 / 26 + .03)) < 1e-12);
     assert(std::abs(finite_covariance(1, 1) - (.25 / 26 + .17)) < 1e-12);
 
+    // An interrupted QR must leave the previous factor usable, even after
+    // LAPACK has overwritten its reusable input. Retry with a different shape.
+    {
+        const DenseMatrix prior(2, 2, {1, .25, .25, 1});
+        const DenseMatrix transition(2, 2, {1, 0, .2, .5});
+        const DenseMatrix noise(2, 2, {.3, .1, 0, .4});
+        detail::FiniteStateFactor reference(prior);
+        const auto original = reference.covariance().values();
+        int checkpoints = 0;
+        reference.predict(transition, noise, [&] { ++checkpoints; });
+        const auto expected = reference.covariance().values();
+        for (int stop = 1; stop <= checkpoints; ++stop) {
+            detail::FiniteStateFactor retried(prior);
+            int visited = 0;
+            assert(rejects([&] {
+                retried.predict(transition, noise, [&] {
+                    if (++visited == stop) throw std::runtime_error("interrupt");
+                });
+            }));
+            assert(retried.covariance().values() == original);
+            retried.predict(transition, noise);
+            assert(retried.covariance().values() == expected);
+            retried.update({.2, .1}, {1, .5}, .25);
+            assert(retried.compression_count() == 2);
+        }
+    }
+
     // Exercise the largest supported finite factor and an empty transition row.
     // For identity initial covariance and zero disturbance the prediction is TT'.
     {

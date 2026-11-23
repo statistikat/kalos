@@ -5,6 +5,26 @@ is now an independent C++17 library, without R, Rcpp, Python or Java dependencie
 Sibling bindings consume pinned generated snapshots. Persephone will require
 rkalos; Python intentionally exposes only a minimal initial surface.
 
+## M6 finite state QR workspace and layout (2026-11-24)
+
+The finite state filter assembles each updated or predicted loading directly
+in the transposed layout consumed by LAPACK DGEQRF. Each filter reuses its
+own input and workspace buffers. Changes in disturbance dimension query the
+provider for the new shape. A cancellation test exercises each checkpoint,
+retries the prediction, and changes the QR shape for the next update.
+
+An interleaved Apple M2 comparison used the historical eight monthly
+fixed-order cases, Clang 23.1.5, one Kalos thread and the pinned single-thread
+OpenBLAS 0.3.34. The mean of four case medians after a warmup and five
+measured rounds fell from 731.5 to 627.4 ms of CPU per airline fit and from
+414.9 to 348.7 ms per mixed-factor fit. Both builds returned identical
+coefficients, evaluation counts and log likelihoods on every fit. All 32,256
+saved gain, finite/diffuse variance, innovation and prediction values were
+also identical. Timing reflects this shared host and provider.
+
+All 83 Release CTests, four two-thread OpenMP tests, four serial ASan/UBSan
+tests, the installed-provider consumer and the export manifest check passed.
+
 ## M6 monthly fixed-order state prediction (2026-11-23)
 
 The finite state predictor now collects each transition row's nonzero columns
