@@ -52,9 +52,11 @@
 // days automatic/tested, Easter tests, user variables, the TRfull/rsa4/
 // rsa5c-style TD/Easter specs and the automatic AIC/BIC/WALD regression
 // methods (register D10, calendar-roadmap I-10 - the 23-E calendar seam is
-// the joint 21-I surface and the TRAMO auto-method family NPEs on strong
-// TD inputs), the transform outliersCorrection pre-correction (+oc: the
-// robust AO+LS module has never been witnessed THROUGH the fit seam),
+// LANDED as the 21-I.3 calendar_detection machines, which consume live
+// estimation hand-overs this fit envelope never carries, and the TRAMO
+// auto-method family NPEs on strong TD inputs), the transform
+// outliersCorrection pre-correction (+oc: the robust AO+LS module has never
+// been witnessed THROUGH the fit seam),
 // decomposition/approximation semantics (register D6 - the fit never
 // decomposes; decomposition policy belongs to decompose_ucarima and the
 // 24-D/24-E consumers), missing values in the series (the AverageInterpolator

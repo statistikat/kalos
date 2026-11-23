@@ -15,9 +15,13 @@
 // auto-identified td/lp/easter tests and the Default machine's calendar
 // builder fields and calendar accept paths - belongs to item 21-I.3
 // (maintainer ruling of 2026-11-22 in docs/calendar-roadmap.md, I-4: no
-// second trading-day implementation here). Those requests are refused fail
-// closed with the pinned reasons below; nothing is approximated. Calendar-
-// free requests run the transcription in full.
+// second trading-day implementation here), LANDED 2026-11-23 as
+// kalos/calendar_detection.hpp: the calendar steps replay through
+// run_tramo_fast_calendar_step / run_tramo_default_calendar_step with their
+// slot/lookup hand-overs (this unit's boolean-only envelope cannot carry
+// them). Those requests stay refused fail closed here with the pinned
+// reasons; nothing is approximated. Calendar-free requests run the
+// transcription in full.
 //
 // The likelihood hand-overs are REQUIRED REQUEST DATA (21-G precedent): the
 // decisions consume the coefficients, the unscaledCovariance diagonal, ssq,
@@ -319,10 +323,12 @@ struct TramoRegressionTestRequest {
     bool test_mean = true;
     double mean_threshold = 1.96;
 
-    // Default-machine builder fields. A non-null calendar field is a 21-I.3
-    // refusal; adjust with no calendar field cannot run its arm and
-    // joinTest with no calendar field never builds its F kernel (both inert,
-    // corpus-witnessed, accepted here).
+    // Default-machine builder fields. A non-null calendar field is refused
+    // here and routed to the landed 21-I.3 machines
+    // (run_tramo_default_calendar_step, kalos/calendar_detection.hpp);
+    // adjust with no calendar field cannot run its arm and joinTest with no
+    // calendar field never builds its F kernel (both inert, corpus-witnessed,
+    // accepted here).
     bool has_trading_days = false;
     bool has_length_of_period = false;
     bool has_easter = false;
