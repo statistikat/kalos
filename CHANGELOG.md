@@ -13,6 +13,9 @@
 - Fixed duplicate symbols when linking both UCARIMA decomposition and
   Wiener–Kolmogorov extraction in one downstream binary.
 
+- Reject SEATS horizons whose padded monthly domain exceeds the signed
+  index range before allocating forecasts.
+
 ## 0.1.0 — initial repository split
 
 Preserved the delivered Kalos numerical scope through 22b.2.

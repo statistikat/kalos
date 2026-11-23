@@ -9,6 +9,7 @@
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
+#include <limits>
 #include <sstream>
 #include <string>
 #include <vector>
@@ -173,6 +174,16 @@ int main(int argc, char** argv) {
       req.start_year = 0;
       req.start_month = 1;
       req.backcast_count = 1;
+      for (int huge : {std::numeric_limits<int>::min(), std::numeric_limits<int>::max()}) {
+        auto oversized = req;
+        oversized.forecast_count = huge;
+        bool refused = false;
+        try { (void)kalos::seats_extract_wk(oversized); }
+        catch (const std::invalid_argument& error) {
+          refused = std::string(error.what()).find("monthly index range") != std::string::npos;
+        }
+        if (!refused) fail(c.id, "oversized annual/combined horizon accepted");
+      }
       const auto shifted = kalos::seats_extract_wk(req);
       if (shifted.fact("dom backcast") != "n 1 start -1 11")
         fail(c.id, "backcast domain before year zero");

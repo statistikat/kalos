@@ -3738,3 +3738,11 @@ byte. A replay checks the complete record hashes as well as three named
 coefficient fields using the pinned jars and source series. These tests
 qualify the M4 refusal evidence. Native template execution belongs to M5b.
 [Capture and replay](validation/evidence/native/x13-refusal-jvm-profiles/README.md)
+
+### 24-D prerequisite — checked SEATS horizons
+
+Negative SEATS horizon counts represent years. The extractor converts them
+in 64-bit arithmetic and validates the complete Burman domain, including
+filter padding, before building forecast arrays. Both extreme signed
+integer requests refuse deterministically. The normal WK corpus and the
+overflow cases passed, including the ASan/UBSan build.
