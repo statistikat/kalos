@@ -15,6 +15,9 @@
   fixed-column regression covariance in the original variable order.
 
 - Added the stock TRfull initial mean, leap-year and Easter decisions on level or log monthly data.
+- Reduced CPU time for monthly fixed-order SARIMA fits by skipping zero
+  transition entries when propagating the finite state factor.
+
 - Added the monthly TRAMO airline F-test for working-day and trading-day effects.
 
 - Added the public monthly RSA0 residual Ljung–Box diagnostic with its

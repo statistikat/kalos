@@ -36,6 +36,32 @@ int main() {
     assert(std::abs(finite_covariance(0, 1) - (1.1 / 26 + .03)) < 1e-12);
     assert(std::abs(finite_covariance(1, 1) - (.25 / 26 + .17)) < 1e-12);
 
+    // Exercise the largest supported finite factor and an empty transition row.
+    // For identity initial covariance and zero disturbance the prediction is TT'.
+    {
+        constexpr std::size_t m = 32;
+        DenseMatrix identity(m, m), transition(m, m), zero_noise(m, 1);
+        for (std::size_t i = 0; i < m; ++i) {
+            identity(i, i) = 1;
+            for (std::size_t j = 0; j < m; ++j) {
+                transition(i, j) = (static_cast<double>((i + 3 * j) % 11) - 5.5) / 8;
+            }
+        }
+        detail::FiniteStateFactor dense(identity);
+        dense.predict(transition, zero_noise);
+        auto check_prediction = [&](const DenseMatrix& covariance) {
+            for (std::size_t i = 0; i < m; ++i) for (std::size_t j = 0; j < m; ++j) {
+                double expected = 0;
+                for (std::size_t k = 0; k < m; ++k) expected += transition(i, k) * transition(j, k);
+                assert(std::abs(covariance(i, j) - expected) < 1e-12);
+            }
+        };
+        check_prediction(dense.covariance());
+        for (std::size_t j = 0; j < m; ++j) transition(m - 1, j) = -0.0;
+        detail::FiniteStateFactor sparse(identity);
+        sparse.predict(transition, zero_noise);
+        check_prediction(sparse.covariance());
+    }
     // Small positive covariance directions are not removed by a rank cutoff,
     // including after rectangular QR compression during prediction.
     detail::FiniteStateFactor tiny_finite(DenseMatrix(2, 2, {1, 0, 0, 1e-24}));

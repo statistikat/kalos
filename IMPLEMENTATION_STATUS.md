@@ -5,6 +5,31 @@ is now an independent C++17 library, without R, Rcpp, Python or Java dependencie
 Sibling bindings consume pinned generated snapshots. Persephone will require
 rkalos; Python intentionally exposes only a minimal initial surface.
 
+## M6 monthly fixed-order state prediction (2026-11-23)
+
+The finite state predictor now collects each transition row's nonzero columns
+and traverses them in the original ascending order. It retains long-double
+accumulation, the finite-value checks and the same QR compression and provider.
+An added 32-state regression checks a fully populated transition and a row
+of signed zeros against the independent covariance product.
+
+The paired Apple M2 experiment used the original eight monthly fixed-order
+cases, Clang 23.1.5, pinned single-thread OpenBLAS 0.3.34 and one Kalos thread.
+It alternated the original and optimized predictors inside one executable.
+After a warmup, each case used the median of three CPU-time samples per
+predictor. All eight fits converged with identical retained coefficients
+and log likelihoods. The mean of the four case medians fell from 1,976 to
+896 ms for airline and from 1,111 to 489 ms for mixed factors. The direct
+baseline comparison also preserved all 14,016 gains and every prediction,
+innovation and innovation variance across the corresponding level series.
+
+All 82 release CTests passed, including both X-13 oracles. The targeted
+four-test OpenMP run passed with two threads. Serial ASan/UBSan passed
+the diffuse, regression likelihood, physical objective and estimation-control
+tests. The standalone provider consumer and source manifest checks passed.
+The Python benchmark documents the separate JDemetra+ baseline and the
+remaining fixed-order performance gap.
+
 ## Repository split delivery
 
 1. **Completed — freeze/history.** Original commit `8450d6e`, 713-file baseline,
