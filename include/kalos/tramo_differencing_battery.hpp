@@ -78,6 +78,13 @@ struct BatteryFTest {
     double value = 0.0, pvalue = 0.0, df1 = 0.0, df2 = 0.0;
 };
 
+struct TramoOrders;
+
+// ModelDescription overload of the monthly SeasonalFTest. The series is
+// on the estimation scale, and regressors exclude the forced mean column.
+BatteryFTest tramo_seasonal_f_test(const std::vector<double>& series, int start_year, int start_month,
+    const TramoOrders& orders, const std::vector<std::vector<double>>& regressors = {});
+
 // The ten ModelStatistics getters the ModelComparator / controllers read
 // (getLjungBox, getLjungBoxPvalue, getSeasonalLjungBox(+Pvalue), getBic,
 // getObservationsCount, getOutliersCount, getSkewnessPvalue,

@@ -13,6 +13,8 @@
 // and every Changed transfer against the post-step panel. What the replay
 // cannot see fails closed - the negative probes at the bottom pin that.
 #include "kalos/arma_diagnostics.hpp"
+#include "kalos/detail/fdlibm.hpp"
+#include "kalos/tramo_regression_tests.hpp"
 #include "kalos/detail/special_functions.hpp"
 #include "kalos/tramo_differencing_battery.hpp"
 #include "kalos/tramo_regression_tests.hpp"
@@ -27,6 +29,8 @@
 #include <cstdint>
 #include <fstream>
 #include <map>
+#include <fstream>
+#include <sstream>
 #include <stdexcept>
 #include <string>
 #include <vector>
@@ -48,6 +52,7 @@ using kalos::detail::f_upper_p;
 
 int failures = 0;
 long stat_states = 0, stat_ftests = 0, stat_scores = 0, stat_peaks = 0, stat_over = 0;
+long stat_refitted_f = 0;
 long stat_cands = 0, stat_steps = 0, stat_panels = 0, stat_frozen = 0;
 
 void fail(const std::string& cid, const std::string& what) {
@@ -388,6 +393,11 @@ const char* result_name(BatteryDecision::Result r) {
 
 void replay(const kalos::test::TbCase& tc) {
     Parsed p = parse_case(tc);
+    std::vector<double> series(tc.series_len);
+    std::memcpy(series.data(), tc.series_bits, tc.series_len * sizeof(double));
+    if (tc.log_input)
+        for (auto& value : series) value = kalos::detail::fdlibm_log(value);
+
     if (p.bc.candidates.empty()) {
         fail(p.id, "no candidates parsed");
         return;
@@ -547,6 +557,17 @@ void replay(const kalos::test::TbCase& tc) {
             !bits_eq(tests.stable_mean_p, st->mstat.stable_mean_p) ||
             !bits_eq(tests.stable_variance_p, st->mstat.stable_var_p)) {
             fail(p.id, "computed comparator residual tests differ in " + tag);
+        }
+        if (freq == 12 && st->nvar == 0) {
+            ++stat_refitted_f;
+            const auto fitted = kalos::tramo_seasonal_f_test(series, 1990, 1,
+                {st->p, st->d, st->q, st->bp, st->bd, st->bq});
+            if (fitted.present != st->ftest.present || !bits_eq(fitted.value, st->ftest.value)
+                || !bits_eq(fitted.pvalue, st->ftest.pvalue) || fitted.df1 != st->ftest.df1 || fitted.df2 != st->ftest.df2) {
+                std::fprintf(stderr, "%s %d %d %d seasonal F %.17g vs %.17g, df %.0f vs %.0f\n", tag.c_str(),
+                    st->p, st->d, st->q, fitted.value, st->ftest.value, fitted.df2, st->ftest.df2);
+                fail(p.id, "fitted seasonal F in " + tag);
+            }
         }
         if (st->ftest.present) {
             const double p_native = f_upper_p(st->ftest.value, st->ftest.df1, st->ftest.df2);
@@ -754,6 +775,60 @@ void check_monthly_spectra() {
     if (count != 168) fail("monthly spectrum", "incomplete classifier corpus");
 }
 
+void replay_seasonal_f_regressors() {
+    std::ifstream panel(KALOS_SEASONAL_F_PANEL);
+    int id = 0, year = 0, month = 0, cases = 0;
+    kalos::TramoOrders orders;
+    std::vector<double> series;
+    std::vector<std::vector<double>> regressors;
+    for (std::string line; std::getline(panel, line);) {
+        std::istringstream row(line);
+        std::string kind;
+        row >> kind;
+        if (kind == "case") {
+            row >> id >> year >> month >> orders.p >> orders.d >> orders.q;
+            orders.bp = orders.bd = orders.bq = 1;
+            regressors.clear();
+            series.clear();
+        } else if (kind == "series" || kind == "column") {
+            std::vector<double> values;
+            std::uint64_t value;
+            while (row >> std::hex >> value) {
+                double v;
+                std::memcpy(&v, &value, sizeof(v));
+                values.push_back(v);
+            }
+            if (kind == "series") series = std::move(values);
+            else regressors.push_back(std::move(values));
+        } else if (kind == "test") {
+            const auto f = kalos::tramo_seasonal_f_test(series, year, month, orders, regressors);
+            std::uint64_t value = 0, probability = 0;
+            double df1 = 0, df2 = 0;
+            row >> std::hex >> value >> probability >> std::dec >> df1 >> df2;
+            if (!row || !f.present || bits(f.value) != value || bits(f.pvalue) != probability ||
+                f.df1 != df1 || f.df2 != df2) {
+                std::fprintf(stderr, "case %d seasonal F got %016llx, expected %016llx\n", id,
+                    static_cast<unsigned long long>(bits(f.value)), static_cast<unsigned long long>(value));
+                fail("seasonal F", "regressor case " + std::to_string(id));
+            }
+            ++cases;
+        } else fail("seasonal F", "invalid reference record");
+    }
+    if (cases != 12 || stat_refitted_f != 72) fail("seasonal F", "missing reference fits");
+    kalos::TramoOrders stationary{};
+    if (kalos::tramo_seasonal_f_test(std::vector<double>(12, 3.0), 2001, 1, stationary).present)
+        fail("seasonal F", "too few residual degrees of freedom");
+    if (kalos::tramo_seasonal_f_test(series, year, month, stationary,
+            {std::vector<double>(series.size(), 0.0)}).present)
+        fail("seasonal F", "singular regression design");
+    try {
+        kalos::tramo_seasonal_f_test(series, year, month, stationary, {{1.0}});
+        fail("seasonal F", "accepted a regressor of the wrong length");
+    } catch (const std::invalid_argument&) {}
+
+    std::printf("seasonal F refits: %ld battery states and %d dated regressor cases\n", stat_refitted_f, cases);
+}
+
 } // namespace
 
 int main() {
@@ -765,6 +840,7 @@ int main() {
         total_facts += static_cast<long>(cases[i].facts_len);
     }
     check_monthly_spectra();
+    replay_seasonal_f_regressors();
     negative_probes();
     std::printf("tramo-differencing-battery: %zu cases, %ld fact lines, %ld states, %ld "
                 "F p-values, %ld ladder scores, %ld peak gates, %ld over-codes, %ld decision "

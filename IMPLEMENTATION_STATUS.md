@@ -4398,3 +4398,19 @@ original monthly battery runs the candidate orders, mean, transfer index,
 seasonality score, early restart and remaining four controller decisions
 match the original traces. The integration test supplies captured candidate
 fits at this boundary. The raw TR3 caller must supply them from observations.
+
+### M5 monthly seasonal F refit
+
+The monthly seasonality controller can obtain its F test from observations,
+dates, regular ARIMA orders and the original regression columns. The refit
+forces a mean, removes seasonal ARIMA terms, and tests the eleven monthly
+contrasts jointly. The GLS optimizer uses JDemetra's unit-circle mapping,
+including its quadratic root inversion and normalization.
+
+All 72 existing monthly controller states with no external regressors match
+the frozen statistic, probability and both degrees of freedom exactly. A
+second panel covers all twelve start months, regular AR orders 0–2, regular
+MA orders 0–1, level and differenced models, and combinations of trading days,
+additive outliers and level shifts. All 48 fields match the two-JVM capture.
+The tests also cover a singular design and insufficient residual degrees of
+freedom. The stock raw RSA3 and RSAfull orchestration is still in progress.
