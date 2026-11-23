@@ -79,7 +79,7 @@ PROBE_CLASS <- 'jdplus.tramoseats.base.core.tramo.CalendarDetectionProbe'
 
 jvmflags <- c('-XX:+UnlockDiagnosticVMOptions',
   '-XX:DisableIntrinsic=_dexp', '-XX:DisableIntrinsic=_dlog')
-Sys.setenv('_JAVA_OPTIONS' = paste(jvmflags[-1L], collapse = ' '))
+Sys.setenv('_JAVA_OPTIONS' = paste(jvmflags, collapse = ' '))
 
 # Ground-truth guard: the intrinsic-disable flags must be live - Math.exp of
 # the 1-ulp witness value must equal StrictMath.exp (bits compared).
