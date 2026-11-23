@@ -215,8 +215,15 @@ The 32 reference tests include both sides of that boundary across eight fitted
 descriptions and four calendar starts. A zero residual vector produces no test.
 [Residual trading-day decisions](../validation/evidence/native/tramo-calendar-ftest/residual-td.txt)
 
-The later controller's candidate re-estimation and model comparison, and the
-end-to-end TRfull route remain open.
+For a monthly airline with optional mean and outlier detection disabled,
+`tramo_airline_trading_days_controller` also fits the starting model, fits the
+TD2 candidate after a positive residual test, retests the mean at 1.96 and uses
+the default model comparator to retain or reject the candidate. The 32 cases
+exercise skipped refits, rejected candidates, accepted candidates and a second
+refit after dropping the mean. The 272-month cases also exercise overlapping
+samples in the residual stability tests. Inputs with existing regressors and
+automatic outlier detection, and end-to-end stock TRfull, remain open.
+[Candidate fits and selected models](../validation/evidence/native/tramo-calendar-ftest/td-controller.txt)
 
 ## What this unblocks (downstream map)
 

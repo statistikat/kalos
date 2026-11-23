@@ -3989,6 +3989,19 @@ at the RSA1 checkpoint matched their Git blobs. The historical validation
 also passed for all 406 entries. Windows CI runs both the export manifest and
 historical validation before building the provider.
 
+### M5 / 21-I.4 — trading-day candidate estimation and model selection
+
+The late controller now runs from dated monthly airline observations with an
+optional mean and outlier detection disabled. It fits and compares a TD2
+candidate, repeats the fit if the mean fails its significance test, and returns
+the selected model with its parameters, estimated regressors and residuals.
+At the 0.01 threshold and a threshold of 1.0, 32 cases reproduced all 71
+fit records from two independent JDemetra runs, including 6,784 distinct
+residual vector entries. Nineteen cases selected the candidate and thirteen
+retained the incumbent. Six Release and four sanitizer tests passed. The
+stock TRfull driver with automatic outlier detection remains open.
+[Reference evidence](validation/evidence/native/tramo-calendar-ftest/td-controller.txt)
+
 ### M5 / 21-I.4 — model comparison diagnostics
 
 Monthly candidate fits can now build the complete JDemetra comparison panel

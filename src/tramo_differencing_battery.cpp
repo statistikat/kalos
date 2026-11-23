@@ -183,6 +183,10 @@ std::optional<BatteryPanel> tramo_model_comparison_panel(const TramoModelStatist
     return panel;
 }
 
+bool tramo_candidate_preferred(const BatteryPanel& incumbent, const BatteryPanel& candidate) {
+    return compare_panels(incumbent, candidate, pref::kBic) >= 1;
+}
+
 bool battery_has_seasonal_peaks(const std::vector<PeakRecord>& peaks) {
     switch (peaks.size()) {
     case 6: {

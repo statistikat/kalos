@@ -81,6 +81,9 @@ struct TramoModelStatisticsRequest;
 // A missing panel means the likelihood could not support the diagnostic tests.
 std::optional<BatteryPanel> tramo_model_comparison_panel(const TramoModelStatisticsRequest& request);
 
+// Default ModelComparator (BIC preference) in incumbent, candidate order.
+bool tramo_candidate_preferred(const BatteryPanel& incumbent, const BatteryPanel& candidate);
+
 // One observable state of the driver segment (a ":e"-style tag of the
 // capture): specification, mean, the coefficient front values the gates
 // read, the residual vector behind the ru2 needProcessing autocovariance

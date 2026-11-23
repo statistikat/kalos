@@ -1,4 +1,5 @@
 #include "kalos/tramo_calendar_f_test.hpp"
+#include "kalos/arma_diagnostics.hpp"
 #include <cstdint>
 #include <cstring>
 #include <fstream>
@@ -14,6 +15,96 @@ double read_bits(const std::string& text) {
     double value;
     std::memcpy(&value, &bits, sizeof(value));
     return value;
+}
+
+std::vector<double> read_vector(std::istream& row) {
+    std::vector<double> result;
+    for (std::string word; row >> word;) result.push_back(read_bits(word));
+    return result;
+}
+
+bool same_bits(const std::vector<double>& left, const std::vector<double>& right) {
+    return left.size() == right.size() && (left.empty() ||
+        std::memcmp(left.data(), right.data(), left.size() * sizeof(double)) == 0);
+}
+
+bool check_trading_days_controller() {
+    std::ifstream oracle(KALOS_TD_CONTROLLER_PANEL);
+    std::vector<double> series;
+    std::map<int, std::vector<double>> residuals;
+    kalos::TramoTradingDaysControllerResult result{};
+    const kalos::TramoCalendarAirlineFit* fit = nullptr;
+    int attempts = 0, cases = 0, length = 0, effect = 0;
+    for (std::string line; std::getline(oracle, line);) {
+        std::istringstream row(line);
+        std::string kind;
+        row >> kind >> std::boolalpha;
+        bool ok = true;
+        if (kind == "series") {
+            row >> length >> effect;
+            series = read_vector(row);
+            ok = static_cast<int>(series.size()) == length;
+        } else if (kind == "case") {
+            bool mean;
+            std::string alpha;
+            row >> mean >> alpha;
+            result = kalos::tramo_airline_trading_days_controller(series, 1990, 1, mean, read_bits(alpha), 1e-7);
+            attempts = 0;
+            fit = nullptr;
+            ++cases;
+        } else if (kind == "fit") {
+            std::string label;
+            bool mean;
+            int columns;
+            row >> label >> mean >> columns;
+            if (label == "original") fit = &result.original;
+            else if (label == "candidate" && attempts < static_cast<int>(result.candidates.size()))
+                fit = &result.candidates[attempts++];
+            else return false;
+            const auto& panel = fit->statistics;
+            const auto tests = kalos::tramo_comparator_residual_tests(fit->residuals);
+            const std::vector<double> actual{fit->residual_ssq, panel.bic, panel.ljung_box,
+                panel.ljung_box_p, panel.season_box, panel.season_box_p, panel.skew_abs,
+                panel.skew_p, tests.mean_statistic, panel.stable_mean_p, tests.variance_ratio};
+            const auto expected = read_vector(row);
+            ok = mean == fit->mean && columns == int(fit->working_days) && same_bits(actual, expected);
+            if (!ok && actual.size() == expected.size()) {
+                for (std::size_t i = 0; i < actual.size(); ++i)
+                    if (expected[i] != actual[i])
+                        std::cerr << "  " << label << " field " << i << " got " << std::hexfloat << actual[i]
+                                  << ", expected " << expected[i] << "\n";
+            }
+        } else if (kind == "params" || kind == "beta") {
+            ok = fit && same_bits(read_vector(row), kind == "params" ? fit->ma_parameters : fit->coefficients);
+        } else if (kind == "variance_p") {
+            std::string value;
+            row >> value;
+            ok = fit && read_bits(value) == fit->statistics.stable_var_p;
+        } else if (kind == "residual_values") {
+            int id;
+            row >> id;
+            ok = residuals.emplace(id, read_vector(row)).second;
+        } else if (kind == "residual_id") {
+            int id;
+            row >> id;
+            ok = fit && same_bits(fit->residuals, residuals.at(id));
+        } else if (kind == "result") {
+            std::string status;
+            bool mean;
+            int count, columns;
+            row >> status >> count >> mean >> columns;
+            ok = status == (result.changed ? "Changed" : "Unchanged")
+                && count == attempts && attempts == static_cast<int>(result.candidates.size())
+                && mean == result.selected().mean && columns == int(result.selected().working_days);
+        } else return false;
+        if (!ok) {
+            std::cerr << "Trading-day controller differs in case " << cases << " (length " << length
+                      << ", effect " << effect << "), " << kind << "\n";
+            return false;
+        }
+    }
+    std::cout << cases << " late trading-day controller cases\n";
+    return cases == 32;
 }
 
 bool check_residual_trading_days() {
@@ -135,5 +226,5 @@ int main() {
     ok &= invalid(std::vector<double>(22, 1.0), .01);
     ok &= invalid(series.at(0), std::numeric_limits<double>::quiet_NaN());
     std::cout << cases << " public TRAMO calendar F-test comparisons\n";
-    return check_residual_trading_days() && check_full_template() && ok ? 0 : 1;
+    return check_trading_days_controller() && check_residual_trading_days() && check_full_template() && ok ? 0 : 1;
 }
