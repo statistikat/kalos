@@ -1,6 +1,6 @@
-# TRAMO regression tests, no-calendar branch (23-E)
+# TRAMO regression tests (23-E and 21-I.3)
 
-Transcription of the calendar-free part of the tramo regression-test layer of
+Transcription of the monthly TRAMO regression-test layer of
 the pinned jdplus 3.9.0 stack: the `ModelStatistics.of` rows the refStats
 gate consumes (with the Ljung-Box/se/BIC machines behind them), the mean-rule
 layer (`AmiOptions.checkMu`, the round-0 `acceptAirline` rule, the
@@ -10,15 +10,14 @@ The bytecode record is SECTION 25 of `tmp_opencode/kalos-m5-pinning.md`
 (with three session-start corrections dated 2026-11-22, see "Pinned
 semantics" below). Everything numeric is bit-exact: decisions AND values.
 
-Boundary (maintainer ruling of 2026-11-22, `docs/calendar-roadmap.md` I-4):
-every request that would drive a CALENDAR-variable kernel — the Fast
-machine's auto-identified trading-day / length-of-period / Easter tests and
-the Default machine's calendar builder fields and calendar accept paths —
-belongs to item 21-I.3. This unit never approximates them: it refuses such
-requests fail closed with reasons naming 21-I.3. Calendar-free requests run
-the transcription in full. The `TradingDaysController` T/Wald machinery and
-the `Automatic{,Wald}RegressionTest` families are likewise 21-I.3-owned and
-not ported here.
+The Fast module uses the current fitted columns to retest automatically
+identified trading days, length of period and Easter. A failed trading-day
+test triggers the LP test. If the LP coefficient passes, both variables stay.
+Otherwise both are removed. An LP regressor on its own stays in the model.
+Easter and the mean are tested independently using the original fitted
+column positions. Any removal clears the estimation. The Default module's
+calendar builder fields remain part of the separate 21-I.3 work.
+[Fast calendar boundary cases](../../validation/evidence/native/tramo-calendar-ftest/fast-calendar.txt)
 
 ## Coordinate map (module → unit)
 
@@ -168,15 +167,14 @@ polarity swapped and are superseded; there is NO divergence from the landed
 | `annual_frequency != 12` (ModelStatistics) | `std::invalid_argument` (D11, monthly-first) |
 | `period != 12` (machines) | `std::invalid_argument` (D11) |
 | empty / non-finite residual block, mismatched or negative hand-over counts | `std::invalid_argument` (envelope) |
-| Fast request with ami auto-td / auto-lp / auto-Easter variable | refused, reason names item 21-I.3 |
+| Fast request with automatically identified TD, LP or Easter | requires its fitted column position and, for TD, the number of contrasts |
 | Fast request with auto moving-holiday variable | refused fail closed (no filter exists in the pinned machine, no corpus witness) |
 | Default request with trading-days / length-of-period / Easter builder field | refused, reason names item 21-I.3 |
 | `df = m − k <= 0` in ModelStatistics | NO throw: `built == false`, every double NaN (JVM throw surface modelled as an unusable row) |
 | exhausted request sequences in `tramo_estimate_model_retry` | `std::invalid_argument` (request data, not a JVM path) |
 
 Corpus pins for the refusals: `ms_quarter` (JVM computes the quarterly row;
-the corpus records it, the unit refuses), `fr_seam_td` / `fr_seam_td_lp` /
-`fr_seam_easter` (Fast ami variables), `dr_seam_td` / `dr_seam_lp` /
+the corpus records it, the unit refuses), `dr_seam_td` / `dr_seam_lp` /
 `dr_seam_easter` (Default calendar fields) — the load logs show the
 controller classes loading exactly there.
 

@@ -306,6 +306,8 @@ if(KALOS_BUILD_TESTS)
       set_tests_properties(${test_name} PROPERTIES TIMEOUT 3600)
     endif()
     if(test_name STREQUAL "test_tramo_regression_tests")
+      target_compile_definitions(${test_name} PRIVATE
+        KALOS_FAST_CALENDAR_PANEL="${CMAKE_CURRENT_SOURCE_DIR}/validation/evidence/native/tramo-calendar-ftest/fast-calendar.txt")
       # 23-E golden replay over the double-captured tramo-regression-tests
       # corpus (ModelStatistics rows, both tstats arms, the refStats gate and
       # the two regression-test machines); generous for the sanitizer lane.

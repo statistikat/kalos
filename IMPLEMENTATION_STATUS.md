@@ -3989,6 +3989,21 @@ at the RSA1 checkpoint matched their Git blobs. The historical validation
 also passed for all 406 entries. Windows CI runs both the export manifest and
 historical validation before building the provider.
 
+### M5 / 21-I.3 — Fast regression calendar retesting
+
+The Fast module now retests automatically identified working-day or trading-day
+contrasts, length of period and Easter at their actual coefficient positions.
+A significant leap-year regressor can retain a working-day effect that fails its
+own test. The optional mean is retested against the same original likelihood.
+Two pinned JVMs agreed on 130 threshold decisions over twelve model fits,
+including equal and adjacent t thresholds, TD2 and TD7, and an LP without TD.
+All 130 native decisions matched the retained variables, mean, processing
+status and estimation invalidation. The original three Fast calendar cases
+now execute numerically. The replay passed 972 checks, five Release tests and
+three sanitizer tests. The Default regression module’s calendar construction
+and tests remain open.
+[Fast regression calendar reference](validation/evidence/native/tramo-calendar-ftest/fast-calendar.txt)
+
 ### M5 / 24-E — stock RSAfull public reference
 
 Two fresh pinned JVMs produced identical stock TRfull preprocessing and RSAfull

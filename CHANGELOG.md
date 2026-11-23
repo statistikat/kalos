@@ -32,6 +32,7 @@
   and regression-test decisions from the fitted likelihood. It reports the
   fixed-column regression covariance in the original variable order.
 
+- Added Fast regression retesting of automatically identified TD, LP and Easter effects at their fitted positions.
 - Added monthly TD2 candidate estimation, mean retesting and model selection for the late TRAMO controller with outlier detection disabled.
 - Added monthly TRAMO model comparison diagnostics for skewness and stability of the residual mean and variance.
 - Added the late TRfull residual working-day F test on the fitted monthly domain.

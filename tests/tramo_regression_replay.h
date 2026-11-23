@@ -225,6 +225,14 @@ inline void replay_machines(Reporter& rep,
     req.has_trading_days = c.has_td != 0;
     req.has_length_of_period = c.has_lp != 0;
     req.has_easter = c.has_easter != 0;
+    if (req.kind == TramoRegressionTestKind::fast) {
+        // The three original seam requests use the captured one-column TD2
+        // and/or LP/Easter layout, immediately following the mean.
+        int column = req.mean ? 1 : 0;
+        if (req.auto_trading_days) req.trading_days_position = column++;
+        if (req.auto_length_of_period) req.length_of_period_position = column++;
+        if (req.auto_easter) req.easter_position = column++;
+    }
     if (c.refuse) {
         // The seam: the pinned machine runs its calendar kernel on this
         // request; the unit must refuse it naming item 21-I.3.
@@ -460,7 +468,7 @@ inline void replay_synthetic(Reporter& rep) {
         if (!threw) rep.fail("retry exhaustion must throw");
     }
 
-    // Fail-closed calendar boundary on both machines.
+    // Automatically identified Fast variables require their fitted positions.
     {
         TramoRegressionTestRequest fast;
         fast.auto_trading_days = true;
@@ -468,7 +476,7 @@ inline void replay_synthetic(Reporter& rep) {
         try {
             (void)run_tramo_regression_tests(fast);
         } catch (const std::invalid_argument& ex) {
-            threw = std::string(ex.what()).find("21-I.3") != std::string::npos;
+            threw = std::string(ex.what()).find("column positions") != std::string::npos;
         }
         if (!threw) rep.fail("fast auto-td refusal");
         fast.auto_trading_days = false;
@@ -477,7 +485,7 @@ inline void replay_synthetic(Reporter& rep) {
         try {
             (void)run_tramo_regression_tests(fast);
         } catch (const std::invalid_argument& ex) {
-            threw = std::string(ex.what()).find("21-I.3") != std::string::npos;
+            threw = std::string(ex.what()).find("column positions") != std::string::npos;
         }
         if (!threw) rep.fail("fast auto-easter refusal");
         fast.auto_easter = false;

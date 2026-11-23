@@ -288,11 +288,11 @@ def main(corpus_dir, dst):
                     elif vs == "ean":
                         plain[2] = 1
                     elif vs == "tda":
-                        auto[0] = refuse = 1
+                        auto[0] = 1
                     elif vs == "lpa":
-                        auto[1] = refuse = 1
+                        auto[1] = 1
                     elif vs == "eaa":
-                        auto[2] = refuse = 1
+                        auto[2] = 1
             run_rows = []
             for i in range(3):
                 tm_i, adj_i, join_i = run_opts[i]
