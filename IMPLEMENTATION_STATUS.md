@@ -3810,3 +3810,13 @@ OLS solve for the optional mean. Supplied residuals are checked bit for bit.
 Re-running 16 cases without the former 1,443 input residual values reproduced
 the same fitted decisions and seam census. Corrupting a supplied witness is
 detected. The 34-case fit regression and 614-check raw sweep passed.
+
+### M5/M6 — RSA0 preprocessing forecast-error reference
+
+The public RSA0 `y_ef(24)` accessor reproduced the fitted preprocessing
+model's `forecasts(24).getForecastsStdev()` on all six raw series. The
+paired reference includes both that series and the WK Series/StdevForecast
+output. These are separate quantities. The unqualified public `y_ef` key
+defaults to 12 months. The explicit 24-month key covers the default SEATS
+horizon. Two fresh x86-64 Temurin JVMs matched every byte.
+[Paired forecast errors](validation/evidence/native/tramo-seats-bridge/rsa0-forecast-errors-x86_64.txt)
