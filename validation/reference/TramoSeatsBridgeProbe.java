@@ -227,6 +227,20 @@ public class TramoSeatsBridgeProbe {
 
     // Public preprocessing and seasonal-adjustment kernels receive only
     // the monthly observations and their respective standard preset.
+    private static void rsa1ResidualDiagnostics(String id, TsData series) {
+        var sa = TramoSeatsKernel.of(TramoSeatsSpec.RSA1, new ModellingContext()).process(series, new ProcessingLog() {});
+        require(sa != null, id + " RSA1");
+        var ser = sa.getData("residuals.ser", Double.class);
+        require(ser != null, "public residuals.ser");
+        System.out.println("case " + id);
+        System.out.println("residuals.ser " + bits(ser));
+        for (String key : new String[]{"residuals.lb", "residuals.doornikhansen"}) {
+            var test = sa.getData(key, jdplus.toolkit.base.api.stats.StatisticalTest.class);
+            require(test != null, "public " + key);
+            System.out.println(key + " " + bits(test.getValue()) + " " + bits(test.getPvalue()) + " " + test.getDescription().trim());
+        }
+    }
+
     private static void rawAutomatic(String id, TsData series, String stage) {
         var preset = stage.startsWith("rsa1") ? TramoSeatsSpec.RSA1
             : stage.equals("rsafull") ? TramoSeatsSpec.RSAfull : TramoSeatsSpec.RSA3;
@@ -329,6 +343,14 @@ public class TramoSeatsBridgeProbe {
                 }
             }
             TsData data = TsData.of(start, DoubleSeq.of(values));
+            if (stage.equals("rsa1-residual-diagnostics")) {
+                rsa1ResidualDiagnostics(id, data);
+                if (id.equals("fit_ao") || id.equals("fit_ls")) {
+                    var shifted = Arrays.stream(values).map(value -> value - 1000).toArray();
+                    rsa1ResidualDiagnostics("level_" + id, TsData.of(start, DoubleSeq.of(shifted)));
+                }
+                continue;
+            }
             if (stage.startsWith("rsa0")) rawRsa0(id, data, stage);
             else if (raw) rawAutomatic(id, data, stage);
             else observe(bridge, id, TEMPLATES.get(id), data, args.length > 1 && args[1].equals("merge"));

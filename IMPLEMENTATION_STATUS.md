@@ -4308,3 +4308,12 @@ linearized series and the uncentered concentrated-likelihood residuals.
 All 576 binary64 values match the original battery observations. The
 spectral peak tests and the seasonal regression F test are still needed
 to run the full controller from observations.
+
+
+### Public RSA1 residual diagnostic evidence (2026-11-24)
+
+Two fresh x86-64 JVMs agreed on the public RSA1 residual standard
+error, Ljung–Box and Doornik–Hansen results for six original inputs
+and two shifted series with additive outliers. The probability
+distributions have 22 and two degrees of freedom respectively.
+[Eight-case reference](validation/evidence/native/tramo-seats-bridge/rsa1-residual-diagnostics-x86_64.txt)
