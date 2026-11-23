@@ -147,3 +147,10 @@ The 24-month reference covers 144 public standard errors and the corresponding
 of 2e−8 × (1 + |reference|). The largest measured absolute error was
 2.42e−13, and the paired WK values reproduced bit for bit.
 [Forecast-error evidence](../../validation/evidence/native/tramo-seats-bridge/rsa0-forecast-errors-x86_64.txt)
+
+The raw TR0 result also returns `residuals.tsres` and `residuals.ser`.
+The observations lose the first 13 months to the regular and seasonal
+differences. The fitted mean is removed before filtering the stationary
+response with the fitted MA model. The scalar uses the concentrated sum
+of squares and the residual degrees of freedom after the mean and two
+free MA coefficients. Both fields are bit-exact on the six RSA0 cases.

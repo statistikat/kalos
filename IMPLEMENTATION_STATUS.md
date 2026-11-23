@@ -3900,3 +3900,12 @@ independent public TR0 fit's full residuals for every case. Two fresh
 pinned x86-64 Temurin 21.0.11 processes reproduce all 570 monthly residuals
 and six standard errors byte-for-byte. The capture SHA-256 is
 `1b7aac78629c1be7eefa45325af04d925ef104a422bc6213f5b4c4fd511b7283`.
+
+### M5 / 24-E — native RSA0 preprocessing residuals
+
+The raw TR0 result carries the public residual series, its starting
+month and its scalar standard error. All 570 values, six start dates and
+six standard errors match both reference runs exactly. The public scalar
+uses the effective sample less three fitted coefficients. Release and
+ASan/UBSan RSA0 tests pass with the existing 3,960 component values,
+fitted coefficients and preprocessing forecast errors still covered.

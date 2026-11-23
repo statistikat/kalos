@@ -32,6 +32,23 @@ bool exact(double a, double b) {
     return std::memcmp(&a, &b, sizeof(a)) == 0;
 }
 
+void check_residuals(const std::string& id, const kalos::tramo_tr0_result& fit, std::istream& evidence) {
+    std::string key, case_id;
+    evidence >> key >> case_id;
+    check(key == "case" && case_id == id, id + " residual case");
+    int year, month, count;
+    evidence >> key >> year >> month >> count;
+    const auto& residuals = fit.residuals;
+    check(key == "residuals.tsres" && residuals.start_year == year && residuals.start_month == month &&
+          count == fit.effective_observations && residuals.values.size() == static_cast<std::size_t>(count),
+          id + " public residual domain");
+    for (auto value : residuals.values)
+        check(exact(value, read_bits(evidence)), id + " public residual");
+    evidence >> key;
+    check(key == "residuals.ser" && exact(residuals.standard_error, read_bits(evidence)),
+          id + " public residual standard error");
+}
+
 void check_forecast_errors(const std::string& id, const kalos::tramo_seats_rsa0_result& result,
                            std::istream& evidence) {
     std::string key, case_id;
@@ -92,6 +109,7 @@ int main() {
     const std::map<std::string, I> kinds{{"Value", I::value}, {"Forecast", I::forecast}};
     std::ifstream input(KALOS_RSA0_FACTS);
     std::ifstream forecast_errors(KALOS_RSA0_ERRORS);
+    std::ifstream residuals(KALOS_RSA0_RESIDUALS);
     std::size_t cases = 0, rows = 0, values = 0, index = 0;
     kalos::tramo_seats_rsa0_result result;
     std::string id;
@@ -111,6 +129,7 @@ int main() {
             std::vector<double> series(count);
             for (auto& v : series) v = read_bits(row);
             result = kalos::run_tramo_seats_rsa0(series, year, month);
+            check_residuals(id, result.preprocessing, residuals);
             check_forecast_errors(id, result, forecast_errors);
         } else if (key == "fit") {
             const auto& fit = result.preprocessing;
