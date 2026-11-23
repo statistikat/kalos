@@ -59,3 +59,23 @@ effects, TC/SO, calendar and missing-data surfaces have no witnesses in this
 corpus. The SEATS extraction can be tested separately. Restoring deterministic
 effects to the final components via `TwoStepsDecomposition.merge` and the
 23-G/24-E end-to-end oracles remain separate gates.
+
+## Deterministic-effects merge gate
+
+Replay the capture command above with `--stage merge`. It drives the actual
+`SeatsKernel.process` on each observed fitted-model bridge, then supplies its
+bias-corrected components to `TwoStepsDecomposition.merge`. The evidence pairs
+each dated WK row with the observed product row, including conditional
+standard deviations on the input side. The merge emits value, forecast and
+backcast series for the original, trend, seasonally adjusted, seasonal and
+irregular components. The mean is outside the assigned effects. AO belongs
+to the irregular, and zero-ended LS belongs to trend.
+[Merge facts](../../validation/evidence/native/tramo-seats-bridge/merge.txt)
+
+Five default horizon cases (0 backcasts, 24 forecasts) plus a three-backcast,
+six-forecast run on the mixed AO/LS model give 65 product rows and 4,005
+binary64 observations. The exit gate requires their identities, calendars,
+lengths and values to match. On the mixed case the JVM changed the model
+during SEATS approximation. Its frozen WK result qualifies the subsequent
+merge independently. D6 requires the native extraction route to refuse that
+fit. The AO-only case cuts off a parameter and stays in the admitted envelope.

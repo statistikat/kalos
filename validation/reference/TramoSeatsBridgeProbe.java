@@ -9,6 +9,12 @@ import java.util.Map;
 import java.util.Set;
 import jdplus.sa.base.api.ComponentType;
 import jdplus.sa.base.api.SaVariable;
+import jdplus.sa.base.api.SeriesDecomposition;
+import jdplus.sa.base.core.modelling.TwoStepsDecomposition;
+import jdplus.toolkit.base.api.modelling.ComponentInformation;
+import jdplus.tramoseats.base.api.seats.DecompositionSpec;
+import jdplus.tramoseats.base.core.seats.SeatsKernel;
+import jdplus.tramoseats.base.core.seats.SeatsToolkit;
 import jdplus.toolkit.base.api.data.DoubleSeq;
 import jdplus.toolkit.base.api.data.Parameter;
 import jdplus.toolkit.base.api.data.ParameterType;
@@ -55,12 +61,43 @@ public class TramoSeatsBridgeProbe {
         System.out.println(line);
     }
 
-    private static void observe(Method bridge, String id, String template, TsData ts)
+    private static void components(String label, SeriesDecomposition decomposition) {
+        for (var type : ComponentType.values()) {
+            if (type == ComponentType.Undefined) continue;
+            for (var info : List.of(ComponentInformation.Value, ComponentInformation.Stdev,
+                    ComponentInformation.Forecast, ComponentInformation.StdevForecast,
+                    ComponentInformation.Backcast, ComponentInformation.StdevBackcast)) {
+                var data = decomposition.getSeries(type, info);
+                if (data != null) series(label + " " + type + " " + info, data);
+            }
+        }
+    }
+
+    private static void merge(String id, String template, RegSarimaModel model, SeatsModelSpec seats,
+                              int backcasts, int forecasts) {
+        var options = DecompositionSpec.DEFAULT.toBuilder()
+            .forecastCount(forecasts).backcastCount(backcasts).build();
+        var extracted = new SeatsKernel(SeatsToolkit.of(options)).process(seats, new ProcessingLog() {});
+        require(extracted != null, id + " SEATS extraction");
+        var wk = extracted.getFinalComponents();
+        var finals = TwoStepsDecomposition.merge(model, wk);
+        System.out.printf("case %s %s backcasts %d forecasts %d cutoff %b changed %b%n", id,
+            template, backcasts, forecasts, extracted.isParametersCutOff(), extracted.isModelChanged());
+        components("wk", wk);
+        components("merged", finals);
+    }
+
+    private static void observe(Method bridge, String id, String template, TsData ts, boolean mergeOnly)
             throws ReflectiveOperationException {
         var model = TramoKernel.of(TramoSpec.fromString(template), new ModellingContext())
             .process(ts, new ProcessingLog() {});
         require(model != null, id + " fitted model");
         SeatsModelSpec seats = (SeatsModelSpec) bridge.invoke(null, model);
+        if (mergeOnly) {
+            merge(id, template, model, seats, 0, -2);
+            if (id.equals("fit_multi")) merge(id, template, model, seats, 3, 6);
+            return;
+        }
         var description = model.getDescription();
         var arima = model.arima();
         var spec = seats.getSarimaSpec();
@@ -127,7 +164,7 @@ public class TramoSeatsBridgeProbe {
             TsPeriod start = TsPeriod.monthly(Integer.parseInt(header[n-2]), Integer.parseInt(header[n-1]));
             double[] values = Arrays.stream(lines.get(i+1).substring(7).split(" "))
                 .mapToDouble(Double::parseDouble).toArray();
-            observe(bridge, id, TEMPLATES.get(id), TsData.of(start, DoubleSeq.of(values)));
+            observe(bridge, id, TEMPLATES.get(id), TsData.of(start, DoubleSeq.of(values)), args.length > 1 && args[1].equals("merge"));
         }
         require(seen.equals(TEMPLATES.keySet()), "incomplete corpus");
     }

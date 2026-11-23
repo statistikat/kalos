@@ -3699,3 +3699,14 @@ frozen fitted inputs. Unsupported regressor classes, missing observations,
 subdomains and length-of-period corrections refuse explicitly. OpenMP and
 ASan/UBSan each passed the three affected tests. The manifest (189/112/334)
 and historical migration audit (406 files) passed.
+
+### M5 / 24-D — deterministic-effects merge contract
+
+The pinned JVM produced six extraction/merge pairs on the five frozen bridge
+models. The gate covers 65 merged rows (4,005 binary64 values) over the
+observed, forecast and backcast domains, plus the exclusion of extraction
+standard deviations. The mixed AO/LS cases require SEATS model approximation;
+their captured WK input permits isolated merge testing within the approved
+D6 policy. Two fresh JVMs matched the capture, SHA-256
+`ca671ddd71d9689ef0a2d5ab786bd7f5f098d580579b1b33186a88fb60d48054`.
+[Merge contract](docs/contracts/tramo-seats-bridge-contract.md)

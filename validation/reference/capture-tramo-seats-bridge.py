@@ -22,6 +22,7 @@ def main():
     parser.add_argument("--jdk", type=Path, required=True, help="Java 21.0.11 JDK home")
     parser.add_argument("--jar-dir", type=Path, action="append", required=True,
                         help="directory containing pinned jars (repeatable)")
+    parser.add_argument("--stage", choices=["bridge", "merge"], default="bridge")
     parser.add_argument("--output", type=Path, help="write a new capture instead of verifying the frozen file")
     args = parser.parse_args()
     reference = json.loads((EVIDENCE / "reference.json").read_text())
@@ -42,15 +43,15 @@ def main():
         subprocess.run([args.jdk / "bin/javac", "--release", "21", "-cp", os.pathsep.join(jars),
                         "-d", directory, HERE / "TramoSeatsBridgeProbe.java"], check=True)
         command = [java, "-Dline.separator=\n", "-XX:+UnlockDiagnosticVMOptions", "-XX:DisableIntrinsic=_dexp,_dlog",
-                   "-cp", os.pathsep.join([directory, *jars]), "TramoSeatsBridgeProbe", CASES]
+                   "-cp", os.pathsep.join([directory, *jars]), "TramoSeatsBridgeProbe", CASES, args.stage]
         first = subprocess.check_output(command)
         if first != subprocess.check_output(command):
             raise SystemExit("two independent JVM captures differ")
     if args.output:
         args.output.write_bytes(first)
-    elif first != (EVIDENCE / "bridge.txt").read_bytes():
+    elif first != (EVIDENCE / f"{args.stage}.txt").read_bytes():
         raise SystemExit("live capture differs from the frozen bridge evidence")
-    print(f"Five bridge cases, two independent JVMs, SHA-256 {hashlib.sha256(first).hexdigest()}")
+    print(f"{args.stage}: five fitted models, two independent JVMs, SHA-256 {hashlib.sha256(first).hexdigest()}")
 
 
 if __name__ == "__main__":
