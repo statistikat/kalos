@@ -4542,3 +4542,7 @@ and merger boundaries for the public stock results.
 ### M5 public RSA3 forecast-error reference
 
 Two independent pinned x86-64 JVMs produced the same forecasts and uncertainties for the six original RSA3 fits, three additional restart or multiple-outlier fits, and four fast-mean fourth passes. Each fit has 24 raw forecasts and their errors, the public original-series errors and the separate final WK errors. The 13-case capture SHA-256 is `a1b77b26c7d8d9f7ad98f08f067bd20d21db94d3cbe341661bf82e455157eb2a`. [JVM evidence](validation/evidence/native/tramo-seats-bridge/rsa3-forecast-errors-x86_64.txt)
+
+### M5 selected-order RSA3 public forecast uncertainty
+
+The fitted monthly TR3 companion-state projection now returns original-series forecast errors at caller-supplied horizons. On 13 public fits all 312 original-scale forecast errors were within 1.56e-14 scaled error (qualification limit 2e-8). All 312 separate WK errors and all 8,340 merged observed and forecast values remained bit-exact. Tests also cover 0, 1 and 7 months, negative and overflowing horizons, an invalid fitted design and typed covariance failure. The three diagnostic, RSA0 and automatic-product gates passed in Release and serial ASan/UBSan. [Forecast projection and replay](tests/test_tramo_seats_automatic.cpp)

@@ -46,9 +46,9 @@ struct ForecastReference {
     std::vector<double> errors, wk_errors;
 };
 
-std::map<std::string, ForecastReference> read_forecasts() {
-    std::ifstream source(std::string(KALOS_AUTOMATIC_ORACLES) + "/rsa1-forecast-errors-x86_64.txt");
-    check(source.good(), "missing RSA1 forecast reference");
+std::map<std::string, ForecastReference> read_forecasts(const std::string& preset, std::size_t expected) {
+    std::ifstream source(std::string(KALOS_AUTOMATIC_ORACLES) + "/" + preset + "-forecast-errors-x86_64.txt");
+    check(source.good(), "missing forecast reference");
     std::map<std::string, ForecastReference> out;
     std::string id;
     for (std::string line; std::getline(source, line);) {
@@ -66,12 +66,13 @@ std::map<std::string, ForecastReference> read_forecasts() {
         auto& values = key == "y_ef" ? ref.errors : ref.wk_errors;
         for (int h = 0; h < n; ++h) values.push_back(value(row));
     }
-    check(out.size() == 12, "incomplete forecast reference");
+    check(out.size() == expected, "incomplete forecast reference");
     return out;
 }
 
 void check_forecasts(const kalos::tramo_seats_automatic_result& fit, const ForecastReference& ref,
-                     const std::string& id, double& worst_error) {
+                     const std::string& id, double& worst_error, bool rsa3) {
+    const auto project = rsa3 ? kalos::tramo_tr3_forecast_errors : kalos::tramo_tr1_forecast_errors;
     const auto& rows = fit.decomposition.extraction.final_components();
     auto wk = std::find_if(rows.begin(), rows.end(), [](const auto& r) {
         return r.component == kalos::seats_component::series && r.information == kalos::seats_information::stdev_forecast;
@@ -80,7 +81,7 @@ void check_forecasts(const kalos::tramo_seats_automatic_result& fit, const Forec
           wk->values == ref.wk_errors, id + " WK forecast domain and errors");
     const auto& model = fit.preprocessing;
     for (int count : {0, 1, 7, 24}) {
-        const auto result = kalos::tramo_tr1_forecast_errors(model, count);
+        const auto result = project(model, count);
         check(result.status == (count ? "available" : "no_requested_predictions") &&
               result.standard_errors.size() == static_cast<std::size_t>(count), id + " public horizon");
         for (int h = 0; h < count; ++h) {
@@ -89,24 +90,41 @@ void check_forecasts(const kalos::tramo_seats_automatic_result& fit, const Forec
             worst_error = std::max(worst_error, scaled);
         }
     }
-    if (id == "fit_tr0_air") {
+    if (id == (rsa3 ? "fit_noout" : "fit_tr0_air")) {
         auto divergent = model;
         divergent.covariance.covariance.front() = std::numeric_limits<double>::infinity();
-        const auto failed = kalos::tramo_tr1_forecast_errors(divergent, 1);
+        const auto failed = project(divergent, 1);
         check(failed.status == "covariance_range" && failed.standard_errors.empty(), id + " unavailable projection");
+        if (rsa3) {
+            auto invalid = model;
+            invalid.covariance.covariance.clear();
+            try {
+                (void)project(invalid, 1);
+                throw std::runtime_error("invalid regression covariance accepted");
+            } catch (const std::invalid_argument&) {}
+            invalid = model;
+            ++invalid.orders.d;
+            try {
+                (void)project(invalid, 1);
+                throw std::runtime_error("invalid effective sample accepted");
+            } catch (const std::invalid_argument&) {}
+        }
         try {
-            (void)kalos::tramo_tr1_forecast_errors(model, std::numeric_limits<int>::max());
+            (void)project(model, std::numeric_limits<int>::max());
             throw std::runtime_error("oversized forecast horizon accepted");
         } catch (const std::length_error&) {}
     }
-    try { (void)kalos::tramo_tr1_forecast_errors(model, -1); }
+    try { (void)project(model, -1); }
     catch (const std::invalid_argument&) { return; }
     throw std::runtime_error("negative forecast horizon accepted");
 }
 
 void run(const std::string& preset, std::size_t expected_cases, std::size_t expected_values,
          const std::string& prefix = "") {
-    static const auto forecasts = read_forecasts();
+    static const auto rsa1_forecasts = read_forecasts("rsa1", 12);
+    static const auto rsa3_forecasts = read_forecasts("rsa3", 13);
+    const bool rsa3 = preset.rfind("rsa3", 0) == 0;
+    const auto& forecasts = rsa3 ? rsa3_forecasts : rsa1_forecasts;
     using C = kalos::seats_component;
     using I = kalos::seats_information;
     const std::map<std::string, C> components{{"Series", C::series}, {"Trend", C::trend}, {"Seasonal", C::seasonal},
@@ -139,8 +157,7 @@ void run(const std::string& preset, std::size_t expected_cases, std::size_t expe
             if (preset.rfind("rsa3", 0) == 0)
                 check(fit.reference_model_computed && fit.first_candidate_computed && fit.initial_regression_checked,
                       id + " automatic identification");
-            if (preset.rfind("rsa1", 0) == 0)
-                check_forecasts(result, forecasts.at(prefix + id), prefix + id, worst_forecast_error);
+            check_forecasts(result, forecasts.at(prefix + id), prefix + id, worst_forecast_error, rsa3);
         } else if (key == "model") {
             bool log, mean;
             row >> label >> std::boolalpha >> log >> label >> mean >> label;

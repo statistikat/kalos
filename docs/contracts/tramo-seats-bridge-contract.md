@@ -301,3 +301,17 @@ use the existing residual-scale and normality functions on the same fitted
 model. The frozen `rsa3-residual-diagnostics-x86_64.txt` gives all three
 outputs for the original six public RSA3 fits and the three additional fits
 covering seasonality restart and multiple outliers.
+
+### Public RSA3 original-series forecast errors
+
+`tramo_tr3_forecast_errors(fit, months)` conditions the selected monthly
+SARIMA model on its observed series. It propagates the companion-state
+covariance and the conditional means for the transformed response and each
+estimated regression column. The future sensitivity of the fitted drift
+and stock AO, LS or TC effect contributes its regression covariance. The
+log-mode result uses the original-scale lognormal variance transformation.
+The forecast horizon is a nonnegative count of months, with
+`no_requested_predictions` at zero. A nonfinite covariance projection
+returns `covariance_range` and an empty vector. The fitted WK series
+uncertainty remains available as a separate seasonal decomposition product.
+[Public 13-fit capture](../../validation/evidence/native/tramo-seats-bridge/rsa3-forecast-errors-x86_64.txt)
