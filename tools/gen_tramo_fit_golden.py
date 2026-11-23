@@ -309,6 +309,13 @@ def main():
                 n_live += 1
             else:
                 n_fact += 1
+        if any(e[0] == 5 for e in case["events"][0]):
+            module_steps = kr.record_walk(case)[-1]
+            for i, step in enumerate(module_steps):
+                if step["kind"] == "estmodel":
+                    live = i > 0 and module_steps[i-1]["kind"] == "scan" and not module_steps[i-1]["outs"]
+                    n_live += int(live)
+                    n_fact += int(not live)
         d9 = nx * (nx + 1) // 2
 
         # ---- the kernel request (kr machinery; trivial ami branch
@@ -356,6 +363,7 @@ def main():
         a("  rq.spec.accept_airline = %s;"
           % ("true" if kv("accept") == "1" else "false"))
         a("  rq.spec.precision = B(0x%016xULL);" % g17(kv("tol")))
+        a("  rq.spec.final_unit_root_threshold = B(0x%016xULL);" % g17(kv("ubp")))
         # TramoKernel.AmiOptions.builder() fixes the intermediate tolerance
         # at 1e-5. readAmiOptions applies EstimateSpec.tol to final precision.
         a("  rq.spec.intermediate_precision = B(0x%016xULL);" % g17("1.0e-5"))

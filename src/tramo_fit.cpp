@@ -26,6 +26,7 @@
 
 #include <kalos/tramo_arma_selection.hpp>
 #include <kalos/tramo_differencing_decision.hpp>
+#include <kalos/tramo_final_estimation.hpp>
 #include <kalos/tramo_outlier_rounds.hpp>
 
 #include <algorithm>
@@ -155,6 +156,28 @@ void check_scan(const TramoFitSpec& spec, const tramo_build_result& built, bool 
     require(names == expected.outliers, "live scan selection disagrees with the ordered outlier witness");
     require(orders_equal(o, expected.orders) && expected.mean == in.entry_mean,
             "live scan description disagrees with the module witness");
+}
+
+void check_final_estimation(const TramoFitSpec& spec, const std::vector<double>& y,
+                            const TramoKernelSeam& entry, const TramoKernelSeam& expected) {
+    TramoFinalEstimatorRunRequest options;
+    const auto& o = entry.orders;
+    options.orders = {o.p, o.d, o.q, o.bp, o.bd, o.bq};
+    options.mean = entry.mean;
+    options.eps = spec.precision;
+    options.ur = spec.final_unit_root_threshold;
+    options.pass = expected.pass_at_call;
+    options.ami = spec.using_auto_model;
+    options.outliers = spec.outliers_used;
+    const auto estimate = tramo_final_estimator_run(options, y);
+    const auto& t = estimate.orders_after;
+    require(estimate.returned == (expected.returned != 0) && estimate.nnsig == expected.nnsig,
+            "live final estimation decision disagrees with the module witness");
+    require(orders_equal({t.p, t.d, t.q, t.bp, t.bd, t.bq}, expected.orders) &&
+            expected.outliers.empty(), "live final estimation specification disagrees with the witness");
+    require(std::equal(estimate.parameters_after.begin(), estimate.parameters_after.end(),
+                       expected.parameters.begin(), expected.parameters.end(), bit_equal),
+            "live final estimation parameters disagree with the module witness");
 }
 
 bool outliers_equal(const std::vector<std::string>& a,
@@ -375,6 +398,21 @@ TramoFitResult tramo_fit(const TramoFitRequest& request) {
         const TramoKernelSeam& seam = seams[s];
         if (seam.kind == TramoKernelSeamKind::seasonality_controller) {
             ctx_seasonal = seam.seasonal_after;
+            continue;
+        }
+        if (seam.kind == TramoKernelSeamKind::estimation_model) {
+            TramoFitSeamCheck check{s, "final_estimator_run", "fact", "entry regression design unavailable"};
+            if (!has_fixed_regressors && s > 0 && seams[s - 1].kind == TramoKernelSeamKind::scan &&
+                seams[s - 1].outliers.empty()) {
+                const auto y = differenced_response(built.interpolated, prestage.log, built.annual_frequency, 0, 0);
+                check_final_estimation(spec, y, seams[s - 1], seam);
+                check.tier = "live";
+                check.note = "match final estimation decision, orders and parameters";
+                ++result.seams_live;
+            } else {
+                ++result.seams_fact;
+            }
+            result.seam_checks.push_back(std::move(check));
             continue;
         }
         if (seam.kind != TramoKernelSeamKind::differencing &&

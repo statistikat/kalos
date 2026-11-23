@@ -78,6 +78,7 @@ inline void build_fit_fit_tr0_air(TramoFitRequest& rq) {
   rq.spec.outliers_ml = false;
   rq.spec.accept_airline = false;
   rq.spec.precision = B(0x3e7ad7f29abcaf48ULL);
+  rq.spec.final_unit_root_threshold = B(0x3feeb851eb851eb8ULL);
   rq.spec.intermediate_precision = B(0x3ee4f8b588e368f1ULL);
   rq.spec.mean_is_test = false;
   rq.spec.mean_used = true;
@@ -161,10 +162,10 @@ inline void build_fit_tr1_air(kalos::TramoKernelRoundsRequest& rq) {
     s.result = TramoKernelStageResult::unchanged;
     s.orders = TramoOrders{0, 1, 1, 0, 1, 1};
     s.mean = true;
-    static const double v0_163[] = {
+    static const double v0_164[] = {
         B(0xbfd9b91aff4e9f26ULL),B(0xbfe1d5511cec0fdaULL),
     };
-    s.parameters = std::vector<double>(v0_163, v0_163 + 2);
+    s.parameters = std::vector<double>(v0_164, v0_164 + 2);
     s.critical_value = B(0x400c47ae147ae147ULL);
     rq.seams.push_back(s);
   }
@@ -179,10 +180,10 @@ inline void build_fit_tr1_air(kalos::TramoKernelRoundsRequest& rq) {
     s.pass_at_call = 0;
     s.nnsig = 0;
     s.orders = TramoOrders{0, 1, 1, 0, 1, 1};
-    static const double v1_181[] = {
+    static const double v1_182[] = {
         B(0xbfd9bb23173de739ULL),B(0xbfe1d854413d8aeaULL),
     };
-    s.parameters = std::vector<double>(v1_181, v1_181 + 2);
+    s.parameters = std::vector<double>(v1_182, v1_182 + 2);
     rq.seams.push_back(s);
   }
   {
@@ -193,10 +194,10 @@ inline void build_fit_tr1_air(kalos::TramoKernelRoundsRequest& rq) {
     s.retry_index = 1;
     s.tsig = B(0x3fff5c28f5c28f5cULL);
     s.mean = true;
-    static const double v2_195[] = {
+    static const double v2_196[] = {
         B(0xbfc51fe5410d47e2ULL),
     };
-    s.tstats = std::vector<double>(v2_195, v2_195 + 1);
+    s.tstats = std::vector<double>(v2_196, v2_196 + 1);
     rq.seams.push_back(s);
   }
   {
@@ -212,7 +213,7 @@ inline void build_fit_tr1_air(kalos::TramoKernelRoundsRequest& rq) {
     s.stats.bic = B(0xc019fdae1699661eULL);
     s.stats.outliers_count = 0;
     s.stats.effective_observations = 131;
-    static const double v3_214[] = {
+    static const double v3_215[] = {
         B(0x3f870835653559abULL),B(0xbf8ca3fd807737d2ULL),B(0xbf91e89b2652b3d3ULL),
         B(0x3fa9ae9841dc20e4ULL),B(0x3fabe0425a0f830aULL),B(0x3f95d1f9989e30beULL),
         B(0x3f92551f878d9168ULL),B(0xbf9bd90c8f96905aULL),B(0xbf9d2830c20d2dafULL),
@@ -258,7 +259,7 @@ inline void build_fit_tr1_air(kalos::TramoKernelRoundsRequest& rq) {
         B(0xbf891b502ed3eabaULL),B(0x3f9ba227c96a5c38ULL),B(0xbf9e5ef585ad243aULL),
         B(0xbf91e990984b4b8eULL),
     };
-    s.stats.residuals = std::vector<double>(v3_214, v3_214 + 130);
+    s.stats.residuals = std::vector<double>(v3_215, v3_215 + 130);
     rq.seams.push_back(s);
   }
   {
@@ -278,10 +279,10 @@ inline void build_fit_tr1_air(kalos::TramoKernelRoundsRequest& rq) {
     s.result = TramoKernelStageResult::unchanged;
     s.orders = TramoOrders{0, 1, 1, 0, 1, 1};
     s.mean = true;
-    static const double v4_280[] = {
+    static const double v4_281[] = {
         B(0xbfd9bb23173de739ULL),B(0xbfe1d854413d8aeaULL),
     };
-    s.parameters = std::vector<double>(v4_280, v4_280 + 2);
+    s.parameters = std::vector<double>(v4_281, v4_281 + 2);
     s.critical_value = B(0x400c47ae147ae147ULL);
     rq.seams.push_back(s);
   }
@@ -296,10 +297,10 @@ inline void build_fit_tr1_air(kalos::TramoKernelRoundsRequest& rq) {
     s.pass_at_call = 1;
     s.nnsig = 0;
     s.orders = TramoOrders{0, 1, 1, 0, 1, 1};
-    static const double v5_298[] = {
+    static const double v5_299[] = {
         B(0xbfd9bb23173de739ULL),B(0xbfe1d854413d8aeaULL),
     };
-    s.parameters = std::vector<double>(v5_298, v5_298 + 2);
+    s.parameters = std::vector<double>(v5_299, v5_299 + 2);
     rq.seams.push_back(s);
   }
   {
@@ -308,10 +309,10 @@ inline void build_fit_tr1_air(kalos::TramoKernelRoundsRequest& rq) {
     s.result = TramoKernelStageResult::unchanged;
     s.tsig = B(0x3ff0000000000000ULL);
     s.mean = true;
-    static const double v6_310[] = {
+    static const double v6_311[] = {
         B(0xbfc51fe5410d47e2ULL),
     };
-    s.tstats = std::vector<double>(v6_310, v6_310 + 1);
+    s.tstats = std::vector<double>(v6_311, v6_311 + 1);
     rq.seams.push_back(s);
   }
   {
@@ -383,6 +384,7 @@ inline void build_fit_fit_tr1_air(TramoFitRequest& rq) {
   rq.spec.outliers_ml = false;
   rq.spec.accept_airline = false;
   rq.spec.precision = B(0x3e7ad7f29abcaf48ULL);
+  rq.spec.final_unit_root_threshold = B(0x3feeb851eb851eb8ULL);
   rq.spec.intermediate_precision = B(0x3ee4f8b588e368f1ULL);
   rq.spec.mean_is_test = false;
   rq.spec.mean_used = true;
@@ -469,10 +471,10 @@ inline void build_fit_tr2_air(kalos::TramoKernelRoundsRequest& rq) {
     s.orders = TramoOrders{0, 1, 1, 0, 1, 1};
     s.mean = true;
     s.outliers = {"AO (1982-05-01)", "AO (1985-02-01)"};
-    static const double v0_471[] = {
+    static const double v0_473[] = {
         B(0xbfc999999999999aULL),B(0xbfc999999999999aULL),
     };
-    s.parameters = std::vector<double>(v0_471, v0_471 + 2);
+    s.parameters = std::vector<double>(v0_473, v0_473 + 2);
     s.critical_value = B(0x400c47ae147ae147ULL);
     rq.seams.push_back(s);
   }
@@ -488,10 +490,10 @@ inline void build_fit_tr2_air(kalos::TramoKernelRoundsRequest& rq) {
     s.nnsig = 0;
     s.orders = TramoOrders{0, 1, 1, 0, 1, 1};
     s.outliers = {"AO (1982-05-01)", "AO (1985-02-01)"};
-    static const double v1_490[] = {
+    static const double v1_492[] = {
         B(0xbfb8f26c422c5c4aULL),B(0xbfe24e8b600ee45cULL),
     };
-    s.parameters = std::vector<double>(v1_490, v1_490 + 2);
+    s.parameters = std::vector<double>(v1_492, v1_492 + 2);
     rq.seams.push_back(s);
   }
   {
@@ -502,11 +504,11 @@ inline void build_fit_tr2_air(kalos::TramoKernelRoundsRequest& rq) {
     s.retry_index = 1;
     s.tsig = B(0x3fff5c28f5c28f5cULL);
     s.mean = true;
-    static const double v2_504[] = {
+    static const double v2_506[] = {
         B(0xbfcbc00a4f0adde1ULL),B(0x4016f1662241753bULL),B(0xc002bfd7d1202561ULL),
         B(0x401425f5f7fa744bULL),B(0xc00db9d18c7b9fe9ULL),
     };
-    s.tstats = std::vector<double>(v2_504, v2_504 + 5);
+    s.tstats = std::vector<double>(v2_506, v2_506 + 5);
     rq.seams.push_back(s);
   }
   {
@@ -522,7 +524,7 @@ inline void build_fit_tr2_air(kalos::TramoKernelRoundsRequest& rq) {
     s.stats.bic = B(0xc01ae9910298fa5aULL);
     s.stats.outliers_count = 2;
     s.stats.effective_observations = 131;
-    static const double v3_524[] = {
+    static const double v3_526[] = {
         B(0x3fa7dbc0b3cc676aULL),B(0x3f6f9f2242817795ULL),B(0x3f838f3143bd3b76ULL),
         B(0xbf990a4cc1fd4709ULL),B(0xbfa3501cba2606a7ULL),B(0x3fb2c0456f063747ULL),
         B(0x3fb13157f570c111ULL),B(0xbfa8174e609c6f4fULL),B(0x3fa17e6ee305991eULL),
@@ -566,7 +568,7 @@ inline void build_fit_tr2_air(kalos::TramoKernelRoundsRequest& rq) {
         B(0xbf7d9b6f41fbe0b6ULL),B(0xbf958708e0a1d552ULL),B(0xbf85d069e6878eefULL),
         B(0x3f9a585fb951692cULL),B(0xbf98123233023860ULL),B(0xbf96cdaa0a0bb9f0ULL),
     };
-    s.stats.residuals = std::vector<double>(v3_524, v3_524 + 126);
+    s.stats.residuals = std::vector<double>(v3_526, v3_526 + 126);
     rq.seams.push_back(s);
   }
   {
@@ -587,10 +589,10 @@ inline void build_fit_tr2_air(kalos::TramoKernelRoundsRequest& rq) {
     s.orders = TramoOrders{0, 1, 1, 0, 1, 1};
     s.mean = true;
     s.outliers = {"AO (1982-05-01)", "AO (1985-02-01)"};
-    static const double v4_589[] = {
+    static const double v4_591[] = {
         B(0xbfc999999999999aULL),B(0xbfc999999999999aULL),
     };
-    s.parameters = std::vector<double>(v4_589, v4_589 + 2);
+    s.parameters = std::vector<double>(v4_591, v4_591 + 2);
     s.critical_value = B(0x400c47ae147ae147ULL);
     rq.seams.push_back(s);
   }
@@ -606,10 +608,10 @@ inline void build_fit_tr2_air(kalos::TramoKernelRoundsRequest& rq) {
     s.nnsig = 0;
     s.orders = TramoOrders{0, 1, 1, 0, 1, 1};
     s.outliers = {"AO (1982-05-01)", "AO (1985-02-01)"};
-    static const double v5_608[] = {
+    static const double v5_610[] = {
         B(0xbfb8f26c422c5c4aULL),B(0xbfe24e8b600ee45cULL),
     };
-    s.parameters = std::vector<double>(v5_608, v5_608 + 2);
+    s.parameters = std::vector<double>(v5_610, v5_610 + 2);
     rq.seams.push_back(s);
   }
   {
@@ -618,11 +620,11 @@ inline void build_fit_tr2_air(kalos::TramoKernelRoundsRequest& rq) {
     s.result = TramoKernelStageResult::unchanged;
     s.tsig = B(0x3ff0000000000000ULL);
     s.mean = true;
-    static const double v6_620[] = {
+    static const double v6_622[] = {
         B(0xbfcbc00a4f0adde1ULL),B(0x4016f1662241753bULL),B(0xc002bfd7d1202561ULL),
         B(0x401425f5f7fa744bULL),B(0xc00db9d18c7b9fe9ULL),
     };
-    s.tstats = std::vector<double>(v6_620, v6_620 + 5);
+    s.tstats = std::vector<double>(v6_622, v6_622 + 5);
     rq.seams.push_back(s);
   }
   {
@@ -694,6 +696,7 @@ inline void build_fit_fit_tr2_air(TramoFitRequest& rq) {
   rq.spec.outliers_ml = false;
   rq.spec.accept_airline = false;
   rq.spec.precision = B(0x3e7ad7f29abcaf48ULL);
+  rq.spec.final_unit_root_threshold = B(0x3feeb851eb851eb8ULL);
   rq.spec.intermediate_precision = B(0x3ee4f8b588e368f1ULL);
   rq.spec.mean_is_test = false;
   rq.spec.mean_used = true;
@@ -788,10 +791,10 @@ inline void build_fit_tr3_air(kalos::TramoKernelRoundsRequest& rq) {
     s.result = TramoKernelStageResult::unchanged;
     s.orders = TramoOrders{0, 1, 1, 0, 1, 1};
     s.mean = false;
-    static const double v0_790[] = {
+    static const double v0_793[] = {
         B(0xbfd9b56006788926ULL),B(0xbfe1cecf1f977b4dULL),
     };
-    s.parameters = std::vector<double>(v0_790, v0_790 + 2);
+    s.parameters = std::vector<double>(v0_793, v0_793 + 2);
     s.critical_value = B(0x400c47ae147ae147ULL);
     rq.seams.push_back(s);
   }
@@ -806,10 +809,10 @@ inline void build_fit_tr3_air(kalos::TramoKernelRoundsRequest& rq) {
     s.pass_at_call = 0;
     s.nnsig = 0;
     s.orders = TramoOrders{0, 1, 1, 0, 1, 1};
-    static const double v1_808[] = {
+    static const double v1_811[] = {
         B(0xbfd9b74faadd706dULL),B(0xbfe1d1ea2c5615d8ULL),
     };
-    s.parameters = std::vector<double>(v1_808, v1_808 + 2);
+    s.parameters = std::vector<double>(v1_811, v1_811 + 2);
     rq.seams.push_back(s);
   }
   {
@@ -835,7 +838,7 @@ inline void build_fit_tr3_air(kalos::TramoKernelRoundsRequest& rq) {
     s.stats.bic = B(0xc01a23737190ac6bULL);
     s.stats.outliers_count = 0;
     s.stats.effective_observations = 131;
-    static const double v2_837[] = {
+    static const double v2_840[] = {
         B(0x3fa0416de25b8ee8ULL),B(0x3f889d19086f5994ULL),B(0xbf8ad7fd13b9879fULL),
         B(0xbf90f45ec2c22b86ULL),B(0x3faa2eccb45e6650ULL),B(0x3fac5fdb495998b3ULL),
         B(0x3f96cd613fa3632bULL),B(0x3f9351e65b825587ULL),B(0xbf9adf54722a6c53ULL),
@@ -881,7 +884,7 @@ inline void build_fit_tr3_air(kalos::TramoKernelRoundsRequest& rq) {
         B(0xbfa082b71bc769b2ULL),B(0xbf83df0daee651a0ULL),B(0x3f9e37c20b641e0dULL),
         B(0xbf9bd0233218bec0ULL),B(0xbf8ea75fb7f8d51eULL),
     };
-    s.stats.residuals = std::vector<double>(v2_837, v2_837 + 131);
+    s.stats.residuals = std::vector<double>(v2_840, v2_840 + 131);
     rq.seams.push_back(s);
   }
   {
@@ -901,10 +904,10 @@ inline void build_fit_tr3_air(kalos::TramoKernelRoundsRequest& rq) {
     s.result = TramoKernelStageResult::unchanged;
     s.orders = TramoOrders{0, 1, 1, 0, 1, 1};
     s.mean = false;
-    static const double v3_903[] = {
+    static const double v3_906[] = {
         B(0xbfd9b74faadd706dULL),B(0xbfe1d1ea2c5615d8ULL),
     };
-    s.parameters = std::vector<double>(v3_903, v3_903 + 2);
+    s.parameters = std::vector<double>(v3_906, v3_906 + 2);
     rq.seams.push_back(s);
   }
   {
@@ -931,10 +934,10 @@ inline void build_fit_tr3_air(kalos::TramoKernelRoundsRequest& rq) {
     s.result = TramoKernelStageResult::unchanged;
     s.orders = TramoOrders{0, 1, 1, 0, 1, 1};
     s.mean = false;
-    static const double v4_933[] = {
+    static const double v4_936[] = {
         B(0xbfd9b74faadd706dULL),B(0xbfe1d1ea2c5615d8ULL),
     };
-    s.parameters = std::vector<double>(v4_933, v4_933 + 2);
+    s.parameters = std::vector<double>(v4_936, v4_936 + 2);
     s.critical_value = B(0x400c47ae147ae147ULL);
     rq.seams.push_back(s);
   }
@@ -949,10 +952,10 @@ inline void build_fit_tr3_air(kalos::TramoKernelRoundsRequest& rq) {
     s.pass_at_call = 1;
     s.nnsig = 0;
     s.orders = TramoOrders{0, 1, 1, 0, 1, 1};
-    static const double v5_951[] = {
+    static const double v5_954[] = {
         B(0xbfd9b74faadd706dULL),B(0xbfe1d1ea2c5615d8ULL),
     };
-    s.parameters = std::vector<double>(v5_951, v5_951 + 2);
+    s.parameters = std::vector<double>(v5_954, v5_954 + 2);
     rq.seams.push_back(s);
   }
   {
@@ -967,10 +970,10 @@ inline void build_fit_tr3_air(kalos::TramoKernelRoundsRequest& rq) {
     s.gate_reference_ljung_box_complement = B(0x3fe4a7c1513ba831ULL);
     s.gate_reference_standard_error = B(0x3fa2f1afa0217296ULL);
     s.arima_orders = TramoOrders{0, 1, 1, 0, 1, 1};
-    static const double v6_969[] = {
+    static const double v6_972[] = {
         B(0xbfd9b74faadd706dULL),B(0xbfe1d1ea2c5615d8ULL),
     };
-    s.parameters = std::vector<double>(v6_969, v6_969 + 2);
+    s.parameters = std::vector<double>(v6_972, v6_972 + 2);
     s.stats.free_parameters = 2;
     s.stats.dim = 131;
     s.stats.observations = 144;
@@ -980,7 +983,7 @@ inline void build_fit_tr3_air(kalos::TramoKernelRoundsRequest& rq) {
     s.stats.bic = B(0xc01a23737190ac6bULL);
     s.stats.outliers_count = 0;
     s.stats.effective_observations = 131;
-    static const double v7_982[] = {
+    static const double v7_985[] = {
         B(0x3fa0416de25b8ee8ULL),B(0x3f889d19086f5994ULL),B(0xbf8ad7fd13b9879fULL),
         B(0xbf90f45ec2c22b86ULL),B(0x3faa2eccb45e6650ULL),B(0x3fac5fdb495998b3ULL),
         B(0x3f96cd613fa3632bULL),B(0x3f9351e65b825587ULL),B(0xbf9adf54722a6c53ULL),
@@ -1026,7 +1029,7 @@ inline void build_fit_tr3_air(kalos::TramoKernelRoundsRequest& rq) {
         B(0xbfa082b71bc769b2ULL),B(0xbf83df0daee651a0ULL),B(0x3f9e37c20b641e0dULL),
         B(0xbf9bd0233218bec0ULL),B(0xbf8ea75fb7f8d51eULL),
     };
-    s.stats.residuals = std::vector<double>(v7_982, v7_982 + 131);
+    s.stats.residuals = std::vector<double>(v7_985, v7_985 + 131);
     rq.seams.push_back(s);
   }
   {
@@ -1050,10 +1053,10 @@ inline void build_fit_tr3_air(kalos::TramoKernelRoundsRequest& rq) {
     s.result = TramoKernelStageResult::unchanged;
     s.orders = TramoOrders{0, 1, 1, 0, 1, 1};
     s.mean = false;
-    static const double v8_1052[] = {
+    static const double v8_1055[] = {
         B(0xbfd9b74faadd706dULL),B(0xbfe1d1ea2c5615d8ULL),
     };
-    s.parameters = std::vector<double>(v8_1052, v8_1052 + 2);
+    s.parameters = std::vector<double>(v8_1055, v8_1055 + 2);
     s.seasonal_after = true;
     s.original_seasonality_after = 3;
     rq.seams.push_back(s);
@@ -1064,10 +1067,10 @@ inline void build_fit_tr3_air(kalos::TramoKernelRoundsRequest& rq) {
     s.result = TramoKernelStageResult::unchanged;
     s.orders = TramoOrders{0, 1, 1, 0, 1, 1};
     s.mean = false;
-    static const double v9_1066[] = {
+    static const double v9_1069[] = {
         B(0xbfd9b74faadd706dULL),B(0xbfe1d1ea2c5615d8ULL),
     };
-    s.parameters = std::vector<double>(v9_1066, v9_1066 + 2);
+    s.parameters = std::vector<double>(v9_1069, v9_1069 + 2);
     rq.seams.push_back(s);
   }
   {
@@ -1076,10 +1079,10 @@ inline void build_fit_tr3_air(kalos::TramoKernelRoundsRequest& rq) {
     s.result = TramoKernelStageResult::unchanged;
     s.orders = TramoOrders{0, 1, 1, 0, 1, 1};
     s.mean = false;
-    static const double v10_1078[] = {
+    static const double v10_1081[] = {
         B(0xbfd9b74faadd706dULL),B(0xbfe1d1ea2c5615d8ULL),
     };
-    s.parameters = std::vector<double>(v10_1078, v10_1078 + 2);
+    s.parameters = std::vector<double>(v10_1081, v10_1081 + 2);
     rq.seams.push_back(s);
   }
   {
@@ -1088,10 +1091,10 @@ inline void build_fit_tr3_air(kalos::TramoKernelRoundsRequest& rq) {
     s.result = TramoKernelStageResult::unchanged;
     s.orders = TramoOrders{0, 1, 1, 0, 1, 1};
     s.mean = false;
-    static const double v11_1090[] = {
+    static const double v11_1093[] = {
         B(0xbfd9b74faadd706dULL),B(0xbfe1d1ea2c5615d8ULL),
     };
-    s.parameters = std::vector<double>(v11_1090, v11_1090 + 2);
+    s.parameters = std::vector<double>(v11_1093, v11_1093 + 2);
     rq.seams.push_back(s);
   }
   {
@@ -1100,10 +1103,10 @@ inline void build_fit_tr3_air(kalos::TramoKernelRoundsRequest& rq) {
     s.result = TramoKernelStageResult::unchanged;
     s.orders = TramoOrders{0, 1, 1, 0, 1, 1};
     s.mean = false;
-    static const double v12_1102[] = {
+    static const double v12_1105[] = {
         B(0xbfd9b74faadd706dULL),B(0xbfe1d1ea2c5615d8ULL),
     };
-    s.parameters = std::vector<double>(v12_1102, v12_1102 + 2);
+    s.parameters = std::vector<double>(v12_1105, v12_1105 + 2);
     rq.seams.push_back(s);
   }
   {
@@ -1184,6 +1187,7 @@ inline void build_fit_fit_tr3_air(TramoFitRequest& rq) {
   rq.spec.outliers_ml = false;
   rq.spec.accept_airline = false;
   rq.spec.precision = B(0x3e7ad7f29abcaf48ULL);
+  rq.spec.final_unit_root_threshold = B(0x3feeb851eb851eb8ULL);
   rq.spec.intermediate_precision = B(0x3ee4f8b588e368f1ULL);
   rq.spec.mean_is_test = false;
   rq.spec.mean_used = true;
@@ -1271,10 +1275,10 @@ inline void build_fit_accept_air(kalos::TramoKernelRoundsRequest& rq) {
     s.result = TramoKernelStageResult::unchanged;
     s.orders = TramoOrders{0, 1, 1, 0, 1, 1};
     s.mean = false;
-    static const double v0_1273[] = {
+    static const double v0_1277[] = {
         B(0xbfd9b56006788926ULL),B(0xbfe1cecf1f977b4dULL),
     };
-    s.parameters = std::vector<double>(v0_1273, v0_1273 + 2);
+    s.parameters = std::vector<double>(v0_1277, v0_1277 + 2);
     s.critical_value = B(0x400c47ae147ae147ULL);
     rq.seams.push_back(s);
   }
@@ -1289,10 +1293,10 @@ inline void build_fit_accept_air(kalos::TramoKernelRoundsRequest& rq) {
     s.pass_at_call = 0;
     s.nnsig = 0;
     s.orders = TramoOrders{0, 1, 1, 0, 1, 1};
-    static const double v1_1291[] = {
+    static const double v1_1295[] = {
         B(0xbfd9b74faadd706dULL),B(0xbfe1d1ea2c5615d8ULL),
     };
-    s.parameters = std::vector<double>(v1_1291, v1_1291 + 2);
+    s.parameters = std::vector<double>(v1_1295, v1_1295 + 2);
     rq.seams.push_back(s);
   }
   {
@@ -1318,7 +1322,7 @@ inline void build_fit_accept_air(kalos::TramoKernelRoundsRequest& rq) {
     s.stats.bic = B(0xc01a23737190ac6bULL);
     s.stats.outliers_count = 0;
     s.stats.effective_observations = 131;
-    static const double v2_1320[] = {
+    static const double v2_1324[] = {
         B(0x3fa0416de25b8ee8ULL),B(0x3f889d19086f5994ULL),B(0xbf8ad7fd13b9879fULL),
         B(0xbf90f45ec2c22b86ULL),B(0x3faa2eccb45e6650ULL),B(0x3fac5fdb495998b3ULL),
         B(0x3f96cd613fa3632bULL),B(0x3f9351e65b825587ULL),B(0xbf9adf54722a6c53ULL),
@@ -1364,7 +1368,7 @@ inline void build_fit_accept_air(kalos::TramoKernelRoundsRequest& rq) {
         B(0xbfa082b71bc769b2ULL),B(0xbf83df0daee651a0ULL),B(0x3f9e37c20b641e0dULL),
         B(0xbf9bd0233218bec0ULL),B(0xbf8ea75fb7f8d51eULL),
     };
-    s.stats.residuals = std::vector<double>(v2_1320, v2_1320 + 131);
+    s.stats.residuals = std::vector<double>(v2_1324, v2_1324 + 131);
     rq.seams.push_back(s);
   }
 }
@@ -1426,6 +1430,7 @@ inline void build_fit_fit_accept_air(TramoFitRequest& rq) {
   rq.spec.outliers_ml = false;
   rq.spec.accept_airline = true;
   rq.spec.precision = B(0x3e7ad7f29abcaf48ULL);
+  rq.spec.final_unit_root_threshold = B(0x3feeb851eb851eb8ULL);
   rq.spec.intermediate_precision = B(0x3ee4f8b588e368f1ULL);
   rq.spec.mean_is_test = false;
   rq.spec.mean_used = true;
@@ -1510,10 +1515,10 @@ inline void build_fit_mean_air(kalos::TramoKernelRoundsRequest& rq) {
     s.result = TramoKernelStageResult::unchanged;
     s.orders = TramoOrders{0, 1, 1, 0, 1, 1};
     s.mean = false;
-    static const double v0_1512[] = {
+    static const double v0_1517[] = {
         B(0xbfd9b56006788926ULL),B(0xbfe1cecf1f977b4dULL),
     };
-    s.parameters = std::vector<double>(v0_1512, v0_1512 + 2);
+    s.parameters = std::vector<double>(v0_1517, v0_1517 + 2);
     s.critical_value = B(0x400c47ae147ae147ULL);
     rq.seams.push_back(s);
   }
@@ -1528,10 +1533,10 @@ inline void build_fit_mean_air(kalos::TramoKernelRoundsRequest& rq) {
     s.pass_at_call = 0;
     s.nnsig = 0;
     s.orders = TramoOrders{0, 1, 1, 0, 1, 1};
-    static const double v1_1530[] = {
+    static const double v1_1535[] = {
         B(0xbfd9b74faadd706dULL),B(0xbfe1d1ea2c5615d8ULL),
     };
-    s.parameters = std::vector<double>(v1_1530, v1_1530 + 2);
+    s.parameters = std::vector<double>(v1_1535, v1_1535 + 2);
     rq.seams.push_back(s);
   }
   {
@@ -1557,7 +1562,7 @@ inline void build_fit_mean_air(kalos::TramoKernelRoundsRequest& rq) {
     s.stats.bic = B(0xc01a23737190ac6bULL);
     s.stats.outliers_count = 0;
     s.stats.effective_observations = 131;
-    static const double v2_1559[] = {
+    static const double v2_1564[] = {
         B(0x3fa0416de25b8ee8ULL),B(0x3f889d19086f5994ULL),B(0xbf8ad7fd13b9879fULL),
         B(0xbf90f45ec2c22b86ULL),B(0x3faa2eccb45e6650ULL),B(0x3fac5fdb495998b3ULL),
         B(0x3f96cd613fa3632bULL),B(0x3f9351e65b825587ULL),B(0xbf9adf54722a6c53ULL),
@@ -1603,7 +1608,7 @@ inline void build_fit_mean_air(kalos::TramoKernelRoundsRequest& rq) {
         B(0xbfa082b71bc769b2ULL),B(0xbf83df0daee651a0ULL),B(0x3f9e37c20b641e0dULL),
         B(0xbf9bd0233218bec0ULL),B(0xbf8ea75fb7f8d51eULL),
     };
-    s.stats.residuals = std::vector<double>(v2_1559, v2_1559 + 131);
+    s.stats.residuals = std::vector<double>(v2_1564, v2_1564 + 131);
     rq.seams.push_back(s);
   }
   {
@@ -1623,10 +1628,10 @@ inline void build_fit_mean_air(kalos::TramoKernelRoundsRequest& rq) {
     s.result = TramoKernelStageResult::unchanged;
     s.orders = TramoOrders{0, 1, 1, 0, 1, 1};
     s.mean = false;
-    static const double v3_1625[] = {
+    static const double v3_1630[] = {
         B(0xbfd9b74faadd706dULL),B(0xbfe1d1ea2c5615d8ULL),
     };
-    s.parameters = std::vector<double>(v3_1625, v3_1625 + 2);
+    s.parameters = std::vector<double>(v3_1630, v3_1630 + 2);
     rq.seams.push_back(s);
   }
   {
@@ -1653,10 +1658,10 @@ inline void build_fit_mean_air(kalos::TramoKernelRoundsRequest& rq) {
     s.result = TramoKernelStageResult::unchanged;
     s.orders = TramoOrders{0, 1, 1, 0, 1, 1};
     s.mean = false;
-    static const double v4_1655[] = {
+    static const double v4_1660[] = {
         B(0xbfd9b74faadd706dULL),B(0xbfe1d1ea2c5615d8ULL),
     };
-    s.parameters = std::vector<double>(v4_1655, v4_1655 + 2);
+    s.parameters = std::vector<double>(v4_1660, v4_1660 + 2);
     s.critical_value = B(0x400c47ae147ae147ULL);
     rq.seams.push_back(s);
   }
@@ -1671,10 +1676,10 @@ inline void build_fit_mean_air(kalos::TramoKernelRoundsRequest& rq) {
     s.pass_at_call = 1;
     s.nnsig = 0;
     s.orders = TramoOrders{0, 1, 1, 0, 1, 1};
-    static const double v5_1673[] = {
+    static const double v5_1678[] = {
         B(0xbfd9b74faadd706dULL),B(0xbfe1d1ea2c5615d8ULL),
     };
-    s.parameters = std::vector<double>(v5_1673, v5_1673 + 2);
+    s.parameters = std::vector<double>(v5_1678, v5_1678 + 2);
     rq.seams.push_back(s);
   }
   {
@@ -1689,10 +1694,10 @@ inline void build_fit_mean_air(kalos::TramoKernelRoundsRequest& rq) {
     s.gate_reference_ljung_box_complement = B(0x3fe4a7c1513ba831ULL);
     s.gate_reference_standard_error = B(0x3fa2f1afa0217296ULL);
     s.arima_orders = TramoOrders{0, 1, 1, 0, 1, 1};
-    static const double v6_1691[] = {
+    static const double v6_1696[] = {
         B(0xbfd9b74faadd706dULL),B(0xbfe1d1ea2c5615d8ULL),
     };
-    s.parameters = std::vector<double>(v6_1691, v6_1691 + 2);
+    s.parameters = std::vector<double>(v6_1696, v6_1696 + 2);
     s.stats.free_parameters = 2;
     s.stats.dim = 131;
     s.stats.observations = 144;
@@ -1702,7 +1707,7 @@ inline void build_fit_mean_air(kalos::TramoKernelRoundsRequest& rq) {
     s.stats.bic = B(0xc01a23737190ac6bULL);
     s.stats.outliers_count = 0;
     s.stats.effective_observations = 131;
-    static const double v7_1704[] = {
+    static const double v7_1709[] = {
         B(0x3fa0416de25b8ee8ULL),B(0x3f889d19086f5994ULL),B(0xbf8ad7fd13b9879fULL),
         B(0xbf90f45ec2c22b86ULL),B(0x3faa2eccb45e6650ULL),B(0x3fac5fdb495998b3ULL),
         B(0x3f96cd613fa3632bULL),B(0x3f9351e65b825587ULL),B(0xbf9adf54722a6c53ULL),
@@ -1748,7 +1753,7 @@ inline void build_fit_mean_air(kalos::TramoKernelRoundsRequest& rq) {
         B(0xbfa082b71bc769b2ULL),B(0xbf83df0daee651a0ULL),B(0x3f9e37c20b641e0dULL),
         B(0xbf9bd0233218bec0ULL),B(0xbf8ea75fb7f8d51eULL),
     };
-    s.stats.residuals = std::vector<double>(v7_1704, v7_1704 + 131);
+    s.stats.residuals = std::vector<double>(v7_1709, v7_1709 + 131);
     rq.seams.push_back(s);
   }
   {
@@ -1772,10 +1777,10 @@ inline void build_fit_mean_air(kalos::TramoKernelRoundsRequest& rq) {
     s.result = TramoKernelStageResult::unchanged;
     s.orders = TramoOrders{0, 1, 1, 0, 1, 1};
     s.mean = false;
-    static const double v8_1774[] = {
+    static const double v8_1779[] = {
         B(0xbfd9b74faadd706dULL),B(0xbfe1d1ea2c5615d8ULL),
     };
-    s.parameters = std::vector<double>(v8_1774, v8_1774 + 2);
+    s.parameters = std::vector<double>(v8_1779, v8_1779 + 2);
     s.seasonal_after = true;
     s.original_seasonality_after = 3;
     rq.seams.push_back(s);
@@ -1786,10 +1791,10 @@ inline void build_fit_mean_air(kalos::TramoKernelRoundsRequest& rq) {
     s.result = TramoKernelStageResult::unchanged;
     s.orders = TramoOrders{0, 1, 1, 0, 1, 1};
     s.mean = false;
-    static const double v9_1788[] = {
+    static const double v9_1793[] = {
         B(0xbfd9b74faadd706dULL),B(0xbfe1d1ea2c5615d8ULL),
     };
-    s.parameters = std::vector<double>(v9_1788, v9_1788 + 2);
+    s.parameters = std::vector<double>(v9_1793, v9_1793 + 2);
     rq.seams.push_back(s);
   }
   {
@@ -1798,10 +1803,10 @@ inline void build_fit_mean_air(kalos::TramoKernelRoundsRequest& rq) {
     s.result = TramoKernelStageResult::unchanged;
     s.orders = TramoOrders{0, 1, 1, 0, 1, 1};
     s.mean = false;
-    static const double v10_1800[] = {
+    static const double v10_1805[] = {
         B(0xbfd9b74faadd706dULL),B(0xbfe1d1ea2c5615d8ULL),
     };
-    s.parameters = std::vector<double>(v10_1800, v10_1800 + 2);
+    s.parameters = std::vector<double>(v10_1805, v10_1805 + 2);
     rq.seams.push_back(s);
   }
   {
@@ -1810,10 +1815,10 @@ inline void build_fit_mean_air(kalos::TramoKernelRoundsRequest& rq) {
     s.result = TramoKernelStageResult::unchanged;
     s.orders = TramoOrders{0, 1, 1, 0, 1, 1};
     s.mean = false;
-    static const double v11_1812[] = {
+    static const double v11_1817[] = {
         B(0xbfd9b74faadd706dULL),B(0xbfe1d1ea2c5615d8ULL),
     };
-    s.parameters = std::vector<double>(v11_1812, v11_1812 + 2);
+    s.parameters = std::vector<double>(v11_1817, v11_1817 + 2);
     rq.seams.push_back(s);
   }
   {
@@ -1822,10 +1827,10 @@ inline void build_fit_mean_air(kalos::TramoKernelRoundsRequest& rq) {
     s.result = TramoKernelStageResult::unchanged;
     s.orders = TramoOrders{0, 1, 1, 0, 1, 1};
     s.mean = false;
-    static const double v12_1824[] = {
+    static const double v12_1829[] = {
         B(0xbfd9b74faadd706dULL),B(0xbfe1d1ea2c5615d8ULL),
     };
-    s.parameters = std::vector<double>(v12_1824, v12_1824 + 2);
+    s.parameters = std::vector<double>(v12_1829, v12_1829 + 2);
     rq.seams.push_back(s);
   }
   {
@@ -1906,6 +1911,7 @@ inline void build_fit_fit_mean_air(TramoFitRequest& rq) {
   rq.spec.outliers_ml = false;
   rq.spec.accept_airline = false;
   rq.spec.precision = B(0x3e7ad7f29abcaf48ULL);
+  rq.spec.final_unit_root_threshold = B(0x3feeb851eb851eb8ULL);
   rq.spec.intermediate_precision = B(0x3ee4f8b588e368f1ULL);
   rq.spec.mean_is_test = true;
   rq.spec.mean_used = true;
@@ -1994,10 +2000,10 @@ inline void build_fit_fct_air(kalos::TramoKernelRoundsRequest& rq) {
     s.orders = TramoOrders{0, 1, 1, 0, 1, 1};
     s.mean = false;
     s.outliers = {"AO (1991-03-01)"};
-    static const double v0_1996[] = {
+    static const double v0_2002[] = {
         B(0xbfc999999999999aULL),B(0xbfc999999999999aULL),
     };
-    s.parameters = std::vector<double>(v0_1996, v0_1996 + 2);
+    s.parameters = std::vector<double>(v0_2002, v0_2002 + 2);
     s.critical_value = B(0x400c47ae147ae147ULL);
     rq.seams.push_back(s);
   }
@@ -2013,10 +2019,10 @@ inline void build_fit_fct_air(kalos::TramoKernelRoundsRequest& rq) {
     s.nnsig = 0;
     s.orders = TramoOrders{0, 1, 1, 0, 1, 1};
     s.outliers = {"AO (1991-03-01)"};
-    static const double v1_2015[] = {
+    static const double v1_2021[] = {
         B(0xbfcfa1dc88606439ULL),B(0xbfb69a4a51ec321eULL),
     };
-    s.parameters = std::vector<double>(v1_2015, v1_2015 + 2);
+    s.parameters = std::vector<double>(v1_2021, v1_2021 + 2);
     rq.seams.push_back(s);
   }
   {
@@ -2027,10 +2033,10 @@ inline void build_fit_fct_air(kalos::TramoKernelRoundsRequest& rq) {
     s.retry_index = 1;
     s.tsig = B(0x3fff5c28f5c28f5cULL);
     s.mean = false;
-    static const double v2_2029[] = {
+    static const double v2_2035[] = {
         B(0xc0145b285155a707ULL),
     };
-    s.tstats = std::vector<double>(v2_2029, v2_2029 + 1);
+    s.tstats = std::vector<double>(v2_2035, v2_2035 + 1);
     rq.seams.push_back(s);
   }
   {
@@ -2046,7 +2052,7 @@ inline void build_fit_fct_air(kalos::TramoKernelRoundsRequest& rq) {
     s.stats.bic = B(0x40135cffdb4b9b0aULL);
     s.stats.outliers_count = 1;
     s.stats.effective_observations = 131;
-    static const double v3_2048[] = {
+    static const double v3_2054[] = {
         B(0x40013802e37e563aULL),B(0xc003a839444dcaa1ULL),B(0xc004cb8f11ce19beULL),
         B(0x4022a342ca7fbae7ULL),B(0x40248b3c2be9a78aULL),B(0x40044ecc5d44487bULL),
         B(0x3fe4130e62505fafULL),B(0xc01f41815df82aeaULL),B(0xc017a98442fa9a66ULL),
@@ -2092,7 +2098,7 @@ inline void build_fit_fct_air(kalos::TramoKernelRoundsRequest& rq) {
         B(0xc01ebcbbe09b4868ULL),B(0x4018de533a59c430ULL),B(0xc0382b73e0d603edULL),
         B(0xc01660d08e816bc7ULL),
     };
-    s.stats.residuals = std::vector<double>(v3_2048, v3_2048 + 130);
+    s.stats.residuals = std::vector<double>(v3_2054, v3_2054 + 130);
     rq.seams.push_back(s);
   }
   {
@@ -2113,11 +2119,11 @@ inline void build_fit_fct_air(kalos::TramoKernelRoundsRequest& rq) {
     s.orders = TramoOrders{1, 0, 1, 1, 1, 1};
     s.mean = true;
     s.outliers = {"AO (1991-03-01)"};
-    static const double v4_2115[] = {
+    static const double v4_2121[] = {
         B(0xbfb999999999999aULL),B(0xbfb999999999999aULL),B(0xbfc999999999999aULL),
         B(0xbfc999999999999aULL),
     };
-    s.parameters = std::vector<double>(v4_2115, v4_2115 + 4);
+    s.parameters = std::vector<double>(v4_2121, v4_2121 + 4);
     rq.seams.push_back(s);
   }
   {
@@ -2150,10 +2156,10 @@ inline void build_fit_fct_air(kalos::TramoKernelRoundsRequest& rq) {
     s.orders = TramoOrders{2, 0, 0, 0, 1, 0};
     s.mean = true;
     s.outliers = {"AO (1991-03-01)"};
-    static const double v5_2152[] = {
+    static const double v5_2158[] = {
         B(0xbfb999999999999aULL),B(0xbfb999999999999aULL),
     };
-    s.parameters = std::vector<double>(v5_2152, v5_2152 + 2);
+    s.parameters = std::vector<double>(v5_2158, v5_2158 + 2);
     s.critical_value = B(0x400c47ae147ae147ULL);
     rq.seams.push_back(s);
   }
@@ -2169,10 +2175,10 @@ inline void build_fit_fct_air(kalos::TramoKernelRoundsRequest& rq) {
     s.nnsig = 0;
     s.orders = TramoOrders{2, 0, 0, 0, 1, 0};
     s.outliers = {"AO (1991-03-01)"};
-    static const double v6_2171[] = {
+    static const double v6_2177[] = {
         B(0xbfe575ec3b43d5e6ULL),B(0xbfc59b036685b2e0ULL),
     };
-    s.parameters = std::vector<double>(v6_2171, v6_2171 + 2);
+    s.parameters = std::vector<double>(v6_2177, v6_2177 + 2);
     rq.seams.push_back(s);
   }
   {
@@ -2187,10 +2193,10 @@ inline void build_fit_fct_air(kalos::TramoKernelRoundsRequest& rq) {
     s.gate_reference_ljung_box_complement = B(0x3feee01d981d8650ULL);
     s.gate_reference_standard_error = B(0x402586f73e6619ebULL);
     s.arima_orders = TramoOrders{2, 0, 0, 0, 1, 0};
-    static const double v7_2189[] = {
+    static const double v7_2195[] = {
         B(0xbfe575ec3b43d5e6ULL),B(0xbfc59b036685b2e0ULL),
     };
-    s.parameters = std::vector<double>(v7_2189, v7_2189 + 2);
+    s.parameters = std::vector<double>(v7_2195, v7_2195 + 2);
     s.stats.free_parameters = 2;
     s.stats.dim = 132;
     s.stats.observations = 144;
@@ -2200,7 +2206,7 @@ inline void build_fit_fct_air(kalos::TramoKernelRoundsRequest& rq) {
     s.stats.bic = B(0x401349a8f34a1f2eULL);
     s.stats.outliers_count = 1;
     s.stats.effective_observations = 132;
-    static const double v8_2202[] = {
+    static const double v8_2208[] = {
         B(0xbfe87df427d96317ULL),B(0xc0151eb494688b10ULL),B(0xc015bf5419634878ULL),
         B(0x4019a4af470a35d0ULL),B(0x4020157c19aee2ccULL),B(0x3fefa4d740813e60ULL),
         B(0xbfd7225f19144effULL),B(0xc020b912f8c8a276ULL),B(0xc01bfc39b64d6f04ULL),
@@ -2246,7 +2252,7 @@ inline void build_fit_fct_air(kalos::TramoKernelRoundsRequest& rq) {
         B(0xc0073d1b62bd0810ULL),B(0x4027fcdc1df9a034ULL),B(0xc033b45054142d44ULL),
         B(0xc013259a8489d838ULL),
     };
-    s.stats.residuals = std::vector<double>(v8_2202, v8_2202 + 130);
+    s.stats.residuals = std::vector<double>(v8_2208, v8_2208 + 130);
     rq.seams.push_back(s);
   }
   {
@@ -2262,10 +2268,10 @@ inline void build_fit_fct_air(kalos::TramoKernelRoundsRequest& rq) {
     s.result = TramoKernelStageResult::unchanged;
     s.tsig = B(0x3ff0000000000000ULL);
     s.mean = true;
-    static const double v9_2264[] = {
+    static const double v9_2270[] = {
         B(0x40168586ce2dc0d6ULL),B(0xc013e1a9111b16cbULL),
     };
-    s.tstats = std::vector<double>(v9_2264, v9_2264 + 2);
+    s.tstats = std::vector<double>(v9_2270, v9_2270 + 2);
     rq.seams.push_back(s);
   }
   {
@@ -2275,10 +2281,10 @@ inline void build_fit_fct_air(kalos::TramoKernelRoundsRequest& rq) {
     s.orders = TramoOrders{2, 0, 0, 0, 1, 0};
     s.mean = true;
     s.outliers = {"AO (1991-03-01)"};
-    static const double v10_2277[] = {
+    static const double v10_2283[] = {
         B(0xbfe575ec3b43d5e6ULL),B(0xbfc59b036685b2e0ULL),
     };
-    s.parameters = std::vector<double>(v10_2277, v10_2277 + 2);
+    s.parameters = std::vector<double>(v10_2283, v10_2283 + 2);
     s.seasonal_after = true;
     s.original_seasonality_after = 3;
     rq.seams.push_back(s);
@@ -2290,10 +2296,10 @@ inline void build_fit_fct_air(kalos::TramoKernelRoundsRequest& rq) {
     s.orders = TramoOrders{2, 0, 0, 0, 1, 0};
     s.mean = true;
     s.outliers = {"AO (1991-03-01)"};
-    static const double v11_2292[] = {
+    static const double v11_2298[] = {
         B(0xbfe575ec3b43d5e6ULL),B(0xbfc59b036685b2e0ULL),
     };
-    s.parameters = std::vector<double>(v11_2292, v11_2292 + 2);
+    s.parameters = std::vector<double>(v11_2298, v11_2298 + 2);
     rq.seams.push_back(s);
   }
   {
@@ -2303,10 +2309,10 @@ inline void build_fit_fct_air(kalos::TramoKernelRoundsRequest& rq) {
     s.orders = TramoOrders{2, 0, 0, 0, 1, 0};
     s.mean = true;
     s.outliers = {"AO (1991-03-01)"};
-    static const double v12_2305[] = {
+    static const double v12_2311[] = {
         B(0xbfe575ec3b43d5e6ULL),B(0xbfc59b036685b2e0ULL),
     };
-    s.parameters = std::vector<double>(v12_2305, v12_2305 + 2);
+    s.parameters = std::vector<double>(v12_2311, v12_2311 + 2);
     rq.seams.push_back(s);
   }
   {
@@ -2316,10 +2322,10 @@ inline void build_fit_fct_air(kalos::TramoKernelRoundsRequest& rq) {
     s.orders = TramoOrders{2, 0, 0, 0, 1, 0};
     s.mean = true;
     s.outliers = {"AO (1991-03-01)"};
-    static const double v13_2318[] = {
+    static const double v13_2324[] = {
         B(0xbfe575ec3b43d5e6ULL),B(0xbfc59b036685b2e0ULL),
     };
-    s.parameters = std::vector<double>(v13_2318, v13_2318 + 2);
+    s.parameters = std::vector<double>(v13_2324, v13_2324 + 2);
     rq.seams.push_back(s);
   }
   {
@@ -2329,10 +2335,10 @@ inline void build_fit_fct_air(kalos::TramoKernelRoundsRequest& rq) {
     s.orders = TramoOrders{2, 0, 0, 0, 1, 0};
     s.mean = true;
     s.outliers = {"AO (1991-03-01)"};
-    static const double v14_2331[] = {
+    static const double v14_2337[] = {
         B(0xbfe575ec3b43d5e6ULL),B(0xbfc59b036685b2e0ULL),
     };
-    s.parameters = std::vector<double>(v14_2331, v14_2331 + 2);
+    s.parameters = std::vector<double>(v14_2337, v14_2337 + 2);
     rq.seams.push_back(s);
   }
   {
@@ -2413,6 +2419,7 @@ inline void build_fit_fit_fct_air(TramoFitRequest& rq) {
   rq.spec.outliers_ml = false;
   rq.spec.accept_airline = false;
   rq.spec.precision = B(0x3e7ad7f29abcaf48ULL);
+  rq.spec.final_unit_root_threshold = B(0x3feeb851eb851eb8ULL);
   rq.spec.intermediate_precision = B(0x3ee4f8b588e368f1ULL);
   rq.spec.mean_is_test = false;
   rq.spec.mean_used = true;
@@ -2508,6 +2515,7 @@ inline void build_fit_fit_fsnone(TramoFitRequest& rq) {
   rq.spec.outliers_ml = false;
   rq.spec.accept_airline = false;
   rq.spec.precision = B(0x3e7ad7f29abcaf48ULL);
+  rq.spec.final_unit_root_threshold = B(0x3feeb851eb851eb8ULL);
   rq.spec.intermediate_precision = B(0x3ee4f8b588e368f1ULL);
   rq.spec.mean_is_test = false;
   rq.spec.mean_used = true;
@@ -2592,10 +2600,10 @@ inline void build_fit_tr1_ao(kalos::TramoKernelRoundsRequest& rq) {
     s.orders = TramoOrders{0, 1, 1, 0, 1, 1};
     s.mean = true;
     s.outliers = {"AO (1994-01-01)"};
-    static const double v0_2594[] = {
+    static const double v0_2602[] = {
         B(0xbfc999999999999aULL),B(0xbfc999999999999aULL),
     };
-    s.parameters = std::vector<double>(v0_2594, v0_2594 + 2);
+    s.parameters = std::vector<double>(v0_2602, v0_2602 + 2);
     s.critical_value = B(0x400b51eb851eb852ULL);
     rq.seams.push_back(s);
   }
@@ -2611,10 +2619,10 @@ inline void build_fit_tr1_ao(kalos::TramoKernelRoundsRequest& rq) {
     s.nnsig = 0;
     s.orders = TramoOrders{0, 1, 1, 0, 1, 1};
     s.outliers = {"AO (1994-01-01)"};
-    static const double v1_2613[] = {
+    static const double v1_2621[] = {
         B(0xbfefffe2feeadfe7ULL),B(0xbfdd3f8e6786a498ULL),
     };
-    s.parameters = std::vector<double>(v1_2613, v1_2613 + 2);
+    s.parameters = std::vector<double>(v1_2621, v1_2621 + 2);
     rq.seams.push_back(s);
   }
   {
@@ -2625,10 +2633,10 @@ inline void build_fit_tr1_ao(kalos::TramoKernelRoundsRequest& rq) {
     s.retry_index = 1;
     s.tsig = B(0x3fff5c28f5c28f5cULL);
     s.mean = true;
-    static const double v2_2627[] = {
+    static const double v2_2635[] = {
         B(0xc0009f8316e1519fULL),B(0x4046b86ba9b95fe5ULL),
     };
-    s.tstats = std::vector<double>(v2_2627, v2_2627 + 2);
+    s.tstats = std::vector<double>(v2_2635, v2_2635 + 2);
     rq.seams.push_back(s);
   }
   {
@@ -2644,7 +2652,7 @@ inline void build_fit_tr1_ao(kalos::TramoKernelRoundsRequest& rq) {
     s.stats.bic = B(0xc0243d920c4a477bULL);
     s.stats.outliers_count = 1;
     s.stats.effective_observations = 83;
-    static const double v3_2646[] = {
+    static const double v3_2654[] = {
         B(0x3f59313066fc270fULL),B(0xbf6000dd2863bc1dULL),B(0xbf83bafd07cd0e7bULL),
         B(0x3f4f64a1dd3a1c42ULL),B(0x3f786e5beb419dd1ULL),B(0xbf4a6f3db7f7045aULL),
         B(0xbf68df0e71c712d9ULL),B(0x3f8b76727c61b02aULL),B(0xbf6a697fc507fdc8ULL),
@@ -2673,7 +2681,7 @@ inline void build_fit_tr1_ao(kalos::TramoKernelRoundsRequest& rq) {
         B(0xbf7154b7c8b68e1bULL),B(0x3f7c79d97d6c31abULL),B(0xbf54a2fdcd9fcca4ULL),
         B(0x3f710f72f0093210ULL),B(0x3f8ba66a79045c7cULL),B(0x3f6278fcf23706feULL),
     };
-    s.stats.residuals = std::vector<double>(v3_2646, v3_2646 + 81);
+    s.stats.residuals = std::vector<double>(v3_2654, v3_2654 + 81);
     rq.seams.push_back(s);
   }
   {
@@ -2694,10 +2702,10 @@ inline void build_fit_tr1_ao(kalos::TramoKernelRoundsRequest& rq) {
     s.orders = TramoOrders{0, 1, 1, 0, 1, 1};
     s.mean = true;
     s.outliers = {"AO (1994-01-01)"};
-    static const double v4_2696[] = {
+    static const double v4_2704[] = {
         B(0xbfc999999999999aULL),B(0xbfc999999999999aULL),
     };
-    s.parameters = std::vector<double>(v4_2696, v4_2696 + 2);
+    s.parameters = std::vector<double>(v4_2704, v4_2704 + 2);
     s.critical_value = B(0x400b51eb851eb852ULL);
     rq.seams.push_back(s);
   }
@@ -2713,10 +2721,10 @@ inline void build_fit_tr1_ao(kalos::TramoKernelRoundsRequest& rq) {
     s.nnsig = 0;
     s.orders = TramoOrders{0, 1, 1, 0, 1, 1};
     s.outliers = {"AO (1994-01-01)"};
-    static const double v5_2715[] = {
+    static const double v5_2723[] = {
         B(0xbfefffe2feeadfe7ULL),B(0xbfdd3f8e6786a498ULL),
     };
-    s.parameters = std::vector<double>(v5_2715, v5_2715 + 2);
+    s.parameters = std::vector<double>(v5_2723, v5_2723 + 2);
     rq.seams.push_back(s);
   }
   {
@@ -2725,10 +2733,10 @@ inline void build_fit_tr1_ao(kalos::TramoKernelRoundsRequest& rq) {
     s.result = TramoKernelStageResult::unchanged;
     s.tsig = B(0x3ff0000000000000ULL);
     s.mean = true;
-    static const double v6_2727[] = {
+    static const double v6_2735[] = {
         B(0xc0009f8316e1519fULL),B(0x4046b86ba9b95fe5ULL),
     };
-    s.tstats = std::vector<double>(v6_2727, v6_2727 + 2);
+    s.tstats = std::vector<double>(v6_2735, v6_2735 + 2);
     rq.seams.push_back(s);
   }
   {
@@ -2800,6 +2808,7 @@ inline void build_fit_fit_tr1_ao(TramoFitRequest& rq) {
   rq.spec.outliers_ml = false;
   rq.spec.accept_airline = false;
   rq.spec.precision = B(0x3e7ad7f29abcaf48ULL);
+  rq.spec.final_unit_root_threshold = B(0x3feeb851eb851eb8ULL);
   rq.spec.intermediate_precision = B(0x3ee4f8b588e368f1ULL);
   rq.spec.mean_is_test = false;
   rq.spec.mean_used = true;
@@ -2890,10 +2899,10 @@ inline void build_fit_noout(kalos::TramoKernelRoundsRequest& rq) {
     s.result = TramoKernelStageResult::unchanged;
     s.orders = TramoOrders{0, 1, 1, 0, 1, 1};
     s.mean = false;
-    static const double v0_2892[] = {
+    static const double v0_2901[] = {
         B(0xbfec9965e8f78270ULL),B(0xbfdee3d5cd8b236dULL),
     };
-    s.parameters = std::vector<double>(v0_2892, v0_2892 + 2);
+    s.parameters = std::vector<double>(v0_2901, v0_2901 + 2);
     s.critical_value = B(0x400b51eb851eb852ULL);
     rq.seams.push_back(s);
   }
@@ -2908,10 +2917,10 @@ inline void build_fit_noout(kalos::TramoKernelRoundsRequest& rq) {
     s.pass_at_call = 0;
     s.nnsig = 0;
     s.orders = TramoOrders{0, 1, 1, 0, 1, 1};
-    static const double v1_2910[] = {
+    static const double v1_2919[] = {
         B(0xbfeca5b7e4a2fc1bULL),B(0xbfdee3a0d908b436ULL),
     };
-    s.parameters = std::vector<double>(v1_2910, v1_2910 + 2);
+    s.parameters = std::vector<double>(v1_2919, v1_2919 + 2);
     rq.seams.push_back(s);
   }
   {
@@ -2937,7 +2946,7 @@ inline void build_fit_noout(kalos::TramoKernelRoundsRequest& rq) {
     s.stats.bic = B(0xc0243cabfc7e7a10ULL);
     s.stats.outliers_count = 0;
     s.stats.effective_observations = 83;
-    static const double v2_2939[] = {
+    static const double v2_2948[] = {
         B(0xbf6e0259adbbf02bULL),B(0xbf5dc7d6745ca908ULL),B(0x3f590b585be12c07ULL),
         B(0xbf618e77bdfe00a4ULL),B(0xbf84a711ecea998dULL),B(0x3f50e53b6cb729a5ULL),
         B(0x3f790ca767ac7565ULL),B(0xbf517992a992d5edULL),B(0xbf6b70f6430f62ccULL),
@@ -2967,7 +2976,7 @@ inline void build_fit_noout(kalos::TramoKernelRoundsRequest& rq) {
         B(0x3f7f1e8a922b4d46ULL),B(0xbf59d7757eceac4aULL),B(0x3f6f6ac587cc93bdULL),
         B(0x3f8a2df1fbada81fULL),B(0x3f273bb6071bee20ULL),
     };
-    s.stats.residuals = std::vector<double>(v2_2939, v2_2939 + 83);
+    s.stats.residuals = std::vector<double>(v2_2948, v2_2948 + 83);
     rq.seams.push_back(s);
   }
   {
@@ -2987,11 +2996,11 @@ inline void build_fit_noout(kalos::TramoKernelRoundsRequest& rq) {
     s.result = TramoKernelStageResult::changed;
     s.orders = TramoOrders{1, 0, 1, 1, 1, 1};
     s.mean = true;
-    static const double v3_2989[] = {
+    static const double v3_2998[] = {
         B(0xbfb999999999999aULL),B(0xbfb999999999999aULL),B(0xbfc999999999999aULL),
         B(0xbfc999999999999aULL),
     };
-    s.parameters = std::vector<double>(v3_2989, v3_2989 + 4);
+    s.parameters = std::vector<double>(v3_2998, v3_2998 + 4);
     rq.seams.push_back(s);
   }
   {
@@ -3023,10 +3032,10 @@ inline void build_fit_noout(kalos::TramoKernelRoundsRequest& rq) {
     s.result = TramoKernelStageResult::unchanged;
     s.orders = TramoOrders{0, 0, 0, 0, 1, 1};
     s.mean = true;
-    static const double v4_3025[] = {
+    static const double v4_3034[] = {
         B(0xbfc999999999999aULL),
     };
-    s.parameters = std::vector<double>(v4_3025, v4_3025 + 1);
+    s.parameters = std::vector<double>(v4_3034, v4_3034 + 1);
     s.critical_value = B(0x400b51eb851eb852ULL);
     rq.seams.push_back(s);
   }
@@ -3041,10 +3050,10 @@ inline void build_fit_noout(kalos::TramoKernelRoundsRequest& rq) {
     s.pass_at_call = 1;
     s.nnsig = 0;
     s.orders = TramoOrders{0, 0, 0, 0, 1, 1};
-    static const double v5_3043[] = {
+    static const double v5_3052[] = {
         B(0xbfe0350e056a033cULL),
     };
-    s.parameters = std::vector<double>(v5_3043, v5_3043 + 1);
+    s.parameters = std::vector<double>(v5_3052, v5_3052 + 1);
     rq.seams.push_back(s);
   }
   {
@@ -3059,10 +3068,10 @@ inline void build_fit_noout(kalos::TramoKernelRoundsRequest& rq) {
     s.gate_reference_ljung_box_complement = B(0x3fa285b2b31d77e0ULL);
     s.gate_reference_standard_error = B(0x3f78f707433819edULL);
     s.arima_orders = TramoOrders{0, 0, 0, 0, 1, 1};
-    static const double v6_3061[] = {
+    static const double v6_3070[] = {
         B(0xbfe0350e056a033cULL),
     };
-    s.parameters = std::vector<double>(v6_3061, v6_3061 + 1);
+    s.parameters = std::vector<double>(v6_3070, v6_3070 + 1);
     s.stats.free_parameters = 1;
     s.stats.dim = 84;
     s.stats.observations = 96;
@@ -3072,7 +3081,7 @@ inline void build_fit_noout(kalos::TramoKernelRoundsRequest& rq) {
     s.stats.bic = B(0xc0245113db51157cULL);
     s.stats.outliers_count = 0;
     s.stats.effective_observations = 84;
-    static const double v7_3074[] = {
+    static const double v7_3083[] = {
         B(0x3f501aa675f70458ULL),B(0x3f55666d80101b10ULL),B(0x3f71d7be3106ef72ULL),
         B(0x3f4c1dcdbb49b210ULL),B(0xbf8008bfa7d7f136ULL),B(0x3f5cdf23a06b2668ULL),
         B(0x3f7d118241f89802ULL),B(0x3f48180da3007380ULL),B(0xbf5bf94d74d76f80ULL),
@@ -3102,7 +3111,7 @@ inline void build_fit_noout(kalos::TramoKernelRoundsRequest& rq) {
         B(0x3f6bdcc7c8779438ULL),B(0xbf74e655a4a76ce4ULL),B(0x3f1144455eea3400ULL),
         B(0x3f83384d0f298c56ULL),B(0xbf5f972d2b333aa0ULL),
     };
-    s.stats.residuals = std::vector<double>(v7_3074, v7_3074 + 83);
+    s.stats.residuals = std::vector<double>(v7_3083, v7_3083 + 83);
     rq.seams.push_back(s);
   }
   {
@@ -3118,10 +3127,10 @@ inline void build_fit_noout(kalos::TramoKernelRoundsRequest& rq) {
     s.result = TramoKernelStageResult::unchanged;
     s.tsig = B(0x3ff0000000000000ULL);
     s.mean = true;
-    static const double v8_3120[] = {
+    static const double v8_3129[] = {
         B(0x403d96096bc626efULL),
     };
-    s.tstats = std::vector<double>(v8_3120, v8_3120 + 1);
+    s.tstats = std::vector<double>(v8_3129, v8_3129 + 1);
     rq.seams.push_back(s);
   }
   {
@@ -3130,10 +3139,10 @@ inline void build_fit_noout(kalos::TramoKernelRoundsRequest& rq) {
     s.result = TramoKernelStageResult::unchanged;
     s.orders = TramoOrders{0, 0, 0, 0, 1, 1};
     s.mean = true;
-    static const double v9_3132[] = {
+    static const double v9_3141[] = {
         B(0xbfe0350e056a033cULL),
     };
-    s.parameters = std::vector<double>(v9_3132, v9_3132 + 1);
+    s.parameters = std::vector<double>(v9_3141, v9_3141 + 1);
     s.seasonal_after = true;
     s.original_seasonality_after = 3;
     rq.seams.push_back(s);
@@ -3144,10 +3153,10 @@ inline void build_fit_noout(kalos::TramoKernelRoundsRequest& rq) {
     s.result = TramoKernelStageResult::unchanged;
     s.orders = TramoOrders{0, 0, 0, 0, 1, 1};
     s.mean = true;
-    static const double v10_3146[] = {
+    static const double v10_3155[] = {
         B(0xbfe0350e056a033cULL),
     };
-    s.parameters = std::vector<double>(v10_3146, v10_3146 + 1);
+    s.parameters = std::vector<double>(v10_3155, v10_3155 + 1);
     rq.seams.push_back(s);
   }
   {
@@ -3156,10 +3165,10 @@ inline void build_fit_noout(kalos::TramoKernelRoundsRequest& rq) {
     s.result = TramoKernelStageResult::unchanged;
     s.orders = TramoOrders{0, 0, 0, 0, 1, 1};
     s.mean = true;
-    static const double v11_3158[] = {
+    static const double v11_3167[] = {
         B(0xbfe0350e056a033cULL),
     };
-    s.parameters = std::vector<double>(v11_3158, v11_3158 + 1);
+    s.parameters = std::vector<double>(v11_3167, v11_3167 + 1);
     rq.seams.push_back(s);
   }
   {
@@ -3168,10 +3177,10 @@ inline void build_fit_noout(kalos::TramoKernelRoundsRequest& rq) {
     s.result = TramoKernelStageResult::unchanged;
     s.orders = TramoOrders{0, 0, 0, 0, 1, 1};
     s.mean = true;
-    static const double v12_3170[] = {
+    static const double v12_3179[] = {
         B(0xbfe0350e056a033cULL),
     };
-    s.parameters = std::vector<double>(v12_3170, v12_3170 + 1);
+    s.parameters = std::vector<double>(v12_3179, v12_3179 + 1);
     rq.seams.push_back(s);
   }
   {
@@ -3180,10 +3189,10 @@ inline void build_fit_noout(kalos::TramoKernelRoundsRequest& rq) {
     s.result = TramoKernelStageResult::unchanged;
     s.orders = TramoOrders{0, 0, 0, 0, 1, 1};
     s.mean = true;
-    static const double v13_3182[] = {
+    static const double v13_3191[] = {
         B(0xbfe0350e056a033cULL),
     };
-    s.parameters = std::vector<double>(v13_3182, v13_3182 + 1);
+    s.parameters = std::vector<double>(v13_3191, v13_3191 + 1);
     rq.seams.push_back(s);
   }
   {
@@ -3264,6 +3273,7 @@ inline void build_fit_fit_noout(TramoFitRequest& rq) {
   rq.spec.outliers_ml = false;
   rq.spec.accept_airline = false;
   rq.spec.precision = B(0x3e7ad7f29abcaf48ULL);
+  rq.spec.final_unit_root_threshold = B(0x3feeb851eb851eb8ULL);
   rq.spec.intermediate_precision = B(0x3ee4f8b588e368f1ULL);
   rq.spec.mean_is_test = false;
   rq.spec.mean_used = true;
@@ -3353,10 +3363,10 @@ inline void build_fit_ao(kalos::TramoKernelRoundsRequest& rq) {
     s.orders = TramoOrders{0, 1, 1, 0, 1, 1};
     s.mean = false;
     s.outliers = {"AO (1994-01-01)"};
-    static const double v0_3355[] = {
+    static const double v0_3365[] = {
         B(0xbfc999999999999aULL),B(0xbfc999999999999aULL),
     };
-    s.parameters = std::vector<double>(v0_3355, v0_3355 + 2);
+    s.parameters = std::vector<double>(v0_3365, v0_3365 + 2);
     s.critical_value = B(0x400b51eb851eb852ULL);
     rq.seams.push_back(s);
   }
@@ -3372,10 +3382,10 @@ inline void build_fit_ao(kalos::TramoKernelRoundsRequest& rq) {
     s.nnsig = 0;
     s.orders = TramoOrders{0, 1, 1, 0, 1, 1};
     s.outliers = {"AO (1994-01-01)"};
-    static const double v1_3374[] = {
+    static const double v1_3384[] = {
         B(0xbfecd1313abf0821ULL),B(0xbfdd48b70fb82143ULL),
     };
-    s.parameters = std::vector<double>(v1_3374, v1_3374 + 2);
+    s.parameters = std::vector<double>(v1_3384, v1_3384 + 2);
     rq.seams.push_back(s);
   }
   {
@@ -3386,10 +3396,10 @@ inline void build_fit_ao(kalos::TramoKernelRoundsRequest& rq) {
     s.retry_index = 1;
     s.tsig = B(0x3fff5c28f5c28f5cULL);
     s.mean = false;
-    static const double v2_3388[] = {
+    static const double v2_3398[] = {
         B(0x4046e9892c3314ebULL),
     };
-    s.tstats = std::vector<double>(v2_3388, v2_3388 + 1);
+    s.tstats = std::vector<double>(v2_3398, v2_3398 + 1);
     rq.seams.push_back(s);
   }
   {
@@ -3405,7 +3415,7 @@ inline void build_fit_ao(kalos::TramoKernelRoundsRequest& rq) {
     s.stats.bic = B(0xc02435b07afa1cf7ULL);
     s.stats.outliers_count = 1;
     s.stats.effective_observations = 83;
-    static const double v3_3407[] = {
+    static const double v3_3417[] = {
         B(0xbf5e04beb73165d7ULL),B(0x3f5931941b8973b9ULL),B(0xbf61b0ef9881be10ULL),
         B(0xbf84d23df475953dULL),B(0x3f50ae35b0ea52e6ULL),B(0x3f7930a6d07823aeULL),
         B(0xbf5196f397fdf987ULL),B(0xbf6baf96be622a97ULL),B(0x3f8c17157957c88bULL),
@@ -3435,7 +3445,7 @@ inline void build_fit_ao(kalos::TramoKernelRoundsRequest& rq) {
         B(0xbf59c11e43dfa79cULL),B(0x3f7016ed9b5e4b15ULL),B(0x3f8a713a9ba60e8bULL),
         B(0x3f3a5be18f1e64a8ULL),
     };
-    s.stats.residuals = std::vector<double>(v3_3407, v3_3407 + 82);
+    s.stats.residuals = std::vector<double>(v3_3417, v3_3417 + 82);
     rq.seams.push_back(s);
   }
   {
@@ -3456,11 +3466,11 @@ inline void build_fit_ao(kalos::TramoKernelRoundsRequest& rq) {
     s.orders = TramoOrders{1, 0, 1, 1, 1, 1};
     s.mean = true;
     s.outliers = {"AO (1994-01-01)"};
-    static const double v4_3458[] = {
+    static const double v4_3468[] = {
         B(0xbfb999999999999aULL),B(0xbfb999999999999aULL),B(0xbfc999999999999aULL),
         B(0xbfc999999999999aULL),
     };
-    s.parameters = std::vector<double>(v4_3458, v4_3458 + 4);
+    s.parameters = std::vector<double>(v4_3468, v4_3468 + 4);
     rq.seams.push_back(s);
   }
   {
@@ -3493,10 +3503,10 @@ inline void build_fit_ao(kalos::TramoKernelRoundsRequest& rq) {
     s.orders = TramoOrders{0, 0, 0, 0, 1, 1};
     s.mean = true;
     s.outliers = {"AO (1994-01-01)"};
-    static const double v5_3495[] = {
+    static const double v5_3505[] = {
         B(0xbfc999999999999aULL),
     };
-    s.parameters = std::vector<double>(v5_3495, v5_3495 + 1);
+    s.parameters = std::vector<double>(v5_3505, v5_3505 + 1);
     s.critical_value = B(0x400b51eb851eb852ULL);
     rq.seams.push_back(s);
   }
@@ -3512,10 +3522,10 @@ inline void build_fit_ao(kalos::TramoKernelRoundsRequest& rq) {
     s.nnsig = 0;
     s.orders = TramoOrders{0, 0, 0, 0, 1, 1};
     s.outliers = {"AO (1994-01-01)"};
-    static const double v6_3514[] = {
+    static const double v6_3524[] = {
         B(0xbfde8617f3bd35bdULL),
     };
-    s.parameters = std::vector<double>(v6_3514, v6_3514 + 1);
+    s.parameters = std::vector<double>(v6_3524, v6_3524 + 1);
     rq.seams.push_back(s);
   }
   {
@@ -3530,10 +3540,10 @@ inline void build_fit_ao(kalos::TramoKernelRoundsRequest& rq) {
     s.gate_reference_ljung_box_complement = B(0x3fb346df75a7e140ULL);
     s.gate_reference_standard_error = B(0x3f78a0c3e16daf97ULL);
     s.arima_orders = TramoOrders{0, 0, 0, 0, 1, 1};
-    static const double v7_3532[] = {
+    static const double v7_3542[] = {
         B(0xbfde8617f3bd35bdULL),
     };
-    s.parameters = std::vector<double>(v7_3532, v7_3532 + 1);
+    s.parameters = std::vector<double>(v7_3542, v7_3542 + 1);
     s.stats.free_parameters = 1;
     s.stats.dim = 84;
     s.stats.observations = 96;
@@ -3543,7 +3553,7 @@ inline void build_fit_ao(kalos::TramoKernelRoundsRequest& rq) {
     s.stats.bic = B(0xc02446665c2ab2c4ULL);
     s.stats.outliers_count = 1;
     s.stats.effective_observations = 84;
-    static const double v8_3545[] = {
+    static const double v8_3555[] = {
         B(0x3f555edfbce5c237ULL),B(0x3f71fb7aef715206ULL),B(0x3f4be278a641242fULL),
         B(0xbf80420a9b444985ULL),B(0x3f5cee16976dd537ULL),B(0x3f7d570e3e7d1a04ULL),
         B(0x3f47d09b23d968afULL),B(0xbf5c958fb5d16509ULL),B(0x3f8ec2ee399db5beULL),
@@ -3573,7 +3583,7 @@ inline void build_fit_ao(kalos::TramoKernelRoundsRequest& rq) {
         B(0xbf7542bddfdcd95aULL),B(0x3f1444b1d5ef336cULL),B(0x3f8351c7a724a5b3ULL),
         B(0xbf5dddfc91afe0f9ULL),
     };
-    s.stats.residuals = std::vector<double>(v8_3545, v8_3545 + 82);
+    s.stats.residuals = std::vector<double>(v8_3555, v8_3555 + 82);
     rq.seams.push_back(s);
   }
   {
@@ -3589,10 +3599,10 @@ inline void build_fit_ao(kalos::TramoKernelRoundsRequest& rq) {
     s.result = TramoKernelStageResult::unchanged;
     s.tsig = B(0x3ff0000000000000ULL);
     s.mean = true;
-    static const double v9_3591[] = {
+    static const double v9_3601[] = {
         B(0x403ccd92aa9db8eaULL),B(0x4046772910dd64a1ULL),
     };
-    s.tstats = std::vector<double>(v9_3591, v9_3591 + 2);
+    s.tstats = std::vector<double>(v9_3601, v9_3601 + 2);
     rq.seams.push_back(s);
   }
   {
@@ -3602,10 +3612,10 @@ inline void build_fit_ao(kalos::TramoKernelRoundsRequest& rq) {
     s.orders = TramoOrders{0, 0, 0, 0, 1, 1};
     s.mean = true;
     s.outliers = {"AO (1994-01-01)"};
-    static const double v10_3604[] = {
+    static const double v10_3614[] = {
         B(0xbfde8617f3bd35bdULL),
     };
-    s.parameters = std::vector<double>(v10_3604, v10_3604 + 1);
+    s.parameters = std::vector<double>(v10_3614, v10_3614 + 1);
     s.seasonal_after = true;
     s.original_seasonality_after = 3;
     rq.seams.push_back(s);
@@ -3617,10 +3627,10 @@ inline void build_fit_ao(kalos::TramoKernelRoundsRequest& rq) {
     s.orders = TramoOrders{0, 0, 0, 0, 1, 1};
     s.mean = true;
     s.outliers = {"AO (1994-01-01)"};
-    static const double v11_3619[] = {
+    static const double v11_3629[] = {
         B(0xbfde8617f3bd35bdULL),
     };
-    s.parameters = std::vector<double>(v11_3619, v11_3619 + 1);
+    s.parameters = std::vector<double>(v11_3629, v11_3629 + 1);
     rq.seams.push_back(s);
   }
   {
@@ -3630,10 +3640,10 @@ inline void build_fit_ao(kalos::TramoKernelRoundsRequest& rq) {
     s.orders = TramoOrders{0, 0, 0, 0, 1, 1};
     s.mean = true;
     s.outliers = {"AO (1994-01-01)"};
-    static const double v12_3632[] = {
+    static const double v12_3642[] = {
         B(0xbfde8617f3bd35bdULL),
     };
-    s.parameters = std::vector<double>(v12_3632, v12_3632 + 1);
+    s.parameters = std::vector<double>(v12_3642, v12_3642 + 1);
     rq.seams.push_back(s);
   }
   {
@@ -3643,10 +3653,10 @@ inline void build_fit_ao(kalos::TramoKernelRoundsRequest& rq) {
     s.orders = TramoOrders{0, 0, 0, 0, 1, 1};
     s.mean = true;
     s.outliers = {"AO (1994-01-01)"};
-    static const double v13_3645[] = {
+    static const double v13_3655[] = {
         B(0xbfde8617f3bd35bdULL),
     };
-    s.parameters = std::vector<double>(v13_3645, v13_3645 + 1);
+    s.parameters = std::vector<double>(v13_3655, v13_3655 + 1);
     rq.seams.push_back(s);
   }
   {
@@ -3656,10 +3666,10 @@ inline void build_fit_ao(kalos::TramoKernelRoundsRequest& rq) {
     s.orders = TramoOrders{0, 0, 0, 0, 1, 1};
     s.mean = true;
     s.outliers = {"AO (1994-01-01)"};
-    static const double v14_3658[] = {
+    static const double v14_3668[] = {
         B(0xbfde8617f3bd35bdULL),
     };
-    s.parameters = std::vector<double>(v14_3658, v14_3658 + 1);
+    s.parameters = std::vector<double>(v14_3668, v14_3668 + 1);
     rq.seams.push_back(s);
   }
   {
@@ -3740,6 +3750,7 @@ inline void build_fit_fit_ao(TramoFitRequest& rq) {
   rq.spec.outliers_ml = false;
   rq.spec.accept_airline = false;
   rq.spec.precision = B(0x3e7ad7f29abcaf48ULL);
+  rq.spec.final_unit_root_threshold = B(0x3feeb851eb851eb8ULL);
   rq.spec.intermediate_precision = B(0x3ee4f8b588e368f1ULL);
   rq.spec.mean_is_test = false;
   rq.spec.mean_used = true;
@@ -3831,10 +3842,10 @@ inline void build_fit_ls(kalos::TramoKernelRoundsRequest& rq) {
     s.orders = TramoOrders{0, 1, 1, 0, 1, 1};
     s.mean = false;
     s.outliers = {"LS (1995-01-01)"};
-    static const double v0_3833[] = {
+    static const double v0_3844[] = {
         B(0xbfc999999999999aULL),B(0xbfc999999999999aULL),
     };
-    s.parameters = std::vector<double>(v0_3833, v0_3833 + 2);
+    s.parameters = std::vector<double>(v0_3844, v0_3844 + 2);
     s.critical_value = B(0x400b51eb851eb852ULL);
     rq.seams.push_back(s);
   }
@@ -3850,10 +3861,10 @@ inline void build_fit_ls(kalos::TramoKernelRoundsRequest& rq) {
     s.nnsig = 0;
     s.orders = TramoOrders{0, 1, 1, 0, 1, 1};
     s.outliers = {"LS (1995-01-01)"};
-    static const double v1_3852[] = {
+    static const double v1_3863[] = {
         B(0xbfc5fc8c7a69733cULL),B(0xbfcdd39321b71be0ULL),
     };
-    s.parameters = std::vector<double>(v1_3852, v1_3852 + 2);
+    s.parameters = std::vector<double>(v1_3863, v1_3863 + 2);
     rq.seams.push_back(s);
   }
   {
@@ -3864,10 +3875,10 @@ inline void build_fit_ls(kalos::TramoKernelRoundsRequest& rq) {
     s.retry_index = 1;
     s.tsig = B(0x3fff5c28f5c28f5cULL);
     s.mean = false;
-    static const double v2_3866[] = {
+    static const double v2_3877[] = {
         B(0x40406823c50797edULL),
     };
-    s.tstats = std::vector<double>(v2_3866, v2_3866 + 1);
+    s.tstats = std::vector<double>(v2_3877, v2_3877 + 1);
     rq.seams.push_back(s);
   }
   {
@@ -3883,7 +3894,7 @@ inline void build_fit_ls(kalos::TramoKernelRoundsRequest& rq) {
     s.stats.bic = B(0xc02252f7d7edaea9ULL);
     s.stats.outliers_count = 1;
     s.stats.effective_observations = 83;
-    static const double v3_3885[] = {
+    static const double v3_3896[] = {
         B(0xbf417f98e4fec6c1ULL),B(0x3f6a866eca636057ULL),B(0xbf6aba5c3da48effULL),
         B(0xbf8492170905bab2ULL),B(0x3f81e934a11a96d3ULL),B(0x3f7e01dbe52a5cc2ULL),
         B(0xbf774aaac7e54f76ULL),B(0xbf6dd8d0f9d8057cULL),B(0x3f91e1f6c2860db4ULL),
@@ -3913,7 +3924,7 @@ inline void build_fit_ls(kalos::TramoKernelRoundsRequest& rq) {
         B(0xbf702ffa91f96565ULL),B(0x3f6f3865d5106ecdULL),B(0x3f7ba23117a794faULL),
         B(0xbf80ac7f033d4b3eULL),
     };
-    s.stats.residuals = std::vector<double>(v3_3885, v3_3885 + 82);
+    s.stats.residuals = std::vector<double>(v3_3896, v3_3896 + 82);
     rq.seams.push_back(s);
   }
   {
@@ -3934,11 +3945,11 @@ inline void build_fit_ls(kalos::TramoKernelRoundsRequest& rq) {
     s.orders = TramoOrders{1, 0, 1, 1, 1, 1};
     s.mean = true;
     s.outliers = {"LS (1995-01-01)"};
-    static const double v4_3936[] = {
+    static const double v4_3947[] = {
         B(0xbfb999999999999aULL),B(0xbfb999999999999aULL),B(0xbfc999999999999aULL),
         B(0xbfc999999999999aULL),
     };
-    s.parameters = std::vector<double>(v4_3936, v4_3936 + 4);
+    s.parameters = std::vector<double>(v4_3947, v4_3947 + 4);
     rq.seams.push_back(s);
   }
   {
@@ -3971,10 +3982,10 @@ inline void build_fit_ls(kalos::TramoKernelRoundsRequest& rq) {
     s.orders = TramoOrders{1, 0, 0, 0, 1, 1};
     s.mean = true;
     s.outliers = {"LS (1995-01-01)"};
-    static const double v5_3973[] = {
+    static const double v5_3984[] = {
         B(0xbfb999999999999aULL),B(0xbfc999999999999aULL),
     };
-    s.parameters = std::vector<double>(v5_3973, v5_3973 + 2);
+    s.parameters = std::vector<double>(v5_3984, v5_3984 + 2);
     s.critical_value = B(0x400b51eb851eb852ULL);
     rq.seams.push_back(s);
   }
@@ -3990,10 +4001,10 @@ inline void build_fit_ls(kalos::TramoKernelRoundsRequest& rq) {
     s.nnsig = 0;
     s.orders = TramoOrders{1, 0, 0, 0, 1, 1};
     s.outliers = {"LS (1995-01-01)"};
-    static const double v6_3992[] = {
+    static const double v6_4003[] = {
         B(0xbfe07e40d663ecefULL),B(0xbfcb238a84afbbeeULL),
     };
-    s.parameters = std::vector<double>(v6_3992, v6_3992 + 2);
+    s.parameters = std::vector<double>(v6_4003, v6_4003 + 2);
     rq.seams.push_back(s);
   }
   {
@@ -4008,10 +4019,10 @@ inline void build_fit_ls(kalos::TramoKernelRoundsRequest& rq) {
     s.gate_reference_ljung_box_complement = B(0x3fe2a109833a17e8ULL);
     s.gate_reference_standard_error = B(0x3f83bae5d3173372ULL);
     s.arima_orders = TramoOrders{1, 0, 0, 0, 1, 1};
-    static const double v7_4010[] = {
+    static const double v7_4021[] = {
         B(0xbfe07e40d663ecefULL),B(0xbfcb238a84afbbeeULL),
     };
-    s.parameters = std::vector<double>(v7_4010, v7_4010 + 2);
+    s.parameters = std::vector<double>(v7_4021, v7_4021 + 2);
     s.stats.free_parameters = 2;
     s.stats.dim = 84;
     s.stats.observations = 96;
@@ -4021,7 +4032,7 @@ inline void build_fit_ls(kalos::TramoKernelRoundsRequest& rq) {
     s.stats.bic = B(0xc022b581dc0b7353ULL);
     s.stats.outliers_count = 1;
     s.stats.effective_observations = 84;
-    static const double v8_4023[] = {
+    static const double v8_4034[] = {
         B(0x3f5053ef38e7a5c8ULL),B(0x3f7109b093bf3584ULL),B(0xbf56e645e7b48488ULL),
         B(0xbf82503ed388717aULL),B(0x3f7a99dcd37bb602ULL),B(0x3f7c6e19dfe7165eULL),
         B(0xbf68b472042a29d8ULL),B(0xbf60a8dd15ec5290ULL),B(0x3f92161306e57143ULL),
@@ -4051,7 +4062,7 @@ inline void build_fit_ls(kalos::TramoKernelRoundsRequest& rq) {
         B(0xbf77575536dd08b0ULL),B(0x3f5e3fb00539fcf8ULL),B(0x3f7776d066267b6eULL),
         B(0xbf7b46e950659076ULL),
     };
-    s.stats.residuals = std::vector<double>(v8_4023, v8_4023 + 82);
+    s.stats.residuals = std::vector<double>(v8_4034, v8_4034 + 82);
     rq.seams.push_back(s);
   }
   {
@@ -4067,10 +4078,10 @@ inline void build_fit_ls(kalos::TramoKernelRoundsRequest& rq) {
     s.result = TramoKernelStageResult::unchanged;
     s.tsig = B(0x3ff0000000000000ULL);
     s.mean = true;
-    static const double v9_4069[] = {
+    static const double v9_4080[] = {
         B(0x4018816af6d93fabULL),B(0x4049c6cd81b4e3faULL),
     };
-    s.tstats = std::vector<double>(v9_4069, v9_4069 + 2);
+    s.tstats = std::vector<double>(v9_4080, v9_4080 + 2);
     rq.seams.push_back(s);
   }
   {
@@ -4080,10 +4091,10 @@ inline void build_fit_ls(kalos::TramoKernelRoundsRequest& rq) {
     s.orders = TramoOrders{1, 0, 0, 0, 1, 1};
     s.mean = true;
     s.outliers = {"LS (1995-01-01)"};
-    static const double v10_4082[] = {
+    static const double v10_4093[] = {
         B(0xbfe07e40d663ecefULL),B(0xbfcb238a84afbbeeULL),
     };
-    s.parameters = std::vector<double>(v10_4082, v10_4082 + 2);
+    s.parameters = std::vector<double>(v10_4093, v10_4093 + 2);
     s.seasonal_after = true;
     s.original_seasonality_after = 3;
     rq.seams.push_back(s);
@@ -4095,10 +4106,10 @@ inline void build_fit_ls(kalos::TramoKernelRoundsRequest& rq) {
     s.orders = TramoOrders{1, 0, 0, 0, 1, 1};
     s.mean = true;
     s.outliers = {"LS (1995-01-01)"};
-    static const double v11_4097[] = {
+    static const double v11_4108[] = {
         B(0xbfe07e40d663ecefULL),B(0xbfcb238a84afbbeeULL),
     };
-    s.parameters = std::vector<double>(v11_4097, v11_4097 + 2);
+    s.parameters = std::vector<double>(v11_4108, v11_4108 + 2);
     rq.seams.push_back(s);
   }
   {
@@ -4108,10 +4119,10 @@ inline void build_fit_ls(kalos::TramoKernelRoundsRequest& rq) {
     s.orders = TramoOrders{1, 0, 0, 0, 1, 1};
     s.mean = true;
     s.outliers = {"LS (1995-01-01)"};
-    static const double v12_4110[] = {
+    static const double v12_4121[] = {
         B(0xbfe07e40d663ecefULL),B(0xbfcb238a84afbbeeULL),
     };
-    s.parameters = std::vector<double>(v12_4110, v12_4110 + 2);
+    s.parameters = std::vector<double>(v12_4121, v12_4121 + 2);
     rq.seams.push_back(s);
   }
   {
@@ -4121,10 +4132,10 @@ inline void build_fit_ls(kalos::TramoKernelRoundsRequest& rq) {
     s.orders = TramoOrders{1, 0, 0, 0, 1, 1};
     s.mean = true;
     s.outliers = {"LS (1995-01-01)"};
-    static const double v13_4123[] = {
+    static const double v13_4134[] = {
         B(0xbfe07e40d663ecefULL),B(0xbfcb238a84afbbeeULL),
     };
-    s.parameters = std::vector<double>(v13_4123, v13_4123 + 2);
+    s.parameters = std::vector<double>(v13_4134, v13_4134 + 2);
     rq.seams.push_back(s);
   }
   {
@@ -4134,10 +4145,10 @@ inline void build_fit_ls(kalos::TramoKernelRoundsRequest& rq) {
     s.orders = TramoOrders{1, 0, 0, 0, 1, 1};
     s.mean = true;
     s.outliers = {"LS (1995-01-01)"};
-    static const double v14_4136[] = {
+    static const double v14_4147[] = {
         B(0xbfe07e40d663ecefULL),B(0xbfcb238a84afbbeeULL),
     };
-    s.parameters = std::vector<double>(v14_4136, v14_4136 + 2);
+    s.parameters = std::vector<double>(v14_4147, v14_4147 + 2);
     rq.seams.push_back(s);
   }
   {
@@ -4218,6 +4229,7 @@ inline void build_fit_fit_ls(TramoFitRequest& rq) {
   rq.spec.outliers_ml = false;
   rq.spec.accept_airline = false;
   rq.spec.precision = B(0x3e7ad7f29abcaf48ULL);
+  rq.spec.final_unit_root_threshold = B(0x3feeb851eb851eb8ULL);
   rq.spec.intermediate_precision = B(0x3ee4f8b588e368f1ULL);
   rq.spec.mean_is_test = false;
   rq.spec.mean_used = true;
@@ -4309,10 +4321,10 @@ inline void build_fit_multi(kalos::TramoKernelRoundsRequest& rq) {
     s.orders = TramoOrders{0, 1, 1, 0, 1, 1};
     s.mean = false;
     s.outliers = {"AO (1992-07-01)", "LS (1994-01-01)", "LS (1995-11-01)"};
-    static const double v0_4311[] = {
+    static const double v0_4323[] = {
         B(0xbfc999999999999aULL),B(0xbfc999999999999aULL),
     };
-    s.parameters = std::vector<double>(v0_4311, v0_4311 + 2);
+    s.parameters = std::vector<double>(v0_4323, v0_4323 + 2);
     s.critical_value = B(0x400b51eb851eb852ULL);
     rq.seams.push_back(s);
   }
@@ -4328,10 +4340,10 @@ inline void build_fit_multi(kalos::TramoKernelRoundsRequest& rq) {
     s.nnsig = 0;
     s.orders = TramoOrders{0, 1, 1, 0, 1, 1};
     s.outliers = {"AO (1992-07-01)", "LS (1994-01-01)", "LS (1995-11-01)"};
-    static const double v1_4330[] = {
+    static const double v1_4342[] = {
         B(0x3fbdd30da6040f3aULL),B(0xbfda18dda9f7d02fULL),
     };
-    s.parameters = std::vector<double>(v1_4330, v1_4330 + 2);
+    s.parameters = std::vector<double>(v1_4342, v1_4342 + 2);
     rq.seams.push_back(s);
   }
   {
@@ -4342,10 +4354,10 @@ inline void build_fit_multi(kalos::TramoKernelRoundsRequest& rq) {
     s.retry_index = 1;
     s.tsig = B(0x3fff5c28f5c28f5cULL);
     s.mean = false;
-    static const double v2_4344[] = {
+    static const double v2_4356[] = {
         B(0x40437cff199d35edULL),B(0x403db104e9f85228ULL),B(0x4031fd6742b60c39ULL),
     };
-    s.tstats = std::vector<double>(v2_4344, v2_4344 + 3);
+    s.tstats = std::vector<double>(v2_4356, v2_4356 + 3);
     rq.seams.push_back(s);
   }
   {
@@ -4361,7 +4373,7 @@ inline void build_fit_multi(kalos::TramoKernelRoundsRequest& rq) {
     s.stats.bic = B(0xc021825b977345a2ULL);
     s.stats.outliers_count = 3;
     s.stats.effective_observations = 83;
-    static const double v3_4363[] = {
+    static const double v3_4375[] = {
         B(0xbf7054fa0a013f42ULL),B(0xbf8183ff074b2dffULL),B(0x3f866df65aaa7e61ULL),
         B(0x3f71743606f90bd7ULL),B(0xbf7d1452a7dd39edULL),B(0xbf5bfd38a9a467a3ULL),
         B(0x3f91d0ce04fc6989ULL),B(0xbf92f7d8789954e2ULL),B(0x3f63bdebd5402a7eULL),
@@ -4390,7 +4402,7 @@ inline void build_fit_multi(kalos::TramoKernelRoundsRequest& rq) {
         B(0x3f912e6b57853bdcULL),B(0xbf7211798cb058ffULL),B(0x3f78c7b3f9d18436ULL),
         B(0x3f76f056f6addd40ULL),B(0xbf8274e8b11dd1f6ULL),
     };
-    s.stats.residuals = std::vector<double>(v3_4363, v3_4363 + 80);
+    s.stats.residuals = std::vector<double>(v3_4375, v3_4375 + 80);
     rq.seams.push_back(s);
   }
   {
@@ -4411,10 +4423,10 @@ inline void build_fit_multi(kalos::TramoKernelRoundsRequest& rq) {
     s.orders = TramoOrders{0, 1, 1, 0, 1, 1};
     s.mean = false;
     s.outliers = {"AO (1992-07-01)", "LS (1994-01-01)", "LS (1995-11-01)"};
-    static const double v4_4413[] = {
+    static const double v4_4425[] = {
         B(0x3fbdd30da6040f3aULL),B(0xbfda18dda9f7d02fULL),
     };
-    s.parameters = std::vector<double>(v4_4413, v4_4413 + 2);
+    s.parameters = std::vector<double>(v4_4425, v4_4425 + 2);
     rq.seams.push_back(s);
   }
   {
@@ -4442,10 +4454,10 @@ inline void build_fit_multi(kalos::TramoKernelRoundsRequest& rq) {
     s.orders = TramoOrders{2, 1, 0, 1, 1, 0};
     s.mean = false;
     s.outliers = {"AO (1992-07-01)", "LS (1994-01-01)", "LS (1995-11-01)"};
-    static const double v5_4444[] = {
+    static const double v5_4456[] = {
         B(0xbfb999999999999aULL),B(0xbfb999999999999aULL),B(0xbfb999999999999aULL),
     };
-    s.parameters = std::vector<double>(v5_4444, v5_4444 + 3);
+    s.parameters = std::vector<double>(v5_4456, v5_4456 + 3);
     s.critical_value = B(0x400b51eb851eb852ULL);
     rq.seams.push_back(s);
   }
@@ -4461,10 +4473,10 @@ inline void build_fit_multi(kalos::TramoKernelRoundsRequest& rq) {
     s.nnsig = 0;
     s.orders = TramoOrders{2, 1, 0, 1, 1, 0};
     s.outliers = {"AO (1992-07-01)", "LS (1994-01-01)", "LS (1995-11-01)"};
-    static const double v6_4463[] = {
+    static const double v6_4475[] = {
         B(0xbfc31922680f86eeULL),B(0xbfd6e06d84ca21cfULL),B(0x3fe0d73b214e3351ULL),
     };
-    s.parameters = std::vector<double>(v6_4463, v6_4463 + 3);
+    s.parameters = std::vector<double>(v6_4475, v6_4475 + 3);
     rq.seams.push_back(s);
   }
   {
@@ -4479,10 +4491,10 @@ inline void build_fit_multi(kalos::TramoKernelRoundsRequest& rq) {
     s.gate_reference_ljung_box_complement = B(0x3fe9e340f2454e3bULL);
     s.gate_reference_standard_error = B(0x3f8739ee05d5f60cULL);
     s.arima_orders = TramoOrders{2, 1, 0, 1, 1, 0};
-    static const double v7_4481[] = {
+    static const double v7_4493[] = {
         B(0xbfc31922680f86eeULL),B(0xbfd6e06d84ca21cfULL),B(0x3fe0d73b214e3351ULL),
     };
-    s.parameters = std::vector<double>(v7_4481, v7_4481 + 3);
+    s.parameters = std::vector<double>(v7_4493, v7_4493 + 3);
     s.stats.free_parameters = 3;
     s.stats.dim = 83;
     s.stats.observations = 96;
@@ -4492,7 +4504,7 @@ inline void build_fit_multi(kalos::TramoKernelRoundsRequest& rq) {
     s.stats.bic = B(0xc021b538e39c3891ULL);
     s.stats.outliers_count = 3;
     s.stats.effective_observations = 83;
-    static const double v8_4494[] = {
+    static const double v8_4506[] = {
         B(0xbf6ffabfe1f7799fULL),B(0xbf822bd01c6d9f9bULL),B(0x3f8796a39a2591a9ULL),
         B(0x3f7ae72b828bb3cfULL),B(0xbf84d9beaf72636cULL),B(0xbf6d0d12b90e1e18ULL),
         B(0x3f92a338d8687e7dULL),B(0xbf9203a5cb90c43dULL),B(0xbf69e880df108599ULL),
@@ -4521,7 +4533,7 @@ inline void build_fit_multi(kalos::TramoKernelRoundsRequest& rq) {
         B(0x3f8f798208eedd87ULL),B(0xbf758a6b500c392fULL),B(0xbf5162003bb5362bULL),
         B(0x3f7831c148834c60ULL),B(0xbf84543504e8ab20ULL),
     };
-    s.stats.residuals = std::vector<double>(v8_4494, v8_4494 + 80);
+    s.stats.residuals = std::vector<double>(v8_4506, v8_4506 + 80);
     rq.seams.push_back(s);
   }
   {
@@ -4537,10 +4549,10 @@ inline void build_fit_multi(kalos::TramoKernelRoundsRequest& rq) {
     s.result = TramoKernelStageResult::unchanged;
     s.tsig = B(0x3ff0000000000000ULL);
     s.mean = false;
-    static const double v9_4539[] = {
+    static const double v9_4551[] = {
         B(0x4046798f67daa951ULL),B(0x4041d5b7b3c3b815ULL),B(0x4034843fbdc5ed4bULL),
     };
-    s.tstats = std::vector<double>(v9_4539, v9_4539 + 3);
+    s.tstats = std::vector<double>(v9_4551, v9_4551 + 3);
     rq.seams.push_back(s);
   }
   {
@@ -4550,10 +4562,10 @@ inline void build_fit_multi(kalos::TramoKernelRoundsRequest& rq) {
     s.orders = TramoOrders{2, 1, 0, 1, 1, 0};
     s.mean = false;
     s.outliers = {"AO (1992-07-01)", "LS (1994-01-01)", "LS (1995-11-01)"};
-    static const double v10_4552[] = {
+    static const double v10_4564[] = {
         B(0xbfc31922680f86eeULL),B(0xbfd6e06d84ca21cfULL),B(0x3fe0d73b214e3351ULL),
     };
-    s.parameters = std::vector<double>(v10_4552, v10_4552 + 3);
+    s.parameters = std::vector<double>(v10_4564, v10_4564 + 3);
     s.seasonal_after = true;
     s.original_seasonality_after = 3;
     rq.seams.push_back(s);
@@ -4565,10 +4577,10 @@ inline void build_fit_multi(kalos::TramoKernelRoundsRequest& rq) {
     s.orders = TramoOrders{2, 1, 0, 1, 1, 0};
     s.mean = false;
     s.outliers = {"AO (1992-07-01)", "LS (1994-01-01)", "LS (1995-11-01)"};
-    static const double v11_4567[] = {
+    static const double v11_4579[] = {
         B(0xbfc31922680f86eeULL),B(0xbfd6e06d84ca21cfULL),B(0x3fe0d73b214e3351ULL),
     };
-    s.parameters = std::vector<double>(v11_4567, v11_4567 + 3);
+    s.parameters = std::vector<double>(v11_4579, v11_4579 + 3);
     rq.seams.push_back(s);
   }
   {
@@ -4578,10 +4590,10 @@ inline void build_fit_multi(kalos::TramoKernelRoundsRequest& rq) {
     s.orders = TramoOrders{2, 1, 0, 1, 1, 0};
     s.mean = false;
     s.outliers = {"AO (1992-07-01)", "LS (1994-01-01)", "LS (1995-11-01)"};
-    static const double v12_4580[] = {
+    static const double v12_4592[] = {
         B(0xbfc31922680f86eeULL),B(0xbfd6e06d84ca21cfULL),B(0x3fe0d73b214e3351ULL),
     };
-    s.parameters = std::vector<double>(v12_4580, v12_4580 + 3);
+    s.parameters = std::vector<double>(v12_4592, v12_4592 + 3);
     rq.seams.push_back(s);
   }
   {
@@ -4591,10 +4603,10 @@ inline void build_fit_multi(kalos::TramoKernelRoundsRequest& rq) {
     s.orders = TramoOrders{2, 1, 0, 1, 1, 0};
     s.mean = false;
     s.outliers = {"AO (1992-07-01)", "LS (1994-01-01)", "LS (1995-11-01)"};
-    static const double v13_4593[] = {
+    static const double v13_4605[] = {
         B(0xbfc31922680f86eeULL),B(0xbfd6e06d84ca21cfULL),B(0x3fe0d73b214e3351ULL),
     };
-    s.parameters = std::vector<double>(v13_4593, v13_4593 + 3);
+    s.parameters = std::vector<double>(v13_4605, v13_4605 + 3);
     rq.seams.push_back(s);
   }
   {
@@ -4604,10 +4616,10 @@ inline void build_fit_multi(kalos::TramoKernelRoundsRequest& rq) {
     s.orders = TramoOrders{2, 1, 0, 1, 1, 0};
     s.mean = false;
     s.outliers = {"AO (1992-07-01)", "LS (1994-01-01)", "LS (1995-11-01)"};
-    static const double v14_4606[] = {
+    static const double v14_4618[] = {
         B(0xbfc31922680f86eeULL),B(0xbfd6e06d84ca21cfULL),B(0x3fe0d73b214e3351ULL),
     };
-    s.parameters = std::vector<double>(v14_4606, v14_4606 + 3);
+    s.parameters = std::vector<double>(v14_4618, v14_4618 + 3);
     rq.seams.push_back(s);
   }
   {
@@ -4688,6 +4700,7 @@ inline void build_fit_fit_multi(TramoFitRequest& rq) {
   rq.spec.outliers_ml = false;
   rq.spec.accept_airline = false;
   rq.spec.precision = B(0x3e7ad7f29abcaf48ULL);
+  rq.spec.final_unit_root_threshold = B(0x3feeb851eb851eb8ULL);
   rq.spec.intermediate_precision = B(0x3ee4f8b588e368f1ULL);
   rq.spec.mean_is_test = false;
   rq.spec.mean_used = true;
@@ -4782,10 +4795,10 @@ inline void build_fit_so(kalos::TramoKernelRoundsRequest& rq) {
     s.orders = TramoOrders{0, 1, 1, 0, 1, 1};
     s.mean = false;
     s.outliers = {"AO (1994-01-01)"};
-    static const double v0_4784[] = {
+    static const double v0_4797[] = {
         B(0xbfc999999999999aULL),B(0xbfc999999999999aULL),
     };
-    s.parameters = std::vector<double>(v0_4784, v0_4784 + 2);
+    s.parameters = std::vector<double>(v0_4797, v0_4797 + 2);
     s.critical_value = B(0x400b51eb851eb852ULL);
     rq.seams.push_back(s);
   }
@@ -4801,10 +4814,10 @@ inline void build_fit_so(kalos::TramoKernelRoundsRequest& rq) {
     s.nnsig = 0;
     s.orders = TramoOrders{0, 1, 1, 0, 1, 1};
     s.outliers = {"AO (1994-01-01)"};
-    static const double v1_4803[] = {
+    static const double v1_4816[] = {
         B(0xbfecd1313abf0821ULL),B(0xbfdd48b70fb82143ULL),
     };
-    s.parameters = std::vector<double>(v1_4803, v1_4803 + 2);
+    s.parameters = std::vector<double>(v1_4816, v1_4816 + 2);
     rq.seams.push_back(s);
   }
   {
@@ -4815,10 +4828,10 @@ inline void build_fit_so(kalos::TramoKernelRoundsRequest& rq) {
     s.retry_index = 1;
     s.tsig = B(0x3fff5c28f5c28f5cULL);
     s.mean = false;
-    static const double v2_4817[] = {
+    static const double v2_4830[] = {
         B(0x4046e9892c3314ebULL),
     };
-    s.tstats = std::vector<double>(v2_4817, v2_4817 + 1);
+    s.tstats = std::vector<double>(v2_4830, v2_4830 + 1);
     rq.seams.push_back(s);
   }
   {
@@ -4834,7 +4847,7 @@ inline void build_fit_so(kalos::TramoKernelRoundsRequest& rq) {
     s.stats.bic = B(0xc02435b07afa1cf7ULL);
     s.stats.outliers_count = 1;
     s.stats.effective_observations = 83;
-    static const double v3_4836[] = {
+    static const double v3_4849[] = {
         B(0xbf5e04beb73165d7ULL),B(0x3f5931941b8973b9ULL),B(0xbf61b0ef9881be10ULL),
         B(0xbf84d23df475953dULL),B(0x3f50ae35b0ea52e6ULL),B(0x3f7930a6d07823aeULL),
         B(0xbf5196f397fdf987ULL),B(0xbf6baf96be622a97ULL),B(0x3f8c17157957c88bULL),
@@ -4864,7 +4877,7 @@ inline void build_fit_so(kalos::TramoKernelRoundsRequest& rq) {
         B(0xbf59c11e43dfa79cULL),B(0x3f7016ed9b5e4b15ULL),B(0x3f8a713a9ba60e8bULL),
         B(0x3f3a5be18f1e64a8ULL),
     };
-    s.stats.residuals = std::vector<double>(v3_4836, v3_4836 + 82);
+    s.stats.residuals = std::vector<double>(v3_4849, v3_4849 + 82);
     rq.seams.push_back(s);
   }
   {
@@ -4885,11 +4898,11 @@ inline void build_fit_so(kalos::TramoKernelRoundsRequest& rq) {
     s.orders = TramoOrders{1, 0, 1, 1, 1, 1};
     s.mean = true;
     s.outliers = {"AO (1994-01-01)"};
-    static const double v4_4887[] = {
+    static const double v4_4900[] = {
         B(0xbfb999999999999aULL),B(0xbfb999999999999aULL),B(0xbfc999999999999aULL),
         B(0xbfc999999999999aULL),
     };
-    s.parameters = std::vector<double>(v4_4887, v4_4887 + 4);
+    s.parameters = std::vector<double>(v4_4900, v4_4900 + 4);
     rq.seams.push_back(s);
   }
   {
@@ -4922,10 +4935,10 @@ inline void build_fit_so(kalos::TramoKernelRoundsRequest& rq) {
     s.orders = TramoOrders{0, 0, 0, 0, 1, 1};
     s.mean = true;
     s.outliers = {"AO (1994-01-01)"};
-    static const double v5_4924[] = {
+    static const double v5_4937[] = {
         B(0xbfc999999999999aULL),
     };
-    s.parameters = std::vector<double>(v5_4924, v5_4924 + 1);
+    s.parameters = std::vector<double>(v5_4937, v5_4937 + 1);
     s.critical_value = B(0x400b51eb851eb852ULL);
     rq.seams.push_back(s);
   }
@@ -4941,10 +4954,10 @@ inline void build_fit_so(kalos::TramoKernelRoundsRequest& rq) {
     s.nnsig = 0;
     s.orders = TramoOrders{0, 0, 0, 0, 1, 1};
     s.outliers = {"AO (1994-01-01)"};
-    static const double v6_4943[] = {
+    static const double v6_4956[] = {
         B(0xbfde8617f3bd35bdULL),
     };
-    s.parameters = std::vector<double>(v6_4943, v6_4943 + 1);
+    s.parameters = std::vector<double>(v6_4956, v6_4956 + 1);
     rq.seams.push_back(s);
   }
   {
@@ -4959,10 +4972,10 @@ inline void build_fit_so(kalos::TramoKernelRoundsRequest& rq) {
     s.gate_reference_ljung_box_complement = B(0x3fb346df75a7e140ULL);
     s.gate_reference_standard_error = B(0x3f78a0c3e16daf97ULL);
     s.arima_orders = TramoOrders{0, 0, 0, 0, 1, 1};
-    static const double v7_4961[] = {
+    static const double v7_4974[] = {
         B(0xbfde8617f3bd35bdULL),
     };
-    s.parameters = std::vector<double>(v7_4961, v7_4961 + 1);
+    s.parameters = std::vector<double>(v7_4974, v7_4974 + 1);
     s.stats.free_parameters = 1;
     s.stats.dim = 84;
     s.stats.observations = 96;
@@ -4972,7 +4985,7 @@ inline void build_fit_so(kalos::TramoKernelRoundsRequest& rq) {
     s.stats.bic = B(0xc02446665c2ab2c4ULL);
     s.stats.outliers_count = 1;
     s.stats.effective_observations = 84;
-    static const double v8_4974[] = {
+    static const double v8_4987[] = {
         B(0x3f555edfbce5c237ULL),B(0x3f71fb7aef715206ULL),B(0x3f4be278a641242fULL),
         B(0xbf80420a9b444985ULL),B(0x3f5cee16976dd537ULL),B(0x3f7d570e3e7d1a04ULL),
         B(0x3f47d09b23d968afULL),B(0xbf5c958fb5d16509ULL),B(0x3f8ec2ee399db5beULL),
@@ -5002,7 +5015,7 @@ inline void build_fit_so(kalos::TramoKernelRoundsRequest& rq) {
         B(0xbf7542bddfdcd95aULL),B(0x3f1444b1d5ef336cULL),B(0x3f8351c7a724a5b3ULL),
         B(0xbf5dddfc91afe0f9ULL),
     };
-    s.stats.residuals = std::vector<double>(v8_4974, v8_4974 + 82);
+    s.stats.residuals = std::vector<double>(v8_4987, v8_4987 + 82);
     rq.seams.push_back(s);
   }
   {
@@ -5018,10 +5031,10 @@ inline void build_fit_so(kalos::TramoKernelRoundsRequest& rq) {
     s.result = TramoKernelStageResult::unchanged;
     s.tsig = B(0x3ff0000000000000ULL);
     s.mean = true;
-    static const double v9_5020[] = {
+    static const double v9_5033[] = {
         B(0x403ccd92aa9db8eaULL),B(0x4046772910dd64a1ULL),
     };
-    s.tstats = std::vector<double>(v9_5020, v9_5020 + 2);
+    s.tstats = std::vector<double>(v9_5033, v9_5033 + 2);
     rq.seams.push_back(s);
   }
   {
@@ -5031,10 +5044,10 @@ inline void build_fit_so(kalos::TramoKernelRoundsRequest& rq) {
     s.orders = TramoOrders{0, 0, 0, 0, 1, 1};
     s.mean = true;
     s.outliers = {"AO (1994-01-01)"};
-    static const double v10_5033[] = {
+    static const double v10_5046[] = {
         B(0xbfde8617f3bd35bdULL),
     };
-    s.parameters = std::vector<double>(v10_5033, v10_5033 + 1);
+    s.parameters = std::vector<double>(v10_5046, v10_5046 + 1);
     s.seasonal_after = true;
     s.original_seasonality_after = 3;
     rq.seams.push_back(s);
@@ -5046,10 +5059,10 @@ inline void build_fit_so(kalos::TramoKernelRoundsRequest& rq) {
     s.orders = TramoOrders{0, 0, 0, 0, 1, 1};
     s.mean = true;
     s.outliers = {"AO (1994-01-01)"};
-    static const double v11_5048[] = {
+    static const double v11_5061[] = {
         B(0xbfde8617f3bd35bdULL),
     };
-    s.parameters = std::vector<double>(v11_5048, v11_5048 + 1);
+    s.parameters = std::vector<double>(v11_5061, v11_5061 + 1);
     rq.seams.push_back(s);
   }
   {
@@ -5059,10 +5072,10 @@ inline void build_fit_so(kalos::TramoKernelRoundsRequest& rq) {
     s.orders = TramoOrders{0, 0, 0, 0, 1, 1};
     s.mean = true;
     s.outliers = {"AO (1994-01-01)"};
-    static const double v12_5061[] = {
+    static const double v12_5074[] = {
         B(0xbfde8617f3bd35bdULL),
     };
-    s.parameters = std::vector<double>(v12_5061, v12_5061 + 1);
+    s.parameters = std::vector<double>(v12_5074, v12_5074 + 1);
     rq.seams.push_back(s);
   }
   {
@@ -5072,10 +5085,10 @@ inline void build_fit_so(kalos::TramoKernelRoundsRequest& rq) {
     s.orders = TramoOrders{0, 0, 0, 0, 1, 1};
     s.mean = true;
     s.outliers = {"AO (1994-01-01)"};
-    static const double v13_5074[] = {
+    static const double v13_5087[] = {
         B(0xbfde8617f3bd35bdULL),
     };
-    s.parameters = std::vector<double>(v13_5074, v13_5074 + 1);
+    s.parameters = std::vector<double>(v13_5087, v13_5087 + 1);
     rq.seams.push_back(s);
   }
   {
@@ -5085,10 +5098,10 @@ inline void build_fit_so(kalos::TramoKernelRoundsRequest& rq) {
     s.orders = TramoOrders{0, 0, 0, 0, 1, 1};
     s.mean = true;
     s.outliers = {"AO (1994-01-01)"};
-    static const double v14_5087[] = {
+    static const double v14_5100[] = {
         B(0xbfde8617f3bd35bdULL),
     };
-    s.parameters = std::vector<double>(v14_5087, v14_5087 + 1);
+    s.parameters = std::vector<double>(v14_5100, v14_5100 + 1);
     rq.seams.push_back(s);
   }
   {
@@ -5169,6 +5182,7 @@ inline void build_fit_fit_so(TramoFitRequest& rq) {
   rq.spec.outliers_ml = false;
   rq.spec.accept_airline = false;
   rq.spec.precision = B(0x3e7ad7f29abcaf48ULL);
+  rq.spec.final_unit_root_threshold = B(0x3feeb851eb851eb8ULL);
   rq.spec.intermediate_precision = B(0x3ee4f8b588e368f1ULL);
   rq.spec.mean_is_test = false;
   rq.spec.mean_used = true;
@@ -5260,10 +5274,10 @@ inline void build_fit_spanout(kalos::TramoKernelRoundsRequest& rq) {
     s.orders = TramoOrders{0, 1, 1, 0, 1, 1};
     s.mean = false;
     s.outliers = {"AO (1994-01-01)"};
-    static const double v0_5262[] = {
+    static const double v0_5276[] = {
         B(0xbfc999999999999aULL),B(0xbfc999999999999aULL),
     };
-    s.parameters = std::vector<double>(v0_5262, v0_5262 + 2);
+    s.parameters = std::vector<double>(v0_5276, v0_5276 + 2);
     s.critical_value = B(0x400b51eb851eb852ULL);
     rq.seams.push_back(s);
   }
@@ -5279,10 +5293,10 @@ inline void build_fit_spanout(kalos::TramoKernelRoundsRequest& rq) {
     s.nnsig = 0;
     s.orders = TramoOrders{0, 1, 1, 0, 1, 1};
     s.outliers = {"AO (1994-01-01)"};
-    static const double v1_5281[] = {
+    static const double v1_5295[] = {
         B(0xbfecd1313abf0821ULL),B(0xbfdd48b70fb82143ULL),
     };
-    s.parameters = std::vector<double>(v1_5281, v1_5281 + 2);
+    s.parameters = std::vector<double>(v1_5295, v1_5295 + 2);
     rq.seams.push_back(s);
   }
   {
@@ -5293,10 +5307,10 @@ inline void build_fit_spanout(kalos::TramoKernelRoundsRequest& rq) {
     s.retry_index = 1;
     s.tsig = B(0x3fff5c28f5c28f5cULL);
     s.mean = false;
-    static const double v2_5295[] = {
+    static const double v2_5309[] = {
         B(0x4046e9892c3314ebULL),
     };
-    s.tstats = std::vector<double>(v2_5295, v2_5295 + 1);
+    s.tstats = std::vector<double>(v2_5309, v2_5309 + 1);
     rq.seams.push_back(s);
   }
   {
@@ -5312,7 +5326,7 @@ inline void build_fit_spanout(kalos::TramoKernelRoundsRequest& rq) {
     s.stats.bic = B(0xc02435b07afa1cf7ULL);
     s.stats.outliers_count = 1;
     s.stats.effective_observations = 83;
-    static const double v3_5314[] = {
+    static const double v3_5328[] = {
         B(0xbf5e04beb73165d7ULL),B(0x3f5931941b8973b9ULL),B(0xbf61b0ef9881be10ULL),
         B(0xbf84d23df475953dULL),B(0x3f50ae35b0ea52e6ULL),B(0x3f7930a6d07823aeULL),
         B(0xbf5196f397fdf987ULL),B(0xbf6baf96be622a97ULL),B(0x3f8c17157957c88bULL),
@@ -5342,7 +5356,7 @@ inline void build_fit_spanout(kalos::TramoKernelRoundsRequest& rq) {
         B(0xbf59c11e43dfa79cULL),B(0x3f7016ed9b5e4b15ULL),B(0x3f8a713a9ba60e8bULL),
         B(0x3f3a5be18f1e64a8ULL),
     };
-    s.stats.residuals = std::vector<double>(v3_5314, v3_5314 + 82);
+    s.stats.residuals = std::vector<double>(v3_5328, v3_5328 + 82);
     rq.seams.push_back(s);
   }
   {
@@ -5363,11 +5377,11 @@ inline void build_fit_spanout(kalos::TramoKernelRoundsRequest& rq) {
     s.orders = TramoOrders{1, 0, 1, 1, 1, 1};
     s.mean = true;
     s.outliers = {"AO (1994-01-01)"};
-    static const double v4_5365[] = {
+    static const double v4_5379[] = {
         B(0xbfb999999999999aULL),B(0xbfb999999999999aULL),B(0xbfc999999999999aULL),
         B(0xbfc999999999999aULL),
     };
-    s.parameters = std::vector<double>(v4_5365, v4_5365 + 4);
+    s.parameters = std::vector<double>(v4_5379, v4_5379 + 4);
     rq.seams.push_back(s);
   }
   {
@@ -5400,10 +5414,10 @@ inline void build_fit_spanout(kalos::TramoKernelRoundsRequest& rq) {
     s.orders = TramoOrders{0, 0, 0, 0, 1, 1};
     s.mean = true;
     s.outliers = {"AO (1994-01-01)"};
-    static const double v5_5402[] = {
+    static const double v5_5416[] = {
         B(0xbfc999999999999aULL),
     };
-    s.parameters = std::vector<double>(v5_5402, v5_5402 + 1);
+    s.parameters = std::vector<double>(v5_5416, v5_5416 + 1);
     s.critical_value = B(0x400b51eb851eb852ULL);
     rq.seams.push_back(s);
   }
@@ -5419,10 +5433,10 @@ inline void build_fit_spanout(kalos::TramoKernelRoundsRequest& rq) {
     s.nnsig = 0;
     s.orders = TramoOrders{0, 0, 0, 0, 1, 1};
     s.outliers = {"AO (1994-01-01)"};
-    static const double v6_5421[] = {
+    static const double v6_5435[] = {
         B(0xbfde8617f3bd35bdULL),
     };
-    s.parameters = std::vector<double>(v6_5421, v6_5421 + 1);
+    s.parameters = std::vector<double>(v6_5435, v6_5435 + 1);
     rq.seams.push_back(s);
   }
   {
@@ -5437,10 +5451,10 @@ inline void build_fit_spanout(kalos::TramoKernelRoundsRequest& rq) {
     s.gate_reference_ljung_box_complement = B(0x3fb346df75a7e140ULL);
     s.gate_reference_standard_error = B(0x3f78a0c3e16daf97ULL);
     s.arima_orders = TramoOrders{0, 0, 0, 0, 1, 1};
-    static const double v7_5439[] = {
+    static const double v7_5453[] = {
         B(0xbfde8617f3bd35bdULL),
     };
-    s.parameters = std::vector<double>(v7_5439, v7_5439 + 1);
+    s.parameters = std::vector<double>(v7_5453, v7_5453 + 1);
     s.stats.free_parameters = 1;
     s.stats.dim = 84;
     s.stats.observations = 96;
@@ -5450,7 +5464,7 @@ inline void build_fit_spanout(kalos::TramoKernelRoundsRequest& rq) {
     s.stats.bic = B(0xc02446665c2ab2c4ULL);
     s.stats.outliers_count = 1;
     s.stats.effective_observations = 84;
-    static const double v8_5452[] = {
+    static const double v8_5466[] = {
         B(0x3f555edfbce5c237ULL),B(0x3f71fb7aef715206ULL),B(0x3f4be278a641242fULL),
         B(0xbf80420a9b444985ULL),B(0x3f5cee16976dd537ULL),B(0x3f7d570e3e7d1a04ULL),
         B(0x3f47d09b23d968afULL),B(0xbf5c958fb5d16509ULL),B(0x3f8ec2ee399db5beULL),
@@ -5480,7 +5494,7 @@ inline void build_fit_spanout(kalos::TramoKernelRoundsRequest& rq) {
         B(0xbf7542bddfdcd95aULL),B(0x3f1444b1d5ef336cULL),B(0x3f8351c7a724a5b3ULL),
         B(0xbf5dddfc91afe0f9ULL),
     };
-    s.stats.residuals = std::vector<double>(v8_5452, v8_5452 + 82);
+    s.stats.residuals = std::vector<double>(v8_5466, v8_5466 + 82);
     rq.seams.push_back(s);
   }
   {
@@ -5496,10 +5510,10 @@ inline void build_fit_spanout(kalos::TramoKernelRoundsRequest& rq) {
     s.result = TramoKernelStageResult::unchanged;
     s.tsig = B(0x3ff0000000000000ULL);
     s.mean = true;
-    static const double v9_5498[] = {
+    static const double v9_5512[] = {
         B(0x403ccd92aa9db8eaULL),B(0x4046772910dd64a1ULL),
     };
-    s.tstats = std::vector<double>(v9_5498, v9_5498 + 2);
+    s.tstats = std::vector<double>(v9_5512, v9_5512 + 2);
     rq.seams.push_back(s);
   }
   {
@@ -5509,10 +5523,10 @@ inline void build_fit_spanout(kalos::TramoKernelRoundsRequest& rq) {
     s.orders = TramoOrders{0, 0, 0, 0, 1, 1};
     s.mean = true;
     s.outliers = {"AO (1994-01-01)"};
-    static const double v10_5511[] = {
+    static const double v10_5525[] = {
         B(0xbfde8617f3bd35bdULL),
     };
-    s.parameters = std::vector<double>(v10_5511, v10_5511 + 1);
+    s.parameters = std::vector<double>(v10_5525, v10_5525 + 1);
     s.seasonal_after = true;
     s.original_seasonality_after = 3;
     rq.seams.push_back(s);
@@ -5524,10 +5538,10 @@ inline void build_fit_spanout(kalos::TramoKernelRoundsRequest& rq) {
     s.orders = TramoOrders{0, 0, 0, 0, 1, 1};
     s.mean = true;
     s.outliers = {"AO (1994-01-01)"};
-    static const double v11_5526[] = {
+    static const double v11_5540[] = {
         B(0xbfde8617f3bd35bdULL),
     };
-    s.parameters = std::vector<double>(v11_5526, v11_5526 + 1);
+    s.parameters = std::vector<double>(v11_5540, v11_5540 + 1);
     rq.seams.push_back(s);
   }
   {
@@ -5537,10 +5551,10 @@ inline void build_fit_spanout(kalos::TramoKernelRoundsRequest& rq) {
     s.orders = TramoOrders{0, 0, 0, 0, 1, 1};
     s.mean = true;
     s.outliers = {"AO (1994-01-01)"};
-    static const double v12_5539[] = {
+    static const double v12_5553[] = {
         B(0xbfde8617f3bd35bdULL),
     };
-    s.parameters = std::vector<double>(v12_5539, v12_5539 + 1);
+    s.parameters = std::vector<double>(v12_5553, v12_5553 + 1);
     rq.seams.push_back(s);
   }
   {
@@ -5550,10 +5564,10 @@ inline void build_fit_spanout(kalos::TramoKernelRoundsRequest& rq) {
     s.orders = TramoOrders{0, 0, 0, 0, 1, 1};
     s.mean = true;
     s.outliers = {"AO (1994-01-01)"};
-    static const double v13_5552[] = {
+    static const double v13_5566[] = {
         B(0xbfde8617f3bd35bdULL),
     };
-    s.parameters = std::vector<double>(v13_5552, v13_5552 + 1);
+    s.parameters = std::vector<double>(v13_5566, v13_5566 + 1);
     rq.seams.push_back(s);
   }
   {
@@ -5563,10 +5577,10 @@ inline void build_fit_spanout(kalos::TramoKernelRoundsRequest& rq) {
     s.orders = TramoOrders{0, 0, 0, 0, 1, 1};
     s.mean = true;
     s.outliers = {"AO (1994-01-01)"};
-    static const double v14_5565[] = {
+    static const double v14_5579[] = {
         B(0xbfde8617f3bd35bdULL),
     };
-    s.parameters = std::vector<double>(v14_5565, v14_5565 + 1);
+    s.parameters = std::vector<double>(v14_5579, v14_5579 + 1);
     rq.seams.push_back(s);
   }
   {
@@ -5647,6 +5661,7 @@ inline void build_fit_fit_spanout(TramoFitRequest& rq) {
   rq.spec.outliers_ml = false;
   rq.spec.accept_airline = false;
   rq.spec.precision = B(0x3e7ad7f29abcaf48ULL);
+  rq.spec.final_unit_root_threshold = B(0x3feeb851eb851eb8ULL);
   rq.spec.intermediate_precision = B(0x3ee4f8b588e368f1ULL);
   rq.spec.mean_is_test = false;
   rq.spec.mean_used = true;
@@ -5738,10 +5753,10 @@ inline void build_fit_gs2(kalos::TramoKernelRoundsRequest& rq) {
     s.orders = TramoOrders{0, 1, 1, 0, 0, 0};
     s.mean = false;
     s.outliers = {"AO (1995-01-01)", "LS (1996-08-01)", "LS (1997-07-01)"};
-    static const double v0_5740[] = {
+    static const double v0_5755[] = {
         B(0xbfc999999999999aULL),
     };
-    s.parameters = std::vector<double>(v0_5740, v0_5740 + 1);
+    s.parameters = std::vector<double>(v0_5755, v0_5755 + 1);
     s.critical_value = B(0x400b51eb851eb852ULL);
     rq.seams.push_back(s);
   }
@@ -5757,10 +5772,10 @@ inline void build_fit_gs2(kalos::TramoKernelRoundsRequest& rq) {
     s.nnsig = 0;
     s.orders = TramoOrders{0, 1, 1, 0, 0, 0};
     s.outliers = {"AO (1995-01-01)", "LS (1996-08-01)", "LS (1997-07-01)"};
-    static const double v1_5759[] = {
+    static const double v1_5774[] = {
         B(0x3fe91576e0605820ULL),
     };
-    s.parameters = std::vector<double>(v1_5759, v1_5759 + 1);
+    s.parameters = std::vector<double>(v1_5774, v1_5774 + 1);
     rq.seams.push_back(s);
   }
   {
@@ -5771,10 +5786,10 @@ inline void build_fit_gs2(kalos::TramoKernelRoundsRequest& rq) {
     s.retry_index = 1;
     s.tsig = B(0x3fff5c28f5c28f5cULL);
     s.mean = false;
-    static const double v2_5773[] = {
+    static const double v2_5788[] = {
         B(0x404a7331ad71de73ULL),B(0xc02e82a5f5539902ULL),B(0x402ed9b040d0b3ecULL),
     };
-    s.tstats = std::vector<double>(v2_5773, v2_5773 + 3);
+    s.tstats = std::vector<double>(v2_5788, v2_5788 + 3);
     rq.seams.push_back(s);
   }
   {
@@ -5790,7 +5805,7 @@ inline void build_fit_gs2(kalos::TramoKernelRoundsRequest& rq) {
     s.stats.bic = B(0xc016c42ffbe7756dULL);
     s.stats.outliers_count = 3;
     s.stats.effective_observations = 95;
-    static const double v3_5792[] = {
+    static const double v3_5807[] = {
         B(0xbf9d3dba9e2de289ULL),B(0xbfb2fc92c15d18a9ULL),B(0xbfa3a09f9eaf8f55ULL),
         B(0xbf995a05aefcc36eULL),B(0xbf987277a7b1c725ULL),B(0x3fb30157510fe6e1ULL),
         B(0x3fa38d6c197b291cULL),B(0x3fb21a0046f4ff04ULL),B(0x3fad184056f9bf6cULL),
@@ -5823,7 +5838,7 @@ inline void build_fit_gs2(kalos::TramoKernelRoundsRequest& rq) {
         B(0xbfa38f0d6e5fcb60ULL),B(0x3fa817960202c488ULL),B(0xbf87162830a201b0ULL),
         B(0x3fba698373c9249cULL),B(0x3fa293cc5526829aULL),
     };
-    s.stats.residuals = std::vector<double>(v3_5792, v3_5792 + 92);
+    s.stats.residuals = std::vector<double>(v3_5807, v3_5807 + 92);
     rq.seams.push_back(s);
   }
   {
@@ -5844,10 +5859,10 @@ inline void build_fit_gs2(kalos::TramoKernelRoundsRequest& rq) {
     s.orders = TramoOrders{0, 1, 1, 0, 0, 0};
     s.mean = false;
     s.outliers = {"AO (1995-01-01)", "LS (1996-08-01)", "LS (1997-07-01)"};
-    static const double v4_5846[] = {
+    static const double v4_5861[] = {
         B(0x3fe91576e0605820ULL),
     };
-    s.parameters = std::vector<double>(v4_5846, v4_5846 + 1);
+    s.parameters = std::vector<double>(v4_5861, v4_5861 + 1);
     rq.seams.push_back(s);
   }
   {
@@ -5875,10 +5890,10 @@ inline void build_fit_gs2(kalos::TramoKernelRoundsRequest& rq) {
     s.orders = TramoOrders{3, 1, 0, 0, 0, 0};
     s.mean = false;
     s.outliers = {"AO (1995-01-01)", "LS (1996-08-01)", "LS (1997-07-01)", "AO (1997-01-01)", "AO (1994-06-01)"};
-    static const double v5_5877[] = {
+    static const double v5_5892[] = {
         B(0xbfb999999999999aULL),B(0xbfb999999999999aULL),B(0xbfb999999999999aULL),
     };
-    s.parameters = std::vector<double>(v5_5877, v5_5877 + 3);
+    s.parameters = std::vector<double>(v5_5892, v5_5892 + 3);
     s.critical_value = B(0x400b51eb851eb852ULL);
     rq.seams.push_back(s);
   }
@@ -5894,10 +5909,10 @@ inline void build_fit_gs2(kalos::TramoKernelRoundsRequest& rq) {
     s.nnsig = 0;
     s.orders = TramoOrders{3, 1, 0, 0, 0, 0};
     s.outliers = {"AO (1994-06-01)", "AO (1995-01-01)", "LS (1996-08-01)", "AO (1997-01-01)", "LS (1997-07-01)"};
-    static const double v6_5896[] = {
+    static const double v6_5911[] = {
         B(0xbfecd9016554db2bULL),B(0xbfd35597f1d37c49ULL),B(0x3fe5b62e9dbd62d9ULL),
     };
-    s.parameters = std::vector<double>(v6_5896, v6_5896 + 3);
+    s.parameters = std::vector<double>(v6_5911, v6_5911 + 3);
     rq.seams.push_back(s);
   }
   {
@@ -5912,10 +5927,10 @@ inline void build_fit_gs2(kalos::TramoKernelRoundsRequest& rq) {
     s.gate_reference_ljung_box_complement = B(0x3ff0000000000000ULL);
     s.gate_reference_standard_error = B(0x3fab9c160e0ef6d7ULL);
     s.arima_orders = TramoOrders{3, 1, 0, 0, 0, 0};
-    static const double v7_5914[] = {
+    static const double v7_5929[] = {
         B(0xbfecd9016554db2bULL),B(0xbfd35597f1d37c49ULL),B(0x3fe5b62e9dbd62d9ULL),
     };
-    s.parameters = std::vector<double>(v7_5914, v7_5914 + 3);
+    s.parameters = std::vector<double>(v7_5929, v7_5929 + 3);
     s.stats.free_parameters = 3;
     s.stats.dim = 95;
     s.stats.observations = 96;
@@ -5925,7 +5940,7 @@ inline void build_fit_gs2(kalos::TramoKernelRoundsRequest& rq) {
     s.stats.bic = B(0xc01b43bbc2a0ffceULL);
     s.stats.outliers_count = 5;
     s.stats.effective_observations = 95;
-    static const double v8_5927[] = {
+    static const double v8_5942[] = {
         B(0xbf9b095f34892821ULL),B(0x3f9983b063a6e212ULL),B(0xbf9fbe5d9a1df266ULL),
         B(0x3fa7adf19f9fcb8aULL),B(0x3f9687a69779565aULL),B(0xbfa08f3ebf0bf514ULL),
         B(0x3f9ef779ccbb3d7cULL),B(0x3f865fd1321a8db2ULL),B(0xbf9a194d6fd25d15ULL),
@@ -5957,7 +5972,7 @@ inline void build_fit_gs2(kalos::TramoKernelRoundsRequest& rq) {
         B(0x3fa3cf8e5dcf8278ULL),B(0xbf93fb75167e92c0ULL),B(0x3fa4704737fb4cb2ULL),
         B(0xbf907f37076dc030ULL),B(0x3f90cd6da3c7021bULL),B(0x3fa26cd17c1ac995ULL),
     };
-    s.stats.residuals = std::vector<double>(v8_5927, v8_5927 + 90);
+    s.stats.residuals = std::vector<double>(v8_5942, v8_5942 + 90);
     rq.seams.push_back(s);
   }
   {
@@ -5973,11 +5988,11 @@ inline void build_fit_gs2(kalos::TramoKernelRoundsRequest& rq) {
     s.result = TramoKernelStageResult::unchanged;
     s.tsig = B(0x3ff0000000000000ULL);
     s.mean = false;
-    static const double v9_5975[] = {
+    static const double v9_5990[] = {
         B(0xc010baff5194a4aaULL),B(0x405425307ce5960eULL),B(0xc03b18044fc318cfULL),
         B(0x40154cb8ed4d4e9dULL),B(0x403ab8b2c2ef96b1ULL),
     };
-    s.tstats = std::vector<double>(v9_5975, v9_5975 + 5);
+    s.tstats = std::vector<double>(v9_5990, v9_5990 + 5);
     rq.seams.push_back(s);
   }
   {
@@ -5987,10 +6002,10 @@ inline void build_fit_gs2(kalos::TramoKernelRoundsRequest& rq) {
     s.orders = TramoOrders{3, 1, 0, 0, 0, 0};
     s.mean = false;
     s.outliers = {"AO (1994-06-01)", "AO (1995-01-01)", "LS (1996-08-01)", "AO (1997-01-01)", "LS (1997-07-01)"};
-    static const double v10_5989[] = {
+    static const double v10_6004[] = {
         B(0xbfecd9016554db2bULL),B(0xbfd35597f1d37c49ULL),B(0x3fe5b62e9dbd62d9ULL),
     };
-    s.parameters = std::vector<double>(v10_5989, v10_5989 + 3);
+    s.parameters = std::vector<double>(v10_6004, v10_6004 + 3);
     s.seasonal_after = true;
     s.original_seasonality_after = 2;
     rq.seams.push_back(s);
@@ -6019,11 +6034,11 @@ inline void build_fit_gs2(kalos::TramoKernelRoundsRequest& rq) {
     s.orders = TramoOrders{1, 1, 1, 1, 1, 1};
     s.mean = false;
     s.outliers = {"AO (1994-06-01)", "AO (1995-01-01)", "LS (1996-08-01)", "AO (1997-01-01)", "LS (1997-07-01)"};
-    static const double v11_6021[] = {
+    static const double v11_6036[] = {
         B(0xbfb999999999999aULL),B(0xbfb999999999999aULL),B(0xbfc999999999999aULL),
         B(0xbfc999999999999aULL),
     };
-    s.parameters = std::vector<double>(v11_6021, v11_6021 + 4);
+    s.parameters = std::vector<double>(v11_6036, v11_6036 + 4);
     rq.seams.push_back(s);
   }
   {
@@ -6056,10 +6071,10 @@ inline void build_fit_gs2(kalos::TramoKernelRoundsRequest& rq) {
     s.orders = TramoOrders{0, 1, 1, 1, 1, 1};
     s.mean = false;
     s.outliers = {"AO (1995-01-01)", "LS (1996-08-01)", "LS (1997-07-01)"};
-    static const double v12_6058[] = {
+    static const double v12_6073[] = {
         B(0xbfb999999999999aULL),B(0xbfc999999999999aULL),B(0xbfc999999999999aULL),
     };
-    s.parameters = std::vector<double>(v12_6058, v12_6058 + 3);
+    s.parameters = std::vector<double>(v12_6073, v12_6073 + 3);
     s.critical_value = B(0x400b51eb851eb852ULL);
     rq.seams.push_back(s);
   }
@@ -6075,10 +6090,10 @@ inline void build_fit_gs2(kalos::TramoKernelRoundsRequest& rq) {
     s.nnsig = 0;
     s.orders = TramoOrders{0, 1, 1, 1, 1, 1};
     s.outliers = {"AO (1995-01-01)", "LS (1996-08-01)", "LS (1997-07-01)"};
-    static const double v13_6077[] = {
+    static const double v13_6092[] = {
         B(0x3fce0606296c3e3aULL),B(0xbfc214212bf34a60ULL),B(0xbfe70c3a5e512c83ULL),
     };
-    s.parameters = std::vector<double>(v13_6077, v13_6077 + 3);
+    s.parameters = std::vector<double>(v13_6092, v13_6092 + 3);
     rq.seams.push_back(s);
   }
   {
@@ -6087,10 +6102,10 @@ inline void build_fit_gs2(kalos::TramoKernelRoundsRequest& rq) {
     s.result = TramoKernelStageResult::unchanged;
     s.tsig = B(0x3ff0000000000000ULL);
     s.mean = false;
-    static const double v14_6089[] = {
+    static const double v14_6104[] = {
         B(0x404d35b9b562d59eULL),B(0xc037eb71d36419faULL),B(0x4037be46f3991b58ULL),
     };
-    s.tstats = std::vector<double>(v14_6089, v14_6089 + 3);
+    s.tstats = std::vector<double>(v14_6104, v14_6104 + 3);
     rq.seams.push_back(s);
   }
   {
@@ -6100,10 +6115,10 @@ inline void build_fit_gs2(kalos::TramoKernelRoundsRequest& rq) {
     s.orders = TramoOrders{0, 1, 1, 1, 1, 1};
     s.mean = false;
     s.outliers = {"AO (1995-01-01)", "LS (1996-08-01)", "LS (1997-07-01)"};
-    static const double v15_6102[] = {
+    static const double v15_6117[] = {
         B(0x3fce0606296c3e3aULL),B(0xbfc214212bf34a60ULL),B(0xbfe70c3a5e512c83ULL),
     };
-    s.parameters = std::vector<double>(v15_6102, v15_6102 + 3);
+    s.parameters = std::vector<double>(v15_6117, v15_6117 + 3);
     s.seasonal_after = true;
     s.original_seasonality_after = 2;
     rq.seams.push_back(s);
@@ -6115,10 +6130,10 @@ inline void build_fit_gs2(kalos::TramoKernelRoundsRequest& rq) {
     s.orders = TramoOrders{0, 1, 1, 1, 1, 1};
     s.mean = false;
     s.outliers = {"AO (1995-01-01)", "LS (1996-08-01)", "LS (1997-07-01)"};
-    static const double v16_6117[] = {
+    static const double v16_6132[] = {
         B(0x3fce0606296c3e3aULL),B(0xbfc214212bf34a60ULL),B(0xbfe70c3a5e512c83ULL),
     };
-    s.parameters = std::vector<double>(v16_6117, v16_6117 + 3);
+    s.parameters = std::vector<double>(v16_6132, v16_6132 + 3);
     rq.seams.push_back(s);
   }
   {
@@ -6128,10 +6143,10 @@ inline void build_fit_gs2(kalos::TramoKernelRoundsRequest& rq) {
     s.orders = TramoOrders{0, 1, 1, 1, 1, 1};
     s.mean = false;
     s.outliers = {"AO (1995-01-01)", "LS (1996-08-01)", "LS (1997-07-01)"};
-    static const double v17_6130[] = {
+    static const double v17_6145[] = {
         B(0x3fce0606296c3e3aULL),B(0xbfc214212bf34a60ULL),B(0xbfe70c3a5e512c83ULL),
     };
-    s.parameters = std::vector<double>(v17_6130, v17_6130 + 3);
+    s.parameters = std::vector<double>(v17_6145, v17_6145 + 3);
     rq.seams.push_back(s);
   }
   {
@@ -6141,10 +6156,10 @@ inline void build_fit_gs2(kalos::TramoKernelRoundsRequest& rq) {
     s.orders = TramoOrders{0, 1, 1, 1, 1, 1};
     s.mean = false;
     s.outliers = {"AO (1995-01-01)", "LS (1996-08-01)", "LS (1997-07-01)"};
-    static const double v18_6143[] = {
+    static const double v18_6158[] = {
         B(0x3fce0606296c3e3aULL),B(0xbfc214212bf34a60ULL),B(0xbfe70c3a5e512c83ULL),
     };
-    s.parameters = std::vector<double>(v18_6143, v18_6143 + 3);
+    s.parameters = std::vector<double>(v18_6158, v18_6158 + 3);
     rq.seams.push_back(s);
   }
   {
@@ -6154,10 +6169,10 @@ inline void build_fit_gs2(kalos::TramoKernelRoundsRequest& rq) {
     s.orders = TramoOrders{0, 1, 1, 1, 1, 1};
     s.mean = false;
     s.outliers = {"AO (1995-01-01)", "LS (1996-08-01)", "LS (1997-07-01)"};
-    static const double v19_6156[] = {
+    static const double v19_6171[] = {
         B(0x3fce0606296c3e3aULL),B(0xbfc214212bf34a60ULL),B(0xbfe70c3a5e512c83ULL),
     };
-    s.parameters = std::vector<double>(v19_6156, v19_6156 + 3);
+    s.parameters = std::vector<double>(v19_6171, v19_6171 + 3);
     rq.seams.push_back(s);
   }
   {
@@ -6251,6 +6266,7 @@ inline void build_fit_fit_gs2(TramoFitRequest& rq) {
   rq.spec.outliers_ml = false;
   rq.spec.accept_airline = false;
   rq.spec.precision = B(0x3e7ad7f29abcaf48ULL);
+  rq.spec.final_unit_root_threshold = B(0x3feeb851eb851eb8ULL);
   rq.spec.intermediate_precision = B(0x3ee4f8b588e368f1ULL);
   rq.spec.mean_is_test = false;
   rq.spec.mean_used = true;
@@ -6347,10 +6363,10 @@ inline void build_fit_s30ml(kalos::TramoKernelRoundsRequest& rq) {
     s.result = TramoKernelStageResult::unchanged;
     s.orders = TramoOrders{0, 1, 1, 0, 1, 1};
     s.mean = false;
-    static const double v0_6349[] = {
+    static const double v0_6365[] = {
         B(0xbfeffc2b65352ee0ULL),B(0xbfc5464a264c2c8dULL),
     };
-    s.parameters = std::vector<double>(v0_6349, v0_6349 + 2);
+    s.parameters = std::vector<double>(v0_6365, v0_6365 + 2);
     s.critical_value = B(0x400a666666666666ULL);
     rq.seams.push_back(s);
   }
@@ -6365,10 +6381,10 @@ inline void build_fit_s30ml(kalos::TramoKernelRoundsRequest& rq) {
     s.pass_at_call = 0;
     s.nnsig = 0;
     s.orders = TramoOrders{0, 1, 1, 0, 1, 1};
-    static const double v1_6367[] = {
+    static const double v1_6383[] = {
         B(0xbfeffff967433a2aULL),B(0xbfc4964c5d56a719ULL),
     };
-    s.parameters = std::vector<double>(v1_6367, v1_6367 + 2);
+    s.parameters = std::vector<double>(v1_6383, v1_6383 + 2);
     rq.seams.push_back(s);
   }
   {
@@ -6394,7 +6410,7 @@ inline void build_fit_s30ml(kalos::TramoKernelRoundsRequest& rq) {
     s.stats.bic = B(0xc023f3be037ae715ULL);
     s.stats.outliers_count = 0;
     s.stats.effective_observations = 17;
-    static const double v2_6396[] = {
+    static const double v2_6412[] = {
         B(0xbf6f3918dab53011ULL),B(0xbf5f4480fc099a69ULL),B(0x3f59c8fcb22a7ed9ULL),
         B(0xbf62614582e7dbeaULL),B(0xbf85b9f71b8e0495ULL),B(0x3f4c3c37ea8eb947ULL),
         B(0x3f79ad5aba6e9da3ULL),B(0xbf522c2c5a0f80deULL),B(0xbf6d22f4ddfd6d7cULL),
@@ -6402,7 +6418,7 @@ inline void build_fit_s30ml(kalos::TramoKernelRoundsRequest& rq) {
         B(0xbf8298c936cc7284ULL),B(0x3f6898e518d97646ULL),B(0x3f733813caea9288ULL),
         B(0x3f7898b8ac9ee71eULL),B(0x3f4a34603aa5460dULL),
     };
-    s.stats.residuals = std::vector<double>(v2_6396, v2_6396 + 17);
+    s.stats.residuals = std::vector<double>(v2_6412, v2_6412 + 17);
     rq.seams.push_back(s);
   }
   {
@@ -6422,10 +6438,10 @@ inline void build_fit_s30ml(kalos::TramoKernelRoundsRequest& rq) {
     s.result = TramoKernelStageResult::unprocessed;
     s.orders = TramoOrders{0, 1, 1, 0, 1, 1};
     s.mean = false;
-    static const double v3_6424[] = {
+    static const double v3_6440[] = {
         B(0xbfeffff967433a2aULL),B(0xbfc4964c5d56a719ULL),
     };
-    s.parameters = std::vector<double>(v3_6424, v3_6424 + 2);
+    s.parameters = std::vector<double>(v3_6440, v3_6440 + 2);
     rq.seams.push_back(s);
   }
   {
@@ -6452,10 +6468,10 @@ inline void build_fit_s30ml(kalos::TramoKernelRoundsRequest& rq) {
     s.result = TramoKernelStageResult::unchanged;
     s.orders = TramoOrders{0, 1, 1, 0, 1, 1};
     s.mean = false;
-    static const double v4_6454[] = {
+    static const double v4_6470[] = {
         B(0xbfeffff967433a2aULL),B(0xbfc4964c5d56a719ULL),
     };
-    s.parameters = std::vector<double>(v4_6454, v4_6454 + 2);
+    s.parameters = std::vector<double>(v4_6470, v4_6470 + 2);
     s.critical_value = B(0x400a666666666666ULL);
     rq.seams.push_back(s);
   }
@@ -6470,10 +6486,10 @@ inline void build_fit_s30ml(kalos::TramoKernelRoundsRequest& rq) {
     s.pass_at_call = 1;
     s.nnsig = 0;
     s.orders = TramoOrders{0, 1, 1, 0, 1, 1};
-    static const double v5_6472[] = {
+    static const double v5_6488[] = {
         B(0xbfeffff967433a2aULL),B(0xbfc4964c5d56a719ULL),
     };
-    s.parameters = std::vector<double>(v5_6472, v5_6472 + 2);
+    s.parameters = std::vector<double>(v5_6488, v5_6488 + 2);
     rq.seams.push_back(s);
   }
   {
@@ -6488,10 +6504,10 @@ inline void build_fit_s30ml(kalos::TramoKernelRoundsRequest& rq) {
     s.gate_reference_ljung_box_complement = B(0x3fe2dbc4e96a5519ULL);
     s.gate_reference_standard_error = B(0x3f792b8eab35b0e0ULL);
     s.arima_orders = TramoOrders{0, 1, 1, 0, 1, 1};
-    static const double v6_6490[] = {
+    static const double v6_6506[] = {
         B(0xbfeffff967433a2aULL),B(0xbfc4964c5d56a719ULL),
     };
-    s.parameters = std::vector<double>(v6_6490, v6_6490 + 2);
+    s.parameters = std::vector<double>(v6_6506, v6_6506 + 2);
     s.stats.free_parameters = 2;
     s.stats.dim = 17;
     s.stats.observations = 30;
@@ -6501,7 +6517,7 @@ inline void build_fit_s30ml(kalos::TramoKernelRoundsRequest& rq) {
     s.stats.bic = B(0xc023f3be037ae715ULL);
     s.stats.outliers_count = 0;
     s.stats.effective_observations = 17;
-    static const double v7_6503[] = {
+    static const double v7_6519[] = {
         B(0xbf6f3918dab53011ULL),B(0xbf5f4480fc099a69ULL),B(0x3f59c8fcb22a7ed9ULL),
         B(0xbf62614582e7dbeaULL),B(0xbf85b9f71b8e0495ULL),B(0x3f4c3c37ea8eb947ULL),
         B(0x3f79ad5aba6e9da3ULL),B(0xbf522c2c5a0f80deULL),B(0xbf6d22f4ddfd6d7cULL),
@@ -6509,7 +6525,7 @@ inline void build_fit_s30ml(kalos::TramoKernelRoundsRequest& rq) {
         B(0xbf8298c936cc7284ULL),B(0x3f6898e518d97646ULL),B(0x3f733813caea9288ULL),
         B(0x3f7898b8ac9ee71eULL),B(0x3f4a34603aa5460dULL),
     };
-    s.stats.residuals = std::vector<double>(v7_6503, v7_6503 + 17);
+    s.stats.residuals = std::vector<double>(v7_6519, v7_6519 + 17);
     rq.seams.push_back(s);
   }
   {
@@ -6533,10 +6549,10 @@ inline void build_fit_s30ml(kalos::TramoKernelRoundsRequest& rq) {
     s.result = TramoKernelStageResult::unchanged;
     s.orders = TramoOrders{0, 1, 1, 0, 1, 1};
     s.mean = false;
-    static const double v8_6535[] = {
+    static const double v8_6551[] = {
         B(0xbfeffff967433a2aULL),B(0xbfc4964c5d56a719ULL),
     };
-    s.parameters = std::vector<double>(v8_6535, v8_6535 + 2);
+    s.parameters = std::vector<double>(v8_6551, v8_6551 + 2);
     s.seasonal_after = true;
     s.original_seasonality_after = 3;
     rq.seams.push_back(s);
@@ -6547,10 +6563,10 @@ inline void build_fit_s30ml(kalos::TramoKernelRoundsRequest& rq) {
     s.result = TramoKernelStageResult::unchanged;
     s.orders = TramoOrders{0, 1, 1, 0, 1, 1};
     s.mean = false;
-    static const double v9_6549[] = {
+    static const double v9_6565[] = {
         B(0xbfeffff967433a2aULL),B(0xbfc4964c5d56a719ULL),
     };
-    s.parameters = std::vector<double>(v9_6549, v9_6549 + 2);
+    s.parameters = std::vector<double>(v9_6565, v9_6565 + 2);
     rq.seams.push_back(s);
   }
   {
@@ -6559,10 +6575,10 @@ inline void build_fit_s30ml(kalos::TramoKernelRoundsRequest& rq) {
     s.result = TramoKernelStageResult::unchanged;
     s.orders = TramoOrders{0, 1, 1, 0, 1, 1};
     s.mean = false;
-    static const double v10_6561[] = {
+    static const double v10_6577[] = {
         B(0xbfeffff967433a2aULL),B(0xbfc4964c5d56a719ULL),
     };
-    s.parameters = std::vector<double>(v10_6561, v10_6561 + 2);
+    s.parameters = std::vector<double>(v10_6577, v10_6577 + 2);
     rq.seams.push_back(s);
   }
   {
@@ -6571,10 +6587,10 @@ inline void build_fit_s30ml(kalos::TramoKernelRoundsRequest& rq) {
     s.result = TramoKernelStageResult::unchanged;
     s.orders = TramoOrders{0, 1, 1, 0, 1, 1};
     s.mean = false;
-    static const double v11_6573[] = {
+    static const double v11_6589[] = {
         B(0xbfeffff967433a2aULL),B(0xbfc4964c5d56a719ULL),
     };
-    s.parameters = std::vector<double>(v11_6573, v11_6573 + 2);
+    s.parameters = std::vector<double>(v11_6589, v11_6589 + 2);
     rq.seams.push_back(s);
   }
   {
@@ -6583,10 +6599,10 @@ inline void build_fit_s30ml(kalos::TramoKernelRoundsRequest& rq) {
     s.result = TramoKernelStageResult::unchanged;
     s.orders = TramoOrders{0, 1, 1, 0, 1, 1};
     s.mean = false;
-    static const double v12_6585[] = {
+    static const double v12_6601[] = {
         B(0xbfeffff967433a2aULL),B(0xbfc4964c5d56a719ULL),
     };
-    s.parameters = std::vector<double>(v12_6585, v12_6585 + 2);
+    s.parameters = std::vector<double>(v12_6601, v12_6601 + 2);
     rq.seams.push_back(s);
   }
   {
@@ -6667,6 +6683,7 @@ inline void build_fit_fit_s30ml(TramoFitRequest& rq) {
   rq.spec.outliers_ml = true;
   rq.spec.accept_airline = false;
   rq.spec.precision = B(0x3e7ad7f29abcaf48ULL);
+  rq.spec.final_unit_root_threshold = B(0x3feeb851eb851eb8ULL);
   rq.spec.intermediate_precision = B(0x3ee4f8b588e368f1ULL);
   rq.spec.mean_is_test = false;
   rq.spec.mean_used = true;
@@ -6755,10 +6772,10 @@ inline void build_fit_aoonly(kalos::TramoKernelRoundsRequest& rq) {
     s.orders = TramoOrders{0, 1, 1, 0, 1, 1};
     s.mean = false;
     s.outliers = {"AO (1994-01-01)"};
-    static const double v0_6757[] = {
+    static const double v0_6774[] = {
         B(0xbfc999999999999aULL),B(0xbfc999999999999aULL),
     };
-    s.parameters = std::vector<double>(v0_6757, v0_6757 + 2);
+    s.parameters = std::vector<double>(v0_6774, v0_6774 + 2);
     s.critical_value = B(0x400b51eb851eb852ULL);
     rq.seams.push_back(s);
   }
@@ -6774,10 +6791,10 @@ inline void build_fit_aoonly(kalos::TramoKernelRoundsRequest& rq) {
     s.nnsig = 0;
     s.orders = TramoOrders{0, 1, 1, 0, 1, 1};
     s.outliers = {"AO (1994-01-01)"};
-    static const double v1_6776[] = {
+    static const double v1_6793[] = {
         B(0xbfecd1313abf0821ULL),B(0xbfdd48b70fb82143ULL),
     };
-    s.parameters = std::vector<double>(v1_6776, v1_6776 + 2);
+    s.parameters = std::vector<double>(v1_6793, v1_6793 + 2);
     rq.seams.push_back(s);
   }
   {
@@ -6788,10 +6805,10 @@ inline void build_fit_aoonly(kalos::TramoKernelRoundsRequest& rq) {
     s.retry_index = 1;
     s.tsig = B(0x3fff5c28f5c28f5cULL);
     s.mean = false;
-    static const double v2_6790[] = {
+    static const double v2_6807[] = {
         B(0x4046e9892c3314ebULL),
     };
-    s.tstats = std::vector<double>(v2_6790, v2_6790 + 1);
+    s.tstats = std::vector<double>(v2_6807, v2_6807 + 1);
     rq.seams.push_back(s);
   }
   {
@@ -6807,7 +6824,7 @@ inline void build_fit_aoonly(kalos::TramoKernelRoundsRequest& rq) {
     s.stats.bic = B(0xc02435b07afa1cf7ULL);
     s.stats.outliers_count = 1;
     s.stats.effective_observations = 83;
-    static const double v3_6809[] = {
+    static const double v3_6826[] = {
         B(0xbf5e04beb73165d7ULL),B(0x3f5931941b8973b9ULL),B(0xbf61b0ef9881be10ULL),
         B(0xbf84d23df475953dULL),B(0x3f50ae35b0ea52e6ULL),B(0x3f7930a6d07823aeULL),
         B(0xbf5196f397fdf987ULL),B(0xbf6baf96be622a97ULL),B(0x3f8c17157957c88bULL),
@@ -6837,7 +6854,7 @@ inline void build_fit_aoonly(kalos::TramoKernelRoundsRequest& rq) {
         B(0xbf59c11e43dfa79cULL),B(0x3f7016ed9b5e4b15ULL),B(0x3f8a713a9ba60e8bULL),
         B(0x3f3a5be18f1e64a8ULL),
     };
-    s.stats.residuals = std::vector<double>(v3_6809, v3_6809 + 82);
+    s.stats.residuals = std::vector<double>(v3_6826, v3_6826 + 82);
     rq.seams.push_back(s);
   }
   {
@@ -6858,11 +6875,11 @@ inline void build_fit_aoonly(kalos::TramoKernelRoundsRequest& rq) {
     s.orders = TramoOrders{1, 0, 1, 1, 1, 1};
     s.mean = true;
     s.outliers = {"AO (1994-01-01)"};
-    static const double v4_6860[] = {
+    static const double v4_6877[] = {
         B(0xbfb999999999999aULL),B(0xbfb999999999999aULL),B(0xbfc999999999999aULL),
         B(0xbfc999999999999aULL),
     };
-    s.parameters = std::vector<double>(v4_6860, v4_6860 + 4);
+    s.parameters = std::vector<double>(v4_6877, v4_6877 + 4);
     rq.seams.push_back(s);
   }
   {
@@ -6895,10 +6912,10 @@ inline void build_fit_aoonly(kalos::TramoKernelRoundsRequest& rq) {
     s.orders = TramoOrders{0, 0, 0, 0, 1, 1};
     s.mean = true;
     s.outliers = {"AO (1994-01-01)"};
-    static const double v5_6897[] = {
+    static const double v5_6914[] = {
         B(0xbfc999999999999aULL),
     };
-    s.parameters = std::vector<double>(v5_6897, v5_6897 + 1);
+    s.parameters = std::vector<double>(v5_6914, v5_6914 + 1);
     s.critical_value = B(0x400b51eb851eb852ULL);
     rq.seams.push_back(s);
   }
@@ -6914,10 +6931,10 @@ inline void build_fit_aoonly(kalos::TramoKernelRoundsRequest& rq) {
     s.nnsig = 0;
     s.orders = TramoOrders{0, 0, 0, 0, 1, 1};
     s.outliers = {"AO (1994-01-01)"};
-    static const double v6_6916[] = {
+    static const double v6_6933[] = {
         B(0xbfde8617f3bd35bdULL),
     };
-    s.parameters = std::vector<double>(v6_6916, v6_6916 + 1);
+    s.parameters = std::vector<double>(v6_6933, v6_6933 + 1);
     rq.seams.push_back(s);
   }
   {
@@ -6932,10 +6949,10 @@ inline void build_fit_aoonly(kalos::TramoKernelRoundsRequest& rq) {
     s.gate_reference_ljung_box_complement = B(0x3fb346df75a7e140ULL);
     s.gate_reference_standard_error = B(0x3f78a0c3e16daf97ULL);
     s.arima_orders = TramoOrders{0, 0, 0, 0, 1, 1};
-    static const double v7_6934[] = {
+    static const double v7_6951[] = {
         B(0xbfde8617f3bd35bdULL),
     };
-    s.parameters = std::vector<double>(v7_6934, v7_6934 + 1);
+    s.parameters = std::vector<double>(v7_6951, v7_6951 + 1);
     s.stats.free_parameters = 1;
     s.stats.dim = 84;
     s.stats.observations = 96;
@@ -6945,7 +6962,7 @@ inline void build_fit_aoonly(kalos::TramoKernelRoundsRequest& rq) {
     s.stats.bic = B(0xc02446665c2ab2c4ULL);
     s.stats.outliers_count = 1;
     s.stats.effective_observations = 84;
-    static const double v8_6947[] = {
+    static const double v8_6964[] = {
         B(0x3f555edfbce5c237ULL),B(0x3f71fb7aef715206ULL),B(0x3f4be278a641242fULL),
         B(0xbf80420a9b444985ULL),B(0x3f5cee16976dd537ULL),B(0x3f7d570e3e7d1a04ULL),
         B(0x3f47d09b23d968afULL),B(0xbf5c958fb5d16509ULL),B(0x3f8ec2ee399db5beULL),
@@ -6975,7 +6992,7 @@ inline void build_fit_aoonly(kalos::TramoKernelRoundsRequest& rq) {
         B(0xbf7542bddfdcd95aULL),B(0x3f1444b1d5ef336cULL),B(0x3f8351c7a724a5b3ULL),
         B(0xbf5dddfc91afe0f9ULL),
     };
-    s.stats.residuals = std::vector<double>(v8_6947, v8_6947 + 82);
+    s.stats.residuals = std::vector<double>(v8_6964, v8_6964 + 82);
     rq.seams.push_back(s);
   }
   {
@@ -6991,10 +7008,10 @@ inline void build_fit_aoonly(kalos::TramoKernelRoundsRequest& rq) {
     s.result = TramoKernelStageResult::unchanged;
     s.tsig = B(0x3ff0000000000000ULL);
     s.mean = true;
-    static const double v9_6993[] = {
+    static const double v9_7010[] = {
         B(0x403ccd92aa9db8eaULL),B(0x4046772910dd64a1ULL),
     };
-    s.tstats = std::vector<double>(v9_6993, v9_6993 + 2);
+    s.tstats = std::vector<double>(v9_7010, v9_7010 + 2);
     rq.seams.push_back(s);
   }
   {
@@ -7004,10 +7021,10 @@ inline void build_fit_aoonly(kalos::TramoKernelRoundsRequest& rq) {
     s.orders = TramoOrders{0, 0, 0, 0, 1, 1};
     s.mean = true;
     s.outliers = {"AO (1994-01-01)"};
-    static const double v10_7006[] = {
+    static const double v10_7023[] = {
         B(0xbfde8617f3bd35bdULL),
     };
-    s.parameters = std::vector<double>(v10_7006, v10_7006 + 1);
+    s.parameters = std::vector<double>(v10_7023, v10_7023 + 1);
     s.seasonal_after = true;
     s.original_seasonality_after = 3;
     rq.seams.push_back(s);
@@ -7019,10 +7036,10 @@ inline void build_fit_aoonly(kalos::TramoKernelRoundsRequest& rq) {
     s.orders = TramoOrders{0, 0, 0, 0, 1, 1};
     s.mean = true;
     s.outliers = {"AO (1994-01-01)"};
-    static const double v11_7021[] = {
+    static const double v11_7038[] = {
         B(0xbfde8617f3bd35bdULL),
     };
-    s.parameters = std::vector<double>(v11_7021, v11_7021 + 1);
+    s.parameters = std::vector<double>(v11_7038, v11_7038 + 1);
     rq.seams.push_back(s);
   }
   {
@@ -7032,10 +7049,10 @@ inline void build_fit_aoonly(kalos::TramoKernelRoundsRequest& rq) {
     s.orders = TramoOrders{0, 0, 0, 0, 1, 1};
     s.mean = true;
     s.outliers = {"AO (1994-01-01)"};
-    static const double v12_7034[] = {
+    static const double v12_7051[] = {
         B(0xbfde8617f3bd35bdULL),
     };
-    s.parameters = std::vector<double>(v12_7034, v12_7034 + 1);
+    s.parameters = std::vector<double>(v12_7051, v12_7051 + 1);
     rq.seams.push_back(s);
   }
   {
@@ -7045,10 +7062,10 @@ inline void build_fit_aoonly(kalos::TramoKernelRoundsRequest& rq) {
     s.orders = TramoOrders{0, 0, 0, 0, 1, 1};
     s.mean = true;
     s.outliers = {"AO (1994-01-01)"};
-    static const double v13_7047[] = {
+    static const double v13_7064[] = {
         B(0xbfde8617f3bd35bdULL),
     };
-    s.parameters = std::vector<double>(v13_7047, v13_7047 + 1);
+    s.parameters = std::vector<double>(v13_7064, v13_7064 + 1);
     rq.seams.push_back(s);
   }
   {
@@ -7058,10 +7075,10 @@ inline void build_fit_aoonly(kalos::TramoKernelRoundsRequest& rq) {
     s.orders = TramoOrders{0, 0, 0, 0, 1, 1};
     s.mean = true;
     s.outliers = {"AO (1994-01-01)"};
-    static const double v14_7060[] = {
+    static const double v14_7077[] = {
         B(0xbfde8617f3bd35bdULL),
     };
-    s.parameters = std::vector<double>(v14_7060, v14_7060 + 1);
+    s.parameters = std::vector<double>(v14_7077, v14_7077 + 1);
     rq.seams.push_back(s);
   }
   {
@@ -7142,6 +7159,7 @@ inline void build_fit_fit_aoonly(TramoFitRequest& rq) {
   rq.spec.outliers_ml = false;
   rq.spec.accept_airline = false;
   rq.spec.precision = B(0x3e7ad7f29abcaf48ULL);
+  rq.spec.final_unit_root_threshold = B(0x3feeb851eb851eb8ULL);
   rq.spec.intermediate_precision = B(0x3ee4f8b588e368f1ULL);
   rq.spec.mean_is_test = false;
   rq.spec.mean_used = true;
@@ -7233,10 +7251,10 @@ inline void build_fit_cv4(kalos::TramoKernelRoundsRequest& rq) {
     s.orders = TramoOrders{0, 1, 1, 0, 1, 1};
     s.mean = false;
     s.outliers = {"AO (1992-07-01)", "LS (1994-01-01)", "LS (1995-11-01)"};
-    static const double v0_7235[] = {
+    static const double v0_7253[] = {
         B(0xbfc999999999999aULL),B(0xbfc999999999999aULL),
     };
-    s.parameters = std::vector<double>(v0_7235, v0_7235 + 2);
+    s.parameters = std::vector<double>(v0_7253, v0_7253 + 2);
     s.critical_value = B(0x4010000000000000ULL);
     rq.seams.push_back(s);
   }
@@ -7252,10 +7270,10 @@ inline void build_fit_cv4(kalos::TramoKernelRoundsRequest& rq) {
     s.nnsig = 0;
     s.orders = TramoOrders{0, 1, 1, 0, 1, 1};
     s.outliers = {"AO (1992-07-01)", "LS (1994-01-01)", "LS (1995-11-01)"};
-    static const double v1_7254[] = {
+    static const double v1_7272[] = {
         B(0x3fbdd30da6040f3aULL),B(0xbfda18dda9f7d02fULL),
     };
-    s.parameters = std::vector<double>(v1_7254, v1_7254 + 2);
+    s.parameters = std::vector<double>(v1_7272, v1_7272 + 2);
     rq.seams.push_back(s);
   }
   {
@@ -7266,10 +7284,10 @@ inline void build_fit_cv4(kalos::TramoKernelRoundsRequest& rq) {
     s.retry_index = 1;
     s.tsig = B(0x3fff5c28f5c28f5cULL);
     s.mean = false;
-    static const double v2_7268[] = {
+    static const double v2_7286[] = {
         B(0x40437cff199d35edULL),B(0x403db104e9f85228ULL),B(0x4031fd6742b60c39ULL),
     };
-    s.tstats = std::vector<double>(v2_7268, v2_7268 + 3);
+    s.tstats = std::vector<double>(v2_7286, v2_7286 + 3);
     rq.seams.push_back(s);
   }
   {
@@ -7285,7 +7303,7 @@ inline void build_fit_cv4(kalos::TramoKernelRoundsRequest& rq) {
     s.stats.bic = B(0xc021825b977345a2ULL);
     s.stats.outliers_count = 3;
     s.stats.effective_observations = 83;
-    static const double v3_7287[] = {
+    static const double v3_7305[] = {
         B(0xbf7054fa0a013f42ULL),B(0xbf8183ff074b2dffULL),B(0x3f866df65aaa7e61ULL),
         B(0x3f71743606f90bd7ULL),B(0xbf7d1452a7dd39edULL),B(0xbf5bfd38a9a467a3ULL),
         B(0x3f91d0ce04fc6989ULL),B(0xbf92f7d8789954e2ULL),B(0x3f63bdebd5402a7eULL),
@@ -7314,7 +7332,7 @@ inline void build_fit_cv4(kalos::TramoKernelRoundsRequest& rq) {
         B(0x3f912e6b57853bdcULL),B(0xbf7211798cb058ffULL),B(0x3f78c7b3f9d18436ULL),
         B(0x3f76f056f6addd40ULL),B(0xbf8274e8b11dd1f6ULL),
     };
-    s.stats.residuals = std::vector<double>(v3_7287, v3_7287 + 80);
+    s.stats.residuals = std::vector<double>(v3_7305, v3_7305 + 80);
     rq.seams.push_back(s);
   }
   {
@@ -7335,10 +7353,10 @@ inline void build_fit_cv4(kalos::TramoKernelRoundsRequest& rq) {
     s.orders = TramoOrders{0, 1, 1, 0, 1, 1};
     s.mean = false;
     s.outliers = {"AO (1992-07-01)", "LS (1994-01-01)", "LS (1995-11-01)"};
-    static const double v4_7337[] = {
+    static const double v4_7355[] = {
         B(0x3fbdd30da6040f3aULL),B(0xbfda18dda9f7d02fULL),
     };
-    s.parameters = std::vector<double>(v4_7337, v4_7337 + 2);
+    s.parameters = std::vector<double>(v4_7355, v4_7355 + 2);
     rq.seams.push_back(s);
   }
   {
@@ -7366,10 +7384,10 @@ inline void build_fit_cv4(kalos::TramoKernelRoundsRequest& rq) {
     s.orders = TramoOrders{2, 1, 0, 1, 1, 0};
     s.mean = false;
     s.outliers = {"AO (1992-07-01)", "LS (1994-01-01)", "LS (1995-11-01)"};
-    static const double v5_7368[] = {
+    static const double v5_7386[] = {
         B(0xbfb999999999999aULL),B(0xbfb999999999999aULL),B(0xbfb999999999999aULL),
     };
-    s.parameters = std::vector<double>(v5_7368, v5_7368 + 3);
+    s.parameters = std::vector<double>(v5_7386, v5_7386 + 3);
     s.critical_value = B(0x4010000000000000ULL);
     rq.seams.push_back(s);
   }
@@ -7385,10 +7403,10 @@ inline void build_fit_cv4(kalos::TramoKernelRoundsRequest& rq) {
     s.nnsig = 0;
     s.orders = TramoOrders{2, 1, 0, 1, 1, 0};
     s.outliers = {"AO (1992-07-01)", "LS (1994-01-01)", "LS (1995-11-01)"};
-    static const double v6_7387[] = {
+    static const double v6_7405[] = {
         B(0xbfc31922680f86eeULL),B(0xbfd6e06d84ca21cfULL),B(0x3fe0d73b214e3351ULL),
     };
-    s.parameters = std::vector<double>(v6_7387, v6_7387 + 3);
+    s.parameters = std::vector<double>(v6_7405, v6_7405 + 3);
     rq.seams.push_back(s);
   }
   {
@@ -7403,10 +7421,10 @@ inline void build_fit_cv4(kalos::TramoKernelRoundsRequest& rq) {
     s.gate_reference_ljung_box_complement = B(0x3fe9e340f2454e3bULL);
     s.gate_reference_standard_error = B(0x3f8739ee05d5f60cULL);
     s.arima_orders = TramoOrders{2, 1, 0, 1, 1, 0};
-    static const double v7_7405[] = {
+    static const double v7_7423[] = {
         B(0xbfc31922680f86eeULL),B(0xbfd6e06d84ca21cfULL),B(0x3fe0d73b214e3351ULL),
     };
-    s.parameters = std::vector<double>(v7_7405, v7_7405 + 3);
+    s.parameters = std::vector<double>(v7_7423, v7_7423 + 3);
     s.stats.free_parameters = 3;
     s.stats.dim = 83;
     s.stats.observations = 96;
@@ -7416,7 +7434,7 @@ inline void build_fit_cv4(kalos::TramoKernelRoundsRequest& rq) {
     s.stats.bic = B(0xc021b538e39c3891ULL);
     s.stats.outliers_count = 3;
     s.stats.effective_observations = 83;
-    static const double v8_7418[] = {
+    static const double v8_7436[] = {
         B(0xbf6ffabfe1f7799fULL),B(0xbf822bd01c6d9f9bULL),B(0x3f8796a39a2591a9ULL),
         B(0x3f7ae72b828bb3cfULL),B(0xbf84d9beaf72636cULL),B(0xbf6d0d12b90e1e18ULL),
         B(0x3f92a338d8687e7dULL),B(0xbf9203a5cb90c43dULL),B(0xbf69e880df108599ULL),
@@ -7445,7 +7463,7 @@ inline void build_fit_cv4(kalos::TramoKernelRoundsRequest& rq) {
         B(0x3f8f798208eedd87ULL),B(0xbf758a6b500c392fULL),B(0xbf5162003bb5362bULL),
         B(0x3f7831c148834c60ULL),B(0xbf84543504e8ab20ULL),
     };
-    s.stats.residuals = std::vector<double>(v8_7418, v8_7418 + 80);
+    s.stats.residuals = std::vector<double>(v8_7436, v8_7436 + 80);
     rq.seams.push_back(s);
   }
   {
@@ -7461,10 +7479,10 @@ inline void build_fit_cv4(kalos::TramoKernelRoundsRequest& rq) {
     s.result = TramoKernelStageResult::unchanged;
     s.tsig = B(0x3ff0000000000000ULL);
     s.mean = false;
-    static const double v9_7463[] = {
+    static const double v9_7481[] = {
         B(0x4046798f67daa951ULL),B(0x4041d5b7b3c3b815ULL),B(0x4034843fbdc5ed4bULL),
     };
-    s.tstats = std::vector<double>(v9_7463, v9_7463 + 3);
+    s.tstats = std::vector<double>(v9_7481, v9_7481 + 3);
     rq.seams.push_back(s);
   }
   {
@@ -7474,10 +7492,10 @@ inline void build_fit_cv4(kalos::TramoKernelRoundsRequest& rq) {
     s.orders = TramoOrders{2, 1, 0, 1, 1, 0};
     s.mean = false;
     s.outliers = {"AO (1992-07-01)", "LS (1994-01-01)", "LS (1995-11-01)"};
-    static const double v10_7476[] = {
+    static const double v10_7494[] = {
         B(0xbfc31922680f86eeULL),B(0xbfd6e06d84ca21cfULL),B(0x3fe0d73b214e3351ULL),
     };
-    s.parameters = std::vector<double>(v10_7476, v10_7476 + 3);
+    s.parameters = std::vector<double>(v10_7494, v10_7494 + 3);
     s.seasonal_after = true;
     s.original_seasonality_after = 3;
     rq.seams.push_back(s);
@@ -7489,10 +7507,10 @@ inline void build_fit_cv4(kalos::TramoKernelRoundsRequest& rq) {
     s.orders = TramoOrders{2, 1, 0, 1, 1, 0};
     s.mean = false;
     s.outliers = {"AO (1992-07-01)", "LS (1994-01-01)", "LS (1995-11-01)"};
-    static const double v11_7491[] = {
+    static const double v11_7509[] = {
         B(0xbfc31922680f86eeULL),B(0xbfd6e06d84ca21cfULL),B(0x3fe0d73b214e3351ULL),
     };
-    s.parameters = std::vector<double>(v11_7491, v11_7491 + 3);
+    s.parameters = std::vector<double>(v11_7509, v11_7509 + 3);
     rq.seams.push_back(s);
   }
   {
@@ -7502,10 +7520,10 @@ inline void build_fit_cv4(kalos::TramoKernelRoundsRequest& rq) {
     s.orders = TramoOrders{2, 1, 0, 1, 1, 0};
     s.mean = false;
     s.outliers = {"AO (1992-07-01)", "LS (1994-01-01)", "LS (1995-11-01)"};
-    static const double v12_7504[] = {
+    static const double v12_7522[] = {
         B(0xbfc31922680f86eeULL),B(0xbfd6e06d84ca21cfULL),B(0x3fe0d73b214e3351ULL),
     };
-    s.parameters = std::vector<double>(v12_7504, v12_7504 + 3);
+    s.parameters = std::vector<double>(v12_7522, v12_7522 + 3);
     rq.seams.push_back(s);
   }
   {
@@ -7515,10 +7533,10 @@ inline void build_fit_cv4(kalos::TramoKernelRoundsRequest& rq) {
     s.orders = TramoOrders{2, 1, 0, 1, 1, 0};
     s.mean = false;
     s.outliers = {"AO (1992-07-01)", "LS (1994-01-01)", "LS (1995-11-01)"};
-    static const double v13_7517[] = {
+    static const double v13_7535[] = {
         B(0xbfc31922680f86eeULL),B(0xbfd6e06d84ca21cfULL),B(0x3fe0d73b214e3351ULL),
     };
-    s.parameters = std::vector<double>(v13_7517, v13_7517 + 3);
+    s.parameters = std::vector<double>(v13_7535, v13_7535 + 3);
     rq.seams.push_back(s);
   }
   {
@@ -7528,10 +7546,10 @@ inline void build_fit_cv4(kalos::TramoKernelRoundsRequest& rq) {
     s.orders = TramoOrders{2, 1, 0, 1, 1, 0};
     s.mean = false;
     s.outliers = {"AO (1992-07-01)", "LS (1994-01-01)", "LS (1995-11-01)"};
-    static const double v14_7530[] = {
+    static const double v14_7548[] = {
         B(0xbfc31922680f86eeULL),B(0xbfd6e06d84ca21cfULL),B(0x3fe0d73b214e3351ULL),
     };
-    s.parameters = std::vector<double>(v14_7530, v14_7530 + 3);
+    s.parameters = std::vector<double>(v14_7548, v14_7548 + 3);
     rq.seams.push_back(s);
   }
   {
@@ -7612,6 +7630,7 @@ inline void build_fit_fit_cv4(TramoFitRequest& rq) {
   rq.spec.outliers_ml = false;
   rq.spec.accept_airline = false;
   rq.spec.precision = B(0x3e7ad7f29abcaf48ULL);
+  rq.spec.final_unit_root_threshold = B(0x3feeb851eb851eb8ULL);
   rq.spec.intermediate_precision = B(0x3ee4f8b588e368f1ULL);
   rq.spec.mean_is_test = false;
   rq.spec.mean_used = true;
@@ -7705,10 +7724,10 @@ inline void build_fit_shortfail(kalos::TramoKernelRoundsRequest& rq) {
     s.result = TramoKernelStageResult::unchanged;
     s.orders = TramoOrders{0, 1, 1, 0, 0, 0};
     s.mean = false;
-    static const double v0_7707[] = {
+    static const double v0_7726[] = {
         B(0x3fe1606670d53905ULL),
     };
-    s.parameters = std::vector<double>(v0_7707, v0_7707 + 1);
+    s.parameters = std::vector<double>(v0_7726, v0_7726 + 1);
     s.critical_value = B(0x400a666666666666ULL);
     rq.seams.push_back(s);
   }
@@ -7723,10 +7742,10 @@ inline void build_fit_shortfail(kalos::TramoKernelRoundsRequest& rq) {
     s.pass_at_call = 0;
     s.nnsig = 0;
     s.orders = TramoOrders{0, 1, 1, 0, 0, 0};
-    static const double v1_7725[] = {
+    static const double v1_7744[] = {
         B(0x3fe1605969b371dfULL),
     };
-    s.parameters = std::vector<double>(v1_7725, v1_7725 + 1);
+    s.parameters = std::vector<double>(v1_7744, v1_7744 + 1);
     rq.seams.push_back(s);
   }
   {
@@ -7752,7 +7771,7 @@ inline void build_fit_shortfail(kalos::TramoKernelRoundsRequest& rq) {
     s.stats.bic = B(0x3ffe8f06a27005deULL);
     s.stats.outliers_count = 0;
     s.stats.effective_observations = 19;
-    static const double v2_7754[] = {
+    static const double v2_7773[] = {
         B(0xbfc61fc30938a108ULL),B(0xbffaa15ca4232d2fULL),B(0x400545393d6ae5c4ULL),
         B(0xbff38fc97bcab4a3ULL),B(0x3febc5c9e15ee3ccULL),B(0xc013530d770f1490ULL),
         B(0xc00730a5ec0231a5ULL),B(0x3fef59fb03e878ddULL),B(0x3fe51e842a3fda1fULL),
@@ -7761,7 +7780,7 @@ inline void build_fit_shortfail(kalos::TramoKernelRoundsRequest& rq) {
         B(0xbff93914f16ffdb5ULL),B(0x3fe13278b18a674eULL),B(0xc0108543c9ca1be7ULL),
         B(0xc008b4358e2743f4ULL),
     };
-    s.stats.residuals = std::vector<double>(v2_7754, v2_7754 + 19);
+    s.stats.residuals = std::vector<double>(v2_7773, v2_7773 + 19);
     rq.seams.push_back(s);
   }
   {
@@ -7781,10 +7800,10 @@ inline void build_fit_shortfail(kalos::TramoKernelRoundsRequest& rq) {
     s.result = TramoKernelStageResult::changed;
     s.orders = TramoOrders{1, 0, 1, 0, 0, 0};
     s.mean = true;
-    static const double v3_7783[] = {
+    static const double v3_7802[] = {
         B(0xbfb999999999999aULL),B(0xbfc999999999999aULL),
     };
-    s.parameters = std::vector<double>(v3_7783, v3_7783 + 2);
+    s.parameters = std::vector<double>(v3_7802, v3_7802 + 2);
     rq.seams.push_back(s);
   }
   {
@@ -7816,10 +7835,10 @@ inline void build_fit_shortfail(kalos::TramoKernelRoundsRequest& rq) {
     s.result = TramoKernelStageResult::unchanged;
     s.orders = TramoOrders{2, 0, 0, 0, 0, 0};
     s.mean = true;
-    static const double v4_7818[] = {
+    static const double v4_7837[] = {
         B(0xbfb999999999999aULL),B(0xbfb999999999999aULL),
     };
-    s.parameters = std::vector<double>(v4_7818, v4_7818 + 2);
+    s.parameters = std::vector<double>(v4_7837, v4_7837 + 2);
     s.critical_value = B(0x400a666666666666ULL);
     rq.seams.push_back(s);
   }
@@ -7834,10 +7853,10 @@ inline void build_fit_shortfail(kalos::TramoKernelRoundsRequest& rq) {
     s.pass_at_call = 1;
     s.nnsig = 0;
     s.orders = TramoOrders{2, 0, 0, 0, 0, 0};
-    static const double v5_7836[] = {
+    static const double v5_7855[] = {
         B(0xbff4b9acde42ea7aULL),B(0x3fe6ef85e29913ccULL),
     };
-    s.parameters = std::vector<double>(v5_7836, v5_7836 + 2);
+    s.parameters = std::vector<double>(v5_7855, v5_7855 + 2);
     rq.seams.push_back(s);
   }
   {
@@ -7852,10 +7871,10 @@ inline void build_fit_shortfail(kalos::TramoKernelRoundsRequest& rq) {
     s.gate_reference_ljung_box_complement = B(0x3febdc8befa10a2bULL);
     s.gate_reference_standard_error = B(0x4003c4063d3628ffULL);
     s.arima_orders = TramoOrders{2, 0, 0, 0, 0, 0};
-    static const double v6_7854[] = {
+    static const double v6_7873[] = {
         B(0xbff4b9acde42ea7aULL),B(0x3fe6ef85e29913ccULL),
     };
-    s.parameters = std::vector<double>(v6_7854, v6_7854 + 2);
+    s.parameters = std::vector<double>(v6_7873, v6_7873 + 2);
     s.stats.free_parameters = 2;
     s.stats.dim = 20;
     s.stats.observations = 20;
@@ -7865,7 +7884,7 @@ inline void build_fit_shortfail(kalos::TramoKernelRoundsRequest& rq) {
     s.stats.bic = B(0x3ffb6cca97422df0ULL);
     s.stats.outliers_count = 0;
     s.stats.effective_observations = 20;
-    static const double v7_7867[] = {
+    static const double v7_7886[] = {
         B(0x3fd0688665b13ea0ULL),B(0xbfe8cc53886bce00ULL),B(0x4009cff16cb0eda0ULL),
         B(0xbfc9f58da71d2180ULL),B(0x3ff08e4d293070e0ULL),B(0xc00b942023ccef40ULL),
         B(0xc0095f9ad36bd840ULL),B(0x3fd0add9662e1ac0ULL),B(0xbffbc3f710cfd9f0ULL),
@@ -7874,7 +7893,7 @@ inline void build_fit_shortfail(kalos::TramoKernelRoundsRequest& rq) {
         B(0xbfc7f137f0b04c80ULL),B(0x3fee4d1662a84020ULL),B(0xc003dbc8dcb6acb0ULL),
         B(0xc0088e501df78d08ULL),
     };
-    s.stats.residuals = std::vector<double>(v7_7867, v7_7867 + 19);
+    s.stats.residuals = std::vector<double>(v7_7886, v7_7886 + 19);
     rq.seams.push_back(s);
   }
   {
@@ -7890,10 +7909,10 @@ inline void build_fit_shortfail(kalos::TramoKernelRoundsRequest& rq) {
     s.result = TramoKernelStageResult::unchanged;
     s.tsig = B(0x3ff0000000000000ULL);
     s.mean = true;
-    static const double v8_7892[] = {
+    static const double v8_7911[] = {
         B(0x40470251768748f1ULL),
     };
-    s.tstats = std::vector<double>(v8_7892, v8_7892 + 1);
+    s.tstats = std::vector<double>(v8_7911, v8_7911 + 1);
     rq.seams.push_back(s);
   }
   {
@@ -7902,10 +7921,10 @@ inline void build_fit_shortfail(kalos::TramoKernelRoundsRequest& rq) {
     s.result = TramoKernelStageResult::changed;
     s.orders = TramoOrders{2, 0, 0, 0, 0, 0};
     s.mean = true;
-    static const double v9_7904[] = {
+    static const double v9_7923[] = {
         B(0xbff4b9acde42ea7aULL),B(0x3fe6ef85e29913ccULL),
     };
-    s.parameters = std::vector<double>(v9_7904, v9_7904 + 2);
+    s.parameters = std::vector<double>(v9_7923, v9_7923 + 2);
     s.seasonal_after = true;
     s.original_seasonality_after = 2;
     rq.seams.push_back(s);
@@ -7933,10 +7952,10 @@ inline void build_fit_shortfail(kalos::TramoKernelRoundsRequest& rq) {
     s.result = TramoKernelStageResult::changed;
     s.orders = TramoOrders{0, 1, 1, 0, 1, 1};
     s.mean = false;
-    static const double v10_7935[] = {
+    static const double v10_7954[] = {
         B(0xbfc999999999999aULL),B(0xbfc999999999999aULL),
     };
-    s.parameters = std::vector<double>(v10_7935, v10_7935 + 2);
+    s.parameters = std::vector<double>(v10_7954, v10_7954 + 2);
     rq.seams.push_back(s);
   }
   {
@@ -7967,10 +7986,10 @@ inline void build_fit_shortfail(kalos::TramoKernelRoundsRequest& rq) {
     s.result = TramoKernelStageResult::failed;
     s.orders = TramoOrders{0, 1, 1, 0, 1, 1};
     s.mean = false;
-    static const double v11_7969[] = {
+    static const double v11_7988[] = {
         B(0xbfc999999999999aULL),B(0xbfc999999999999aULL),
     };
-    s.parameters = std::vector<double>(v11_7969, v11_7969 + 2);
+    s.parameters = std::vector<double>(v11_7988, v11_7988 + 2);
     s.critical_value = B(0x400a666666666666ULL);
     rq.seams.push_back(s);
   }
@@ -7986,10 +8005,10 @@ inline void build_fit_shortfail(kalos::TramoKernelRoundsRequest& rq) {
     s.pass_at_call = 1;
     s.nnsig = 0;
     s.orders = TramoOrders{0, 1, 1, 0, 1, 0};
-    static const double v12_7988[] = {
+    static const double v12_8007[] = {
         B(0xbfeffdbb1ef6de84ULL),
     };
-    s.parameters = std::vector<double>(v12_7988, v12_7988 + 1);
+    s.parameters = std::vector<double>(v12_8007, v12_8007 + 1);
     rq.seams.push_back(s);
   }
   {
@@ -8006,10 +8025,10 @@ inline void build_fit_shortfail(kalos::TramoKernelRoundsRequest& rq) {
     s.result = TramoKernelStageResult::unchanged;
     s.orders = TramoOrders{0, 1, 1, 0, 1, 0};
     s.mean = false;
-    static const double v13_8008[] = {
+    static const double v13_8027[] = {
         B(0xbfeffdbb1ef6de84ULL),
     };
-    s.parameters = std::vector<double>(v13_8008, v13_8008 + 1);
+    s.parameters = std::vector<double>(v13_8027, v13_8027 + 1);
     s.seasonal_after = true;
     s.original_seasonality_after = 2;
     rq.seams.push_back(s);
@@ -8020,10 +8039,10 @@ inline void build_fit_shortfail(kalos::TramoKernelRoundsRequest& rq) {
     s.result = TramoKernelStageResult::unchanged;
     s.orders = TramoOrders{0, 1, 1, 0, 1, 0};
     s.mean = false;
-    static const double v14_8022[] = {
+    static const double v14_8041[] = {
         B(0xbfeffdbb1ef6de84ULL),
     };
-    s.parameters = std::vector<double>(v14_8022, v14_8022 + 1);
+    s.parameters = std::vector<double>(v14_8041, v14_8041 + 1);
     rq.seams.push_back(s);
   }
   {
@@ -8032,10 +8051,10 @@ inline void build_fit_shortfail(kalos::TramoKernelRoundsRequest& rq) {
     s.result = TramoKernelStageResult::unchanged;
     s.orders = TramoOrders{0, 1, 1, 0, 1, 0};
     s.mean = false;
-    static const double v15_8034[] = {
+    static const double v15_8053[] = {
         B(0xbfeffdbb1ef6de84ULL),
     };
-    s.parameters = std::vector<double>(v15_8034, v15_8034 + 1);
+    s.parameters = std::vector<double>(v15_8053, v15_8053 + 1);
     rq.seams.push_back(s);
   }
   {
@@ -8044,10 +8063,10 @@ inline void build_fit_shortfail(kalos::TramoKernelRoundsRequest& rq) {
     s.result = TramoKernelStageResult::unchanged;
     s.orders = TramoOrders{0, 1, 1, 0, 1, 0};
     s.mean = false;
-    static const double v16_8046[] = {
+    static const double v16_8065[] = {
         B(0xbfeffdbb1ef6de84ULL),
     };
-    s.parameters = std::vector<double>(v16_8046, v16_8046 + 1);
+    s.parameters = std::vector<double>(v16_8065, v16_8065 + 1);
     rq.seams.push_back(s);
   }
   {
@@ -8056,10 +8075,10 @@ inline void build_fit_shortfail(kalos::TramoKernelRoundsRequest& rq) {
     s.result = TramoKernelStageResult::unchanged;
     s.orders = TramoOrders{0, 1, 1, 0, 1, 0};
     s.mean = false;
-    static const double v17_8058[] = {
+    static const double v17_8077[] = {
         B(0xbfeffdbb1ef6de84ULL),
     };
-    s.parameters = std::vector<double>(v17_8058, v17_8058 + 1);
+    s.parameters = std::vector<double>(v17_8077, v17_8077 + 1);
     rq.seams.push_back(s);
   }
   {
@@ -8153,6 +8172,7 @@ inline void build_fit_fit_shortfail(TramoFitRequest& rq) {
   rq.spec.outliers_ml = false;
   rq.spec.accept_airline = false;
   rq.spec.precision = B(0x3e7ad7f29abcaf48ULL);
+  rq.spec.final_unit_root_threshold = B(0x3feeb851eb851eb8ULL);
   rq.spec.intermediate_precision = B(0x3ee4f8b588e368f1ULL);
   rq.spec.mean_is_test = false;
   rq.spec.mean_used = true;
@@ -8244,10 +8264,10 @@ inline void build_fit_mrstack(kalos::TramoKernelRoundsRequest& rq) {
     s.orders = TramoOrders{0, 1, 1, 0, 1, 1};
     s.mean = false;
     s.outliers = {"AO (1993-05-01)", "AO (1992-02-01)", "AO (1995-11-01)", "AO (1994-08-01)", "AO (1990-11-01)", "AO (1997-02-01)"};
-    static const double v0_8246[] = {
+    static const double v0_8266[] = {
         B(0xbfc999999999999aULL),B(0xbfc999999999999aULL),
     };
-    s.parameters = std::vector<double>(v0_8246, v0_8246 + 2);
+    s.parameters = std::vector<double>(v0_8266, v0_8266 + 2);
     s.critical_value = B(0x400b51eb851eb852ULL);
     rq.seams.push_back(s);
   }
@@ -8263,10 +8283,10 @@ inline void build_fit_mrstack(kalos::TramoKernelRoundsRequest& rq) {
     s.nnsig = 0;
     s.orders = TramoOrders{0, 1, 1, 0, 1, 1};
     s.outliers = {"AO (1990-11-01)", "AO (1992-02-01)", "AO (1993-05-01)", "AO (1994-08-01)", "AO (1995-11-01)", "AO (1997-02-01)"};
-    static const double v1_8265[] = {
+    static const double v1_8285[] = {
         B(0xbfec56d58910ac17ULL),B(0xbfde9e67261daf6dULL),
     };
-    s.parameters = std::vector<double>(v1_8265, v1_8265 + 2);
+    s.parameters = std::vector<double>(v1_8285, v1_8285 + 2);
     rq.seams.push_back(s);
   }
   {
@@ -8277,11 +8297,11 @@ inline void build_fit_mrstack(kalos::TramoKernelRoundsRequest& rq) {
     s.retry_index = 1;
     s.tsig = B(0x3fff5c28f5c28f5cULL);
     s.mean = false;
-    static const double v2_8279[] = {
+    static const double v2_8299[] = {
         B(0x40208a8cfdc3585cULL),B(0xc029542229f0cf2fULL),B(0x402c56efd769ab23ULL),
         B(0xc0244fe8cb5127ebULL),B(0x40288ebda547584cULL),B(0x40155319bbc8a543ULL),
     };
-    s.tstats = std::vector<double>(v2_8279, v2_8279 + 6);
+    s.tstats = std::vector<double>(v2_8299, v2_8299 + 6);
     rq.seams.push_back(s);
   }
   {
@@ -8297,7 +8317,7 @@ inline void build_fit_mrstack(kalos::TramoKernelRoundsRequest& rq) {
     s.stats.bic = B(0xc023e6be6868c7a8ULL);
     s.stats.outliers_count = 6;
     s.stats.effective_observations = 83;
-    static const double v3_8299[] = {
+    static const double v3_8319[] = {
         B(0x3f794799ca9151afULL),B(0xbf519bc0d464a001ULL),B(0xbf6b857dc30c09e8ULL),
         B(0xbf2599f85046dddcULL),B(0xbf621dd90071925bULL),B(0x3f307868538c1b24ULL),
         B(0xbf5468e24d62acaeULL),B(0x3f6deca5c34be754ULL),B(0x3f77b69e92cf3878ULL),
@@ -8325,7 +8345,7 @@ inline void build_fit_mrstack(kalos::TramoKernelRoundsRequest& rq) {
         B(0x3f7a5ec1c81228b5ULL),B(0xbf5cffb68ff83ceaULL),B(0x3f6e44e7e5f22776ULL),
         B(0x3f833c15c366739bULL),B(0x3f33392049c17e80ULL),
     };
-    s.stats.residuals = std::vector<double>(v3_8299, v3_8299 + 77);
+    s.stats.residuals = std::vector<double>(v3_8319, v3_8319 + 77);
     rq.seams.push_back(s);
   }
   {
@@ -8346,11 +8366,11 @@ inline void build_fit_mrstack(kalos::TramoKernelRoundsRequest& rq) {
     s.orders = TramoOrders{1, 0, 1, 1, 1, 1};
     s.mean = true;
     s.outliers = {"AO (1990-11-01)", "AO (1992-02-01)", "AO (1993-05-01)", "AO (1994-08-01)", "AO (1995-11-01)", "AO (1997-02-01)"};
-    static const double v4_8348[] = {
+    static const double v4_8368[] = {
         B(0xbfb999999999999aULL),B(0xbfb999999999999aULL),B(0xbfc999999999999aULL),
         B(0xbfc999999999999aULL),
     };
-    s.parameters = std::vector<double>(v4_8348, v4_8348 + 4);
+    s.parameters = std::vector<double>(v4_8368, v4_8368 + 4);
     rq.seams.push_back(s);
   }
   {
@@ -8383,10 +8403,10 @@ inline void build_fit_mrstack(kalos::TramoKernelRoundsRequest& rq) {
     s.orders = TramoOrders{0, 0, 0, 0, 1, 1};
     s.mean = true;
     s.outliers = {"AO (1993-05-01)", "AO (1992-02-01)", "AO (1995-11-01)", "AO (1994-08-01)", "AO (1990-11-01)", "AO (1997-02-01)"};
-    static const double v5_8385[] = {
+    static const double v5_8405[] = {
         B(0xbfc999999999999aULL),
     };
-    s.parameters = std::vector<double>(v5_8385, v5_8385 + 1);
+    s.parameters = std::vector<double>(v5_8405, v5_8405 + 1);
     s.critical_value = B(0x400b51eb851eb852ULL);
     rq.seams.push_back(s);
   }
@@ -8402,10 +8422,10 @@ inline void build_fit_mrstack(kalos::TramoKernelRoundsRequest& rq) {
     s.nnsig = 0;
     s.orders = TramoOrders{0, 0, 0, 0, 1, 1};
     s.outliers = {"AO (1990-11-01)", "AO (1992-02-01)", "AO (1993-05-01)", "AO (1994-08-01)", "AO (1995-11-01)", "AO (1997-02-01)"};
-    static const double v6_8404[] = {
+    static const double v6_8424[] = {
         B(0xbfe03ec8e0dfbf6eULL),
     };
-    s.parameters = std::vector<double>(v6_8404, v6_8404 + 1);
+    s.parameters = std::vector<double>(v6_8424, v6_8424 + 1);
     rq.seams.push_back(s);
   }
   {
@@ -8420,10 +8440,10 @@ inline void build_fit_mrstack(kalos::TramoKernelRoundsRequest& rq) {
     s.gate_reference_ljung_box_complement = B(0x3fedc24d6ffbc786ULL);
     s.gate_reference_standard_error = B(0x3f780ce54318c086ULL);
     s.arima_orders = TramoOrders{0, 0, 0, 0, 1, 1};
-    static const double v7_8422[] = {
+    static const double v7_8442[] = {
         B(0xbfe03ec8e0dfbf6eULL),
     };
-    s.parameters = std::vector<double>(v7_8422, v7_8422 + 1);
+    s.parameters = std::vector<double>(v7_8442, v7_8442 + 1);
     s.stats.free_parameters = 1;
     s.stats.dim = 84;
     s.stats.observations = 96;
@@ -8433,7 +8453,7 @@ inline void build_fit_mrstack(kalos::TramoKernelRoundsRequest& rq) {
     s.stats.bic = B(0xc0240239865f1ad8ULL);
     s.stats.outliers_count = 6;
     s.stats.effective_observations = 84;
-    static const double v8_8435[] = {
+    static const double v8_8455[] = {
         B(0x3f7ceedb57a284ddULL),B(0x3f471c659499ea69ULL),B(0xbf5c72393f09fc55ULL),
         B(0x3f73968864a6e1a2ULL),B(0xbf515d4c945eadccULL),B(0x3f5ef2eefb2a4a68ULL),
         B(0xbf6c3b5a76071bb9ULL),B(0x3f74f2249b2de169ULL),B(0x3f802ead5874bc75ULL),
@@ -8461,7 +8481,7 @@ inline void build_fit_mrstack(kalos::TramoKernelRoundsRequest& rq) {
         B(0x3f654159f18287b2ULL),B(0xbf752a3398ff4b58ULL),B(0xbec44be263224280ULL),
         B(0x3f84e1def2d99eceULL),B(0xbf6063b48fc38bb0ULL),
     };
-    s.stats.residuals = std::vector<double>(v8_8435, v8_8435 + 77);
+    s.stats.residuals = std::vector<double>(v8_8455, v8_8455 + 77);
     rq.seams.push_back(s);
   }
   {
@@ -8477,12 +8497,12 @@ inline void build_fit_mrstack(kalos::TramoKernelRoundsRequest& rq) {
     s.result = TramoKernelStageResult::unchanged;
     s.tsig = B(0x3ff0000000000000ULL);
     s.mean = true;
-    static const double v9_8479[] = {
+    static const double v9_8499[] = {
         B(0x403e779df64bffb6ULL),B(0x40201eca92fd28c3ULL),B(0xc0285560fe3f26daULL),
         B(0x402bcddcf843a6a3ULL),B(0xc023bd9c8e57ebd5ULL),B(0x40288a5e052fd4dcULL),
         B(0x40139f9bc12ff894ULL),
     };
-    s.tstats = std::vector<double>(v9_8479, v9_8479 + 7);
+    s.tstats = std::vector<double>(v9_8499, v9_8499 + 7);
     rq.seams.push_back(s);
   }
   {
@@ -8492,10 +8512,10 @@ inline void build_fit_mrstack(kalos::TramoKernelRoundsRequest& rq) {
     s.orders = TramoOrders{0, 0, 0, 0, 1, 1};
     s.mean = true;
     s.outliers = {"AO (1990-11-01)", "AO (1992-02-01)", "AO (1993-05-01)", "AO (1994-08-01)", "AO (1995-11-01)", "AO (1997-02-01)"};
-    static const double v10_8494[] = {
+    static const double v10_8514[] = {
         B(0xbfe03ec8e0dfbf6eULL),
     };
-    s.parameters = std::vector<double>(v10_8494, v10_8494 + 1);
+    s.parameters = std::vector<double>(v10_8514, v10_8514 + 1);
     s.seasonal_after = true;
     s.original_seasonality_after = 3;
     rq.seams.push_back(s);
@@ -8507,10 +8527,10 @@ inline void build_fit_mrstack(kalos::TramoKernelRoundsRequest& rq) {
     s.orders = TramoOrders{0, 0, 0, 0, 1, 1};
     s.mean = true;
     s.outliers = {"AO (1990-11-01)", "AO (1992-02-01)", "AO (1993-05-01)", "AO (1994-08-01)", "AO (1995-11-01)", "AO (1997-02-01)"};
-    static const double v11_8509[] = {
+    static const double v11_8529[] = {
         B(0xbfe03ec8e0dfbf6eULL),
     };
-    s.parameters = std::vector<double>(v11_8509, v11_8509 + 1);
+    s.parameters = std::vector<double>(v11_8529, v11_8529 + 1);
     rq.seams.push_back(s);
   }
   {
@@ -8520,10 +8540,10 @@ inline void build_fit_mrstack(kalos::TramoKernelRoundsRequest& rq) {
     s.orders = TramoOrders{0, 0, 0, 0, 1, 1};
     s.mean = true;
     s.outliers = {"AO (1990-11-01)", "AO (1992-02-01)", "AO (1993-05-01)", "AO (1994-08-01)", "AO (1995-11-01)", "AO (1997-02-01)"};
-    static const double v12_8522[] = {
+    static const double v12_8542[] = {
         B(0xbfe03ec8e0dfbf6eULL),
     };
-    s.parameters = std::vector<double>(v12_8522, v12_8522 + 1);
+    s.parameters = std::vector<double>(v12_8542, v12_8542 + 1);
     rq.seams.push_back(s);
   }
   {
@@ -8533,10 +8553,10 @@ inline void build_fit_mrstack(kalos::TramoKernelRoundsRequest& rq) {
     s.orders = TramoOrders{0, 0, 0, 0, 1, 1};
     s.mean = true;
     s.outliers = {"AO (1990-11-01)", "AO (1992-02-01)", "AO (1993-05-01)", "AO (1994-08-01)", "AO (1995-11-01)", "AO (1997-02-01)"};
-    static const double v13_8535[] = {
+    static const double v13_8555[] = {
         B(0xbfe03ec8e0dfbf6eULL),
     };
-    s.parameters = std::vector<double>(v13_8535, v13_8535 + 1);
+    s.parameters = std::vector<double>(v13_8555, v13_8555 + 1);
     rq.seams.push_back(s);
   }
   {
@@ -8546,10 +8566,10 @@ inline void build_fit_mrstack(kalos::TramoKernelRoundsRequest& rq) {
     s.orders = TramoOrders{0, 0, 0, 0, 1, 1};
     s.mean = true;
     s.outliers = {"AO (1990-11-01)", "AO (1992-02-01)", "AO (1993-05-01)", "AO (1994-08-01)", "AO (1995-11-01)", "AO (1997-02-01)"};
-    static const double v14_8548[] = {
+    static const double v14_8568[] = {
         B(0xbfe03ec8e0dfbf6eULL),
     };
-    s.parameters = std::vector<double>(v14_8548, v14_8548 + 1);
+    s.parameters = std::vector<double>(v14_8568, v14_8568 + 1);
     rq.seams.push_back(s);
   }
   {
@@ -8630,6 +8650,7 @@ inline void build_fit_fit_mrstack(TramoFitRequest& rq) {
   rq.spec.outliers_ml = false;
   rq.spec.accept_airline = false;
   rq.spec.precision = B(0x3e7ad7f29abcaf48ULL);
+  rq.spec.final_unit_root_threshold = B(0x3feeb851eb851eb8ULL);
   rq.spec.intermediate_precision = B(0x3ee4f8b588e368f1ULL);
   rq.spec.mean_is_test = false;
   rq.spec.mean_used = true;
@@ -8731,10 +8752,10 @@ inline void build_fit_mrls(kalos::TramoKernelRoundsRequest& rq) {
     s.orders = TramoOrders{0, 1, 1, 0, 1, 1};
     s.mean = true;
     s.outliers = {"LS (1990-02-01)"};
-    static const double v0_8733[] = {
+    static const double v0_8754[] = {
         B(0xbfc999999999999aULL),B(0xbfc999999999999aULL),
     };
-    s.parameters = std::vector<double>(v0_8733, v0_8733 + 2);
+    s.parameters = std::vector<double>(v0_8754, v0_8754 + 2);
     s.critical_value = B(0x400b51eb851eb852ULL);
     rq.seams.push_back(s);
   }
@@ -8750,10 +8771,10 @@ inline void build_fit_mrls(kalos::TramoKernelRoundsRequest& rq) {
     s.nnsig = 0;
     s.orders = TramoOrders{0, 1, 1, 0, 1, 1};
     s.outliers = {"LS (1990-02-01)"};
-    static const double v1_8752[] = {
+    static const double v1_8773[] = {
         B(0xbfefffed55e99ef4ULL),B(0xbfdec8357d03c5e1ULL),
     };
-    s.parameters = std::vector<double>(v1_8752, v1_8752 + 2);
+    s.parameters = std::vector<double>(v1_8773, v1_8773 + 2);
     rq.seams.push_back(s);
   }
   {
@@ -8778,10 +8799,10 @@ inline void build_fit_mrls(kalos::TramoKernelRoundsRequest& rq) {
     s.nnsig = 0;
     s.orders = TramoOrders{0, 1, 1, 0, 1, 1};
     s.outliers = {"LS (1990-02-01)"};
-    static const double v2_8780[] = {
+    static const double v2_8801[] = {
         B(0xbfecf4613b876216ULL),B(0xbfdeca7448f6f65aULL),
     };
-    s.parameters = std::vector<double>(v2_8780, v2_8780 + 2);
+    s.parameters = std::vector<double>(v2_8801, v2_8801 + 2);
     rq.seams.push_back(s);
   }
   {
@@ -8792,10 +8813,10 @@ inline void build_fit_mrls(kalos::TramoKernelRoundsRequest& rq) {
     s.retry_index = 2;
     s.tsig = B(0x3fff5c28f5c28f5cULL);
     s.mean = false;
-    static const double v3_8794[] = {
+    static const double v3_8815[] = {
         B(0x40119fa054034653ULL),
     };
-    s.tstats = std::vector<double>(v3_8794, v3_8794 + 1);
+    s.tstats = std::vector<double>(v3_8815, v3_8815 + 1);
     rq.seams.push_back(s);
   }
   {
@@ -8811,7 +8832,7 @@ inline void build_fit_mrls(kalos::TramoKernelRoundsRequest& rq) {
     s.stats.bic = B(0xc0243db1f562c04eULL);
     s.stats.outliers_count = 1;
     s.stats.effective_observations = 83;
-    static const double v4_8813[] = {
+    static const double v4_8834[] = {
         B(0xbeee54e6666be000ULL),B(0x3f6655302e31175aULL),B(0xbf52b44a78f5e604ULL),
         B(0xbf829932a5772c44ULL),B(0x3f59e2eba4a6bbbcULL),B(0x3f7a38a6593d4631ULL),
         B(0xbf444d0a794d9784ULL),B(0xbf67b1343ac6ca50ULL),B(0x3f8bddf697cc1b26ULL),
@@ -8841,7 +8862,7 @@ inline void build_fit_mrls(kalos::TramoKernelRoundsRequest& rq) {
         B(0xbf5c7363d31fb256ULL),B(0x3f6d3b06b9879653ULL),B(0x3f8976ce3fe8da99ULL),
         B(0x3f31243bed137b3cULL),
     };
-    s.stats.residuals = std::vector<double>(v4_8813, v4_8813 + 82);
+    s.stats.residuals = std::vector<double>(v4_8834, v4_8834 + 82);
     rq.seams.push_back(s);
   }
   {
@@ -8862,11 +8883,11 @@ inline void build_fit_mrls(kalos::TramoKernelRoundsRequest& rq) {
     s.orders = TramoOrders{1, 0, 1, 1, 1, 1};
     s.mean = true;
     s.outliers = {"LS (1990-02-01)"};
-    static const double v5_8864[] = {
+    static const double v5_8885[] = {
         B(0xbfb999999999999aULL),B(0xbfb999999999999aULL),B(0xbfc999999999999aULL),
         B(0xbfc999999999999aULL),
     };
-    s.parameters = std::vector<double>(v5_8864, v5_8864 + 4);
+    s.parameters = std::vector<double>(v5_8885, v5_8885 + 4);
     rq.seams.push_back(s);
   }
   {
@@ -8899,10 +8920,10 @@ inline void build_fit_mrls(kalos::TramoKernelRoundsRequest& rq) {
     s.orders = TramoOrders{0, 0, 0, 0, 1, 1};
     s.mean = true;
     s.outliers = {"AO (1990-01-01)"};
-    static const double v6_8901[] = {
+    static const double v6_8922[] = {
         B(0xbfc999999999999aULL),
     };
-    s.parameters = std::vector<double>(v6_8901, v6_8901 + 1);
+    s.parameters = std::vector<double>(v6_8922, v6_8922 + 1);
     s.critical_value = B(0x400b51eb851eb852ULL);
     rq.seams.push_back(s);
   }
@@ -8918,10 +8939,10 @@ inline void build_fit_mrls(kalos::TramoKernelRoundsRequest& rq) {
     s.nnsig = 0;
     s.orders = TramoOrders{0, 0, 0, 0, 1, 1};
     s.outliers = {"AO (1990-01-01)"};
-    static const double v7_8920[] = {
+    static const double v7_8941[] = {
         B(0xbfe00be06d241de8ULL),
     };
-    s.parameters = std::vector<double>(v7_8920, v7_8920 + 1);
+    s.parameters = std::vector<double>(v7_8941, v7_8941 + 1);
     rq.seams.push_back(s);
   }
   {
@@ -8936,10 +8957,10 @@ inline void build_fit_mrls(kalos::TramoKernelRoundsRequest& rq) {
     s.gate_reference_ljung_box_complement = B(0x3fa55c3b198fc6a0ULL);
     s.gate_reference_standard_error = B(0x3f786faa72b34d8dULL);
     s.arima_orders = TramoOrders{0, 0, 0, 0, 1, 1};
-    static const double v8_8938[] = {
+    static const double v8_8959[] = {
         B(0xbfe00be06d241de8ULL),
     };
-    s.parameters = std::vector<double>(v8_8938, v8_8938 + 1);
+    s.parameters = std::vector<double>(v8_8959, v8_8959 + 1);
     s.stats.free_parameters = 1;
     s.stats.dim = 84;
     s.stats.observations = 96;
@@ -8949,7 +8970,7 @@ inline void build_fit_mrls(kalos::TramoKernelRoundsRequest& rq) {
     s.stats.bic = B(0xc024540397259a04ULL);
     s.stats.outliers_count = 1;
     s.stats.effective_observations = 84;
-    static const double v9_8951[] = {
+    static const double v9_8972[] = {
         B(0x3f58ea8828ebdee6ULL),B(0x3f7282fe8d145658ULL),B(0x3f51e0e0726b936eULL),
         B(0xbf7e68b5881a4662ULL),B(0x3f600592f4c383f7ULL),B(0x3f7d3024e7f90a18ULL),
         B(0x3f4df92d15f154ccULL),B(0xbf57f1f1ef45843aULL),B(0x3f8e43682556997eULL),
@@ -8979,7 +9000,7 @@ inline void build_fit_mrls(kalos::TramoKernelRoundsRequest& rq) {
         B(0xbf727c62dd703449ULL),B(0x3f42585713ceccf8ULL),B(0x3f83f3b4ed6b3d96ULL),
         B(0xbf5506ad833c9024ULL),
     };
-    s.stats.residuals = std::vector<double>(v9_8951, v9_8951 + 82);
+    s.stats.residuals = std::vector<double>(v9_8972, v9_8972 + 82);
     rq.seams.push_back(s);
   }
   {
@@ -8995,10 +9016,10 @@ inline void build_fit_mrls(kalos::TramoKernelRoundsRequest& rq) {
     s.result = TramoKernelStageResult::unchanged;
     s.tsig = B(0x3ff0000000000000ULL);
     s.mean = true;
-    static const double v10_8997[] = {
+    static const double v10_9018[] = {
         B(0x403d0b3fd6ef3859ULL),B(0xc012dee860509278ULL),
     };
-    s.tstats = std::vector<double>(v10_8997, v10_8997 + 2);
+    s.tstats = std::vector<double>(v10_9018, v10_9018 + 2);
     rq.seams.push_back(s);
   }
   {
@@ -9008,10 +9029,10 @@ inline void build_fit_mrls(kalos::TramoKernelRoundsRequest& rq) {
     s.orders = TramoOrders{0, 0, 0, 0, 1, 1};
     s.mean = true;
     s.outliers = {"AO (1990-01-01)"};
-    static const double v11_9010[] = {
+    static const double v11_9031[] = {
         B(0xbfe00be06d241de8ULL),
     };
-    s.parameters = std::vector<double>(v11_9010, v11_9010 + 1);
+    s.parameters = std::vector<double>(v11_9031, v11_9031 + 1);
     s.seasonal_after = true;
     s.original_seasonality_after = 3;
     rq.seams.push_back(s);
@@ -9023,10 +9044,10 @@ inline void build_fit_mrls(kalos::TramoKernelRoundsRequest& rq) {
     s.orders = TramoOrders{0, 0, 0, 0, 1, 1};
     s.mean = true;
     s.outliers = {"AO (1990-01-01)"};
-    static const double v12_9025[] = {
+    static const double v12_9046[] = {
         B(0xbfe00be06d241de8ULL),
     };
-    s.parameters = std::vector<double>(v12_9025, v12_9025 + 1);
+    s.parameters = std::vector<double>(v12_9046, v12_9046 + 1);
     rq.seams.push_back(s);
   }
   {
@@ -9036,10 +9057,10 @@ inline void build_fit_mrls(kalos::TramoKernelRoundsRequest& rq) {
     s.orders = TramoOrders{0, 0, 0, 0, 1, 1};
     s.mean = true;
     s.outliers = {"AO (1990-01-01)"};
-    static const double v13_9038[] = {
+    static const double v13_9059[] = {
         B(0xbfe00be06d241de8ULL),
     };
-    s.parameters = std::vector<double>(v13_9038, v13_9038 + 1);
+    s.parameters = std::vector<double>(v13_9059, v13_9059 + 1);
     rq.seams.push_back(s);
   }
   {
@@ -9049,10 +9070,10 @@ inline void build_fit_mrls(kalos::TramoKernelRoundsRequest& rq) {
     s.orders = TramoOrders{0, 0, 0, 0, 1, 1};
     s.mean = true;
     s.outliers = {"AO (1990-01-01)"};
-    static const double v14_9051[] = {
+    static const double v14_9072[] = {
         B(0xbfe00be06d241de8ULL),
     };
-    s.parameters = std::vector<double>(v14_9051, v14_9051 + 1);
+    s.parameters = std::vector<double>(v14_9072, v14_9072 + 1);
     rq.seams.push_back(s);
   }
   {
@@ -9062,10 +9083,10 @@ inline void build_fit_mrls(kalos::TramoKernelRoundsRequest& rq) {
     s.orders = TramoOrders{0, 0, 0, 0, 1, 1};
     s.mean = true;
     s.outliers = {"AO (1990-01-01)"};
-    static const double v15_9064[] = {
+    static const double v15_9085[] = {
         B(0xbfe00be06d241de8ULL),
     };
-    s.parameters = std::vector<double>(v15_9064, v15_9064 + 1);
+    s.parameters = std::vector<double>(v15_9085, v15_9085 + 1);
     rq.seams.push_back(s);
   }
   {
@@ -9148,6 +9169,7 @@ inline void build_fit_fit_mrls(TramoFitRequest& rq) {
   rq.spec.outliers_ml = false;
   rq.spec.accept_airline = false;
   rq.spec.precision = B(0x3e7ad7f29abcaf48ULL);
+  rq.spec.final_unit_root_threshold = B(0x3feeb851eb851eb8ULL);
   rq.spec.intermediate_precision = B(0x3ee4f8b588e368f1ULL);
   rq.spec.mean_is_test = false;
   rq.spec.mean_used = true;
@@ -9238,10 +9260,10 @@ inline void build_fit_missing(kalos::TramoKernelRoundsRequest& rq) {
     s.result = TramoKernelStageResult::unchanged;
     s.orders = TramoOrders{0, 1, 1, 0, 1, 1};
     s.mean = false;
-    static const double v0_9240[] = {
+    static const double v0_9262[] = {
         B(0xbfed3cef1b59d83dULL),B(0xbfe2ab4cd2d409fdULL),
     };
-    s.parameters = std::vector<double>(v0_9240, v0_9240 + 2);
+    s.parameters = std::vector<double>(v0_9262, v0_9262 + 2);
     s.critical_value = B(0x400b47ae147ae147ULL);
     rq.seams.push_back(s);
   }
@@ -9256,10 +9278,10 @@ inline void build_fit_missing(kalos::TramoKernelRoundsRequest& rq) {
     s.pass_at_call = 0;
     s.nnsig = 0;
     s.orders = TramoOrders{0, 1, 1, 0, 1, 1};
-    static const double v1_9258[] = {
+    static const double v1_9280[] = {
         B(0xbfed43f30366d45fULL),B(0xbfe2abf2fdec1798ULL),
     };
-    s.parameters = std::vector<double>(v1_9258, v1_9258 + 2);
+    s.parameters = std::vector<double>(v1_9280, v1_9280 + 2);
     rq.seams.push_back(s);
   }
   {
@@ -9285,7 +9307,7 @@ inline void build_fit_missing(kalos::TramoKernelRoundsRequest& rq) {
     s.stats.bic = B(0xc002113d18a23d5dULL);
     s.stats.outliers_count = 0;
     s.stats.effective_observations = 81;
-    static const double v2_9287[] = {
+    static const double v2_9309[] = {
         B(0x3fb56d03a7b8fe85ULL),B(0xbfbab094a1bcb924ULL),B(0xbfe071428a02c0b8ULL),
         B(0x3f79114094c4aa5cULL),B(0x3fc51eb35c49f62bULL),B(0xbfcd30fc59ee9a52ULL),
         B(0xbfc8d51d6d248e32ULL),B(0x3fe53aa3e4b7932cULL),B(0xbfc155fee918fda8ULL),
@@ -9314,7 +9336,7 @@ inline void build_fit_missing(kalos::TramoKernelRoundsRequest& rq) {
         B(0xbfc8abc77cc146dfULL),B(0x3fcea1b4ffa04d1cULL),B(0xbfcfac26bef534baULL),
         B(0x3fa056285970b9a6ULL),B(0x3fe6153762fc8a7bULL),B(0x3fbae4b5cc22032aULL),
     };
-    s.stats.residuals = std::vector<double>(v2_9287, v2_9287 + 81);
+    s.stats.residuals = std::vector<double>(v2_9309, v2_9309 + 81);
     rq.seams.push_back(s);
   }
   {
@@ -9334,11 +9356,11 @@ inline void build_fit_missing(kalos::TramoKernelRoundsRequest& rq) {
     s.result = TramoKernelStageResult::changed;
     s.orders = TramoOrders{1, 0, 1, 1, 1, 1};
     s.mean = true;
-    static const double v3_9336[] = {
+    static const double v3_9358[] = {
         B(0xbfb999999999999aULL),B(0xbfb999999999999aULL),B(0xbfc999999999999aULL),
         B(0xbfc999999999999aULL),
     };
-    s.parameters = std::vector<double>(v3_9336, v3_9336 + 4);
+    s.parameters = std::vector<double>(v3_9358, v3_9358 + 4);
     rq.seams.push_back(s);
   }
   {
@@ -9370,10 +9392,10 @@ inline void build_fit_missing(kalos::TramoKernelRoundsRequest& rq) {
     s.result = TramoKernelStageResult::unchanged;
     s.orders = TramoOrders{0, 0, 0, 0, 1, 1};
     s.mean = true;
-    static const double v4_9372[] = {
+    static const double v4_9394[] = {
         B(0xbfc999999999999aULL),
     };
-    s.parameters = std::vector<double>(v4_9372, v4_9372 + 1);
+    s.parameters = std::vector<double>(v4_9394, v4_9394 + 1);
     s.critical_value = B(0x400b47ae147ae147ULL);
     rq.seams.push_back(s);
   }
@@ -9388,10 +9410,10 @@ inline void build_fit_missing(kalos::TramoKernelRoundsRequest& rq) {
     s.pass_at_call = 1;
     s.nnsig = 0;
     s.orders = TramoOrders{0, 0, 0, 0, 1, 1};
-    static const double v5_9390[] = {
+    static const double v5_9412[] = {
         B(0xbfe387d08203eda0ULL),
     };
-    s.parameters = std::vector<double>(v5_9390, v5_9390 + 1);
+    s.parameters = std::vector<double>(v5_9412, v5_9412 + 1);
     rq.seams.push_back(s);
   }
   {
@@ -9406,10 +9428,10 @@ inline void build_fit_missing(kalos::TramoKernelRoundsRequest& rq) {
     s.gate_reference_ljung_box_complement = B(0x3f8b26bfadc0f840ULL);
     s.gate_reference_standard_error = B(0x3fd3d82b98ceff3bULL);
     s.arima_orders = TramoOrders{0, 0, 0, 0, 1, 1};
-    static const double v6_9408[] = {
+    static const double v6_9430[] = {
         B(0xbfe387d08203eda0ULL),
     };
-    s.parameters = std::vector<double>(v6_9408, v6_9408 + 1);
+    s.parameters = std::vector<double>(v6_9430, v6_9430 + 1);
     s.stats.free_parameters = 1;
     s.stats.dim = 82;
     s.stats.observations = 96;
@@ -9419,7 +9441,7 @@ inline void build_fit_missing(kalos::TramoKernelRoundsRequest& rq) {
     s.stats.bic = B(0xc00273cb800df72aULL);
     s.stats.outliers_count = 0;
     s.stats.effective_observations = 82;
-    static const double v7_9421[] = {
+    static const double v7_9443[] = {
         B(0x3fd0299d1493da96ULL),B(0x3fb2d35f1e0668d0ULL),B(0xbfd7fa5f49107f4eULL),
         B(0x3fb25f2b025437a0ULL),B(0x3fce0d645f55d42cULL),B(0xbfa9ee98832a7180ULL),
         B(0xbfc154bc65c8ed0eULL),B(0x3fe67d316020a8b4ULL),B(0xbf9757c7f02a2700ULL),
@@ -9448,7 +9470,7 @@ inline void build_fit_missing(kalos::TramoKernelRoundsRequest& rq) {
         B(0xbfd35dc2d32657c4ULL),B(0x3fba67882d750010ULL),B(0xbfd85d7759199e14ULL),
         B(0xbfbd7d8a2a526700ULL),B(0x3fe18793b5e224caULL),B(0x3f96806ea2bb1e00ULL),
     };
-    s.stats.residuals = std::vector<double>(v7_9421, v7_9421 + 81);
+    s.stats.residuals = std::vector<double>(v7_9443, v7_9443 + 81);
     rq.seams.push_back(s);
   }
   {
@@ -9464,10 +9486,10 @@ inline void build_fit_missing(kalos::TramoKernelRoundsRequest& rq) {
     s.result = TramoKernelStageResult::unchanged;
     s.tsig = B(0x3ff0000000000000ULL);
     s.mean = true;
-    static const double v8_9466[] = {
+    static const double v8_9488[] = {
         B(0x40415769f230d6e9ULL),
     };
-    s.tstats = std::vector<double>(v8_9466, v8_9466 + 1);
+    s.tstats = std::vector<double>(v8_9488, v8_9488 + 1);
     rq.seams.push_back(s);
   }
   {
@@ -9476,10 +9498,10 @@ inline void build_fit_missing(kalos::TramoKernelRoundsRequest& rq) {
     s.result = TramoKernelStageResult::unchanged;
     s.orders = TramoOrders{0, 0, 0, 0, 1, 1};
     s.mean = true;
-    static const double v9_9478[] = {
+    static const double v9_9500[] = {
         B(0xbfe387d08203eda0ULL),
     };
-    s.parameters = std::vector<double>(v9_9478, v9_9478 + 1);
+    s.parameters = std::vector<double>(v9_9500, v9_9500 + 1);
     s.seasonal_after = true;
     s.original_seasonality_after = 3;
     rq.seams.push_back(s);
@@ -9490,10 +9512,10 @@ inline void build_fit_missing(kalos::TramoKernelRoundsRequest& rq) {
     s.result = TramoKernelStageResult::unchanged;
     s.orders = TramoOrders{0, 0, 0, 0, 1, 1};
     s.mean = true;
-    static const double v10_9492[] = {
+    static const double v10_9514[] = {
         B(0xbfe387d08203eda0ULL),
     };
-    s.parameters = std::vector<double>(v10_9492, v10_9492 + 1);
+    s.parameters = std::vector<double>(v10_9514, v10_9514 + 1);
     rq.seams.push_back(s);
   }
   {
@@ -9502,10 +9524,10 @@ inline void build_fit_missing(kalos::TramoKernelRoundsRequest& rq) {
     s.result = TramoKernelStageResult::unchanged;
     s.orders = TramoOrders{0, 0, 0, 0, 1, 1};
     s.mean = true;
-    static const double v11_9504[] = {
+    static const double v11_9526[] = {
         B(0xbfe387d08203eda0ULL),
     };
-    s.parameters = std::vector<double>(v11_9504, v11_9504 + 1);
+    s.parameters = std::vector<double>(v11_9526, v11_9526 + 1);
     rq.seams.push_back(s);
   }
   {
@@ -9514,10 +9536,10 @@ inline void build_fit_missing(kalos::TramoKernelRoundsRequest& rq) {
     s.result = TramoKernelStageResult::unchanged;
     s.orders = TramoOrders{0, 0, 0, 0, 1, 1};
     s.mean = true;
-    static const double v12_9516[] = {
+    static const double v12_9538[] = {
         B(0xbfe387d08203eda0ULL),
     };
-    s.parameters = std::vector<double>(v12_9516, v12_9516 + 1);
+    s.parameters = std::vector<double>(v12_9538, v12_9538 + 1);
     rq.seams.push_back(s);
   }
   {
@@ -9526,10 +9548,10 @@ inline void build_fit_missing(kalos::TramoKernelRoundsRequest& rq) {
     s.result = TramoKernelStageResult::unchanged;
     s.orders = TramoOrders{0, 0, 0, 0, 1, 1};
     s.mean = true;
-    static const double v13_9528[] = {
+    static const double v13_9550[] = {
         B(0xbfe387d08203eda0ULL),
     };
-    s.parameters = std::vector<double>(v13_9528, v13_9528 + 1);
+    s.parameters = std::vector<double>(v13_9550, v13_9550 + 1);
     rq.seams.push_back(s);
   }
   {
@@ -9610,6 +9632,7 @@ inline void build_fit_fit_missing(TramoFitRequest& rq) {
   rq.spec.outliers_ml = false;
   rq.spec.accept_airline = false;
   rq.spec.precision = B(0x3e7ad7f29abcaf48ULL);
+  rq.spec.final_unit_root_threshold = B(0x3feeb851eb851eb8ULL);
   rq.spec.intermediate_precision = B(0x3ee4f8b588e368f1ULL);
   rq.spec.mean_is_test = false;
   rq.spec.mean_used = true;
@@ -9695,10 +9718,10 @@ inline void build_fit_nomean(kalos::TramoKernelRoundsRequest& rq) {
     s.pass_at_call = 0;
     s.nnsig = 0;
     s.orders = TramoOrders{0, 1, 1, 0, 1, 1};
-    static const double v0_9697[] = {
+    static const double v0_9720[] = {
         B(0xbfeca5b7e4a2fc1bULL),B(0xbfdee3a0d908b436ULL),
     };
-    s.parameters = std::vector<double>(v0_9697, v0_9697 + 2);
+    s.parameters = std::vector<double>(v0_9720, v0_9720 + 2);
     rq.seams.push_back(s);
   }
   {
@@ -9778,6 +9801,7 @@ inline void build_fit_fit_nomean(TramoFitRequest& rq) {
   rq.spec.outliers_ml = false;
   rq.spec.accept_airline = false;
   rq.spec.precision = B(0x3e7ad7f29abcaf48ULL);
+  rq.spec.final_unit_root_threshold = B(0x3feeb851eb851eb8ULL);
   rq.spec.intermediate_precision = B(0x3ee4f8b588e368f1ULL);
   rq.spec.mean_is_test = false;
   rq.spec.mean_used = false;
@@ -9863,10 +9887,10 @@ inline void build_fit_pure(kalos::TramoKernelRoundsRequest& rq) {
     s.pass_at_call = 0;
     s.nnsig = 0;
     s.orders = TramoOrders{0, 1, 1, 0, 1, 1};
-    static const double v0_9865[] = {
+    static const double v0_9889[] = {
         B(0xbfd9b74faadd706dULL),B(0xbfe1d1ea2c5615d8ULL),
     };
-    s.parameters = std::vector<double>(v0_9865, v0_9865 + 2);
+    s.parameters = std::vector<double>(v0_9889, v0_9889 + 2);
     rq.seams.push_back(s);
   }
   {
@@ -9892,7 +9916,7 @@ inline void build_fit_pure(kalos::TramoKernelRoundsRequest& rq) {
     s.stats.bic = B(0xc01a23737190ac6bULL);
     s.stats.outliers_count = 0;
     s.stats.effective_observations = 131;
-    static const double v1_9894[] = {
+    static const double v1_9918[] = {
         B(0x3fa0416de25b8ee8ULL),B(0x3f889d19086f5994ULL),B(0xbf8ad7fd13b9879fULL),
         B(0xbf90f45ec2c22b86ULL),B(0x3faa2eccb45e6650ULL),B(0x3fac5fdb495998b3ULL),
         B(0x3f96cd613fa3632bULL),B(0x3f9351e65b825587ULL),B(0xbf9adf54722a6c53ULL),
@@ -9938,7 +9962,7 @@ inline void build_fit_pure(kalos::TramoKernelRoundsRequest& rq) {
         B(0xbfa082b71bc769b2ULL),B(0xbf83df0daee651a0ULL),B(0x3f9e37c20b641e0dULL),
         B(0xbf9bd0233218bec0ULL),B(0xbf8ea75fb7f8d51eULL),
     };
-    s.stats.residuals = std::vector<double>(v1_9894, v1_9894 + 131);
+    s.stats.residuals = std::vector<double>(v1_9918, v1_9918 + 131);
     rq.seams.push_back(s);
   }
   {
@@ -9958,10 +9982,10 @@ inline void build_fit_pure(kalos::TramoKernelRoundsRequest& rq) {
     s.result = TramoKernelStageResult::unchanged;
     s.orders = TramoOrders{0, 1, 1, 0, 1, 1};
     s.mean = false;
-    static const double v2_9960[] = {
+    static const double v2_9984[] = {
         B(0xbfd9b74faadd706dULL),B(0xbfe1d1ea2c5615d8ULL),
     };
-    s.parameters = std::vector<double>(v2_9960, v2_9960 + 2);
+    s.parameters = std::vector<double>(v2_9984, v2_9984 + 2);
     rq.seams.push_back(s);
   }
   {
@@ -9988,10 +10012,10 @@ inline void build_fit_pure(kalos::TramoKernelRoundsRequest& rq) {
     s.pass_at_call = 1;
     s.nnsig = 0;
     s.orders = TramoOrders{0, 1, 1, 0, 1, 1};
-    static const double v3_9990[] = {
+    static const double v3_10014[] = {
         B(0xbfd9b74faadd706dULL),B(0xbfe1d1ea2c5615d8ULL),
     };
-    s.parameters = std::vector<double>(v3_9990, v3_9990 + 2);
+    s.parameters = std::vector<double>(v3_10014, v3_10014 + 2);
     rq.seams.push_back(s);
   }
   {
@@ -10006,10 +10030,10 @@ inline void build_fit_pure(kalos::TramoKernelRoundsRequest& rq) {
     s.gate_reference_ljung_box_complement = B(0x3fe4a7c1513ba831ULL);
     s.gate_reference_standard_error = B(0x3fa2f1afa0217296ULL);
     s.arima_orders = TramoOrders{0, 1, 1, 0, 1, 1};
-    static const double v4_10008[] = {
+    static const double v4_10032[] = {
         B(0xbfd9b74faadd706dULL),B(0xbfe1d1ea2c5615d8ULL),
     };
-    s.parameters = std::vector<double>(v4_10008, v4_10008 + 2);
+    s.parameters = std::vector<double>(v4_10032, v4_10032 + 2);
     s.stats.free_parameters = 2;
     s.stats.dim = 131;
     s.stats.observations = 144;
@@ -10019,7 +10043,7 @@ inline void build_fit_pure(kalos::TramoKernelRoundsRequest& rq) {
     s.stats.bic = B(0xc01a23737190ac6bULL);
     s.stats.outliers_count = 0;
     s.stats.effective_observations = 131;
-    static const double v5_10021[] = {
+    static const double v5_10045[] = {
         B(0x3fa0416de25b8ee8ULL),B(0x3f889d19086f5994ULL),B(0xbf8ad7fd13b9879fULL),
         B(0xbf90f45ec2c22b86ULL),B(0x3faa2eccb45e6650ULL),B(0x3fac5fdb495998b3ULL),
         B(0x3f96cd613fa3632bULL),B(0x3f9351e65b825587ULL),B(0xbf9adf54722a6c53ULL),
@@ -10065,7 +10089,7 @@ inline void build_fit_pure(kalos::TramoKernelRoundsRequest& rq) {
         B(0xbfa082b71bc769b2ULL),B(0xbf83df0daee651a0ULL),B(0x3f9e37c20b641e0dULL),
         B(0xbf9bd0233218bec0ULL),B(0xbf8ea75fb7f8d51eULL),
     };
-    s.stats.residuals = std::vector<double>(v5_10021, v5_10021 + 131);
+    s.stats.residuals = std::vector<double>(v5_10045, v5_10045 + 131);
     rq.seams.push_back(s);
   }
   {
@@ -10089,10 +10113,10 @@ inline void build_fit_pure(kalos::TramoKernelRoundsRequest& rq) {
     s.result = TramoKernelStageResult::unchanged;
     s.orders = TramoOrders{0, 1, 1, 0, 1, 1};
     s.mean = false;
-    static const double v6_10091[] = {
+    static const double v6_10115[] = {
         B(0xbfd9b74faadd706dULL),B(0xbfe1d1ea2c5615d8ULL),
     };
-    s.parameters = std::vector<double>(v6_10091, v6_10091 + 2);
+    s.parameters = std::vector<double>(v6_10115, v6_10115 + 2);
     s.seasonal_after = true;
     s.original_seasonality_after = 3;
     rq.seams.push_back(s);
@@ -10103,10 +10127,10 @@ inline void build_fit_pure(kalos::TramoKernelRoundsRequest& rq) {
     s.result = TramoKernelStageResult::unchanged;
     s.orders = TramoOrders{0, 1, 1, 0, 1, 1};
     s.mean = false;
-    static const double v7_10105[] = {
+    static const double v7_10129[] = {
         B(0xbfd9b74faadd706dULL),B(0xbfe1d1ea2c5615d8ULL),
     };
-    s.parameters = std::vector<double>(v7_10105, v7_10105 + 2);
+    s.parameters = std::vector<double>(v7_10129, v7_10129 + 2);
     rq.seams.push_back(s);
   }
   {
@@ -10115,10 +10139,10 @@ inline void build_fit_pure(kalos::TramoKernelRoundsRequest& rq) {
     s.result = TramoKernelStageResult::unchanged;
     s.orders = TramoOrders{0, 1, 1, 0, 1, 1};
     s.mean = false;
-    static const double v8_10117[] = {
+    static const double v8_10141[] = {
         B(0xbfd9b74faadd706dULL),B(0xbfe1d1ea2c5615d8ULL),
     };
-    s.parameters = std::vector<double>(v8_10117, v8_10117 + 2);
+    s.parameters = std::vector<double>(v8_10141, v8_10141 + 2);
     rq.seams.push_back(s);
   }
   {
@@ -10127,10 +10151,10 @@ inline void build_fit_pure(kalos::TramoKernelRoundsRequest& rq) {
     s.result = TramoKernelStageResult::unchanged;
     s.orders = TramoOrders{0, 1, 1, 0, 1, 1};
     s.mean = false;
-    static const double v9_10129[] = {
+    static const double v9_10153[] = {
         B(0xbfd9b74faadd706dULL),B(0xbfe1d1ea2c5615d8ULL),
     };
-    s.parameters = std::vector<double>(v9_10129, v9_10129 + 2);
+    s.parameters = std::vector<double>(v9_10153, v9_10153 + 2);
     rq.seams.push_back(s);
   }
   {
@@ -10139,10 +10163,10 @@ inline void build_fit_pure(kalos::TramoKernelRoundsRequest& rq) {
     s.result = TramoKernelStageResult::unchanged;
     s.orders = TramoOrders{0, 1, 1, 0, 1, 1};
     s.mean = false;
-    static const double v10_10141[] = {
+    static const double v10_10165[] = {
         B(0xbfd9b74faadd706dULL),B(0xbfe1d1ea2c5615d8ULL),
     };
-    s.parameters = std::vector<double>(v10_10141, v10_10141 + 2);
+    s.parameters = std::vector<double>(v10_10165, v10_10165 + 2);
     rq.seams.push_back(s);
   }
   {
@@ -10217,6 +10241,7 @@ inline void build_fit_fit_pure(TramoFitRequest& rq) {
   rq.spec.outliers_ml = false;
   rq.spec.accept_airline = false;
   rq.spec.precision = B(0x3e7ad7f29abcaf48ULL);
+  rq.spec.final_unit_root_threshold = B(0x3feeb851eb851eb8ULL);
   rq.spec.intermediate_precision = B(0x3ee4f8b588e368f1ULL);
   rq.spec.mean_is_test = false;
   rq.spec.mean_used = true;
@@ -10302,10 +10327,10 @@ inline void build_fit_nearur(kalos::TramoKernelRoundsRequest& rq) {
     s.result = TramoKernelStageResult::unchanged;
     s.orders = TramoOrders{0, 1, 1, 0, 1, 1};
     s.mean = false;
-    static const double v0_10304[] = {
+    static const double v0_10329[] = {
         B(0xbfac16984ac98920ULL),B(0xbfeffb6d2bc0fdd8ULL),
     };
-    s.parameters = std::vector<double>(v0_10304, v0_10304 + 2);
+    s.parameters = std::vector<double>(v0_10329, v0_10329 + 2);
     s.critical_value = B(0x400bccccccccccccULL);
     rq.seams.push_back(s);
   }
@@ -10321,10 +10346,10 @@ inline void build_fit_nearur(kalos::TramoKernelRoundsRequest& rq) {
     s.pass_at_call = 0;
     s.nnsig = 0;
     s.orders = TramoOrders{0, 1, 0, 0, 1, 1};
-    static const double v1_10323[] = {
+    static const double v1_10348[] = {
         B(0xbfefff916ebc4de3ULL),
     };
-    s.parameters = std::vector<double>(v1_10323, v1_10323 + 1);
+    s.parameters = std::vector<double>(v1_10348, v1_10348 + 1);
     rq.seams.push_back(s);
   }
   {
@@ -10350,7 +10375,7 @@ inline void build_fit_nearur(kalos::TramoKernelRoundsRequest& rq) {
     s.stats.bic = B(0x400bd509eaa99729ULL);
     s.stats.outliers_count = 0;
     s.stats.effective_observations = 107;
-    static const double v2_10352[] = {
+    static const double v2_10377[] = {
         B(0x401c3f81bb24333bULL),B(0x40000b0e51f9b24bULL),B(0xc01081b6c4d10918ULL),
         B(0xc014ec1fcdfaf327ULL),B(0x402203efdc25efd6ULL),B(0xc01ea3977f41d420ULL),
         B(0x4025632409e37f0fULL),B(0x4021bede02553d3cULL),B(0xbfe634199b538ed3ULL),
@@ -10388,7 +10413,7 @@ inline void build_fit_nearur(kalos::TramoKernelRoundsRequest& rq) {
         B(0xc0197f662d6baff6ULL),B(0xbfe003d63e4b6e88ULL),B(0x401a46a4aa7ac339ULL),
         B(0x401137ef531d3602ULL),B(0x4004f6020410dfcfULL),
     };
-    s.stats.residuals = std::vector<double>(v2_10352, v2_10352 + 107);
+    s.stats.residuals = std::vector<double>(v2_10377, v2_10377 + 107);
     rq.seams.push_back(s);
   }
   {
@@ -10408,11 +10433,11 @@ inline void build_fit_nearur(kalos::TramoKernelRoundsRequest& rq) {
     s.result = TramoKernelStageResult::changed;
     s.orders = TramoOrders{1, 1, 1, 1, 0, 1};
     s.mean = false;
-    static const double v3_10410[] = {
+    static const double v3_10435[] = {
         B(0xbfb999999999999aULL),B(0xbfb999999999999aULL),B(0xbfc999999999999aULL),
         B(0xbfc999999999999aULL),
     };
-    s.parameters = std::vector<double>(v3_10410, v3_10410 + 4);
+    s.parameters = std::vector<double>(v3_10435, v3_10435 + 4);
     rq.seams.push_back(s);
   }
   {
@@ -10444,10 +10469,10 @@ inline void build_fit_nearur(kalos::TramoKernelRoundsRequest& rq) {
     s.result = TramoKernelStageResult::unchanged;
     s.orders = TramoOrders{1, 1, 0, 1, 0, 1};
     s.mean = false;
-    static const double v4_10446[] = {
+    static const double v4_10471[] = {
         B(0xbfb999999999999aULL),B(0xbfb999999999999aULL),B(0xbfc999999999999aULL),
     };
-    s.parameters = std::vector<double>(v4_10446, v4_10446 + 3);
+    s.parameters = std::vector<double>(v4_10471, v4_10471 + 3);
     s.critical_value = B(0x400bccccccccccccULL);
     rq.seams.push_back(s);
   }
@@ -10463,10 +10488,10 @@ inline void build_fit_nearur(kalos::TramoKernelRoundsRequest& rq) {
     s.pass_at_call = 1;
     s.nnsig = 0;
     s.orders = TramoOrders{0, 1, 0, 0, 1, 1};
-    static const double v5_10465[] = {
+    static const double v5_10490[] = {
         B(0xbfefff916ebc4de3ULL),
     };
-    s.parameters = std::vector<double>(v5_10465, v5_10465 + 1);
+    s.parameters = std::vector<double>(v5_10490, v5_10490 + 1);
     rq.seams.push_back(s);
   }
   {
@@ -10481,10 +10506,10 @@ inline void build_fit_nearur(kalos::TramoKernelRoundsRequest& rq) {
     s.gate_reference_ljung_box_complement = B(0x3fc403ed1d69b27cULL);
     s.gate_reference_standard_error = B(0x401664213c09e506ULL);
     s.arima_orders = TramoOrders{0, 1, 0, 0, 1, 1};
-    static const double v6_10483[] = {
+    static const double v6_10508[] = {
         B(0xbfefff916ebc4de3ULL),
     };
-    s.parameters = std::vector<double>(v6_10483, v6_10483 + 1);
+    s.parameters = std::vector<double>(v6_10508, v6_10508 + 1);
     s.stats.free_parameters = 1;
     s.stats.dim = 107;
     s.stats.observations = 120;
@@ -10494,7 +10519,7 @@ inline void build_fit_nearur(kalos::TramoKernelRoundsRequest& rq) {
     s.stats.bic = B(0x400bd509eaa99729ULL);
     s.stats.outliers_count = 0;
     s.stats.effective_observations = 107;
-    static const double v7_10496[] = {
+    static const double v7_10521[] = {
         B(0x401c3f81bb24333bULL),B(0x40000b0e51f9b24bULL),B(0xc01081b6c4d10918ULL),
         B(0xc014ec1fcdfaf327ULL),B(0x402203efdc25efd6ULL),B(0xc01ea3977f41d420ULL),
         B(0x4025632409e37f0fULL),B(0x4021bede02553d3cULL),B(0xbfe634199b538ed3ULL),
@@ -10532,7 +10557,7 @@ inline void build_fit_nearur(kalos::TramoKernelRoundsRequest& rq) {
         B(0xc0197f662d6baff6ULL),B(0xbfe003d63e4b6e88ULL),B(0x401a46a4aa7ac339ULL),
         B(0x401137ef531d3602ULL),B(0x4004f6020410dfcfULL),
     };
-    s.stats.residuals = std::vector<double>(v7_10496, v7_10496 + 107);
+    s.stats.residuals = std::vector<double>(v7_10521, v7_10521 + 107);
     rq.seams.push_back(s);
   }
   {
@@ -10556,10 +10581,10 @@ inline void build_fit_nearur(kalos::TramoKernelRoundsRequest& rq) {
     s.result = TramoKernelStageResult::unchanged;
     s.orders = TramoOrders{0, 1, 0, 0, 1, 1};
     s.mean = false;
-    static const double v8_10558[] = {
+    static const double v8_10583[] = {
         B(0xbfefff916ebc4de3ULL),
     };
-    s.parameters = std::vector<double>(v8_10558, v8_10558 + 1);
+    s.parameters = std::vector<double>(v8_10583, v8_10583 + 1);
     s.seasonal_after = true;
     s.original_seasonality_after = 3;
     rq.seams.push_back(s);
@@ -10570,10 +10595,10 @@ inline void build_fit_nearur(kalos::TramoKernelRoundsRequest& rq) {
     s.result = TramoKernelStageResult::unchanged;
     s.orders = TramoOrders{0, 1, 0, 0, 1, 1};
     s.mean = false;
-    static const double v9_10572[] = {
+    static const double v9_10597[] = {
         B(0xbfefff916ebc4de3ULL),
     };
-    s.parameters = std::vector<double>(v9_10572, v9_10572 + 1);
+    s.parameters = std::vector<double>(v9_10597, v9_10597 + 1);
     rq.seams.push_back(s);
   }
   {
@@ -10582,10 +10607,10 @@ inline void build_fit_nearur(kalos::TramoKernelRoundsRequest& rq) {
     s.result = TramoKernelStageResult::unchanged;
     s.orders = TramoOrders{0, 1, 0, 0, 1, 1};
     s.mean = false;
-    static const double v10_10584[] = {
+    static const double v10_10609[] = {
         B(0xbfefff916ebc4de3ULL),
     };
-    s.parameters = std::vector<double>(v10_10584, v10_10584 + 1);
+    s.parameters = std::vector<double>(v10_10609, v10_10609 + 1);
     rq.seams.push_back(s);
   }
   {
@@ -10594,10 +10619,10 @@ inline void build_fit_nearur(kalos::TramoKernelRoundsRequest& rq) {
     s.result = TramoKernelStageResult::unchanged;
     s.orders = TramoOrders{0, 1, 0, 0, 1, 1};
     s.mean = false;
-    static const double v11_10596[] = {
+    static const double v11_10621[] = {
         B(0xbfefff916ebc4de3ULL),
     };
-    s.parameters = std::vector<double>(v11_10596, v11_10596 + 1);
+    s.parameters = std::vector<double>(v11_10621, v11_10621 + 1);
     rq.seams.push_back(s);
   }
   {
@@ -10606,10 +10631,10 @@ inline void build_fit_nearur(kalos::TramoKernelRoundsRequest& rq) {
     s.result = TramoKernelStageResult::unchanged;
     s.orders = TramoOrders{0, 1, 0, 0, 1, 1};
     s.mean = false;
-    static const double v12_10608[] = {
+    static const double v12_10633[] = {
         B(0xbfefff916ebc4de3ULL),
     };
-    s.parameters = std::vector<double>(v12_10608, v12_10608 + 1);
+    s.parameters = std::vector<double>(v12_10633, v12_10633 + 1);
     rq.seams.push_back(s);
   }
   {
@@ -10692,6 +10717,7 @@ inline void build_fit_fit_nearur(TramoFitRequest& rq) {
   rq.spec.outliers_ml = false;
   rq.spec.accept_airline = false;
   rq.spec.precision = B(0x3e7ad7f29abcaf48ULL);
+  rq.spec.final_unit_root_threshold = B(0x3feeb851eb851eb8ULL);
   rq.spec.intermediate_precision = B(0x3ee4f8b588e368f1ULL);
   rq.spec.mean_is_test = false;
   rq.spec.mean_used = true;
@@ -10779,10 +10805,10 @@ inline void build_fit_q_air(kalos::TramoKernelRoundsRequest& rq) {
     s.result = TramoKernelStageResult::unchanged;
     s.orders = TramoOrders{0, 1, 1, 0, 0, 0};
     s.mean = false;
-    static const double v0_10781[] = {
+    static const double v0_10807[] = {
         B(0x3fd1b13ec879abcfULL),
     };
-    s.parameters = std::vector<double>(v0_10781, v0_10781 + 1);
+    s.parameters = std::vector<double>(v0_10807, v0_10807 + 1);
     s.critical_value = B(0x400c47ae147ae147ULL);
     rq.seams.push_back(s);
   }
@@ -10797,10 +10823,10 @@ inline void build_fit_q_air(kalos::TramoKernelRoundsRequest& rq) {
     s.pass_at_call = 0;
     s.nnsig = 0;
     s.orders = TramoOrders{0, 1, 1, 0, 0, 0};
-    static const double v1_10799[] = {
+    static const double v1_10825[] = {
         B(0x3fd1b5182201b840ULL),
     };
-    s.parameters = std::vector<double>(v1_10799, v1_10799 + 1);
+    s.parameters = std::vector<double>(v1_10825, v1_10825 + 1);
     rq.seams.push_back(s);
   }
   {
@@ -10826,7 +10852,7 @@ inline void build_fit_q_air(kalos::TramoKernelRoundsRequest& rq) {
     s.stats.bic = B(0xc0120122c1caf213ULL);
     s.stats.outliers_count = 0;
     s.stats.effective_observations = 143;
-    static const double v2_10828[] = {
+    static const double v2_10854[] = {
         B(0x3fa9c06a90280dedULL),B(0x3fb9333804321144ULL),B(0xbfa9ac10f25771a0ULL),
         B(0xbfa9ad660bfded0fULL),B(0x3fbf947e02b2b17aULL),B(0x3fad98d4fa013058ULL),
         B(0xbf9060afd00e65d0ULL),B(0xbfb4838bfbcd5d3dULL),B(0xbfbc8220115658e4ULL),
@@ -10876,7 +10902,7 @@ inline void build_fit_q_air(kalos::TramoKernelRoundsRequest& rq) {
         B(0xbfadd136015c58a1ULL),B(0xbfc4843de017899fULL),B(0xbfab0031d34b88dcULL),
         B(0xbfc38a60a24f3845ULL),B(0x3fc27f858eb412dcULL),
     };
-    s.stats.residuals = std::vector<double>(v2_10828, v2_10828 + 143);
+    s.stats.residuals = std::vector<double>(v2_10854, v2_10854 + 143);
     rq.seams.push_back(s);
   }
   {
@@ -10896,10 +10922,10 @@ inline void build_fit_q_air(kalos::TramoKernelRoundsRequest& rq) {
     s.result = TramoKernelStageResult::unchanged;
     s.orders = TramoOrders{0, 1, 1, 0, 0, 0};
     s.mean = false;
-    static const double v3_10898[] = {
+    static const double v3_10924[] = {
         B(0x3fd1b5182201b840ULL),
     };
-    s.parameters = std::vector<double>(v3_10898, v3_10898 + 1);
+    s.parameters = std::vector<double>(v3_10924, v3_10924 + 1);
     rq.seams.push_back(s);
   }
   {
@@ -10926,10 +10952,10 @@ inline void build_fit_q_air(kalos::TramoKernelRoundsRequest& rq) {
     s.result = TramoKernelStageResult::unchanged;
     s.orders = TramoOrders{0, 1, 2, 0, 0, 0};
     s.mean = false;
-    static const double v4_10928[] = {
+    static const double v4_10954[] = {
         B(0xbfc999999999999aULL),B(0xbfc999999999999aULL),
     };
-    s.parameters = std::vector<double>(v4_10928, v4_10928 + 2);
+    s.parameters = std::vector<double>(v4_10954, v4_10954 + 2);
     s.critical_value = B(0x400c47ae147ae147ULL);
     rq.seams.push_back(s);
   }
@@ -10944,10 +10970,10 @@ inline void build_fit_q_air(kalos::TramoKernelRoundsRequest& rq) {
     s.pass_at_call = 1;
     s.nnsig = 0;
     s.orders = TramoOrders{0, 1, 2, 0, 0, 0};
-    static const double v5_10946[] = {
+    static const double v5_10972[] = {
         B(0x3fcdfb82f1fb4cacULL),B(0xbfd223d47b95f263ULL),
     };
-    s.parameters = std::vector<double>(v5_10946, v5_10946 + 2);
+    s.parameters = std::vector<double>(v5_10972, v5_10972 + 2);
     rq.seams.push_back(s);
   }
   {
@@ -10962,10 +10988,10 @@ inline void build_fit_q_air(kalos::TramoKernelRoundsRequest& rq) {
     s.gate_reference_ljung_box_complement = B(0x3ff0000000000000ULL);
     s.gate_reference_standard_error = B(0x3fba98b33858da6fULL);
     s.arima_orders = TramoOrders{0, 1, 2, 0, 0, 0};
-    static const double v6_10964[] = {
+    static const double v6_10990[] = {
         B(0x3fcdfb82f1fb4cacULL),B(0xbfd223d47b95f263ULL),
     };
-    s.parameters = std::vector<double>(v6_10964, v6_10964 + 2);
+    s.parameters = std::vector<double>(v6_10990, v6_10990 + 2);
     s.stats.free_parameters = 2;
     s.stats.dim = 143;
     s.stats.observations = 144;
@@ -10975,7 +11001,7 @@ inline void build_fit_q_air(kalos::TramoKernelRoundsRequest& rq) {
     s.stats.bic = B(0xc011fc8c009dc91fULL);
     s.stats.outliers_count = 0;
     s.stats.effective_observations = 143;
-    static const double v7_10977[] = {
+    static const double v7_11003[] = {
         B(0x3fa913d9d38b19fdULL),B(0x3fb95d0d2471b313ULL),B(0xbf9e0608c03a7c4bULL),
         B(0xbf9f77c772e79d70ULL),B(0x3fbba503c85918a9ULL),B(0x3fadd2a104601d0eULL),
         B(0x3f915c64d4790048ULL),B(0xbfb26f788b97ef99ULL),B(0xbfbca354dae3b6bbULL),
@@ -11025,7 +11051,7 @@ inline void build_fit_q_air(kalos::TramoKernelRoundsRequest& rq) {
         B(0xbf8f9c90b875391eULL),B(0xbfc197afab2cda0fULL),B(0xbfb1bb4e2b5b150fULL),
         B(0xbfc8515cd2631da0ULL),B(0x3fc04662fb7f0c78ULL),
     };
-    s.stats.residuals = std::vector<double>(v7_10977, v7_10977 + 143);
+    s.stats.residuals = std::vector<double>(v7_11003, v7_11003 + 143);
     rq.seams.push_back(s);
   }
   {
@@ -11052,10 +11078,10 @@ inline void build_fit_q_air(kalos::TramoKernelRoundsRequest& rq) {
     s.result = TramoKernelStageResult::unchanged;
     s.orders = TramoOrders{0, 1, 2, 0, 0, 0};
     s.mean = false;
-    static const double v8_11054[] = {
+    static const double v8_11080[] = {
         B(0x3fcdfb82f1fb4cacULL),B(0xbfd223d47b95f263ULL),
     };
-    s.parameters = std::vector<double>(v8_11054, v8_11054 + 2);
+    s.parameters = std::vector<double>(v8_11080, v8_11080 + 2);
     s.critical_value = B(0x4008e2eb1c432ca5ULL);
     rq.seams.push_back(s);
   }
@@ -11070,10 +11096,10 @@ inline void build_fit_q_air(kalos::TramoKernelRoundsRequest& rq) {
     s.pass_at_call = 2;
     s.nnsig = 0;
     s.orders = TramoOrders{0, 1, 2, 0, 0, 0};
-    static const double v9_11072[] = {
+    static const double v9_11098[] = {
         B(0x3fcdfb82f1fb4cacULL),B(0xbfd223d47b95f263ULL),
     };
-    s.parameters = std::vector<double>(v9_11072, v9_11072 + 2);
+    s.parameters = std::vector<double>(v9_11098, v9_11098 + 2);
     rq.seams.push_back(s);
   }
   {
@@ -11088,10 +11114,10 @@ inline void build_fit_q_air(kalos::TramoKernelRoundsRequest& rq) {
     s.gate_reference_ljung_box_complement = B(0x3ff0000000000000ULL);
     s.gate_reference_standard_error = B(0x3fba4a52380b7d0aULL);
     s.arima_orders = TramoOrders{0, 1, 2, 0, 0, 0};
-    static const double v10_11090[] = {
+    static const double v10_11116[] = {
         B(0x3fcdfb82f1fb4cacULL),B(0xbfd223d47b95f263ULL),
     };
-    s.parameters = std::vector<double>(v10_11090, v10_11090 + 2);
+    s.parameters = std::vector<double>(v10_11116, v10_11116 + 2);
     s.stats.free_parameters = 2;
     s.stats.dim = 143;
     s.stats.observations = 144;
@@ -11101,7 +11127,7 @@ inline void build_fit_q_air(kalos::TramoKernelRoundsRequest& rq) {
     s.stats.bic = B(0xc011fc8c009dc91fULL);
     s.stats.outliers_count = 0;
     s.stats.effective_observations = 143;
-    static const double v11_11103[] = {
+    static const double v11_11129[] = {
         B(0x3fa913d9d38b19fdULL),B(0x3fb95d0d2471b313ULL),B(0xbf9e0608c03a7c4bULL),
         B(0xbf9f77c772e79d70ULL),B(0x3fbba503c85918a9ULL),B(0x3fadd2a104601d0eULL),
         B(0x3f915c64d4790048ULL),B(0xbfb26f788b97ef99ULL),B(0xbfbca354dae3b6bbULL),
@@ -11151,7 +11177,7 @@ inline void build_fit_q_air(kalos::TramoKernelRoundsRequest& rq) {
         B(0xbf8f9c90b875391eULL),B(0xbfc197afab2cda0fULL),B(0xbfb1bb4e2b5b150fULL),
         B(0xbfc8515cd2631da0ULL),B(0x3fc04662fb7f0c78ULL),
     };
-    s.stats.residuals = std::vector<double>(v11_11103, v11_11103 + 143);
+    s.stats.residuals = std::vector<double>(v11_11129, v11_11129 + 143);
     rq.seams.push_back(s);
   }
   {
@@ -11179,11 +11205,11 @@ inline void build_fit_q_air(kalos::TramoKernelRoundsRequest& rq) {
     s.result = TramoKernelStageResult::unchanged;
     s.orders = TramoOrders{3, 1, 1, 0, 0, 0};
     s.mean = false;
-    static const double v12_11181[] = {
+    static const double v12_11207[] = {
         B(0xbfedca1e4c614b2dULL),B(0x3fd283b22d936097ULL),B(0x3fb6f96ec86284dfULL),
         B(0xbfea032d45f14a0bULL),
     };
-    s.parameters = std::vector<double>(v12_11181, v12_11181 + 4);
+    s.parameters = std::vector<double>(v12_11207, v12_11207 + 4);
     s.critical_value = B(0x4008e2eb1c432ca5ULL);
     rq.seams.push_back(s);
   }
@@ -11199,10 +11225,10 @@ inline void build_fit_q_air(kalos::TramoKernelRoundsRequest& rq) {
     s.pass_at_call = 3;
     s.nnsig = 0;
     s.orders = TramoOrders{2, 1, 1, 0, 0, 0};
-    static const double v13_11201[] = {
+    static const double v13_11227[] = {
         B(0xbfef5561ff8ac7e1ULL),B(0x3fd7ef3e85d06ca6ULL),B(0xbfea913756076bb3ULL),
     };
-    s.parameters = std::vector<double>(v13_11201, v13_11201 + 3);
+    s.parameters = std::vector<double>(v13_11227, v13_11227 + 3);
     rq.seams.push_back(s);
   }
   {
@@ -11217,10 +11243,10 @@ inline void build_fit_q_air(kalos::TramoKernelRoundsRequest& rq) {
     s.gate_reference_ljung_box_complement = B(0x3ff0000000000000ULL);
     s.gate_reference_standard_error = B(0x3fba4a52380b7d0aULL);
     s.arima_orders = TramoOrders{2, 1, 1, 0, 0, 0};
-    static const double v14_11219[] = {
+    static const double v14_11245[] = {
         B(0xbfef5561ff8ac7e1ULL),B(0x3fd7ef3e85d06ca6ULL),B(0xbfea913756076bb3ULL),
     };
-    s.parameters = std::vector<double>(v14_11219, v14_11219 + 3);
+    s.parameters = std::vector<double>(v14_11245, v14_11245 + 3);
     s.stats.free_parameters = 3;
     s.stats.dim = 143;
     s.stats.observations = 144;
@@ -11230,7 +11256,7 @@ inline void build_fit_q_air(kalos::TramoKernelRoundsRequest& rq) {
     s.stats.bic = B(0xc012355a127b09f5ULL);
     s.stats.outliers_count = 0;
     s.stats.effective_observations = 143;
-    static const double v15_11232[] = {
+    static const double v15_11258[] = {
         B(0x3fa87080126cc892ULL),B(0x3fb83f82c3e1e7d1ULL),B(0xbfa3839924cfa824ULL),
         B(0xbf9dd7fd66a29627ULL),B(0x3fc19bcedd2de2f1ULL),B(0x3fb27829f34af735ULL),
         B(0x3f848d63e4ba01adULL),B(0xbfa55769a27ea845ULL),B(0xbfb5b7f616b90390ULL),
@@ -11280,7 +11306,7 @@ inline void build_fit_q_air(kalos::TramoKernelRoundsRequest& rq) {
         B(0x3f776644add96ab0ULL),B(0xbfb6fc7867c85eb0ULL),B(0xbf81b769b5ef2028ULL),
         B(0xbfc29a87ded5f7e3ULL),B(0x3fbbec44302c8300ULL),
     };
-    s.stats.residuals = std::vector<double>(v15_11232, v15_11232 + 143);
+    s.stats.residuals = std::vector<double>(v15_11258, v15_11258 + 143);
     rq.seams.push_back(s);
   }
   {
@@ -11304,10 +11330,10 @@ inline void build_fit_q_air(kalos::TramoKernelRoundsRequest& rq) {
     s.result = TramoKernelStageResult::changed;
     s.orders = TramoOrders{2, 1, 1, 0, 0, 0};
     s.mean = false;
-    static const double v16_11306[] = {
+    static const double v16_11332[] = {
         B(0xbfef5561ff8ac7e1ULL),B(0x3fd7ef3e85d06ca6ULL),B(0xbfea913756076bb3ULL),
     };
-    s.parameters = std::vector<double>(v16_11306, v16_11306 + 3);
+    s.parameters = std::vector<double>(v16_11332, v16_11332 + 3);
     s.seasonal_after = true;
     s.original_seasonality_after = 3;
     rq.seams.push_back(s);
@@ -11335,10 +11361,10 @@ inline void build_fit_q_air(kalos::TramoKernelRoundsRequest& rq) {
     s.result = TramoKernelStageResult::unchanged;
     s.orders = TramoOrders{2, 1, 1, 0, 0, 0};
     s.mean = false;
-    static const double v17_11337[] = {
+    static const double v17_11363[] = {
         B(0xbfef5561ff8ac7e1ULL),B(0x3fd7ef3e85d06ca6ULL),B(0xbfea913756076bb3ULL),
     };
-    s.parameters = std::vector<double>(v17_11337, v17_11337 + 3);
+    s.parameters = std::vector<double>(v17_11363, v17_11363 + 3);
     rq.seams.push_back(s);
   }
   {
@@ -11365,10 +11391,10 @@ inline void build_fit_q_air(kalos::TramoKernelRoundsRequest& rq) {
     s.result = TramoKernelStageResult::unchanged;
     s.orders = TramoOrders{2, 1, 0, 0, 0, 1};
     s.mean = false;
-    static const double v18_11367[] = {
+    static const double v18_11393[] = {
         B(0xbfb999999999999aULL),B(0xbfb999999999999aULL),B(0xbfc999999999999aULL),
     };
-    s.parameters = std::vector<double>(v18_11367, v18_11367 + 3);
+    s.parameters = std::vector<double>(v18_11393, v18_11393 + 3);
     s.critical_value = B(0x4008e2eb1c432ca5ULL);
     rq.seams.push_back(s);
   }
@@ -11383,10 +11409,10 @@ inline void build_fit_q_air(kalos::TramoKernelRoundsRequest& rq) {
     s.pass_at_call = 1;
     s.nnsig = 0;
     s.orders = TramoOrders{2, 1, 0, 0, 0, 1};
-    static const double v19_11385[] = {
+    static const double v19_11411[] = {
         B(0xbfc9a2c1bc51fb59ULL),B(0x3fd140c75462c66aULL),B(0xbfd91b70dca63ab8ULL),
     };
-    s.parameters = std::vector<double>(v19_11385, v19_11385 + 3);
+    s.parameters = std::vector<double>(v19_11411, v19_11411 + 3);
     rq.seams.push_back(s);
   }
   {
@@ -11403,10 +11429,10 @@ inline void build_fit_q_air(kalos::TramoKernelRoundsRequest& rq) {
     s.result = TramoKernelStageResult::unchanged;
     s.orders = TramoOrders{2, 1, 0, 0, 0, 1};
     s.mean = false;
-    static const double v20_11405[] = {
+    static const double v20_11431[] = {
         B(0xbfc9a2c1bc51fb59ULL),B(0x3fd140c75462c66aULL),B(0xbfd91b70dca63ab8ULL),
     };
-    s.parameters = std::vector<double>(v20_11405, v20_11405 + 3);
+    s.parameters = std::vector<double>(v20_11431, v20_11431 + 3);
     s.seasonal_after = true;
     s.original_seasonality_after = 3;
     rq.seams.push_back(s);
@@ -11417,10 +11443,10 @@ inline void build_fit_q_air(kalos::TramoKernelRoundsRequest& rq) {
     s.result = TramoKernelStageResult::unchanged;
     s.orders = TramoOrders{2, 1, 0, 0, 0, 1};
     s.mean = false;
-    static const double v21_11419[] = {
+    static const double v21_11445[] = {
         B(0xbfc9a2c1bc51fb59ULL),B(0x3fd140c75462c66aULL),B(0xbfd91b70dca63ab8ULL),
     };
-    s.parameters = std::vector<double>(v21_11419, v21_11419 + 3);
+    s.parameters = std::vector<double>(v21_11445, v21_11445 + 3);
     rq.seams.push_back(s);
   }
   {
@@ -11429,10 +11455,10 @@ inline void build_fit_q_air(kalos::TramoKernelRoundsRequest& rq) {
     s.result = TramoKernelStageResult::unchanged;
     s.orders = TramoOrders{2, 1, 0, 0, 0, 1};
     s.mean = false;
-    static const double v22_11431[] = {
+    static const double v22_11457[] = {
         B(0xbfc9a2c1bc51fb59ULL),B(0x3fd140c75462c66aULL),B(0xbfd91b70dca63ab8ULL),
     };
-    s.parameters = std::vector<double>(v22_11431, v22_11431 + 3);
+    s.parameters = std::vector<double>(v22_11457, v22_11457 + 3);
     rq.seams.push_back(s);
   }
   {
@@ -11441,10 +11467,10 @@ inline void build_fit_q_air(kalos::TramoKernelRoundsRequest& rq) {
     s.result = TramoKernelStageResult::unchanged;
     s.orders = TramoOrders{2, 1, 0, 0, 0, 1};
     s.mean = false;
-    static const double v23_11443[] = {
+    static const double v23_11469[] = {
         B(0xbfc9a2c1bc51fb59ULL),B(0x3fd140c75462c66aULL),B(0xbfd91b70dca63ab8ULL),
     };
-    s.parameters = std::vector<double>(v23_11443, v23_11443 + 3);
+    s.parameters = std::vector<double>(v23_11469, v23_11469 + 3);
     rq.seams.push_back(s);
   }
   {
@@ -11453,10 +11479,10 @@ inline void build_fit_q_air(kalos::TramoKernelRoundsRequest& rq) {
     s.result = TramoKernelStageResult::unchanged;
     s.orders = TramoOrders{2, 1, 0, 0, 0, 1};
     s.mean = false;
-    static const double v24_11455[] = {
+    static const double v24_11481[] = {
         B(0xbfc9a2c1bc51fb59ULL),B(0x3fd140c75462c66aULL),B(0xbfd91b70dca63ab8ULL),
     };
-    s.parameters = std::vector<double>(v24_11455, v24_11455 + 3);
+    s.parameters = std::vector<double>(v24_11481, v24_11481 + 3);
     rq.seams.push_back(s);
   }
   {
@@ -11567,6 +11593,7 @@ inline void build_fit_fit_q_air(TramoFitRequest& rq) {
   rq.spec.outliers_ml = false;
   rq.spec.accept_airline = false;
   rq.spec.precision = B(0x3e7ad7f29abcaf48ULL);
+  rq.spec.final_unit_root_threshold = B(0x3feeb851eb851eb8ULL);
   rq.spec.intermediate_precision = B(0x3ee4f8b588e368f1ULL);
   rq.spec.mean_is_test = false;
   rq.spec.mean_used = true;
@@ -11663,10 +11690,10 @@ inline void build_fit_trfull_air(kalos::TramoKernelRoundsRequest& rq) {
     s.orders = TramoOrders{0, 1, 1, 0, 1, 1};
     s.mean = false;
     s.outliers = {"AO (1982-05-01)", "AO (1985-02-01)", "AO (1991-03-01)", "TC (1983-03-01)"};
-    static const double v0_11665[] = {
+    static const double v0_11692[] = {
         B(0xbfc999999999999aULL),B(0xbfc999999999999aULL),
     };
-    s.parameters = std::vector<double>(v0_11665, v0_11665 + 2);
+    s.parameters = std::vector<double>(v0_11692, v0_11692 + 2);
     s.critical_value = B(0x400c47ae147ae147ULL);
     rq.seams.push_back(s);
   }
@@ -11683,10 +11710,10 @@ inline void build_fit_trfull_air(kalos::TramoKernelRoundsRequest& rq) {
     s.nnsig = 0;
     s.orders = TramoOrders{0, 1, 0, 0, 1, 1};
     s.outliers = {"AO (1982-05-01)", "TC (1983-03-01)", "AO (1985-02-01)", "AO (1991-03-01)"};
-    static const double v1_11685[] = {
+    static const double v1_11712[] = {
         B(0xbfe14d751cedda53ULL),
     };
-    s.parameters = std::vector<double>(v1_11685, v1_11685 + 1);
+    s.parameters = std::vector<double>(v1_11712, v1_11712 + 1);
     rq.seams.push_back(s);
   }
   {
@@ -11697,11 +11724,11 @@ inline void build_fit_trfull_air(kalos::TramoKernelRoundsRequest& rq) {
     s.retry_index = 1;
     s.tsig = B(0x3fff5c28f5c28f5cULL);
     s.mean = false;
-    static const double v2_11699[] = {
+    static const double v2_11726[] = {
         B(0x4018b1d494956f0bULL),B(0x401878ff8cc27c61ULL),B(0xc00e3e8cbc6fe7d7ULL),
         B(0xc0101f32865b9867ULL),B(0xc010a4bd504aa614ULL),
     };
-    s.tstats = std::vector<double>(v2_11699, v2_11699 + 5);
+    s.tstats = std::vector<double>(v2_11726, v2_11726 + 5);
     rq.seams.push_back(s);
   }
   {
@@ -11717,7 +11744,7 @@ inline void build_fit_trfull_air(kalos::TramoKernelRoundsRequest& rq) {
     s.stats.bic = B(0xc01bb51d09c737ffULL);
     s.stats.outliers_count = 4;
     s.stats.effective_observations = 131;
-    static const double v3_11719[] = {
+    static const double v3_11746[] = {
         B(0x3fa76be411a89dafULL),B(0x0000000000000000ULL),B(0x3f8474519a3a93d0ULL),
         B(0xbf97fb9e9d8b8643ULL),B(0xbfa3a28e78601a15ULL),B(0x3fb48bd192cccb35ULL),
         B(0x3fb06c7b113a3560ULL),B(0xbfac25c86092d6ebULL),B(0x3fa3f2b2b4fe0682ULL),
@@ -11761,7 +11788,7 @@ inline void build_fit_trfull_air(kalos::TramoKernelRoundsRequest& rq) {
         B(0xbf8756242eaf75dcULL),B(0xbf8f5026c9c1da41ULL),B(0xbf7cf4d1a078b186ULL),
         B(0x3f9d2a529b9c944cULL),B(0xbf9662041487e852ULL),B(0xbf9573bea429532aULL),
     };
-    s.stats.residuals = std::vector<double>(v3_11719, v3_11719 + 126);
+    s.stats.residuals = std::vector<double>(v3_11746, v3_11746 + 126);
     rq.seams.push_back(s);
   }
   {
@@ -11782,10 +11809,10 @@ inline void build_fit_trfull_air(kalos::TramoKernelRoundsRequest& rq) {
     s.orders = TramoOrders{0, 1, 0, 0, 1, 1};
     s.mean = false;
     s.outliers = {"AO (1982-05-01)", "TC (1983-03-01)", "AO (1985-02-01)", "AO (1991-03-01)"};
-    static const double v4_11784[] = {
+    static const double v4_11811[] = {
         B(0xbfe14d751cedda53ULL),
     };
-    s.parameters = std::vector<double>(v4_11784, v4_11784 + 1);
+    s.parameters = std::vector<double>(v4_11811, v4_11811 + 1);
     rq.seams.push_back(s);
   }
   {
@@ -11813,10 +11840,10 @@ inline void build_fit_trfull_air(kalos::TramoKernelRoundsRequest& rq) {
     s.orders = TramoOrders{0, 1, 0, 0, 1, 1};
     s.mean = false;
     s.outliers = {"AO (1982-05-01)", "AO (1985-02-01)", "AO (1991-03-01)", "TC (1983-03-01)"};
-    static const double v5_11815[] = {
+    static const double v5_11842[] = {
         B(0xbfc999999999999aULL),
     };
-    s.parameters = std::vector<double>(v5_11815, v5_11815 + 1);
+    s.parameters = std::vector<double>(v5_11842, v5_11842 + 1);
     s.critical_value = B(0x400c47ae147ae147ULL);
     rq.seams.push_back(s);
   }
@@ -11832,10 +11859,10 @@ inline void build_fit_trfull_air(kalos::TramoKernelRoundsRequest& rq) {
     s.nnsig = 0;
     s.orders = TramoOrders{0, 1, 0, 0, 1, 1};
     s.outliers = {"AO (1982-05-01)", "TC (1983-03-01)", "AO (1985-02-01)", "AO (1991-03-01)"};
-    static const double v6_11834[] = {
+    static const double v6_11861[] = {
         B(0xbfe14d751cedda53ULL),
     };
-    s.parameters = std::vector<double>(v6_11834, v6_11834 + 1);
+    s.parameters = std::vector<double>(v6_11861, v6_11861 + 1);
     rq.seams.push_back(s);
   }
   {
@@ -11850,10 +11877,10 @@ inline void build_fit_trfull_air(kalos::TramoKernelRoundsRequest& rq) {
     s.gate_reference_ljung_box_complement = B(0x3fe0c4a63a1abe78ULL);
     s.gate_reference_standard_error = B(0x3f9d5daa85f3e6c4ULL);
     s.arima_orders = TramoOrders{0, 1, 0, 0, 1, 1};
-    static const double v7_11852[] = {
+    static const double v7_11879[] = {
         B(0xbfe14d751cedda53ULL),
     };
-    s.parameters = std::vector<double>(v7_11852, v7_11852 + 1);
+    s.parameters = std::vector<double>(v7_11879, v7_11879 + 1);
     s.stats.free_parameters = 1;
     s.stats.dim = 131;
     s.stats.observations = 144;
@@ -11863,7 +11890,7 @@ inline void build_fit_trfull_air(kalos::TramoKernelRoundsRequest& rq) {
     s.stats.bic = B(0xc01bb51d09c737ffULL);
     s.stats.outliers_count = 4;
     s.stats.effective_observations = 131;
-    static const double v8_11865[] = {
+    static const double v8_11892[] = {
         B(0x3fa76be411a89dafULL),B(0x0000000000000000ULL),B(0x3f8474519a3a93d0ULL),
         B(0xbf97fb9e9d8b8643ULL),B(0xbfa3a28e78601a15ULL),B(0x3fb48bd192cccb35ULL),
         B(0x3fb06c7b113a3560ULL),B(0xbfac25c86092d6ebULL),B(0x3fa3f2b2b4fe0682ULL),
@@ -11907,7 +11934,7 @@ inline void build_fit_trfull_air(kalos::TramoKernelRoundsRequest& rq) {
         B(0xbf8756242eaf75dcULL),B(0xbf8f5026c9c1da41ULL),B(0xbf7cf4d1a078b186ULL),
         B(0x3f9d2a529b9c944cULL),B(0xbf9662041487e852ULL),B(0xbf9573bea429532aULL),
     };
-    s.stats.residuals = std::vector<double>(v8_11865, v8_11865 + 126);
+    s.stats.residuals = std::vector<double>(v8_11892, v8_11892 + 126);
     rq.seams.push_back(s);
   }
   {
@@ -11923,11 +11950,11 @@ inline void build_fit_trfull_air(kalos::TramoKernelRoundsRequest& rq) {
     s.result = TramoKernelStageResult::unchanged;
     s.tsig = B(0x3ff0000000000000ULL);
     s.mean = false;
-    static const double v9_11925[] = {
+    static const double v9_11952[] = {
         B(0x4018b1d494956f0bULL),B(0x401878ff8cc27c61ULL),B(0xc00e3e8cbc6fe7d7ULL),
         B(0xc0101f32865b9867ULL),B(0xc010a4bd504aa614ULL),
     };
-    s.tstats = std::vector<double>(v9_11925, v9_11925 + 5);
+    s.tstats = std::vector<double>(v9_11952, v9_11952 + 5);
     rq.seams.push_back(s);
   }
   {
@@ -11937,10 +11964,10 @@ inline void build_fit_trfull_air(kalos::TramoKernelRoundsRequest& rq) {
     s.orders = TramoOrders{0, 1, 0, 0, 1, 1};
     s.mean = false;
     s.outliers = {"AO (1982-05-01)", "TC (1983-03-01)", "AO (1985-02-01)", "AO (1991-03-01)"};
-    static const double v10_11939[] = {
+    static const double v10_11966[] = {
         B(0xbfe14d751cedda53ULL),
     };
-    s.parameters = std::vector<double>(v10_11939, v10_11939 + 1);
+    s.parameters = std::vector<double>(v10_11966, v10_11966 + 1);
     s.seasonal_after = true;
     s.original_seasonality_after = 3;
     rq.seams.push_back(s);
@@ -11955,10 +11982,10 @@ inline void build_fit_trfull_air(kalos::TramoKernelRoundsRequest& rq) {
     s.orders = TramoOrders{0, 1, 0, 0, 1, 1};
     s.mean = false;
     s.outliers = {"AO (1982-05-01)", "TC (1983-03-01)", "AO (1985-02-01)", "AO (1991-03-01)"};
-    static const double v11_11957[] = {
+    static const double v11_11984[] = {
         B(0xbfe14d751cedda53ULL),
     };
-    s.parameters = std::vector<double>(v11_11957, v11_11957 + 1);
+    s.parameters = std::vector<double>(v11_11984, v11_11984 + 1);
     rq.seams.push_back(s);
   }
   {
@@ -11968,10 +11995,10 @@ inline void build_fit_trfull_air(kalos::TramoKernelRoundsRequest& rq) {
     s.orders = TramoOrders{0, 1, 0, 0, 1, 1};
     s.mean = false;
     s.outliers = {"AO (1982-05-01)", "TC (1983-03-01)", "AO (1985-02-01)", "AO (1991-03-01)"};
-    static const double v12_11970[] = {
+    static const double v12_11997[] = {
         B(0xbfe14d751cedda53ULL),
     };
-    s.parameters = std::vector<double>(v12_11970, v12_11970 + 1);
+    s.parameters = std::vector<double>(v12_11997, v12_11997 + 1);
     rq.seams.push_back(s);
   }
   {
@@ -11981,10 +12008,10 @@ inline void build_fit_trfull_air(kalos::TramoKernelRoundsRequest& rq) {
     s.orders = TramoOrders{0, 1, 0, 0, 1, 1};
     s.mean = false;
     s.outliers = {"AO (1982-05-01)", "TC (1983-03-01)", "AO (1985-02-01)", "AO (1991-03-01)"};
-    static const double v13_11983[] = {
+    static const double v13_12010[] = {
         B(0xbfe14d751cedda53ULL),
     };
-    s.parameters = std::vector<double>(v13_11983, v13_11983 + 1);
+    s.parameters = std::vector<double>(v13_12010, v13_12010 + 1);
     rq.seams.push_back(s);
   }
   {
@@ -11994,10 +12021,10 @@ inline void build_fit_trfull_air(kalos::TramoKernelRoundsRequest& rq) {
     s.orders = TramoOrders{0, 1, 0, 0, 1, 1};
     s.mean = false;
     s.outliers = {"AO (1982-05-01)", "TC (1983-03-01)", "AO (1985-02-01)", "AO (1991-03-01)"};
-    static const double v14_11996[] = {
+    static const double v14_12023[] = {
         B(0xbfe14d751cedda53ULL),
     };
-    s.parameters = std::vector<double>(v14_11996, v14_11996 + 1);
+    s.parameters = std::vector<double>(v14_12023, v14_12023 + 1);
     rq.seams.push_back(s);
   }
   {
@@ -12007,10 +12034,10 @@ inline void build_fit_trfull_air(kalos::TramoKernelRoundsRequest& rq) {
     s.orders = TramoOrders{0, 1, 0, 0, 1, 1};
     s.mean = false;
     s.outliers = {"AO (1982-05-01)", "TC (1983-03-01)", "AO (1985-02-01)", "AO (1991-03-01)"};
-    static const double v15_12009[] = {
+    static const double v15_12036[] = {
         B(0xbfe14d751cedda53ULL),
     };
-    s.parameters = std::vector<double>(v15_12009, v15_12009 + 1);
+    s.parameters = std::vector<double>(v15_12036, v15_12036 + 1);
     rq.seams.push_back(s);
   }
   {
@@ -12096,6 +12123,7 @@ inline void build_fit_fit_trfull_air(TramoFitRequest& rq) {
   rq.spec.outliers_ml = false;
   rq.spec.accept_airline = false;
   rq.spec.precision = B(0x3e7ad7f29abcaf48ULL);
+  rq.spec.final_unit_root_threshold = B(0x3feeb851eb851eb8ULL);
   rq.spec.intermediate_precision = B(0x3ee4f8b588e368f1ULL);
   rq.spec.mean_is_test = false;
   rq.spec.mean_used = true;
@@ -12196,10 +12224,10 @@ inline void build_fit_td_air(kalos::TramoKernelRoundsRequest& rq) {
     s.orders = TramoOrders{0, 1, 1, 0, 1, 1};
     s.mean = false;
     s.outliers = {"AO (1982-05-01)", "AO (1985-02-01)", "AO (1991-03-01)", "TC (1983-03-01)"};
-    static const double v0_12198[] = {
+    static const double v0_12226[] = {
         B(0xbfc999999999999aULL),B(0xbfc999999999999aULL),
     };
-    s.parameters = std::vector<double>(v0_12198, v0_12198 + 2);
+    s.parameters = std::vector<double>(v0_12226, v0_12226 + 2);
     s.critical_value = B(0x400c47ae147ae147ULL);
     rq.seams.push_back(s);
   }
@@ -12216,10 +12244,10 @@ inline void build_fit_td_air(kalos::TramoKernelRoundsRequest& rq) {
     s.nnsig = 0;
     s.orders = TramoOrders{0, 1, 0, 0, 1, 1};
     s.outliers = {"AO (1982-05-01)", "TC (1983-03-01)", "AO (1985-02-01)", "AO (1991-03-01)"};
-    static const double v1_12218[] = {
+    static const double v1_12246[] = {
         B(0xbfe14d751cedda53ULL),
     };
-    s.parameters = std::vector<double>(v1_12218, v1_12218 + 1);
+    s.parameters = std::vector<double>(v1_12246, v1_12246 + 1);
     rq.seams.push_back(s);
   }
   {
@@ -12230,11 +12258,11 @@ inline void build_fit_td_air(kalos::TramoKernelRoundsRequest& rq) {
     s.retry_index = 1;
     s.tsig = B(0x3fff5c28f5c28f5cULL);
     s.mean = false;
-    static const double v2_12232[] = {
+    static const double v2_12260[] = {
         B(0x4018b1d494956f0bULL),B(0x401878ff8cc27c61ULL),B(0xc00e3e8cbc6fe7d7ULL),
         B(0xc0101f32865b9867ULL),B(0xc010a4bd504aa614ULL),
     };
-    s.tstats = std::vector<double>(v2_12232, v2_12232 + 5);
+    s.tstats = std::vector<double>(v2_12260, v2_12260 + 5);
     rq.seams.push_back(s);
   }
   {
@@ -12250,7 +12278,7 @@ inline void build_fit_td_air(kalos::TramoKernelRoundsRequest& rq) {
     s.stats.bic = B(0xc01bb51d09c737ffULL);
     s.stats.outliers_count = 4;
     s.stats.effective_observations = 131;
-    static const double v3_12252[] = {
+    static const double v3_12280[] = {
         B(0x3fa76be411a89dafULL),B(0x0000000000000000ULL),B(0x3f8474519a3a93d0ULL),
         B(0xbf97fb9e9d8b8643ULL),B(0xbfa3a28e78601a15ULL),B(0x3fb48bd192cccb35ULL),
         B(0x3fb06c7b113a3560ULL),B(0xbfac25c86092d6ebULL),B(0x3fa3f2b2b4fe0682ULL),
@@ -12294,7 +12322,7 @@ inline void build_fit_td_air(kalos::TramoKernelRoundsRequest& rq) {
         B(0xbf8756242eaf75dcULL),B(0xbf8f5026c9c1da41ULL),B(0xbf7cf4d1a078b186ULL),
         B(0x3f9d2a529b9c944cULL),B(0xbf9662041487e852ULL),B(0xbf9573bea429532aULL),
     };
-    s.stats.residuals = std::vector<double>(v3_12252, v3_12252 + 126);
+    s.stats.residuals = std::vector<double>(v3_12280, v3_12280 + 126);
     rq.seams.push_back(s);
   }
   {
@@ -12315,10 +12343,10 @@ inline void build_fit_td_air(kalos::TramoKernelRoundsRequest& rq) {
     s.orders = TramoOrders{0, 1, 0, 0, 1, 1};
     s.mean = false;
     s.outliers = {"AO (1982-05-01)", "TC (1983-03-01)", "AO (1985-02-01)", "AO (1991-03-01)"};
-    static const double v4_12317[] = {
+    static const double v4_12345[] = {
         B(0xbfe14d751cedda53ULL),
     };
-    s.parameters = std::vector<double>(v4_12317, v4_12317 + 1);
+    s.parameters = std::vector<double>(v4_12345, v4_12345 + 1);
     rq.seams.push_back(s);
   }
   {
@@ -12346,10 +12374,10 @@ inline void build_fit_td_air(kalos::TramoKernelRoundsRequest& rq) {
     s.orders = TramoOrders{0, 1, 0, 0, 1, 1};
     s.mean = false;
     s.outliers = {"AO (1982-05-01)", "AO (1985-02-01)", "AO (1991-03-01)", "TC (1983-03-01)"};
-    static const double v5_12348[] = {
+    static const double v5_12376[] = {
         B(0xbfc999999999999aULL),
     };
-    s.parameters = std::vector<double>(v5_12348, v5_12348 + 1);
+    s.parameters = std::vector<double>(v5_12376, v5_12376 + 1);
     s.critical_value = B(0x400c47ae147ae147ULL);
     rq.seams.push_back(s);
   }
@@ -12365,10 +12393,10 @@ inline void build_fit_td_air(kalos::TramoKernelRoundsRequest& rq) {
     s.nnsig = 0;
     s.orders = TramoOrders{0, 1, 0, 0, 1, 1};
     s.outliers = {"AO (1982-05-01)", "TC (1983-03-01)", "AO (1985-02-01)", "AO (1991-03-01)"};
-    static const double v6_12367[] = {
+    static const double v6_12395[] = {
         B(0xbfe14d751cedda53ULL),
     };
-    s.parameters = std::vector<double>(v6_12367, v6_12367 + 1);
+    s.parameters = std::vector<double>(v6_12395, v6_12395 + 1);
     rq.seams.push_back(s);
   }
   {
@@ -12383,10 +12411,10 @@ inline void build_fit_td_air(kalos::TramoKernelRoundsRequest& rq) {
     s.gate_reference_ljung_box_complement = B(0x3fe0c4a63a1abe78ULL);
     s.gate_reference_standard_error = B(0x3f9d5daa85f3e6c4ULL);
     s.arima_orders = TramoOrders{0, 1, 0, 0, 1, 1};
-    static const double v7_12385[] = {
+    static const double v7_12413[] = {
         B(0xbfe14d751cedda53ULL),
     };
-    s.parameters = std::vector<double>(v7_12385, v7_12385 + 1);
+    s.parameters = std::vector<double>(v7_12413, v7_12413 + 1);
     s.stats.free_parameters = 1;
     s.stats.dim = 131;
     s.stats.observations = 144;
@@ -12396,7 +12424,7 @@ inline void build_fit_td_air(kalos::TramoKernelRoundsRequest& rq) {
     s.stats.bic = B(0xc01bb51d09c737ffULL);
     s.stats.outliers_count = 4;
     s.stats.effective_observations = 131;
-    static const double v8_12398[] = {
+    static const double v8_12426[] = {
         B(0x3fa76be411a89dafULL),B(0x0000000000000000ULL),B(0x3f8474519a3a93d0ULL),
         B(0xbf97fb9e9d8b8643ULL),B(0xbfa3a28e78601a15ULL),B(0x3fb48bd192cccb35ULL),
         B(0x3fb06c7b113a3560ULL),B(0xbfac25c86092d6ebULL),B(0x3fa3f2b2b4fe0682ULL),
@@ -12440,7 +12468,7 @@ inline void build_fit_td_air(kalos::TramoKernelRoundsRequest& rq) {
         B(0xbf8756242eaf75dcULL),B(0xbf8f5026c9c1da41ULL),B(0xbf7cf4d1a078b186ULL),
         B(0x3f9d2a529b9c944cULL),B(0xbf9662041487e852ULL),B(0xbf9573bea429532aULL),
     };
-    s.stats.residuals = std::vector<double>(v8_12398, v8_12398 + 126);
+    s.stats.residuals = std::vector<double>(v8_12426, v8_12426 + 126);
     rq.seams.push_back(s);
   }
   {
@@ -12456,11 +12484,11 @@ inline void build_fit_td_air(kalos::TramoKernelRoundsRequest& rq) {
     s.result = TramoKernelStageResult::unchanged;
     s.tsig = B(0x3ff0000000000000ULL);
     s.mean = false;
-    static const double v9_12458[] = {
+    static const double v9_12486[] = {
         B(0x4018b1d494956f0bULL),B(0x401878ff8cc27c61ULL),B(0xc00e3e8cbc6fe7d7ULL),
         B(0xc0101f32865b9867ULL),B(0xc010a4bd504aa614ULL),
     };
-    s.tstats = std::vector<double>(v9_12458, v9_12458 + 5);
+    s.tstats = std::vector<double>(v9_12486, v9_12486 + 5);
     rq.seams.push_back(s);
   }
   {
@@ -12470,10 +12498,10 @@ inline void build_fit_td_air(kalos::TramoKernelRoundsRequest& rq) {
     s.orders = TramoOrders{0, 1, 0, 0, 1, 1};
     s.mean = false;
     s.outliers = {"AO (1982-05-01)", "TC (1983-03-01)", "AO (1985-02-01)", "AO (1991-03-01)"};
-    static const double v10_12472[] = {
+    static const double v10_12500[] = {
         B(0xbfe14d751cedda53ULL),
     };
-    s.parameters = std::vector<double>(v10_12472, v10_12472 + 1);
+    s.parameters = std::vector<double>(v10_12500, v10_12500 + 1);
     s.seasonal_after = true;
     s.original_seasonality_after = 3;
     rq.seams.push_back(s);
@@ -12488,10 +12516,10 @@ inline void build_fit_td_air(kalos::TramoKernelRoundsRequest& rq) {
     s.orders = TramoOrders{0, 1, 0, 0, 1, 1};
     s.mean = false;
     s.outliers = {"AO (1982-05-01)", "TC (1983-03-01)", "AO (1985-02-01)", "AO (1991-03-01)"};
-    static const double v11_12490[] = {
+    static const double v11_12518[] = {
         B(0xbfe14d751cedda53ULL),
     };
-    s.parameters = std::vector<double>(v11_12490, v11_12490 + 1);
+    s.parameters = std::vector<double>(v11_12518, v11_12518 + 1);
     rq.seams.push_back(s);
   }
   {
@@ -12501,10 +12529,10 @@ inline void build_fit_td_air(kalos::TramoKernelRoundsRequest& rq) {
     s.orders = TramoOrders{0, 1, 0, 0, 1, 1};
     s.mean = false;
     s.outliers = {"AO (1982-05-01)", "TC (1983-03-01)", "AO (1985-02-01)", "AO (1991-03-01)"};
-    static const double v12_12503[] = {
+    static const double v12_12531[] = {
         B(0xbfe14d751cedda53ULL),
     };
-    s.parameters = std::vector<double>(v12_12503, v12_12503 + 1);
+    s.parameters = std::vector<double>(v12_12531, v12_12531 + 1);
     rq.seams.push_back(s);
   }
   {
@@ -12514,10 +12542,10 @@ inline void build_fit_td_air(kalos::TramoKernelRoundsRequest& rq) {
     s.orders = TramoOrders{0, 1, 0, 0, 1, 1};
     s.mean = false;
     s.outliers = {"AO (1982-05-01)", "TC (1983-03-01)", "AO (1985-02-01)", "AO (1991-03-01)"};
-    static const double v13_12516[] = {
+    static const double v13_12544[] = {
         B(0xbfe14d751cedda53ULL),
     };
-    s.parameters = std::vector<double>(v13_12516, v13_12516 + 1);
+    s.parameters = std::vector<double>(v13_12544, v13_12544 + 1);
     rq.seams.push_back(s);
   }
   {
@@ -12527,10 +12555,10 @@ inline void build_fit_td_air(kalos::TramoKernelRoundsRequest& rq) {
     s.orders = TramoOrders{0, 1, 0, 0, 1, 1};
     s.mean = false;
     s.outliers = {"AO (1982-05-01)", "TC (1983-03-01)", "AO (1985-02-01)", "AO (1991-03-01)"};
-    static const double v14_12529[] = {
+    static const double v14_12557[] = {
         B(0xbfe14d751cedda53ULL),
     };
-    s.parameters = std::vector<double>(v14_12529, v14_12529 + 1);
+    s.parameters = std::vector<double>(v14_12557, v14_12557 + 1);
     rq.seams.push_back(s);
   }
   {
@@ -12540,10 +12568,10 @@ inline void build_fit_td_air(kalos::TramoKernelRoundsRequest& rq) {
     s.orders = TramoOrders{0, 1, 0, 0, 1, 1};
     s.mean = false;
     s.outliers = {"AO (1982-05-01)", "TC (1983-03-01)", "AO (1985-02-01)", "AO (1991-03-01)"};
-    static const double v15_12542[] = {
+    static const double v15_12570[] = {
         B(0xbfe14d751cedda53ULL),
     };
-    s.parameters = std::vector<double>(v15_12542, v15_12542 + 1);
+    s.parameters = std::vector<double>(v15_12570, v15_12570 + 1);
     rq.seams.push_back(s);
   }
   {
@@ -12629,6 +12657,7 @@ inline void build_fit_fit_td_air(TramoFitRequest& rq) {
   rq.spec.outliers_ml = false;
   rq.spec.accept_airline = false;
   rq.spec.precision = B(0x3e7ad7f29abcaf48ULL);
+  rq.spec.final_unit_root_threshold = B(0x3feeb851eb851eb8ULL);
   rq.spec.intermediate_precision = B(0x3ee4f8b588e368f1ULL);
   rq.spec.mean_is_test = false;
   rq.spec.mean_used = true;
@@ -12729,10 +12758,10 @@ inline void build_fit_aic_air(kalos::TramoKernelRoundsRequest& rq) {
     s.orders = TramoOrders{0, 1, 1, 0, 1, 1};
     s.mean = false;
     s.outliers = {"AO (1982-05-01)", "AO (1985-02-01)", "AO (1991-03-01)", "TC (1983-03-01)"};
-    static const double v0_12731[] = {
+    static const double v0_12760[] = {
         B(0xbfc999999999999aULL),B(0xbfc999999999999aULL),
     };
-    s.parameters = std::vector<double>(v0_12731, v0_12731 + 2);
+    s.parameters = std::vector<double>(v0_12760, v0_12760 + 2);
     s.critical_value = B(0x400c47ae147ae147ULL);
     rq.seams.push_back(s);
   }
@@ -12749,10 +12778,10 @@ inline void build_fit_aic_air(kalos::TramoKernelRoundsRequest& rq) {
     s.nnsig = 0;
     s.orders = TramoOrders{0, 1, 0, 0, 1, 1};
     s.outliers = {"AO (1982-05-01)", "TC (1983-03-01)", "AO (1985-02-01)", "AO (1991-03-01)"};
-    static const double v1_12751[] = {
+    static const double v1_12780[] = {
         B(0xbfe0d7acf5c73937ULL),
     };
-    s.parameters = std::vector<double>(v1_12751, v1_12751 + 1);
+    s.parameters = std::vector<double>(v1_12780, v1_12780 + 1);
     rq.seams.push_back(s);
   }
   {
@@ -12763,11 +12792,11 @@ inline void build_fit_aic_air(kalos::TramoKernelRoundsRequest& rq) {
     s.retry_index = 1;
     s.tsig = B(0x3fff5c28f5c28f5cULL);
     s.mean = false;
-    static const double v2_12765[] = {
+    static const double v2_12794[] = {
         B(0x401a0a4fe6251c7fULL),B(0xc004cd61d29d3fafULL),B(0x40176741a35f9662ULL),
         B(0xc00f7b7d7430639dULL),B(0xc01062461d8c2cc5ULL),B(0xc0104e8c57c7f8e9ULL),
     };
-    s.tstats = std::vector<double>(v2_12765, v2_12765 + 6);
+    s.tstats = std::vector<double>(v2_12794, v2_12794 + 6);
     rq.seams.push_back(s);
   }
   {
@@ -12783,7 +12812,7 @@ inline void build_fit_aic_air(kalos::TramoKernelRoundsRequest& rq) {
     s.stats.bic = B(0xc01bae3d50391978ULL);
     s.stats.outliers_count = 4;
     s.stats.effective_observations = 131;
-    static const double v3_12785[] = {
+    static const double v3_12814[] = {
         B(0xbf88f2993a9a1f20ULL),B(0x3f90867d180ef12bULL),B(0xbf9cd824faeb89bdULL),
         B(0xbf9e11ceab1b63c4ULL),B(0x3fb37d6131c9e470ULL),B(0x3fb0cbb4b8354370ULL),
         B(0xbfae97c0b18ea774ULL),B(0x3fa5d835e857dc29ULL),B(0xbf9dd0c70907ad6aULL),
@@ -12827,7 +12856,7 @@ inline void build_fit_aic_air(kalos::TramoKernelRoundsRequest& rq) {
         B(0xbf90ef299b681e30ULL),B(0xbf6b0b801386ee1aULL),B(0x3f9b904abc8bb1d8ULL),
         B(0xbf9812e32c8e9d7dULL),B(0xbf91c8b6049966faULL),
     };
-    s.stats.residuals = std::vector<double>(v3_12785, v3_12785 + 125);
+    s.stats.residuals = std::vector<double>(v3_12814, v3_12814 + 125);
     rq.seams.push_back(s);
   }
   {
@@ -12848,10 +12877,10 @@ inline void build_fit_aic_air(kalos::TramoKernelRoundsRequest& rq) {
     s.orders = TramoOrders{0, 1, 0, 0, 1, 1};
     s.mean = false;
     s.outliers = {"AO (1982-05-01)", "TC (1983-03-01)", "AO (1985-02-01)", "AO (1991-03-01)"};
-    static const double v4_12850[] = {
+    static const double v4_12879[] = {
         B(0xbfe0d7acf5c73937ULL),
     };
-    s.parameters = std::vector<double>(v4_12850, v4_12850 + 1);
+    s.parameters = std::vector<double>(v4_12879, v4_12879 + 1);
     rq.seams.push_back(s);
   }
   {
@@ -12879,10 +12908,10 @@ inline void build_fit_aic_air(kalos::TramoKernelRoundsRequest& rq) {
     s.orders = TramoOrders{0, 1, 0, 0, 1, 1};
     s.mean = false;
     s.outliers = {"AO (1982-05-01)", "AO (1985-02-01)", "AO (1991-03-01)", "TC (1983-03-01)"};
-    static const double v5_12881[] = {
+    static const double v5_12910[] = {
         B(0xbfc999999999999aULL),
     };
-    s.parameters = std::vector<double>(v5_12881, v5_12881 + 1);
+    s.parameters = std::vector<double>(v5_12910, v5_12910 + 1);
     s.critical_value = B(0x400c47ae147ae147ULL);
     rq.seams.push_back(s);
   }
@@ -12898,10 +12927,10 @@ inline void build_fit_aic_air(kalos::TramoKernelRoundsRequest& rq) {
     s.nnsig = 0;
     s.orders = TramoOrders{0, 1, 0, 0, 1, 1};
     s.outliers = {"AO (1982-05-01)", "TC (1983-03-01)", "AO (1985-02-01)", "AO (1991-03-01)"};
-    static const double v6_12900[] = {
+    static const double v6_12929[] = {
         B(0xbfe0d7acf5c73937ULL),
     };
-    s.parameters = std::vector<double>(v6_12900, v6_12900 + 1);
+    s.parameters = std::vector<double>(v6_12929, v6_12929 + 1);
     rq.seams.push_back(s);
   }
   {
@@ -12916,10 +12945,10 @@ inline void build_fit_aic_air(kalos::TramoKernelRoundsRequest& rq) {
     s.gate_reference_ljung_box_complement = B(0x3fe5408babfb830cULL);
     s.gate_reference_standard_error = B(0x3f9d09ad4692653bULL);
     s.arima_orders = TramoOrders{0, 1, 0, 0, 1, 1};
-    static const double v7_12918[] = {
+    static const double v7_12947[] = {
         B(0xbfe0d7acf5c73937ULL),
     };
-    s.parameters = std::vector<double>(v7_12918, v7_12918 + 1);
+    s.parameters = std::vector<double>(v7_12947, v7_12947 + 1);
     s.stats.free_parameters = 1;
     s.stats.dim = 131;
     s.stats.observations = 144;
@@ -12929,7 +12958,7 @@ inline void build_fit_aic_air(kalos::TramoKernelRoundsRequest& rq) {
     s.stats.bic = B(0xc01bae3d50391978ULL);
     s.stats.outliers_count = 4;
     s.stats.effective_observations = 131;
-    static const double v8_12931[] = {
+    static const double v8_12960[] = {
         B(0xbf88f2993a9a1f20ULL),B(0x3f90867d180ef12bULL),B(0xbf9cd824faeb89bdULL),
         B(0xbf9e11ceab1b63c4ULL),B(0x3fb37d6131c9e470ULL),B(0x3fb0cbb4b8354370ULL),
         B(0xbfae97c0b18ea774ULL),B(0x3fa5d835e857dc29ULL),B(0xbf9dd0c70907ad6aULL),
@@ -12973,7 +13002,7 @@ inline void build_fit_aic_air(kalos::TramoKernelRoundsRequest& rq) {
         B(0xbf90ef299b681e30ULL),B(0xbf6b0b801386ee1aULL),B(0x3f9b904abc8bb1d8ULL),
         B(0xbf9812e32c8e9d7dULL),B(0xbf91c8b6049966faULL),
     };
-    s.stats.residuals = std::vector<double>(v8_12931, v8_12931 + 125);
+    s.stats.residuals = std::vector<double>(v8_12960, v8_12960 + 125);
     rq.seams.push_back(s);
   }
   {
@@ -12989,11 +13018,11 @@ inline void build_fit_aic_air(kalos::TramoKernelRoundsRequest& rq) {
     s.result = TramoKernelStageResult::unchanged;
     s.tsig = B(0x3ff0000000000000ULL);
     s.mean = false;
-    static const double v9_12991[] = {
+    static const double v9_13020[] = {
         B(0x401a0a4fe6251c7fULL),B(0xc004cd61d29d3fafULL),B(0x40176741a35f9662ULL),
         B(0xc00f7b7d7430639dULL),B(0xc01062461d8c2cc5ULL),B(0xc0104e8c57c7f8e9ULL),
     };
-    s.tstats = std::vector<double>(v9_12991, v9_12991 + 6);
+    s.tstats = std::vector<double>(v9_13020, v9_13020 + 6);
     rq.seams.push_back(s);
   }
   {
@@ -13003,10 +13032,10 @@ inline void build_fit_aic_air(kalos::TramoKernelRoundsRequest& rq) {
     s.orders = TramoOrders{0, 1, 0, 0, 1, 1};
     s.mean = false;
     s.outliers = {"AO (1982-05-01)", "TC (1983-03-01)", "AO (1985-02-01)", "AO (1991-03-01)"};
-    static const double v10_13005[] = {
+    static const double v10_13034[] = {
         B(0xbfe0d7acf5c73937ULL),
     };
-    s.parameters = std::vector<double>(v10_13005, v10_13005 + 1);
+    s.parameters = std::vector<double>(v10_13034, v10_13034 + 1);
     s.seasonal_after = true;
     s.original_seasonality_after = 3;
     rq.seams.push_back(s);
@@ -13021,10 +13050,10 @@ inline void build_fit_aic_air(kalos::TramoKernelRoundsRequest& rq) {
     s.orders = TramoOrders{0, 1, 0, 0, 1, 1};
     s.mean = false;
     s.outliers = {"AO (1982-05-01)", "TC (1983-03-01)", "AO (1985-02-01)", "AO (1991-03-01)"};
-    static const double v11_13023[] = {
+    static const double v11_13052[] = {
         B(0xbfe0d7acf5c73937ULL),
     };
-    s.parameters = std::vector<double>(v11_13023, v11_13023 + 1);
+    s.parameters = std::vector<double>(v11_13052, v11_13052 + 1);
     rq.seams.push_back(s);
   }
   {
@@ -13034,10 +13063,10 @@ inline void build_fit_aic_air(kalos::TramoKernelRoundsRequest& rq) {
     s.orders = TramoOrders{0, 1, 0, 0, 1, 1};
     s.mean = false;
     s.outliers = {"AO (1982-05-01)", "TC (1983-03-01)", "AO (1985-02-01)", "AO (1991-03-01)"};
-    static const double v12_13036[] = {
+    static const double v12_13065[] = {
         B(0xbfe0d7acf5c73937ULL),
     };
-    s.parameters = std::vector<double>(v12_13036, v12_13036 + 1);
+    s.parameters = std::vector<double>(v12_13065, v12_13065 + 1);
     rq.seams.push_back(s);
   }
   {
@@ -13047,10 +13076,10 @@ inline void build_fit_aic_air(kalos::TramoKernelRoundsRequest& rq) {
     s.orders = TramoOrders{0, 1, 0, 0, 1, 1};
     s.mean = false;
     s.outliers = {"AO (1982-05-01)", "TC (1983-03-01)", "AO (1985-02-01)", "AO (1991-03-01)"};
-    static const double v13_13049[] = {
+    static const double v13_13078[] = {
         B(0xbfe0d7acf5c73937ULL),
     };
-    s.parameters = std::vector<double>(v13_13049, v13_13049 + 1);
+    s.parameters = std::vector<double>(v13_13078, v13_13078 + 1);
     rq.seams.push_back(s);
   }
   {
@@ -13060,10 +13089,10 @@ inline void build_fit_aic_air(kalos::TramoKernelRoundsRequest& rq) {
     s.orders = TramoOrders{0, 1, 0, 0, 1, 1};
     s.mean = false;
     s.outliers = {"AO (1982-05-01)", "TC (1983-03-01)", "AO (1985-02-01)", "AO (1991-03-01)"};
-    static const double v14_13062[] = {
+    static const double v14_13091[] = {
         B(0xbfe0d7acf5c73937ULL),
     };
-    s.parameters = std::vector<double>(v14_13062, v14_13062 + 1);
+    s.parameters = std::vector<double>(v14_13091, v14_13091 + 1);
     rq.seams.push_back(s);
   }
   {
@@ -13073,10 +13102,10 @@ inline void build_fit_aic_air(kalos::TramoKernelRoundsRequest& rq) {
     s.orders = TramoOrders{0, 1, 0, 0, 1, 1};
     s.mean = false;
     s.outliers = {"AO (1982-05-01)", "TC (1983-03-01)", "AO (1985-02-01)", "AO (1991-03-01)"};
-    static const double v15_13075[] = {
+    static const double v15_13104[] = {
         B(0xbfe0d7acf5c73937ULL),
     };
-    s.parameters = std::vector<double>(v15_13075, v15_13075 + 1);
+    s.parameters = std::vector<double>(v15_13104, v15_13104 + 1);
     rq.seams.push_back(s);
   }
   {
@@ -13162,6 +13191,7 @@ inline void build_fit_fit_aic_air(TramoFitRequest& rq) {
   rq.spec.outliers_ml = false;
   rq.spec.accept_airline = false;
   rq.spec.precision = B(0x3e7ad7f29abcaf48ULL);
+  rq.spec.final_unit_root_threshold = B(0x3feeb851eb851eb8ULL);
   rq.spec.intermediate_precision = B(0x3ee4f8b588e368f1ULL);
   rq.spec.mean_is_test = false;
   rq.spec.mean_used = true;
@@ -13263,10 +13293,10 @@ inline void build_fit_bic_air(kalos::TramoKernelRoundsRequest& rq) {
     s.orders = TramoOrders{0, 1, 1, 0, 1, 1};
     s.mean = false;
     s.outliers = {"AO (1982-05-01)", "AO (1985-02-01)", "AO (1991-03-01)", "TC (1983-03-01)"};
-    static const double v0_13265[] = {
+    static const double v0_13295[] = {
         B(0xbfc999999999999aULL),B(0xbfc999999999999aULL),
     };
-    s.parameters = std::vector<double>(v0_13265, v0_13265 + 2);
+    s.parameters = std::vector<double>(v0_13295, v0_13295 + 2);
     s.critical_value = B(0x400c47ae147ae147ULL);
     rq.seams.push_back(s);
   }
@@ -13283,10 +13313,10 @@ inline void build_fit_bic_air(kalos::TramoKernelRoundsRequest& rq) {
     s.nnsig = 0;
     s.orders = TramoOrders{0, 1, 0, 0, 1, 1};
     s.outliers = {"AO (1982-05-01)", "TC (1983-03-01)", "AO (1985-02-01)", "AO (1991-03-01)"};
-    static const double v1_13285[] = {
+    static const double v1_13315[] = {
         B(0xbfe14d751cedda53ULL),
     };
-    s.parameters = std::vector<double>(v1_13285, v1_13285 + 1);
+    s.parameters = std::vector<double>(v1_13315, v1_13315 + 1);
     rq.seams.push_back(s);
   }
   {
@@ -13297,11 +13327,11 @@ inline void build_fit_bic_air(kalos::TramoKernelRoundsRequest& rq) {
     s.retry_index = 1;
     s.tsig = B(0x3fff5c28f5c28f5cULL);
     s.mean = false;
-    static const double v2_13299[] = {
+    static const double v2_13329[] = {
         B(0x4018b1d494956f0bULL),B(0x401878ff8cc27c61ULL),B(0xc00e3e8cbc6fe7d7ULL),
         B(0xc0101f32865b9867ULL),B(0xc010a4bd504aa614ULL),
     };
-    s.tstats = std::vector<double>(v2_13299, v2_13299 + 5);
+    s.tstats = std::vector<double>(v2_13329, v2_13329 + 5);
     rq.seams.push_back(s);
   }
   {
@@ -13317,7 +13347,7 @@ inline void build_fit_bic_air(kalos::TramoKernelRoundsRequest& rq) {
     s.stats.bic = B(0xc01bb51d09c737ffULL);
     s.stats.outliers_count = 4;
     s.stats.effective_observations = 131;
-    static const double v3_13319[] = {
+    static const double v3_13349[] = {
         B(0x3fa76be411a89dafULL),B(0x0000000000000000ULL),B(0x3f8474519a3a93d0ULL),
         B(0xbf97fb9e9d8b8643ULL),B(0xbfa3a28e78601a15ULL),B(0x3fb48bd192cccb35ULL),
         B(0x3fb06c7b113a3560ULL),B(0xbfac25c86092d6ebULL),B(0x3fa3f2b2b4fe0682ULL),
@@ -13361,7 +13391,7 @@ inline void build_fit_bic_air(kalos::TramoKernelRoundsRequest& rq) {
         B(0xbf8756242eaf75dcULL),B(0xbf8f5026c9c1da41ULL),B(0xbf7cf4d1a078b186ULL),
         B(0x3f9d2a529b9c944cULL),B(0xbf9662041487e852ULL),B(0xbf9573bea429532aULL),
     };
-    s.stats.residuals = std::vector<double>(v3_13319, v3_13319 + 126);
+    s.stats.residuals = std::vector<double>(v3_13349, v3_13349 + 126);
     rq.seams.push_back(s);
   }
   {
@@ -13382,10 +13412,10 @@ inline void build_fit_bic_air(kalos::TramoKernelRoundsRequest& rq) {
     s.orders = TramoOrders{0, 1, 0, 0, 1, 1};
     s.mean = false;
     s.outliers = {"AO (1982-05-01)", "TC (1983-03-01)", "AO (1985-02-01)", "AO (1991-03-01)"};
-    static const double v4_13384[] = {
+    static const double v4_13414[] = {
         B(0xbfe14d751cedda53ULL),
     };
-    s.parameters = std::vector<double>(v4_13384, v4_13384 + 1);
+    s.parameters = std::vector<double>(v4_13414, v4_13414 + 1);
     rq.seams.push_back(s);
   }
   {
@@ -13413,10 +13443,10 @@ inline void build_fit_bic_air(kalos::TramoKernelRoundsRequest& rq) {
     s.orders = TramoOrders{0, 1, 0, 0, 1, 1};
     s.mean = false;
     s.outliers = {"AO (1982-05-01)", "AO (1985-02-01)", "AO (1991-03-01)", "TC (1983-03-01)"};
-    static const double v5_13415[] = {
+    static const double v5_13445[] = {
         B(0xbfc999999999999aULL),
     };
-    s.parameters = std::vector<double>(v5_13415, v5_13415 + 1);
+    s.parameters = std::vector<double>(v5_13445, v5_13445 + 1);
     s.critical_value = B(0x400c47ae147ae147ULL);
     rq.seams.push_back(s);
   }
@@ -13432,10 +13462,10 @@ inline void build_fit_bic_air(kalos::TramoKernelRoundsRequest& rq) {
     s.nnsig = 0;
     s.orders = TramoOrders{0, 1, 0, 0, 1, 1};
     s.outliers = {"AO (1982-05-01)", "TC (1983-03-01)", "AO (1985-02-01)", "AO (1991-03-01)"};
-    static const double v6_13434[] = {
+    static const double v6_13464[] = {
         B(0xbfe14d751cedda53ULL),
     };
-    s.parameters = std::vector<double>(v6_13434, v6_13434 + 1);
+    s.parameters = std::vector<double>(v6_13464, v6_13464 + 1);
     rq.seams.push_back(s);
   }
   {
@@ -13450,10 +13480,10 @@ inline void build_fit_bic_air(kalos::TramoKernelRoundsRequest& rq) {
     s.gate_reference_ljung_box_complement = B(0x3fe0c4a63a1abe78ULL);
     s.gate_reference_standard_error = B(0x3f9d5daa85f3e6c4ULL);
     s.arima_orders = TramoOrders{0, 1, 0, 0, 1, 1};
-    static const double v7_13452[] = {
+    static const double v7_13482[] = {
         B(0xbfe14d751cedda53ULL),
     };
-    s.parameters = std::vector<double>(v7_13452, v7_13452 + 1);
+    s.parameters = std::vector<double>(v7_13482, v7_13482 + 1);
     s.stats.free_parameters = 1;
     s.stats.dim = 131;
     s.stats.observations = 144;
@@ -13463,7 +13493,7 @@ inline void build_fit_bic_air(kalos::TramoKernelRoundsRequest& rq) {
     s.stats.bic = B(0xc01bb51d09c737ffULL);
     s.stats.outliers_count = 4;
     s.stats.effective_observations = 131;
-    static const double v8_13465[] = {
+    static const double v8_13495[] = {
         B(0x3fa76be411a89dafULL),B(0x0000000000000000ULL),B(0x3f8474519a3a93d0ULL),
         B(0xbf97fb9e9d8b8643ULL),B(0xbfa3a28e78601a15ULL),B(0x3fb48bd192cccb35ULL),
         B(0x3fb06c7b113a3560ULL),B(0xbfac25c86092d6ebULL),B(0x3fa3f2b2b4fe0682ULL),
@@ -13507,7 +13537,7 @@ inline void build_fit_bic_air(kalos::TramoKernelRoundsRequest& rq) {
         B(0xbf8756242eaf75dcULL),B(0xbf8f5026c9c1da41ULL),B(0xbf7cf4d1a078b186ULL),
         B(0x3f9d2a529b9c944cULL),B(0xbf9662041487e852ULL),B(0xbf9573bea429532aULL),
     };
-    s.stats.residuals = std::vector<double>(v8_13465, v8_13465 + 126);
+    s.stats.residuals = std::vector<double>(v8_13495, v8_13495 + 126);
     rq.seams.push_back(s);
   }
   {
@@ -13523,11 +13553,11 @@ inline void build_fit_bic_air(kalos::TramoKernelRoundsRequest& rq) {
     s.result = TramoKernelStageResult::unchanged;
     s.tsig = B(0x3ff0000000000000ULL);
     s.mean = false;
-    static const double v9_13525[] = {
+    static const double v9_13555[] = {
         B(0x4018b1d494956f0bULL),B(0x401878ff8cc27c61ULL),B(0xc00e3e8cbc6fe7d7ULL),
         B(0xc0101f32865b9867ULL),B(0xc010a4bd504aa614ULL),
     };
-    s.tstats = std::vector<double>(v9_13525, v9_13525 + 5);
+    s.tstats = std::vector<double>(v9_13555, v9_13555 + 5);
     rq.seams.push_back(s);
   }
   {
@@ -13537,10 +13567,10 @@ inline void build_fit_bic_air(kalos::TramoKernelRoundsRequest& rq) {
     s.orders = TramoOrders{0, 1, 0, 0, 1, 1};
     s.mean = false;
     s.outliers = {"AO (1982-05-01)", "TC (1983-03-01)", "AO (1985-02-01)", "AO (1991-03-01)"};
-    static const double v10_13539[] = {
+    static const double v10_13569[] = {
         B(0xbfe14d751cedda53ULL),
     };
-    s.parameters = std::vector<double>(v10_13539, v10_13539 + 1);
+    s.parameters = std::vector<double>(v10_13569, v10_13569 + 1);
     s.seasonal_after = true;
     s.original_seasonality_after = 3;
     rq.seams.push_back(s);
@@ -13555,10 +13585,10 @@ inline void build_fit_bic_air(kalos::TramoKernelRoundsRequest& rq) {
     s.orders = TramoOrders{0, 1, 0, 0, 1, 1};
     s.mean = false;
     s.outliers = {"AO (1982-05-01)", "TC (1983-03-01)", "AO (1985-02-01)", "AO (1991-03-01)"};
-    static const double v11_13557[] = {
+    static const double v11_13587[] = {
         B(0xbfe14d751cedda53ULL),
     };
-    s.parameters = std::vector<double>(v11_13557, v11_13557 + 1);
+    s.parameters = std::vector<double>(v11_13587, v11_13587 + 1);
     rq.seams.push_back(s);
   }
   {
@@ -13568,10 +13598,10 @@ inline void build_fit_bic_air(kalos::TramoKernelRoundsRequest& rq) {
     s.orders = TramoOrders{0, 1, 0, 0, 1, 1};
     s.mean = false;
     s.outliers = {"AO (1982-05-01)", "TC (1983-03-01)", "AO (1985-02-01)", "AO (1991-03-01)"};
-    static const double v12_13570[] = {
+    static const double v12_13600[] = {
         B(0xbfe14d751cedda53ULL),
     };
-    s.parameters = std::vector<double>(v12_13570, v12_13570 + 1);
+    s.parameters = std::vector<double>(v12_13600, v12_13600 + 1);
     rq.seams.push_back(s);
   }
   {
@@ -13581,10 +13611,10 @@ inline void build_fit_bic_air(kalos::TramoKernelRoundsRequest& rq) {
     s.orders = TramoOrders{0, 1, 0, 0, 1, 1};
     s.mean = false;
     s.outliers = {"AO (1982-05-01)", "TC (1983-03-01)", "AO (1985-02-01)", "AO (1991-03-01)"};
-    static const double v13_13583[] = {
+    static const double v13_13613[] = {
         B(0xbfe14d751cedda53ULL),
     };
-    s.parameters = std::vector<double>(v13_13583, v13_13583 + 1);
+    s.parameters = std::vector<double>(v13_13613, v13_13613 + 1);
     rq.seams.push_back(s);
   }
   {
@@ -13594,10 +13624,10 @@ inline void build_fit_bic_air(kalos::TramoKernelRoundsRequest& rq) {
     s.orders = TramoOrders{0, 1, 0, 0, 1, 1};
     s.mean = false;
     s.outliers = {"AO (1982-05-01)", "TC (1983-03-01)", "AO (1985-02-01)", "AO (1991-03-01)"};
-    static const double v14_13596[] = {
+    static const double v14_13626[] = {
         B(0xbfe14d751cedda53ULL),
     };
-    s.parameters = std::vector<double>(v14_13596, v14_13596 + 1);
+    s.parameters = std::vector<double>(v14_13626, v14_13626 + 1);
     rq.seams.push_back(s);
   }
   {
@@ -13607,10 +13637,10 @@ inline void build_fit_bic_air(kalos::TramoKernelRoundsRequest& rq) {
     s.orders = TramoOrders{0, 1, 0, 0, 1, 1};
     s.mean = false;
     s.outliers = {"AO (1982-05-01)", "TC (1983-03-01)", "AO (1985-02-01)", "AO (1991-03-01)"};
-    static const double v15_13609[] = {
+    static const double v15_13639[] = {
         B(0xbfe14d751cedda53ULL),
     };
-    s.parameters = std::vector<double>(v15_13609, v15_13609 + 1);
+    s.parameters = std::vector<double>(v15_13639, v15_13639 + 1);
     rq.seams.push_back(s);
   }
   {
@@ -13696,6 +13726,7 @@ inline void build_fit_fit_bic_air(TramoFitRequest& rq) {
   rq.spec.outliers_ml = false;
   rq.spec.accept_airline = false;
   rq.spec.precision = B(0x3e7ad7f29abcaf48ULL);
+  rq.spec.final_unit_root_threshold = B(0x3feeb851eb851eb8ULL);
   rq.spec.intermediate_precision = B(0x3ee4f8b588e368f1ULL);
   rq.spec.mean_is_test = false;
   rq.spec.mean_used = true;
@@ -13796,10 +13827,10 @@ inline void build_fit_wald_air(kalos::TramoKernelRoundsRequest& rq) {
     s.orders = TramoOrders{0, 1, 1, 0, 1, 1};
     s.mean = false;
     s.outliers = {"AO (1982-05-01)", "AO (1985-02-01)", "AO (1991-03-01)", "TC (1983-03-01)"};
-    static const double v0_13798[] = {
+    static const double v0_13829[] = {
         B(0xbfc999999999999aULL),B(0xbfc999999999999aULL),
     };
-    s.parameters = std::vector<double>(v0_13798, v0_13798 + 2);
+    s.parameters = std::vector<double>(v0_13829, v0_13829 + 2);
     s.critical_value = B(0x400c47ae147ae147ULL);
     rq.seams.push_back(s);
   }
@@ -13816,10 +13847,10 @@ inline void build_fit_wald_air(kalos::TramoKernelRoundsRequest& rq) {
     s.nnsig = 0;
     s.orders = TramoOrders{0, 1, 0, 0, 1, 1};
     s.outliers = {"AO (1982-05-01)", "TC (1983-03-01)", "AO (1985-02-01)", "AO (1991-03-01)"};
-    static const double v1_13818[] = {
+    static const double v1_13849[] = {
         B(0xbfe14d751cedda53ULL),
     };
-    s.parameters = std::vector<double>(v1_13818, v1_13818 + 1);
+    s.parameters = std::vector<double>(v1_13849, v1_13849 + 1);
     rq.seams.push_back(s);
   }
   {
@@ -13830,11 +13861,11 @@ inline void build_fit_wald_air(kalos::TramoKernelRoundsRequest& rq) {
     s.retry_index = 1;
     s.tsig = B(0x3fff5c28f5c28f5cULL);
     s.mean = false;
-    static const double v2_13832[] = {
+    static const double v2_13863[] = {
         B(0x4018b1d494956f0bULL),B(0x401878ff8cc27c61ULL),B(0xc00e3e8cbc6fe7d7ULL),
         B(0xc0101f32865b9867ULL),B(0xc010a4bd504aa614ULL),
     };
-    s.tstats = std::vector<double>(v2_13832, v2_13832 + 5);
+    s.tstats = std::vector<double>(v2_13863, v2_13863 + 5);
     rq.seams.push_back(s);
   }
   {
@@ -13850,7 +13881,7 @@ inline void build_fit_wald_air(kalos::TramoKernelRoundsRequest& rq) {
     s.stats.bic = B(0xc01bb51d09c737ffULL);
     s.stats.outliers_count = 4;
     s.stats.effective_observations = 131;
-    static const double v3_13852[] = {
+    static const double v3_13883[] = {
         B(0x3fa76be411a89dafULL),B(0x0000000000000000ULL),B(0x3f8474519a3a93d0ULL),
         B(0xbf97fb9e9d8b8643ULL),B(0xbfa3a28e78601a15ULL),B(0x3fb48bd192cccb35ULL),
         B(0x3fb06c7b113a3560ULL),B(0xbfac25c86092d6ebULL),B(0x3fa3f2b2b4fe0682ULL),
@@ -13894,7 +13925,7 @@ inline void build_fit_wald_air(kalos::TramoKernelRoundsRequest& rq) {
         B(0xbf8756242eaf75dcULL),B(0xbf8f5026c9c1da41ULL),B(0xbf7cf4d1a078b186ULL),
         B(0x3f9d2a529b9c944cULL),B(0xbf9662041487e852ULL),B(0xbf9573bea429532aULL),
     };
-    s.stats.residuals = std::vector<double>(v3_13852, v3_13852 + 126);
+    s.stats.residuals = std::vector<double>(v3_13883, v3_13883 + 126);
     rq.seams.push_back(s);
   }
   {
@@ -13915,10 +13946,10 @@ inline void build_fit_wald_air(kalos::TramoKernelRoundsRequest& rq) {
     s.orders = TramoOrders{0, 1, 0, 0, 1, 1};
     s.mean = false;
     s.outliers = {"AO (1982-05-01)", "TC (1983-03-01)", "AO (1985-02-01)", "AO (1991-03-01)"};
-    static const double v4_13917[] = {
+    static const double v4_13948[] = {
         B(0xbfe14d751cedda53ULL),
     };
-    s.parameters = std::vector<double>(v4_13917, v4_13917 + 1);
+    s.parameters = std::vector<double>(v4_13948, v4_13948 + 1);
     rq.seams.push_back(s);
   }
   {
@@ -13946,10 +13977,10 @@ inline void build_fit_wald_air(kalos::TramoKernelRoundsRequest& rq) {
     s.orders = TramoOrders{0, 1, 0, 0, 1, 1};
     s.mean = false;
     s.outliers = {"AO (1982-05-01)", "AO (1985-02-01)", "AO (1991-03-01)", "TC (1983-03-01)"};
-    static const double v5_13948[] = {
+    static const double v5_13979[] = {
         B(0xbfc999999999999aULL),
     };
-    s.parameters = std::vector<double>(v5_13948, v5_13948 + 1);
+    s.parameters = std::vector<double>(v5_13979, v5_13979 + 1);
     s.critical_value = B(0x400c47ae147ae147ULL);
     rq.seams.push_back(s);
   }
@@ -13965,10 +13996,10 @@ inline void build_fit_wald_air(kalos::TramoKernelRoundsRequest& rq) {
     s.nnsig = 0;
     s.orders = TramoOrders{0, 1, 0, 0, 1, 1};
     s.outliers = {"AO (1982-05-01)", "TC (1983-03-01)", "AO (1985-02-01)", "AO (1991-03-01)"};
-    static const double v6_13967[] = {
+    static const double v6_13998[] = {
         B(0xbfe14d751cedda53ULL),
     };
-    s.parameters = std::vector<double>(v6_13967, v6_13967 + 1);
+    s.parameters = std::vector<double>(v6_13998, v6_13998 + 1);
     rq.seams.push_back(s);
   }
   {
@@ -13983,10 +14014,10 @@ inline void build_fit_wald_air(kalos::TramoKernelRoundsRequest& rq) {
     s.gate_reference_ljung_box_complement = B(0x3fe0c4a63a1abe78ULL);
     s.gate_reference_standard_error = B(0x3f9d5daa85f3e6c4ULL);
     s.arima_orders = TramoOrders{0, 1, 0, 0, 1, 1};
-    static const double v7_13985[] = {
+    static const double v7_14016[] = {
         B(0xbfe14d751cedda53ULL),
     };
-    s.parameters = std::vector<double>(v7_13985, v7_13985 + 1);
+    s.parameters = std::vector<double>(v7_14016, v7_14016 + 1);
     s.stats.free_parameters = 1;
     s.stats.dim = 131;
     s.stats.observations = 144;
@@ -13996,7 +14027,7 @@ inline void build_fit_wald_air(kalos::TramoKernelRoundsRequest& rq) {
     s.stats.bic = B(0xc01bb51d09c737ffULL);
     s.stats.outliers_count = 4;
     s.stats.effective_observations = 131;
-    static const double v8_13998[] = {
+    static const double v8_14029[] = {
         B(0x3fa76be411a89dafULL),B(0x0000000000000000ULL),B(0x3f8474519a3a93d0ULL),
         B(0xbf97fb9e9d8b8643ULL),B(0xbfa3a28e78601a15ULL),B(0x3fb48bd192cccb35ULL),
         B(0x3fb06c7b113a3560ULL),B(0xbfac25c86092d6ebULL),B(0x3fa3f2b2b4fe0682ULL),
@@ -14040,7 +14071,7 @@ inline void build_fit_wald_air(kalos::TramoKernelRoundsRequest& rq) {
         B(0xbf8756242eaf75dcULL),B(0xbf8f5026c9c1da41ULL),B(0xbf7cf4d1a078b186ULL),
         B(0x3f9d2a529b9c944cULL),B(0xbf9662041487e852ULL),B(0xbf9573bea429532aULL),
     };
-    s.stats.residuals = std::vector<double>(v8_13998, v8_13998 + 126);
+    s.stats.residuals = std::vector<double>(v8_14029, v8_14029 + 126);
     rq.seams.push_back(s);
   }
   {
@@ -14056,11 +14087,11 @@ inline void build_fit_wald_air(kalos::TramoKernelRoundsRequest& rq) {
     s.result = TramoKernelStageResult::unchanged;
     s.tsig = B(0x3ff0000000000000ULL);
     s.mean = false;
-    static const double v9_14058[] = {
+    static const double v9_14089[] = {
         B(0x4018b1d494956f0bULL),B(0x401878ff8cc27c61ULL),B(0xc00e3e8cbc6fe7d7ULL),
         B(0xc0101f32865b9867ULL),B(0xc010a4bd504aa614ULL),
     };
-    s.tstats = std::vector<double>(v9_14058, v9_14058 + 5);
+    s.tstats = std::vector<double>(v9_14089, v9_14089 + 5);
     rq.seams.push_back(s);
   }
   {
@@ -14070,10 +14101,10 @@ inline void build_fit_wald_air(kalos::TramoKernelRoundsRequest& rq) {
     s.orders = TramoOrders{0, 1, 0, 0, 1, 1};
     s.mean = false;
     s.outliers = {"AO (1982-05-01)", "TC (1983-03-01)", "AO (1985-02-01)", "AO (1991-03-01)"};
-    static const double v10_14072[] = {
+    static const double v10_14103[] = {
         B(0xbfe14d751cedda53ULL),
     };
-    s.parameters = std::vector<double>(v10_14072, v10_14072 + 1);
+    s.parameters = std::vector<double>(v10_14103, v10_14103 + 1);
     s.seasonal_after = true;
     s.original_seasonality_after = 3;
     rq.seams.push_back(s);
@@ -14088,10 +14119,10 @@ inline void build_fit_wald_air(kalos::TramoKernelRoundsRequest& rq) {
     s.orders = TramoOrders{0, 1, 0, 0, 1, 1};
     s.mean = false;
     s.outliers = {"AO (1982-05-01)", "TC (1983-03-01)", "AO (1985-02-01)", "AO (1991-03-01)"};
-    static const double v11_14090[] = {
+    static const double v11_14121[] = {
         B(0xbfe14d751cedda53ULL),
     };
-    s.parameters = std::vector<double>(v11_14090, v11_14090 + 1);
+    s.parameters = std::vector<double>(v11_14121, v11_14121 + 1);
     rq.seams.push_back(s);
   }
   {
@@ -14101,10 +14132,10 @@ inline void build_fit_wald_air(kalos::TramoKernelRoundsRequest& rq) {
     s.orders = TramoOrders{0, 1, 0, 0, 1, 1};
     s.mean = false;
     s.outliers = {"AO (1982-05-01)", "TC (1983-03-01)", "AO (1985-02-01)", "AO (1991-03-01)"};
-    static const double v12_14103[] = {
+    static const double v12_14134[] = {
         B(0xbfe14d751cedda53ULL),
     };
-    s.parameters = std::vector<double>(v12_14103, v12_14103 + 1);
+    s.parameters = std::vector<double>(v12_14134, v12_14134 + 1);
     rq.seams.push_back(s);
   }
   {
@@ -14114,10 +14145,10 @@ inline void build_fit_wald_air(kalos::TramoKernelRoundsRequest& rq) {
     s.orders = TramoOrders{0, 1, 0, 0, 1, 1};
     s.mean = false;
     s.outliers = {"AO (1982-05-01)", "TC (1983-03-01)", "AO (1985-02-01)", "AO (1991-03-01)"};
-    static const double v13_14116[] = {
+    static const double v13_14147[] = {
         B(0xbfe14d751cedda53ULL),
     };
-    s.parameters = std::vector<double>(v13_14116, v13_14116 + 1);
+    s.parameters = std::vector<double>(v13_14147, v13_14147 + 1);
     rq.seams.push_back(s);
   }
   {
@@ -14127,10 +14158,10 @@ inline void build_fit_wald_air(kalos::TramoKernelRoundsRequest& rq) {
     s.orders = TramoOrders{0, 1, 0, 0, 1, 1};
     s.mean = false;
     s.outliers = {"AO (1982-05-01)", "TC (1983-03-01)", "AO (1985-02-01)", "AO (1991-03-01)"};
-    static const double v14_14129[] = {
+    static const double v14_14160[] = {
         B(0xbfe14d751cedda53ULL),
     };
-    s.parameters = std::vector<double>(v14_14129, v14_14129 + 1);
+    s.parameters = std::vector<double>(v14_14160, v14_14160 + 1);
     rq.seams.push_back(s);
   }
   {
@@ -14140,10 +14171,10 @@ inline void build_fit_wald_air(kalos::TramoKernelRoundsRequest& rq) {
     s.orders = TramoOrders{0, 1, 0, 0, 1, 1};
     s.mean = false;
     s.outliers = {"AO (1982-05-01)", "TC (1983-03-01)", "AO (1985-02-01)", "AO (1991-03-01)"};
-    static const double v15_14142[] = {
+    static const double v15_14173[] = {
         B(0xbfe14d751cedda53ULL),
     };
-    s.parameters = std::vector<double>(v15_14142, v15_14142 + 1);
+    s.parameters = std::vector<double>(v15_14173, v15_14173 + 1);
     rq.seams.push_back(s);
   }
   {
@@ -14229,6 +14260,7 @@ inline void build_fit_fit_wald_air(TramoFitRequest& rq) {
   rq.spec.outliers_ml = false;
   rq.spec.accept_airline = false;
   rq.spec.precision = B(0x3e7ad7f29abcaf48ULL);
+  rq.spec.final_unit_root_threshold = B(0x3feeb851eb851eb8ULL);
   rq.spec.intermediate_precision = B(0x3ee4f8b588e368f1ULL);
   rq.spec.mean_is_test = false;
   rq.spec.mean_used = true;
@@ -14328,10 +14360,10 @@ inline void build_fit_oc_air(kalos::TramoKernelRoundsRequest& rq) {
     s.result = TramoKernelStageResult::unchanged;
     s.orders = TramoOrders{0, 1, 1, 0, 1, 1};
     s.mean = false;
-    static const double v0_14330[] = {
+    static const double v0_14362[] = {
         B(0xbfd9b56006788926ULL),B(0xbfe1cecf1f977b4dULL),
     };
-    s.parameters = std::vector<double>(v0_14330, v0_14330 + 2);
+    s.parameters = std::vector<double>(v0_14362, v0_14362 + 2);
     s.critical_value = B(0x400c47ae147ae147ULL);
     rq.seams.push_back(s);
   }
@@ -14346,10 +14378,10 @@ inline void build_fit_oc_air(kalos::TramoKernelRoundsRequest& rq) {
     s.pass_at_call = 0;
     s.nnsig = 0;
     s.orders = TramoOrders{0, 1, 1, 0, 1, 1};
-    static const double v1_14348[] = {
+    static const double v1_14380[] = {
         B(0xbfd9b74faadd706dULL),B(0xbfe1d1ea2c5615d8ULL),
     };
-    s.parameters = std::vector<double>(v1_14348, v1_14348 + 2);
+    s.parameters = std::vector<double>(v1_14380, v1_14380 + 2);
     rq.seams.push_back(s);
   }
   {
@@ -14375,7 +14407,7 @@ inline void build_fit_oc_air(kalos::TramoKernelRoundsRequest& rq) {
     s.stats.bic = B(0xc01a23737190ac6bULL);
     s.stats.outliers_count = 0;
     s.stats.effective_observations = 131;
-    static const double v2_14377[] = {
+    static const double v2_14409[] = {
         B(0x3fa0416de25b8ee8ULL),B(0x3f889d19086f5994ULL),B(0xbf8ad7fd13b9879fULL),
         B(0xbf90f45ec2c22b86ULL),B(0x3faa2eccb45e6650ULL),B(0x3fac5fdb495998b3ULL),
         B(0x3f96cd613fa3632bULL),B(0x3f9351e65b825587ULL),B(0xbf9adf54722a6c53ULL),
@@ -14421,7 +14453,7 @@ inline void build_fit_oc_air(kalos::TramoKernelRoundsRequest& rq) {
         B(0xbfa082b71bc769b2ULL),B(0xbf83df0daee651a0ULL),B(0x3f9e37c20b641e0dULL),
         B(0xbf9bd0233218bec0ULL),B(0xbf8ea75fb7f8d51eULL),
     };
-    s.stats.residuals = std::vector<double>(v2_14377, v2_14377 + 131);
+    s.stats.residuals = std::vector<double>(v2_14409, v2_14409 + 131);
     rq.seams.push_back(s);
   }
   {
@@ -14441,10 +14473,10 @@ inline void build_fit_oc_air(kalos::TramoKernelRoundsRequest& rq) {
     s.result = TramoKernelStageResult::unchanged;
     s.orders = TramoOrders{0, 1, 1, 0, 1, 1};
     s.mean = false;
-    static const double v3_14443[] = {
+    static const double v3_14475[] = {
         B(0xbfd9b74faadd706dULL),B(0xbfe1d1ea2c5615d8ULL),
     };
-    s.parameters = std::vector<double>(v3_14443, v3_14443 + 2);
+    s.parameters = std::vector<double>(v3_14475, v3_14475 + 2);
     rq.seams.push_back(s);
   }
   {
@@ -14471,10 +14503,10 @@ inline void build_fit_oc_air(kalos::TramoKernelRoundsRequest& rq) {
     s.result = TramoKernelStageResult::unchanged;
     s.orders = TramoOrders{0, 1, 1, 0, 1, 1};
     s.mean = false;
-    static const double v4_14473[] = {
+    static const double v4_14505[] = {
         B(0xbfd9b74faadd706dULL),B(0xbfe1d1ea2c5615d8ULL),
     };
-    s.parameters = std::vector<double>(v4_14473, v4_14473 + 2);
+    s.parameters = std::vector<double>(v4_14505, v4_14505 + 2);
     s.critical_value = B(0x400c47ae147ae147ULL);
     rq.seams.push_back(s);
   }
@@ -14489,10 +14521,10 @@ inline void build_fit_oc_air(kalos::TramoKernelRoundsRequest& rq) {
     s.pass_at_call = 1;
     s.nnsig = 0;
     s.orders = TramoOrders{0, 1, 1, 0, 1, 1};
-    static const double v5_14491[] = {
+    static const double v5_14523[] = {
         B(0xbfd9b74faadd706dULL),B(0xbfe1d1ea2c5615d8ULL),
     };
-    s.parameters = std::vector<double>(v5_14491, v5_14491 + 2);
+    s.parameters = std::vector<double>(v5_14523, v5_14523 + 2);
     rq.seams.push_back(s);
   }
   {
@@ -14507,10 +14539,10 @@ inline void build_fit_oc_air(kalos::TramoKernelRoundsRequest& rq) {
     s.gate_reference_ljung_box_complement = B(0x3fe4a7c1513ba831ULL);
     s.gate_reference_standard_error = B(0x3fa2f1afa0217296ULL);
     s.arima_orders = TramoOrders{0, 1, 1, 0, 1, 1};
-    static const double v6_14509[] = {
+    static const double v6_14541[] = {
         B(0xbfd9b74faadd706dULL),B(0xbfe1d1ea2c5615d8ULL),
     };
-    s.parameters = std::vector<double>(v6_14509, v6_14509 + 2);
+    s.parameters = std::vector<double>(v6_14541, v6_14541 + 2);
     s.stats.free_parameters = 2;
     s.stats.dim = 131;
     s.stats.observations = 144;
@@ -14520,7 +14552,7 @@ inline void build_fit_oc_air(kalos::TramoKernelRoundsRequest& rq) {
     s.stats.bic = B(0xc01a23737190ac6bULL);
     s.stats.outliers_count = 0;
     s.stats.effective_observations = 131;
-    static const double v7_14522[] = {
+    static const double v7_14554[] = {
         B(0x3fa0416de25b8ee8ULL),B(0x3f889d19086f5994ULL),B(0xbf8ad7fd13b9879fULL),
         B(0xbf90f45ec2c22b86ULL),B(0x3faa2eccb45e6650ULL),B(0x3fac5fdb495998b3ULL),
         B(0x3f96cd613fa3632bULL),B(0x3f9351e65b825587ULL),B(0xbf9adf54722a6c53ULL),
@@ -14566,7 +14598,7 @@ inline void build_fit_oc_air(kalos::TramoKernelRoundsRequest& rq) {
         B(0xbfa082b71bc769b2ULL),B(0xbf83df0daee651a0ULL),B(0x3f9e37c20b641e0dULL),
         B(0xbf9bd0233218bec0ULL),B(0xbf8ea75fb7f8d51eULL),
     };
-    s.stats.residuals = std::vector<double>(v7_14522, v7_14522 + 131);
+    s.stats.residuals = std::vector<double>(v7_14554, v7_14554 + 131);
     rq.seams.push_back(s);
   }
   {
@@ -14590,10 +14622,10 @@ inline void build_fit_oc_air(kalos::TramoKernelRoundsRequest& rq) {
     s.result = TramoKernelStageResult::unchanged;
     s.orders = TramoOrders{0, 1, 1, 0, 1, 1};
     s.mean = false;
-    static const double v8_14592[] = {
+    static const double v8_14624[] = {
         B(0xbfd9b74faadd706dULL),B(0xbfe1d1ea2c5615d8ULL),
     };
-    s.parameters = std::vector<double>(v8_14592, v8_14592 + 2);
+    s.parameters = std::vector<double>(v8_14624, v8_14624 + 2);
     s.seasonal_after = true;
     s.original_seasonality_after = 3;
     rq.seams.push_back(s);
@@ -14604,10 +14636,10 @@ inline void build_fit_oc_air(kalos::TramoKernelRoundsRequest& rq) {
     s.result = TramoKernelStageResult::unchanged;
     s.orders = TramoOrders{0, 1, 1, 0, 1, 1};
     s.mean = false;
-    static const double v9_14606[] = {
+    static const double v9_14638[] = {
         B(0xbfd9b74faadd706dULL),B(0xbfe1d1ea2c5615d8ULL),
     };
-    s.parameters = std::vector<double>(v9_14606, v9_14606 + 2);
+    s.parameters = std::vector<double>(v9_14638, v9_14638 + 2);
     rq.seams.push_back(s);
   }
   {
@@ -14616,10 +14648,10 @@ inline void build_fit_oc_air(kalos::TramoKernelRoundsRequest& rq) {
     s.result = TramoKernelStageResult::unchanged;
     s.orders = TramoOrders{0, 1, 1, 0, 1, 1};
     s.mean = false;
-    static const double v10_14618[] = {
+    static const double v10_14650[] = {
         B(0xbfd9b74faadd706dULL),B(0xbfe1d1ea2c5615d8ULL),
     };
-    s.parameters = std::vector<double>(v10_14618, v10_14618 + 2);
+    s.parameters = std::vector<double>(v10_14650, v10_14650 + 2);
     rq.seams.push_back(s);
   }
   {
@@ -14628,10 +14660,10 @@ inline void build_fit_oc_air(kalos::TramoKernelRoundsRequest& rq) {
     s.result = TramoKernelStageResult::unchanged;
     s.orders = TramoOrders{0, 1, 1, 0, 1, 1};
     s.mean = false;
-    static const double v11_14630[] = {
+    static const double v11_14662[] = {
         B(0xbfd9b74faadd706dULL),B(0xbfe1d1ea2c5615d8ULL),
     };
-    s.parameters = std::vector<double>(v11_14630, v11_14630 + 2);
+    s.parameters = std::vector<double>(v11_14662, v11_14662 + 2);
     rq.seams.push_back(s);
   }
   {
@@ -14640,10 +14672,10 @@ inline void build_fit_oc_air(kalos::TramoKernelRoundsRequest& rq) {
     s.result = TramoKernelStageResult::unchanged;
     s.orders = TramoOrders{0, 1, 1, 0, 1, 1};
     s.mean = false;
-    static const double v12_14642[] = {
+    static const double v12_14674[] = {
         B(0xbfd9b74faadd706dULL),B(0xbfe1d1ea2c5615d8ULL),
     };
-    s.parameters = std::vector<double>(v12_14642, v12_14642 + 2);
+    s.parameters = std::vector<double>(v12_14674, v12_14674 + 2);
     rq.seams.push_back(s);
   }
   {
@@ -14727,6 +14759,7 @@ inline void build_fit_fit_oc_air(TramoFitRequest& rq) {
   rq.spec.outliers_ml = false;
   rq.spec.accept_airline = false;
   rq.spec.precision = B(0x3e7ad7f29abcaf48ULL);
+  rq.spec.final_unit_root_threshold = B(0x3feeb851eb851eb8ULL);
   rq.spec.intermediate_precision = B(0x3ee4f8b588e368f1ULL);
   rq.spec.mean_is_test = false;
   rq.spec.mean_used = true;
@@ -14814,10 +14847,10 @@ inline void build_fit_easter_air(kalos::TramoKernelRoundsRequest& rq) {
     s.result = TramoKernelStageResult::unchanged;
     s.orders = TramoOrders{0, 1, 1, 0, 1, 1};
     s.mean = false;
-    static const double v0_14816[] = {
+    static const double v0_14849[] = {
         B(0xbfd9b56006788926ULL),B(0xbfe1cecf1f977b4dULL),
     };
-    s.parameters = std::vector<double>(v0_14816, v0_14816 + 2);
+    s.parameters = std::vector<double>(v0_14849, v0_14849 + 2);
     s.critical_value = B(0x400c47ae147ae147ULL);
     rq.seams.push_back(s);
   }
@@ -14832,10 +14865,10 @@ inline void build_fit_easter_air(kalos::TramoKernelRoundsRequest& rq) {
     s.pass_at_call = 0;
     s.nnsig = 0;
     s.orders = TramoOrders{0, 1, 1, 0, 1, 1};
-    static const double v1_14834[] = {
+    static const double v1_14867[] = {
         B(0xbfd9b74faadd706dULL),B(0xbfe1d1ea2c5615d8ULL),
     };
-    s.parameters = std::vector<double>(v1_14834, v1_14834 + 2);
+    s.parameters = std::vector<double>(v1_14867, v1_14867 + 2);
     rq.seams.push_back(s);
   }
   {
@@ -14861,7 +14894,7 @@ inline void build_fit_easter_air(kalos::TramoKernelRoundsRequest& rq) {
     s.stats.bic = B(0xc01a23737190ac6bULL);
     s.stats.outliers_count = 0;
     s.stats.effective_observations = 131;
-    static const double v2_14863[] = {
+    static const double v2_14896[] = {
         B(0x3fa0416de25b8ee8ULL),B(0x3f889d19086f5994ULL),B(0xbf8ad7fd13b9879fULL),
         B(0xbf90f45ec2c22b86ULL),B(0x3faa2eccb45e6650ULL),B(0x3fac5fdb495998b3ULL),
         B(0x3f96cd613fa3632bULL),B(0x3f9351e65b825587ULL),B(0xbf9adf54722a6c53ULL),
@@ -14907,7 +14940,7 @@ inline void build_fit_easter_air(kalos::TramoKernelRoundsRequest& rq) {
         B(0xbfa082b71bc769b2ULL),B(0xbf83df0daee651a0ULL),B(0x3f9e37c20b641e0dULL),
         B(0xbf9bd0233218bec0ULL),B(0xbf8ea75fb7f8d51eULL),
     };
-    s.stats.residuals = std::vector<double>(v2_14863, v2_14863 + 131);
+    s.stats.residuals = std::vector<double>(v2_14896, v2_14896 + 131);
     rq.seams.push_back(s);
   }
   {
@@ -14927,10 +14960,10 @@ inline void build_fit_easter_air(kalos::TramoKernelRoundsRequest& rq) {
     s.result = TramoKernelStageResult::unchanged;
     s.orders = TramoOrders{0, 1, 1, 0, 1, 1};
     s.mean = false;
-    static const double v3_14929[] = {
+    static const double v3_14962[] = {
         B(0xbfd9b74faadd706dULL),B(0xbfe1d1ea2c5615d8ULL),
     };
-    s.parameters = std::vector<double>(v3_14929, v3_14929 + 2);
+    s.parameters = std::vector<double>(v3_14962, v3_14962 + 2);
     rq.seams.push_back(s);
   }
   {
@@ -14957,10 +14990,10 @@ inline void build_fit_easter_air(kalos::TramoKernelRoundsRequest& rq) {
     s.result = TramoKernelStageResult::unchanged;
     s.orders = TramoOrders{0, 1, 1, 0, 1, 1};
     s.mean = false;
-    static const double v4_14959[] = {
+    static const double v4_14992[] = {
         B(0xbfd9b74faadd706dULL),B(0xbfe1d1ea2c5615d8ULL),
     };
-    s.parameters = std::vector<double>(v4_14959, v4_14959 + 2);
+    s.parameters = std::vector<double>(v4_14992, v4_14992 + 2);
     s.critical_value = B(0x400c47ae147ae147ULL);
     rq.seams.push_back(s);
   }
@@ -14975,10 +15008,10 @@ inline void build_fit_easter_air(kalos::TramoKernelRoundsRequest& rq) {
     s.pass_at_call = 1;
     s.nnsig = 0;
     s.orders = TramoOrders{0, 1, 1, 0, 1, 1};
-    static const double v5_14977[] = {
+    static const double v5_15010[] = {
         B(0xbfd9b74faadd706dULL),B(0xbfe1d1ea2c5615d8ULL),
     };
-    s.parameters = std::vector<double>(v5_14977, v5_14977 + 2);
+    s.parameters = std::vector<double>(v5_15010, v5_15010 + 2);
     rq.seams.push_back(s);
   }
   {
@@ -14993,10 +15026,10 @@ inline void build_fit_easter_air(kalos::TramoKernelRoundsRequest& rq) {
     s.gate_reference_ljung_box_complement = B(0x3fe4a7c1513ba831ULL);
     s.gate_reference_standard_error = B(0x3fa2f1afa0217296ULL);
     s.arima_orders = TramoOrders{0, 1, 1, 0, 1, 1};
-    static const double v6_14995[] = {
+    static const double v6_15028[] = {
         B(0xbfd9b74faadd706dULL),B(0xbfe1d1ea2c5615d8ULL),
     };
-    s.parameters = std::vector<double>(v6_14995, v6_14995 + 2);
+    s.parameters = std::vector<double>(v6_15028, v6_15028 + 2);
     s.stats.free_parameters = 2;
     s.stats.dim = 131;
     s.stats.observations = 144;
@@ -15006,7 +15039,7 @@ inline void build_fit_easter_air(kalos::TramoKernelRoundsRequest& rq) {
     s.stats.bic = B(0xc01a23737190ac6bULL);
     s.stats.outliers_count = 0;
     s.stats.effective_observations = 131;
-    static const double v7_15008[] = {
+    static const double v7_15041[] = {
         B(0x3fa0416de25b8ee8ULL),B(0x3f889d19086f5994ULL),B(0xbf8ad7fd13b9879fULL),
         B(0xbf90f45ec2c22b86ULL),B(0x3faa2eccb45e6650ULL),B(0x3fac5fdb495998b3ULL),
         B(0x3f96cd613fa3632bULL),B(0x3f9351e65b825587ULL),B(0xbf9adf54722a6c53ULL),
@@ -15052,7 +15085,7 @@ inline void build_fit_easter_air(kalos::TramoKernelRoundsRequest& rq) {
         B(0xbfa082b71bc769b2ULL),B(0xbf83df0daee651a0ULL),B(0x3f9e37c20b641e0dULL),
         B(0xbf9bd0233218bec0ULL),B(0xbf8ea75fb7f8d51eULL),
     };
-    s.stats.residuals = std::vector<double>(v7_15008, v7_15008 + 131);
+    s.stats.residuals = std::vector<double>(v7_15041, v7_15041 + 131);
     rq.seams.push_back(s);
   }
   {
@@ -15076,10 +15109,10 @@ inline void build_fit_easter_air(kalos::TramoKernelRoundsRequest& rq) {
     s.result = TramoKernelStageResult::unchanged;
     s.orders = TramoOrders{0, 1, 1, 0, 1, 1};
     s.mean = false;
-    static const double v8_15078[] = {
+    static const double v8_15111[] = {
         B(0xbfd9b74faadd706dULL),B(0xbfe1d1ea2c5615d8ULL),
     };
-    s.parameters = std::vector<double>(v8_15078, v8_15078 + 2);
+    s.parameters = std::vector<double>(v8_15111, v8_15111 + 2);
     s.seasonal_after = true;
     s.original_seasonality_after = 3;
     rq.seams.push_back(s);
@@ -15090,10 +15123,10 @@ inline void build_fit_easter_air(kalos::TramoKernelRoundsRequest& rq) {
     s.result = TramoKernelStageResult::unchanged;
     s.orders = TramoOrders{0, 1, 1, 0, 1, 1};
     s.mean = false;
-    static const double v9_15092[] = {
+    static const double v9_15125[] = {
         B(0xbfd9b74faadd706dULL),B(0xbfe1d1ea2c5615d8ULL),
     };
-    s.parameters = std::vector<double>(v9_15092, v9_15092 + 2);
+    s.parameters = std::vector<double>(v9_15125, v9_15125 + 2);
     rq.seams.push_back(s);
   }
   {
@@ -15102,10 +15135,10 @@ inline void build_fit_easter_air(kalos::TramoKernelRoundsRequest& rq) {
     s.result = TramoKernelStageResult::unchanged;
     s.orders = TramoOrders{0, 1, 1, 0, 1, 1};
     s.mean = false;
-    static const double v10_15104[] = {
+    static const double v10_15137[] = {
         B(0xbfd9b74faadd706dULL),B(0xbfe1d1ea2c5615d8ULL),
     };
-    s.parameters = std::vector<double>(v10_15104, v10_15104 + 2);
+    s.parameters = std::vector<double>(v10_15137, v10_15137 + 2);
     rq.seams.push_back(s);
   }
   {
@@ -15114,10 +15147,10 @@ inline void build_fit_easter_air(kalos::TramoKernelRoundsRequest& rq) {
     s.result = TramoKernelStageResult::unchanged;
     s.orders = TramoOrders{0, 1, 1, 0, 1, 1};
     s.mean = false;
-    static const double v11_15116[] = {
+    static const double v11_15149[] = {
         B(0xbfd9b74faadd706dULL),B(0xbfe1d1ea2c5615d8ULL),
     };
-    s.parameters = std::vector<double>(v11_15116, v11_15116 + 2);
+    s.parameters = std::vector<double>(v11_15149, v11_15149 + 2);
     rq.seams.push_back(s);
   }
   {
@@ -15126,10 +15159,10 @@ inline void build_fit_easter_air(kalos::TramoKernelRoundsRequest& rq) {
     s.result = TramoKernelStageResult::unchanged;
     s.orders = TramoOrders{0, 1, 1, 0, 1, 1};
     s.mean = false;
-    static const double v12_15128[] = {
+    static const double v12_15161[] = {
         B(0xbfd9b74faadd706dULL),B(0xbfe1d1ea2c5615d8ULL),
     };
-    s.parameters = std::vector<double>(v12_15128, v12_15128 + 2);
+    s.parameters = std::vector<double>(v12_15161, v12_15161 + 2);
     rq.seams.push_back(s);
   }
   {
@@ -15210,6 +15243,7 @@ inline void build_fit_fit_easter_air(TramoFitRequest& rq) {
   rq.spec.outliers_ml = false;
   rq.spec.accept_airline = false;
   rq.spec.precision = B(0x3e7ad7f29abcaf48ULL);
+  rq.spec.final_unit_root_threshold = B(0x3feeb851eb851eb8ULL);
   rq.spec.intermediate_precision = B(0x3ee4f8b588e368f1ULL);
   rq.spec.mean_is_test = false;
   rq.spec.mean_used = true;
@@ -15262,39 +15296,39 @@ struct FitExpect {
 inline const std::vector<FitExpect>& fit_expectations() {
   static const std::vector<FitExpect> k_all = {
       {"fit_tr0_air", "", "-", 3, 0, 0, 1},
-      {"fit_tr1_air", "", "-", 3, 2, 0, 1},
-      {"fit_tr2_air", "refused:d10-calendar", "-", 3, 2, 0, 15},
-      {"fit_tr3_air", "", "Strong", 3, 4, 0, 0},
-      {"fit_accept_air", "", "Strong", 3, 1, 0, 0},
-      {"fit_mean_air", "", "Strong", 3, 4, 0, 0},
-      {"fit_fct_air", "", "Strong", 3, 3, 1, 3},
+      {"fit_tr1_air", "", "-", 3, 4, 0, 1},
+      {"fit_tr2_air", "refused:d10-calendar", "-", 3, 2, 2, 15},
+      {"fit_tr3_air", "", "Strong", 3, 6, 0, 0},
+      {"fit_accept_air", "", "Strong", 3, 2, 0, 0},
+      {"fit_mean_air", "", "Strong", 3, 6, 0, 0},
+      {"fit_fct_air", "", "Strong", 3, 3, 3, 3},
       {"fit_fsnone", "", "-", 3, 0, 0, 1},
-      {"fit_tr1_ao", "", "-", 3, 2, 0, 3},
-      {"fit_noout", "", "Strong", 3, 4, 0, 1},
-      {"fit_ao", "", "Strong", 3, 3, 1, 3},
-      {"fit_ls", "", "Strong", 3, 3, 1, 3},
-      {"fit_multi", "", "Strong", 3, 3, 1, 6},
-      {"fit_so", "", "Strong", 3, 3, 1, 3},
-      {"fit_spanout", "", "Strong", 3, 3, 1, 3},
-      {"fit_gs2", "", "Weak", 1, 5, 2, 6},
-      {"fit_s30ml", "", "Strong", 3, 3, 1, 0},
-      {"fit_aoonly", "", "Strong", 3, 3, 1, 3},
-      {"fit_cv4", "", "Strong", 3, 3, 1, 6},
-      {"fit_shortfail", "", "NotObservable", 0, 6, 1, 0},
-      {"fit_mrstack", "", "Strong", 3, 3, 1, 28},
-      {"fit_mrls", "", "Strong", 3, 3, 1, 3},
-      {"fit_missing", "refused:missing-values", "Weak", 1, 4, 0, 1},
-      {"fit_nomean", "", "-", 3, 0, 0, 0},
-      {"fit_pure", "", "Strong", 3, 2, 0, 0},
-      {"fit_nearur", "", "Strong", 3, 4, 0, 0},
-      {"fit_q_air", "refused:d11-frequency", "Weak", 1, 9, 0, 0},
-      {"fit_trfull_air", "refused:d10-calendar", "Strong", 3, 3, 1, 15},
-      {"fit_td_air", "refused:d10-calendar", "Strong", 3, 3, 1, 15},
-      {"fit_aic_air", "refused:d10-calendar", "Strong", 3, 3, 1, 21},
-      {"fit_bic_air", "refused:d10-calendar", "Strong", 3, 3, 1, 15},
-      {"fit_wald_air", "refused:d10-calendar", "Strong", 3, 3, 1, 15},
-      {"fit_oc_air", "refused:oc-precorrection", "Strong", 3, 4, 0, 0},
-      {"fit_easter_air", "refused:d10-calendar", "Strong", 3, 4, 0, 0},
+      {"fit_tr1_ao", "", "-", 3, 2, 2, 3},
+      {"fit_noout", "", "Strong", 3, 6, 0, 1},
+      {"fit_ao", "", "Strong", 3, 3, 3, 3},
+      {"fit_ls", "", "Strong", 3, 3, 3, 3},
+      {"fit_multi", "", "Strong", 3, 3, 3, 6},
+      {"fit_so", "", "Strong", 3, 3, 3, 3},
+      {"fit_spanout", "", "Strong", 3, 3, 3, 3},
+      {"fit_gs2", "", "Weak", 1, 5, 5, 6},
+      {"fit_s30ml", "", "Strong", 3, 5, 1, 0},
+      {"fit_aoonly", "", "Strong", 3, 3, 3, 3},
+      {"fit_cv4", "", "Strong", 3, 3, 3, 6},
+      {"fit_shortfail", "", "NotObservable", 0, 9, 1, 0},
+      {"fit_mrstack", "", "Strong", 3, 3, 3, 28},
+      {"fit_mrls", "", "Strong", 3, 3, 4, 3},
+      {"fit_missing", "refused:missing-values", "Weak", 1, 6, 0, 1},
+      {"fit_nomean", "", "-", 3, 0, 1, 0},
+      {"fit_pure", "", "Strong", 3, 2, 2, 0},
+      {"fit_nearur", "", "Strong", 3, 6, 0, 0},
+      {"fit_q_air", "refused:d11-frequency", "Weak", 1, 14, 0, 0},
+      {"fit_trfull_air", "refused:d10-calendar", "Strong", 3, 3, 3, 15},
+      {"fit_td_air", "refused:d10-calendar", "Strong", 3, 3, 3, 15},
+      {"fit_aic_air", "refused:d10-calendar", "Strong", 3, 3, 3, 21},
+      {"fit_bic_air", "refused:d10-calendar", "Strong", 3, 3, 3, 15},
+      {"fit_wald_air", "refused:d10-calendar", "Strong", 3, 3, 3, 15},
+      {"fit_oc_air", "refused:oc-precorrection", "Strong", 3, 6, 0, 0},
+      {"fit_easter_air", "refused:d10-calendar", "Strong", 3, 6, 0, 0},
   };
   return k_all;
 }

@@ -177,3 +177,15 @@ value and the 1e−5 intermediate tolerance of TramoKernel.AmiOptions.
 The 40 successful comparisons include changed, unchanged and failed module
 outcomes. Post-scan coefficients continue to arrive through the fitting
 seams. The 67 live / 14 recorded census supersedes the earlier 23-F census.
+
+### 23-G final estimation from observations
+
+The overload of `tramo_final_estimator_run` accepts finite monthly
+model-scale observations and an optional mean. The fit uses it at the 16
+final estimation calls immediately after a scan leaves an empty outlier
+design. Options come from the model at entry, the kernel pass and the
+resolved specification, including EstimateSpec's precision and unit-root
+threshold. Return status, changed-parameter count, all six returned orders
+and every fitted ARMA coefficient agree exactly with the JVM. The 29 other
+final-estimator calls retain their captured results. These calls extend
+the fit census to 83 live and 43 recorded across the four modules.

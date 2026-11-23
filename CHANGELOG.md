@@ -28,6 +28,9 @@
 - Initialized empty regression designs in the warm SARIMA optimizer and
   qualified the two explicit maximum-likelihood TRAMO scans.
 
+- Added monthly observation input to the TRAMO final estimator and checked
+  its decisions and fitted coefficients at 16 real kernel calls.
+
 ## 0.1.0 — initial repository split
 
 Preserved the delivered Kalos numerical scope through 22b.2.

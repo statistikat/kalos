@@ -3878,3 +3878,16 @@ seen on the short maximum-likelihood series and the instrumented multi-
 outlier runs. All 40 integrated entries now reproduce the JVM outcome and
 ordered outlier names, including both explicit maximum-likelihood scans.
 The stationary scan remains witnessed. The census is 67 live / 14 recorded.
+
+### M5 / 23-G — final estimation on actual observations
+
+The final estimator accepts monthly observations on the selected model
+scale. It shares the HR start, likelihood, LM optimizer and exact-derivative
+decisions with the previously qualified generated-series path. All 16
+immediate scan-to-estimation calls with an empty outlier design reproduce
+the JVM return, changed-parameter count, orders and fitted coefficient
+bits. These include two AirPassengers TR3 passes, the short maximum-
+likelihood case and a stationary AR(2) fit. Of 45 final estimation calls,
+29 still require an entry design or predecessor state. Counting this
+fourth module brings the fit census to 83 live and 43 recorded checks.
+The complete raw RSA3 round driver and public product oracle remain open.

@@ -35,8 +35,8 @@
 //    derived from the seam stream and its result compared bit-exactly with
 //    the seam fact the kernel machine already validated (result,
 //    specification, mean, picks, module events). Envelope-excluded seams
-//    (outlier-column warm-ML differencing states, the estimateModel
-//    attempts outside the F.2 family domain) are recorded fact-only,
+//    (outlier-column warm-ML differencing states and final estimation
+//    attempts without a qualified entry design) are recorded fact-only,
 //    never approximated;
 //  * the final surface with the D9 coefficient covariance: the regression
 //    block covariance is recomputed natively as unscaledCovariance *
@@ -153,6 +153,7 @@ struct TramoFitSpec {
     // templates register SarimaSpec.AIRLINE, which is request data the
     // b512ec2 shape did not carry. Unused (period 0) under auto modelling.)
     tramo_sarima_spec fixed_arima;
+    double final_unit_root_threshold = 0.96; // EstimateSpec.getUbp()
 };
 
 // One differencing/arma/scan seam of the cross-check record: which landed
