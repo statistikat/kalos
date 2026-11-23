@@ -19,6 +19,9 @@
 - Added the fitted monthly TRAMO-SEATS component pipeline with checked
   restoration of deterministic effects on observed, forecast and backcast domains.
 
+- Added raw monthly TR0 estimation and the corresponding RSA0 product
+  component pipeline, verified against the public reference kernels.
+
 ## 0.1.0 — initial repository split
 
 Preserved the delivered Kalos numerical scope through 22b.2.

@@ -109,3 +109,23 @@ the complete x86-64 reference extraction-final and product rows at identical
 fitted inputs. Running a raw series and specification without captured fit
 witnesses and qualifying the mandatory rsa3 and rsafull end-to-end oracles
 remain 23-G/24-E work.
+
+## Original monthly series through RSA0
+
+`estimate_tramo_tr0(series, start_year, start_month)` constructs the TR0
+monthly model and estimates the two airline MA parameters and the mean
+correction. TR0's fully specified specification skips automatic model
+identification. The response must be finite and complete and the fitted
+model must leave positive residual degrees of freedom. The result contains
+the fixed SEATS request, mean coefficient, log likelihood, residual SSQ,
+effective observations and estimated parameter count.
+
+`run_tramo_seats_rsa0(series, start_year, start_month)` exposes this fitted
+projection together with the monthly extraction and restored final components.
+Backcast and forecast counts are optional, with the same SEATS defaults and
+D6 decision as the fitted-model pipeline. At the default horizon, six complete
+series matched the public JVM's TR0 estimation and RSA0 finals, including all
+3,960 component values. The fully specified TR0 branch requires no estimator
+records, selected orders or coefficient inputs from a caller. RSA3's automatic
+driver and the TRfull calendar stages still have separate qualification gates.
+[Raw-input reference panel](../../validation/evidence/native/tramo-seats-bridge/rsa0-x86_64.txt)

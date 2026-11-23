@@ -342,7 +342,9 @@ pinned values without a maintainer ruling (the 21 precedent).
   assembly stays 24-D.
 - **23-G — end-to-end TRAMO oracle** against the double-captured
   `TramoKernel.process` corpus (mirrors 21-H.2/H.3: probe observer, decision-
-  bit qualification, measured tiers, sweep).
+  bit qualification, measured tiers, sweep). The fully specified TR0 branch
+  now estimates directly from complete monthly observations. Six public-kernel
+  cases matched all reported fit fields and all respective RSA0 final rows.
 
 ## Item-24 decision units and slices
 

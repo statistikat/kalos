@@ -7,9 +7,10 @@ The [restricted fixed X-13 route](docs/contracts/x13-fit-contract.md) uses fixed
 [Automatic monthly X-13](docs/contracts/x13-automatic-pipeline-contract.md)
 supports backcasts and forecasts and reports unsupported detection options explicitly.
 [Monthly TRAMO](docs/contracts/tramo-fit-contract.md) requires kernel facts,
-seam witnesses and a final record. Its decomposable fitted models can feed a
+seam witnesses and a final record for automatic identification. Its decomposable fitted models can feed a
 [monthly WK component pipeline](docs/contracts/tramo-seats-bridge-contract.md)
-that restores deterministic effects to the final series.
+that restores deterministic effects to the final series. The monthly RSA0
+template also runs directly from the original series via `run_tramo_seats_rsa0`.
 
 ## Build
 

@@ -3776,3 +3776,16 @@ final rows. Replay uses the existing pinned 3.9.0 classpath and the new
 `--stage rsa0` option. Capture SHA-256
 `a9eb8b11f7b062db2578de650bbe5a8ef323a28138cc7d47c97e3b4d280c4669`.
 [Public kernel capture](validation/evidence/native/tramo-seats-bridge/rsa0-x86_64.txt)
+
+### M5 / 23-G and 24-E — ordinary monthly TR0 fit and RSA0 components
+
+`estimate_tramo_tr0` runs the 23-A monthly builder, Hannan–Rissanen
+initialization, pinned Levenberg–Marquardt fit and the fitted likelihood.
+`run_tramo_seats_rsa0` adds the 24-D extraction and product merge. The two
+entry points take the original dated series. The raw-input oracle matches
+both MA coefficients, mean coefficient, log likelihood, residual SSQ, both
+degree counts, 60 final component rows and all 3,960 binary64 values on six
+series against the public TR0/RSA0 JVM kernels. The focused serial and
+OpenMP tests passed. Ordinary automatic RSA3 still needs its 23-G round
+seams, and RSAfull needs the 21-I calendar tests.
+[Usage and qualification](docs/contracts/tramo-seats-bridge-contract.md)
