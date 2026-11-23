@@ -642,6 +642,12 @@
     "validation/evidence/native/x13-horizon/cases.csv",
     "validation/evidence/native/x13-horizon/inputs.csv",
     "validation/evidence/native/x13-horizon/metadata.R",
-    "validation/evidence/native/x13-horizon/oracle-facts.csv"
+    "validation/evidence/native/x13-horizon/oracle-facts.csv",
+    "validation/evidence/native/x13-refusal-jvm-profiles/README.md",
+    "validation/evidence/native/x13-refusal-jvm-profiles/air.csv",
+    "validation/evidence/native/x13-refusal-jvm-profiles/ao.csv",
+    "validation/evidence/native/x13-refusal-jvm-profiles/demand.tsv",
+    "validation/evidence/native/x13-refusal-jvm-profiles/reference.json",
+    "validation/evidence/native/x13-refusal-jvm-profiles/seas.csv"
   ]
 }
