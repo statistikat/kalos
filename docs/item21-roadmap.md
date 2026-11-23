@@ -589,6 +589,18 @@ bit-exact on all four cases (AR sign fix verified through the driver),
 `test_arima_forecasts`; zero-horizon lanes untouched (oracle 4637/0). The
 pinning notes kalos-21h4-pinning.md sections A–J carry the decode.
 
+**REVIEW-1.B (2026-11-23) — horizon entry bound.** The external review
+found the `-h*12` normalization computed in `int` inside the composition
+(negation/product overflow domain) and the expanded length reaching the
+allocations only after estimation. The normalization moved to the public
+entry as an int64 evaluation with a 2^24-month cap on every normalized
+magnitude and on the extended series length (refusal statuses pinned in
+the pipeline contract's entry-horizon-bound appendix, boundary tests as
+suite T01b); composition consumes the checked months. Accepted requests
+normalize to the exact pre-change values — the 13-case oracle and the
+four horizon fixtures replay bit-identical (called out in the REVIEW-1
+gate record).
+
 ## Non-goals
 
 No TRAMO/SEATS (items 23/24), no benchmarking/diagnostics (item 25), no
