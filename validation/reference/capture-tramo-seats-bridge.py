@@ -24,7 +24,7 @@ def main():
                         help="directory containing pinned jars (repeatable)")
     parser.add_argument("--stage", choices=["bridge", "merge", "rsa0", "rsa0-forecast-errors",
                         "rsa0-residuals", "rsa0-ljung-box", "rsa0-doornik-hansen", "rsa1", "rsa1-level-effects", "rsa1-level-tc", "rsa1-log-tc", "rsa1-residual-diagnostics", "rsa3", "rsafull",
-                        "calendar-ftest", "trfull-calendar", "residual-td", "td-controller", "fast-calendar", "spectrum-cos"], default="bridge")
+                        "calendar-ftest", "trfull-calendar", "residual-td", "td-controller", "fast-calendar", "spectrum-cos", "seasonal-peaks"], default="bridge")
     parser.add_argument("--output", type=Path, help="write a new capture instead of verifying the frozen file")
     args = parser.parse_args()
     reference = json.loads((EVIDENCE / "reference.json").read_text())
@@ -51,6 +51,10 @@ def main():
         if arch not in {"x86_64", "amd64"}:
             raise SystemExit("TRAMO calendar F-test uses the pinned x86-64 numerical profile")
         output_name = "../tramo-calendar-ftest/" + calendar_outputs[args.stage]
+    if args.stage == "seasonal-peaks":
+        if arch not in {"x86_64", "amd64"}:
+            raise SystemExit("monthly spectral peaks use the pinned x86-64 numerical profile")
+        output_name = "../tramo-differencing-battery/monthly-spectral-peaks.txt"
     if args.stage.startswith("rsa") or args.stage == "spectrum-cos":
         if arch not in {"x86_64", "amd64"}:
             raise SystemExit("raw TRAMO-SEATS presets use the pinned x86-64 numerical profile")
@@ -71,6 +75,9 @@ def main():
         if sha256(calendar_inputs) != reference["calendar_inputs_sha256"]:
             raise SystemExit("TRfull calendar source cases digest differs")
         arguments.append(calendar_inputs)
+    if args.stage == "seasonal-peaks":
+        probe = "TramoSeasonalPeaksProbe"
+        arguments = []
     sources = [HERE / (probe + ".java")]
     if args.stage in {"trfull-calendar", "residual-td", "td-controller", "fast-calendar"}:
         sources.append(HERE / "CalendarFTestProbe.java")

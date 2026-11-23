@@ -23,6 +23,8 @@
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
+#include <cstdint>
+#include <fstream>
 #include <map>
 #include <stdexcept>
 #include <string>
@@ -486,7 +488,20 @@ void replay(const kalos::test::TbCase& tc) {
                     fail(p.id, std::string(source) + " seasonal statistics differ in " + tag);
             };
             compare(kalos::tramo_seasonality_statistics(st->resid), st->resl, "residual");
-            compare(kalos::tramo_seasonality(p.linearized.at(tag)), st->ctlst, "linearized");
+            const auto linearized = kalos::tramo_seasonality(p.linearized.at(tag));
+            compare(linearized, st->ctlst, "linearized");
+            const auto check_tukey = [&](const std::vector<double>& values, const BatteryTests& expected) {
+                const auto peaks = kalos::tramo_monthly_tukey_peaks(values);
+                if (peaks.empty() != expected.tukey_null)
+                    fail(p.id, "Tukey availability in " + tag);
+                if (!expected.peaks.empty()) {
+                    if (peaks.size() != expected.peaks.size() || !std::equal(peaks.begin(), peaks.end(),
+                            expected.peaks.begin(), [](auto peak, const auto& row) { return peak == row.tukey; }))
+                        fail(p.id, "Tukey seasonal peaks in " + tag);
+                }
+            };
+            check_tukey(st->resid, st->resl);
+            check_tukey(linearized.differenced, st->ctlst);
         }
         const auto tests = kalos::tramo_comparator_residual_tests(st->resid);
         if (!bits_eq(tests.absolute_skewness, st->mstat.skew_abs) ||
@@ -671,6 +686,31 @@ void negative_probes() {
     }
 }
 
+void check_monthly_spectra() {
+    std::ifstream input(KALOS_SEASONAL_PEAKS);
+    std::size_t n;
+    int seed;
+    std::string expected_ar, expected_tukey;
+    int count = 0;
+    while (input >> n >> seed >> expected_ar >> expected_tukey) {
+        std::uint32_t state = seed + 1;
+        std::vector<double> x(n);
+        for (std::size_t i = 0; i < n; ++i) {
+            state = 1664525u * state + 1013904223u;
+            const int month = (i + seed) % 12;
+            const int seasonal = (7 * month + month * month) % 17 - 8;
+            x[i] = (static_cast<int>(state >> 16) - 32768) / 4096.0 + seasonal * (seed % 4) / 2.0;
+        }
+        std::string actual;
+        for (auto peak : kalos::tramo_monthly_tukey_peaks(x))
+            actual += peak == PeakTukey::T ? '2' : peak == PeakTukey::t ? '1' : '0';
+        if ((actual.empty() ? "-" : actual) != expected_tukey)
+            fail("Tukey spectrum", "length " + std::to_string(n) + ", seed " + std::to_string(seed));
+        ++count;
+    }
+    if (count != 168) fail("monthly spectrum", "incomplete classifier corpus");
+}
+
 } // namespace
 
 int main() {
@@ -681,6 +721,7 @@ int main() {
         replay(cases[i]);
         total_facts += static_cast<long>(cases[i].facts_len);
     }
+    check_monthly_spectra();
     negative_probes();
     std::printf("tramo-differencing-battery: %zu cases, %ld fact lines, %ld states, %ld "
                 "F p-values, %ld ladder scores, %ld peak gates, %ld over-codes, %ld decision "

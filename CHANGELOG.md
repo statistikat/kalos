@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Compute monthly Tukey spectral-peak significance for TRAMO controllers.
+
 - Added the monthly Qs and Friedman tests used on TRAMO fitted residuals
   and linearized data in the late seasonality controllers.
 

@@ -4329,3 +4329,12 @@ error uses the fitted residual sum of squares and the effective count
 minus the number of estimated parameters excluding variance. Three
 Release CTests passed for diagnostics and both complete raw products.
 [Projection contract](docs/contracts/tramo-seats-bridge-contract.md)
+
+### M5 / 23-G — monthly Tukey spectral peaks
+
+The native Tukey-window spectrum now classifies all six monthly harmonics
+and reproduces the JVM's short-series refusal. Both window lengths and all
+three significance levels passed on the original controller states and a
+new paired-JVM panel of 168 inputs, including the 79/80 and 119/120
+boundaries. The shared panel also freezes the autoregressive spectral
+classifications for the next controller step.
