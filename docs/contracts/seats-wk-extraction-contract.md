@@ -42,19 +42,21 @@ auto x = kalos::seats_extract_wk(req);
    estimate needs the full TRAMO likelihood, not ported).
 4. `seats_extract_wk: Noisy approximation mode is outside the D6 envelope`
    (24-B parity).
-5. `seats_extract_wk: approximation_required decision is outside the D6
-   envelope (the DefaultModelApproximator retry loop is not ported)` — D6
-   (covers the classical frozen airline and the fixMa degenerate crash).
+5. `seats_extract_wk: approximation_required decision is outside the qualified monthly airline retry envelope` for a Legacy retry outside the monthly (0,1,q)(0,1,BQ) family with q at most one.
+
+When that monthly model needs approximation, the toolkit keeps its ordinary MA
+coefficient and chooses a seasonal MA of −0.2 if the negated ordinary coefficient
+is strictly between 0.36 and 0.7, or −0.1 otherwise. An absent or zero ordinary
+coefficient produces q=0. The same model recurs at every subsequent retry, so
+a second failed decomposition determines the terminal failure. The extraction
+uses the original observations, mean setting and innovation variance.
 
 ## Mirror-status rows (data, not refusals)
 
 A decomposition that came back null under mode None is the kernel's
 SeatsException BEFORE estimation: the unit emits exactly
 `status error:jdplus.tramoseats.base.api.seats.SeatsException:Invalid
-decomposition` and no dom/init/final rows (corpus: x_stab_none; the corpus's
-`d == null` cases all end in this row or in a D6 refusal, so the JVM's
-10-retry `DefaultModelApproximator` loop is never observed — see Open
-questions). Mid-run JVM aborts inside the mirrored region are likewise
+decomposition` and no dom/init/final rows (x_stab_none). Mid-run JVM aborts inside the mirrored region are likewise
 status rows — probe-observed classes: the prediction-error sink's
 `jdplus.toolkit.base.api.eco.EcoException:Negative variance` (x_ar3,
 x_stat_ar3), `NullPointerException` (unconditional WKE adds fed by a skipped
@@ -95,12 +97,16 @@ OpenJDK 21); 36 cases captured twice with byte-identical csv output under
 `tools/gen_seats_wk_extraction_golden.py` harvests the replayed subset
 (status/dom/init/final rows + request echo + series + start) into
 `tests/jvm_seats_wk_extraction.h`; `test_seats_extract_wk` replays all 36
-(6 refusal / 28 full runs / 2 mid-run EcoException status rows + the
-x_stab_none SeatsException row; 1208 line checks). Record-only rows
-(case/toolkit/v./model/tpl = 24-A, d/cmp/r = 24-B, k.*/kevt = kernel
-surface) are NOT replayed. `tools/verify_seats_wk_extraction.cpp` re-drives
-the raw csv corpus (36 cases, 6 refusals, 126 checks, 0 failures);
-shim-invariant.
+cases, including the four envelope refusals, the classical airline retry and the degenerate fixMa MatrixException. The standalone sweep also reads the raw csv directly.
+
+Eight boundary requests cover both adjacent floating-point values at 0.36 and
+0.7, an interior value and an absent ordinary MA. Each reproduces the adjusted
+endpoints and all components of the replacement model. To regenerate the small
+oracle, compile `SeatsAirlineApproximationProbe.java` together with
+`SeatsWkExtractionProbe.java` using the same locked 3.9.0 jars and Java 21.0.11
+x86-64. Run its main class twice with
+`-XX:+UnlockDiagnosticVMOptions -XX:DisableIntrinsic=_dexp,_dlog` and compare
+standard output with `validation/evidence/native/seats-airline-approximation/thresholds.csv`.
 
 ## Facts this unit deliberately does NOT emit
 
@@ -111,17 +117,11 @@ aborted the run.
 
 ## Open questions / later work
 
-- **D6 envelope question (deferred to the owning slice):** for `d == null`
-  the unit mirrors the SeatsException status WITHOUT replaying the JVM's
-  10-retry `DefaultModelApproximator` loop; the corpus agrees with that ONLY
-  because every captured `d == null` case ends in the same row or in a D6
-  refusal. A request where the approximator succeeds (JVM continues to a
-  full extraction) would need the approximator ported — the validator
-  already flags those requests, so widening the envelope never silences a
-  divergence.
+- D6 approximations that change differencing or require re-estimation remain open,
+  including the mixed AO/LS fitted handoff.
 - The `dom` null branch (`TsDomain.DEFAULT_EMPTY` printing "n 0 start 1970
   0") is unreachable inside the envelope (corpus: x_kalman context rows).
-- Kalman smoothing (D1), Noisy mode / approximation (D6), the quarterly
+- Kalman smoothing (D1), Noisy mode (D6), the quarterly
   frequency path (D11) and the ConcentratedLikelihood variance path stay
   fail-closed by register decision.
 

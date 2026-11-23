@@ -4,6 +4,10 @@
 
 - Added the public monthly RSA0 residual Ljung–Box diagnostic with its
   zero-mean convention and paired JVM evidence.
+
+- Added the monthly SEATS Legacy airline approximation, with JVM-verified
+  seasonal MA thresholds and component extraction after a successful retry.
+
 - Added dated, structured initial and bias-corrected SEATS component series
   to the Wiener–Kolmogorov extractor for M5 pipeline assembly.
 - Corrected the white-noise ARMA candidate's BIC on macOS ARM64 by using

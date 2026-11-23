@@ -640,6 +640,13 @@ seats_extract_wk_result run_extraction(const tramo_seats_model_request& request,
   m1.bphi = dec.bphi;
   m1.theta = dec.theta;
   m1.btheta = dec.btheta;
+  if (dec.approximation_required) {
+    // DefaultModelApproximator.app_011011 retains the ordinary MA and replaces
+    // the seasonal MA. Each subsequent retry selects this same model.
+    const double negated_theta = m1.theta.empty() ? 0.0 : -m1.theta.front();
+    if (negated_theta == 0.0) m1.theta.clear();
+    m1.btheta = {negated_theta > 0.36 && negated_theta < 0.7 ? -0.2 : -0.1};
+  }
   detail::EngineFacts ef;
   try {
     ef = detail::decompose(m1, request.rmod, request.epsphi, request.smod,
@@ -675,7 +682,7 @@ seats_extract_wk_result run_extraction(const tramo_seats_model_request& request,
       d = std::nullopt;
     }
   }
-  if (!d) {  // unreachable inside the envelope (both null branches refused)
+  if (!d) {
     return seats_extract_wk_result({"status error:jdplus.tramoseats.base.api.seats."
                                     "SeatsException:Invalid decomposition"});
   }
@@ -780,11 +787,12 @@ seats_extract_wk_result seats_extract_wk(
     throw std::invalid_argument(
         "seats_extract_wk: Noisy approximation mode is outside the D6 "
         "envelope");
-  if (dec.approximation_required)
+  const bool monthly_airline = dec.period == 12 && dec.orders_d == 1 && dec.orders_bd == 1 &&
+      dec.phi.empty() && dec.bphi.empty() && dec.theta.size() <= 1;
+  if (dec.approximation_required && !monthly_airline)
     throw std::invalid_argument(
         "seats_extract_wk: approximation_required decision is outside the "
-        "D6 envelope (the DefaultModelApproximator retry loop is not "
-        "ported)");
+        "qualified monthly airline retry envelope");
 
   std::vector<std::string> facts;
   if (dec.seats_exception) {

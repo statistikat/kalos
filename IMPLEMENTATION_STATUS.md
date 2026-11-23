@@ -3892,6 +3892,22 @@ likelihood case and a stationary AR(2) fit. Of 45 final estimation calls,
 fourth module brings the fit census to 83 live and 43 recorded checks.
 The complete raw RSA3 round driver and public product oracle remain open.
 
+### M5 / 24-D — monthly airline approximation in SEATS
+
+The legacy WK extractor now retries a failed decomposition for monthly
+(0,1,q)(0,1,Q) models with q at most one. It follows the JVM's strict
+ordinary-MA thresholds and preserves the pre-retry variance and original model.
+The classical airline fixture now returns its full component series. The
+degenerate fixed-MA fixture reproduces the public JVM matrix exception.
+
+Eight double-captured JVM cases cover both thresholds and their neighbours,
+an interior value and an absent ordinary MA. The extraction regression and
+ASan/UBSan replay passed 1,267 checks, including 1,095 component rows and
+58,020 binary64 values. The independent raw CSV sweep passed 132 checks on
+36 requests. The extraction, bridge and public RSA0 CTest targets passed 3/3.
+Higher-order models that require an estimator, including the mixed AO/LS
+fitted bridge, still need a separate approximation port and qualification.
+
 ### M5 / 24-E — public RSA0 preprocessing residual oracle
 
 The six public RSA0 cases now record the dated `residuals.tsres` series and
