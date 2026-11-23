@@ -3989,6 +3989,16 @@ at the RSA1 checkpoint matched their Git blobs. The historical validation
 also passed for all 406 entries. Windows CI runs both the export manifest and
 historical validation before building the provider.
 
+### M5 / 24-E — stock RSAfull public reference
+
+Two fresh pinned JVMs produced identical stock TRfull preprocessing and RSAfull
+products for the six raw public inputs and all 20 calendar-effect inputs. The
+26 fitted models include a six-column trading-day design, leap year, Easter,
+mean and AO/LS/TC effects. All 26 produced decompositions. One required a
+SEATS model change. The 260 output rows contain 24,360 observed and forecast
+values. This captures the reference for the outstanding raw RSAfull driver.
+[Public RSAfull reference](validation/evidence/native/tramo-seats-bridge/rsafull-x86_64.txt)
+
 ### M5 / 21-I.4 — trading-day candidate estimation and model selection
 
 The late controller now runs from dated monthly airline observations with an

@@ -23,7 +23,7 @@ def main():
     parser.add_argument("--jar-dir", type=Path, action="append", required=True,
                         help="directory containing pinned jars (repeatable)")
     parser.add_argument("--stage", choices=["bridge", "merge", "rsa0", "rsa0-forecast-errors",
-                        "rsa0-residuals", "rsa0-ljung-box", "rsa0-doornik-hansen", "rsa1", "rsa1-level-effects", "rsa3",
+                        "rsa0-residuals", "rsa0-ljung-box", "rsa0-doornik-hansen", "rsa1", "rsa1-level-effects", "rsa3", "rsafull",
                         "calendar-ftest", "trfull-calendar", "residual-td", "td-controller", "spectrum-cos"], default="bridge")
     parser.add_argument("--output", type=Path, help="write a new capture instead of verifying the frozen file")
     args = parser.parse_args()
@@ -66,6 +66,11 @@ def main():
                        "td-controller": "TramoTradingDaysControllerProbe"}
     probe = calendar_probes.get(args.stage, "TramoSeatsBridgeProbe")
     arguments = [] if args.stage in calendar_probes else [CASES, args.stage]
+    if args.stage == "rsafull":
+        calendar_inputs = EVIDENCE.parent / "tramo-calendar-ftest/full.txt"
+        if sha256(calendar_inputs) != reference["calendar_inputs_sha256"]:
+            raise SystemExit("TRfull calendar source cases digest differs")
+        arguments.append(calendar_inputs)
     sources = [HERE / (probe + ".java")]
     if args.stage in {"trfull-calendar", "residual-td", "td-controller"}:
         sources.append(HERE / "CalendarFTestProbe.java")
