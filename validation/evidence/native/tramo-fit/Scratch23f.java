@@ -1,5 +1,21 @@
-// 23-F.3 probe: the TramoKernel round driver of the pinned jdplus 3.9.0
-// stack, observed two ways per case from ONE JVM:
+// 23-F.4 probe: the TramoKernel round driver of the pinned jdplus 3.9.0
+// stack (the 23-F.3 Scratch23r dual-driver engine verbatim) plus the FIT
+// capture surface of the tramo_fit assembly: the builder-state line right
+// after k.build (fitbuild: orders/mean/log/nvars/outs + the missing-plan
+// positions and the interpolated series bits), the jar seasonality verdict
+// on the raw series (fitdec - the 23-B decision witness, a direct
+// TramoSeasonalityDetector call), the per-seam ENTRY states of the
+// differencing/arma/scan modules (fitseam - what the module read, as
+// opposed to the seam fact's post-state), the ArmaModule residuals
+// (fitresid: the comespa gate readout plus the
+// RegArimaUtility.olsResiduals(desc.regarima()) vector the selector
+// consumes, javap-pinned to ArmaModule.process offset 160), the
+// ConcentratedLikelihood views of the final estimation (fitcl/fitcoef/
+// fituc - the D9 covariance inputs), the differenced response of the final
+// description (fitdy) and the ParametersEstimation covariance of the
+// result models (the "parcov" dumpModel line - the ARMA-tail surface the
+// contract keeps DISTINCT from the regression-block `cov`, register D9).
+// The observed two ways per case from ONE JVM:
 //  (A) the REAL run: TramoKernel.of(spec, ctx).process(data, log) - every
 //      ProcessingLog event (seq/kind/depth/message) plus a kernel-field
 //      snapshot at every "round N" step event (reflection at the pass
@@ -24,13 +40,15 @@
 //      would diverge from the real run's - each case ends with
 //      dump-not-trust identity lines (events, snaps, final bits).
 //
-// Case grammar: "KER <id> <spec> <freq> <startY> <startM>" header plus
-// "values v1 v2 ..." lines (%.17g), mirroring the 23-B/23-F.2 probe style.
-// <spec> is a TramoSpec alias (TR0..TR5, TRfull) with optional overrides
-// "+oc" (transform outliersCorrection), "+am"/"-am" (usingAutoModel),
-// "+accept" (autoModel acceptDefault), "+mean" (regression mean test),
-// "-o" (outlier types off = isUsed false), and kv pairs "va=" "pcr="
-// "tsig=" "pc=" "fct=".
+// Case grammar: "KER <id> <spec> [extra kv...] <freq> <startY> <startM>"
+// header plus "values v1 v2 ..." lines (%.17g), mirroring the 23-B/23-F.2
+// probe style. <spec> is a TramoSpec alias (TR0..TR5, TRfull) with optional
+// overrides "+oc" (transform outliersCorrection), "+am"/"-am"
+// (usingAutoModel), "+accept" (autoModel acceptDefault), "+mean" (regression
+// mean test), "+nomean" (MeanSpec.none()), "+easter" (Easter test), "-o"
+// (outlier types off = isUsed false), and kv pairs "va=" "pcr=" "tsig="
+// "pc=" "fct=" "amth=<AutoMethod>" (automatic trading days with that
+// selection method - the I-10 refusal witness).
 package jdplus.tramoseats.base.core.tramo;
 
 import jdplus.toolkit.base.api.arima.SarimaOrders;
@@ -262,6 +280,20 @@ public class Scratch23f {
     }
     out.add(tag + " cov " + cb.toString().trim());
     out.add(tag + " params " + bs(ge.getParameters().getValues().toArray()));
+    // The ParametersEstimation covariance (the ARMA-tail surface: built by
+    // the estimation from the maximum-likelihood Point asymptotic
+    // covariance). Kept DISTINCT from the coefficientsCovariance regression
+    // block above (register D9); captured here so the fit corpus witnesses
+    // the separation on every case, jar and manual side alike.
+    jdplus.toolkit.base.api.math.matrices.Matrix pcov = ge.getParameters().getCovariance();
+    int pn = (int) call(pcov, "getRowsCount", new Class<?>[]{});
+    StringBuilder pb = new StringBuilder();
+    for (int i = 0; i < pn; ++i) {
+      for (int j = i; j < pn; ++j) {
+        pb.append(b(pcov.get(i, j))).append(' ');
+      }
+    }
+    out.add(tag + " parcov " + (pb.length() == 0 ? "-" : pb.toString().trim()));
     jdplus.toolkit.base.core.stats.likelihood.LikelihoodStatistics ls = ge.getStatistics();
     out.add(tag + " stats obs " + ls.getObservationsCount()
         + " eff " + ls.getEffectiveObservationsCount()
@@ -311,6 +343,7 @@ public class Scratch23f {
     String[] parts = tok.trim().split("\\s+");
     String base = parts[0];
     Double va = null, pcr = null, tsig = null, pc = null, fct = null, tcrate = null;
+    String amth = null;
     for (int i = 1; i < parts.length; ++i) {
       String kv = parts[i];
       if (kv.startsWith("va=") && !kv.equals("va=calc")) {
@@ -321,10 +354,13 @@ public class Scratch23f {
       if (kv.startsWith("pc=")) { pc = Double.parseDouble(kv.substring(3)); }
       if (kv.startsWith("fct=")) { fct = Double.parseDouble(kv.substring(4)); }
       if (kv.startsWith("tcrate=")) { tcrate = Double.parseDouble(kv.substring(7)); }
+      if (kv.startsWith("amth=")) { amth = kv.substring(5); }
     }
     boolean oc = base.contains("+oc");
     boolean accept = base.contains("+accept");
     boolean mean = base.contains("+mean");
+    boolean nomean = base.contains("+nomean");
+    boolean easter = base.contains("+easter");
     boolean amSet = false, am = false;
     if (base.contains("+am")) { amSet = true; am = true; }
     if (base.contains("-am")) { amSet = true; am = false; }
@@ -333,6 +369,7 @@ public class Scratch23f {
     boolean notc = base.contains("+notc"), noso = base.contains("+noso");
     boolean ml = base.contains("+ml"), td = base.contains("+td"), fs = base.contains("+fs");
     base = base.replace("+oc", "").replace("+accept", "").replace("+mean", "")
+        .replace("+nomean", "").replace("+easter", "")
         .replace("+am", "").replace("-am", "").replace("-o", "")
         .replace("+noao", "").replace("+nols", "").replace("+notc", "")
         .replace("+noso", "").replace("+ml", "").replace("+td", "").replace("+fs", "");
@@ -397,6 +434,23 @@ public class Scratch23f {
     if (mean) {
       b.regression(spec.getRegression().toBuilder().mean(
           spec.getRegression().getMean().toBuilder().test(true).build()).build());
+    }
+    if (nomean) {
+      b.regression(spec.getRegression().toBuilder()
+          .mean(jdplus.tramoseats.base.api.tramo.MeanSpec.none()).build());
+    }
+    if (easter) {
+      b.regression(spec.getRegression().toBuilder().calendar(
+          spec.getRegression().getCalendar().toBuilder().easter(
+              spec.getRegression().getCalendar().getEaster().toBuilder()
+                  .test(true).build()).build()).build());
+    }
+    if (amth != null) {
+      b.regression(spec.getRegression().toBuilder().calendar(
+          spec.getRegression().getCalendar().toBuilder().tradingDays(
+              TradingDaysSpec.automatic(
+                  jdplus.toolkit.base.api.timeseries.calendars.LengthOfPeriodType.LengthOfPeriod,
+                  TradingDaysSpec.AutoMethod.valueOf(amth), 0.7, true)).build()).build());
     }
     if (accept || pcr != null || tsig != null || pc != null) {
       jdplus.tramoseats.base.api.tramo.AutoModelSpec.Builder ab
@@ -488,7 +542,67 @@ public class Scratch23f {
         + " tdAuto " + (spec.getRegression().getCalendar().getTradingDays().isAutomatic() ? 1 : 0)
         + " tdTest " + (spec.getRegression().getCalendar().getTradingDays().isTest() ? 1 : 0)
         + " easter " + (spec.getRegression().getCalendar().getEaster().isTest() ? 1 : 0)
-        + " tfunc " + spec.getTransform().getFunction().name());
+        + " tfunc " + spec.getTransform().getFunction().name()
+        + " amth " + spec.getRegression().getCalendar().getTradingDays()
+            .getAutomaticMethod().name());
+
+    // fitdec: the jar seasonality verdict on the RAW series (the 23-B
+    // decision witness; TramoKernel.testSeasonality runs this same detector
+    // on the description data before the log decision).
+    try {
+      TramoSeasonalityDetector det = new TramoSeasonalityDetector();
+      Object sea = det.hasSeasonality(DoubleSeq.of(series), freq);
+      SeasonalityTests st = det.getTests();
+      out.add("fitdec " + sea.toString() + " toint " + call(sea, "toInt",
+          new Class<?>[]{}));
+      jdplus.toolkit.base.api.stats.StatisticalTest qs = st.getQs();
+      jdplus.toolkit.base.api.stats.StatisticalTest fr = st.getNonParametricTest();
+      out.add("fitdec qs " + g17(qs.getValue()) + " qsp " + g17(qs.getPvalue())
+          + " fr " + g17(fr.getValue()) + " frp " + g17(fr.getPvalue())
+          + " score " + st.getScore());
+    } catch (RuntimeException e0) {
+      out.add("fitdec err " + e0.getClass().getName());
+    }
+
+    // fitll: the LogLevelModule field echo, run as a side pass on a FRESH
+    // kernel over the same built description (the testTransformation
+    // bytecode chain: builder.logPreference(Math.log(getFct()))
+    // .estimationPrecision(intermediatePrecision).seasonal(ctx.seasonal)
+    // after testSeasonality has set the context flag). The main runs are
+    // untouched; the double capture proves this side pass deterministic.
+    if (spec.getTransform().getFunction() == TransformationType.Auto
+        && !spec.getTransform().isOutliersCorrection()) {
+      try {
+        Observer obsS = new Observer("ssnap");
+        TramoKernel kS = TramoKernel.of(spec, new ModellingContext());
+        ModelDescription descS = (ModelDescription) call(kS, "build",
+            new Class<?>[]{TsData.class, ProcessingLog.class}, ts, obsS);
+        RegSarimaModelling mS = RegSarimaModelling.of(descS, obsS);
+        call(kS, "testSeasonality", new Class<?>[]{RegSarimaModelling.class}, mS);
+        Object optS = rf(kS, "options");
+        Object ctxS = rf(kS, "context");
+        LogLevelModule lm = LogLevelModule.builder()
+            .logPreference(Math.log(spec.getTransform().getFct()))
+            .estimationPrecision((double) rf(optS, "intermediatePrecision"))
+            .seasonal((boolean) rf(ctxS, "seasonal"))
+            .build();
+        Object llres = lm.process(mS);
+        out.add("fitll res " + llres.toString()
+            + " log " + g17((double) rf(lm, "log"))
+            + " level " + g17((double) rf(lm, "level"))
+            + " slog " + g17((double) rf(lm, "slog"))
+            + " seasonal " + ((boolean) rf(ctxS, "seasonal") ? 1 : 0)
+            + " ost " + rf(ctxS, "originalSeasonalityTest")
+            + " choosing " + (lm.isChoosingLog() ? 1 : 0)
+            + " corr " + g17(lm.getLogCorrection())
+            + " logflag " + (mS.getDescription().isLogTransformation() ? 1 : 0));
+      } catch (RuntimeException e5) {
+        out.add("fitll err " + e5.getClass().getName());
+      }
+    } else {
+      out.add("fitll skip " + spec.getTransform().getFunction().name()
+          + " oc " + (spec.getTransform().isOutliersCorrection() ? 1 : 0));
+    }
 
     // ---------- (A) REAL run ----------
     Observer obsR = new Observer("rsnap");
@@ -640,13 +754,54 @@ public class Scratch23f {
       lines.add("fitbuild orders " + ordersLine(desc.specification())
           + " mean " + (desc.isMean() ? 1 : 0)
           + " log " + (desc.isLogTransformation() ? 1 : 0)
-          + " nvars " + desc.getVariables().length
+          + " nvars " + desc.variables().count()
+          + " miss " + desc.getMissing().length
+          + " misspos " + java.util.Arrays.toString(desc.getMissing())
+          + " interp " + bs(desc.getInterpolatedSeries().getValues().toArray())
           + " outs " + outlierNames(desc));
       RegSarimaModelling m = RegSarimaModelling.of(desc, obs);
       mlast = m;
       RegSarimaModel r = ami(m);
+      clLines(m);
       obs.pop();
       return r;
+    }
+
+    // The ConcentratedLikelihoodWithMissing views of the final estimation
+    // (the D9 covariance inputs) and the differenced response of the final
+    // description, captured for BOTH ami arms (the loop and the fully
+    // specified estimate-and-build path) after ami returns.
+    void clLines(RegSarimaModelling m) {
+      try {
+        jdplus.toolkit.base.core.regarima.RegArimaEstimation<
+            jdplus.toolkit.base.core.sarima.SarimaModel> e2 = m.getEstimation();
+        if (e2 != null) {
+          ConcentratedLikelihoodWithMissing c2 = e2.getConcentratedLikelihood();
+          if (c2 != null) {
+            lines.add("fitcl dim " + c2.dim() + " nx " + c2.nx() + " nmiss "
+                + c2.nmissing() + " ssq " + g17(c2.ssq()) + " ldet "
+                + g17(c2.logDeterminant()) + " sf " + (c2.isScalingFactor() ? 1 : 0));
+            lines.add("fitcoef " + bs(c2.allCoefficients().toArray()));
+            FastMatrix uc = c2.unscaledCovariance();
+            StringBuilder ub = new StringBuilder();
+            int ur0 = (int) call(uc, "getRowsCount", new Class<?>[]{});
+            for (int i = 0; i < ur0; ++i) {
+              for (int j = i; j < ur0; ++j) {
+                ub.append(b(uc.get(i, j))).append(' ');
+              }
+            }
+            lines.add("fituc " + ub.toString().trim());
+          }
+        }
+      } catch (RuntimeException e3) {
+        lines.add("fitcl err " + e3.getClass().getName());
+      }
+      try {
+        lines.add("fitdy " + bs(m.getDescription().regarima().differencedModel()
+            .getY().toArray()));
+      } catch (RuntimeException e4) {
+        lines.add("fitdy err " + e4.getClass().getName());
+      }
     }
 
     // ami() transcription
@@ -683,30 +838,6 @@ public class Scratch23f {
         }
       }
       RegSarimaModel r = m.build();
-      try {
-        jdplus.toolkit.base.core.regarima.RegArimaEstimation<
-            jdplus.toolkit.base.core.sarima.SarimaModel> e2 = m.getEstimation();
-        if (e2 != null) {
-          ConcentratedLikelihoodWithMissing c2 = e2.getConcentratedLikelihood();
-          if (c2 != null) {
-            lines.add("fitcl dim " + c2.dim() + " nx " + c2.nx() + " nmiss "
-                + c2.nmissing() + " ssq " + g17(c2.ssq()) + " ldet "
-                + g17(c2.logDeterminant()) + " sf " + (c2.isScalingFactor() ? 1 : 0));
-            lines.add("fitcoef " + bs(c2.allCoefficients().toArray()));
-            FastMatrix uc = c2.unscaledCovariance();
-            StringBuilder ub = new StringBuilder();
-            int ur0 = (int) call(uc, "getRowsCount", new Class<?>[]{});
-            for (int i = 0; i < ur0; ++i) {
-              for (int j = i; j < ur0; ++j) {
-                ub.append(b(uc.get(i, j))).append(' ');
-              }
-            }
-            lines.add("fituc " + ub.toString().trim());
-          }
-        }
-      } catch (RuntimeException e3) {
-        lines.add("fitcl err " + e3.getClass().getName());
-      }
       m.getLog().pop();
       return r;
     }
@@ -769,6 +900,11 @@ public class Scratch23f {
       boolean mean0 = desc.isMean();
       if (needDifferencing(desc)) {
         Object dm = call(k, "differencingModule", new Class<?>[]{});
+        ModelDescription dE = m.getDescription();
+        lines.add("fitseam " + seam + " diff pass " + pass + " round " + round
+            + " orders " + ordersLine(dE.specification())
+            + " mean " + (dE.isMean() ? 1 : 0)
+            + " outs " + outlierNames(dE));
         ProcessingResult res = (ProcessingResult) invokeIface(dm, "process",
             new Class<?>[]{RegSarimaModelling.class}, m);
         changed = res == ProcessingResult.Changed;
@@ -784,6 +920,39 @@ public class Scratch23f {
       }
       if (needAutoModellingGuarded(desc)) {
         Object am = call(k, "armaModule", new Class<?>[]{});
+        ModelDescription dE = m.getDescription();
+        lines.add("fitseam " + seam + " arma pass " + pass + " round " + round
+            + " orders " + ordersLine(dE.specification())
+            + " mean " + (dE.isMean() ? 1 : 0)
+            + " outs " + outlierNames(dE));
+        // fitresid: the comespa gate readout and the residual vector
+        // ArmaModule.process computes at its offset 160
+        // (RegArimaUtility.olsResiduals(desc.regarima())) - the exact state
+        // the selector consumes (the description is untouched between here
+        // and the module call).
+        try {
+          SarimaOrders o0 = dE.specification();
+          jdplus.toolkit.base.core.regarima.RegArimaModel<
+              jdplus.toolkit.base.core.sarima.SarimaModel> reg = dE.regarima();
+          int nob = reg.getObservationsCount();
+          boolean seasonalF = (boolean) rf(am, "seasonal");
+          Method maxInicM = jdplus.tramoseats.base.core.tramo.internal.ArmaModule.class
+              .getDeclaredMethod("maxInic", int.class);
+          Method comespaM = jdplus.tramoseats.base.core.tramo.internal.ArmaModule.class
+              .getDeclaredMethod("comespa", int.class, int.class, int.class,
+                  int.class, int.class, boolean.class);
+          maxInicM.setAccessible(true);
+          comespaM.setAccessible(true);
+          int spc = (int) comespaM.invoke(null, o0.getPeriod(), nob,
+              (int) maxInicM.invoke(null, o0.getPeriod()), o0.getD(), o0.getBd(),
+              seasonalF);
+          double[] r0 = jdplus.toolkit.base.core.regarima.RegArimaUtility
+              .olsResiduals(reg).toArray();
+          lines.add("fitresid " + seam + " spc " + spc + " nobs " + nob
+              + " n " + r0.length + " " + bs(r0));
+        } catch (ReflectiveOperationException | RuntimeException e9) {
+          lines.add("fitresid " + seam + " err " + e9.getClass().getName());
+        }
         ProcessingResult res = (ProcessingResult) invokeIface(am, "process",
             new Class<?>[]{RegSarimaModelling.class}, m);
         desc = m.getDescription();
@@ -802,6 +971,11 @@ public class Scratch23f {
           m.clearEstimation();
         }
         Object om = call(k, "outliersModule", new Class<?>[]{});
+        ModelDescription dE = m.getDescription();
+        lines.add("fitseam " + seam + " scan pass " + pass + " round " + round
+            + " orders " + ordersLine(dE.specification())
+            + " mean " + (dE.isMean() ? 1 : 0)
+            + " outs " + outlierNames(dE) + " cv " + g17(curva));
         ProcessingResult res = (ProcessingResult) invokeIface(om, "process",
             new Class<?>[]{RegSarimaModelling.class, double.class}, m, curva);
         seam("scan", "res " + res.name() + " cv " + g17(curva) + " orders "
