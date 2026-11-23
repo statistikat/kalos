@@ -309,13 +309,28 @@ public class TramoSeatsBridgeProbe {
             System.out.printf("frequency %016x %s%n", angle, bits(Math.cos(Double.longBitsToDouble(angle))));
     }
 
+    private static double[] levelInput(double[] values) {
+        return Arrays.stream(values).map(value -> value - 1000).toArray();
+    }
+
+    private static double[] logTcInput(double[] values) {
+        double[] result = values.clone();
+        double impulse = 1.0;
+        for (int j = result.length / 2; j < result.length; ++j) {
+            result[j] *= 1.0 + 0.1 * impulse;
+            impulse *= 0.7;
+        }
+        return result;
+    }
+
     public static void main(String[] args) throws Exception {
         String stage = args.length > 1 ? args[1] : "bridge";
         if (stage.equals("spectrum-cos")) { spectrumCos(); return; }
         boolean raw = stage.startsWith("rsa");
         boolean levelEffects = stage.startsWith("rsa1-level-");
         boolean logTc = stage.equals("rsa1-log-tc");
-        Set<String> cases = logTc ? Set.of("fit_noout", "fit_ls", "fit_multi")
+        Set<String> logTcCases = Set.of("fit_noout", "fit_ls", "fit_multi");
+        Set<String> cases = logTc ? logTcCases
             : stage.equals("rsa1-level-tc") ? Set.of("fit_multi")
             : levelEffects ? Set.of("fit_ao", "fit_ls")
             : raw ? RAW_CASES : TEMPLATES.keySet();
@@ -334,20 +349,17 @@ public class TramoSeatsBridgeProbe {
             TsPeriod start = TsPeriod.monthly(Integer.parseInt(header[n-2]), Integer.parseInt(header[n-1]));
             double[] values = Arrays.stream(lines.get(i+1).substring(7).split(" "))
                 .mapToDouble(Double::parseDouble).toArray();
-            if (levelEffects) for (int j = 0; j < values.length; ++j) values[j] -= 1000;
-            if (logTc) {
-                double impulse = 1.0;
-                for (int j = values.length / 2; j < values.length; ++j) {
-                    values[j] *= 1.0 + 0.1 * impulse;
-                    impulse *= 0.7;
-                }
-            }
+            if (levelEffects) values = levelInput(values);
+            if (logTc) values = logTcInput(values);
             TsData data = TsData.of(start, DoubleSeq.of(values));
             if (stage.equals("rsa1-residual-diagnostics")) {
                 rsa1ResidualDiagnostics(id, data);
-                if (id.equals("fit_ao") || id.equals("fit_ls")) {
-                    var shifted = Arrays.stream(values).map(value -> value - 1000).toArray();
-                    rsa1ResidualDiagnostics("level_" + id, TsData.of(start, DoubleSeq.of(shifted)));
+                if (id.equals("fit_ao") || id.equals("fit_ls") || id.equals("fit_multi")) {
+                    String prefix = id.equals("fit_multi") ? "level_tc_" : "level_";
+                    rsa1ResidualDiagnostics(prefix + id, TsData.of(start, DoubleSeq.of(levelInput(values))));
+                }
+                if (logTcCases.contains(id)) {
+                    rsa1ResidualDiagnostics("log_tc_" + id, TsData.of(start, DoubleSeq.of(logTcInput(values))));
                 }
                 continue;
             }

@@ -265,5 +265,5 @@ variance, so the coefficient count is its estimated count less one.
 
 The public `rsa1-residual-diagnostics` stage obtains all three getters
 from the original observations in fresh x86-64 JVMs. Six original
-models and two shifted level fits compare all 40 returned numerical
-values bit-for-bit. The original RSA0 entry point names remain available.
+models, two shifted level fits and four stock transitory-change cases on
+the level and log scales compare all 60 returned numerical values bit-for-bit. The original RSA0 entry point names remain available.

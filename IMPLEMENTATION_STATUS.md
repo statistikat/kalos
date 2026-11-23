@@ -4338,3 +4338,12 @@ three significance levels passed on the original controller states and a
 new paired-JVM panel of 168 inputs, including the 79/80 and 119/120
 boundaries. The shared panel also freezes the autoregressive spectral
 classifications for the next controller step.
+
+### Transitory-change residual diagnostics (2026-11-24)
+
+The public RSA1 residual diagnostic capture now includes one level and
+three log fits with stock monthly transitory changes. Two fresh x86-64
+JVMs agreed byte-for-byte. All 60 standard errors, statistics and
+probabilities match the reference bit-for-bit across 12 models. The
+release diagnostics, raw RSA0 and raw automatic SEATS CTests passed.
+[Public diagnostic evidence](validation/evidence/native/tramo-seats-bridge/rsa1-residual-diagnostics-x86_64.txt)

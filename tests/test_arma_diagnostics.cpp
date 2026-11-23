@@ -138,8 +138,11 @@ void check_rsa1_residual_diagnostics() {
     };
     std::map<std::string, Input> inputs;
     std::string id, line, key;
-    for (const auto& prefix : {std::string(), std::string("level_")}) {
-        const auto name = prefix.empty() ? "rsa1-x86_64.txt" : "rsa1-level-effects-x86_64.txt";
+    const std::map<std::string, std::string> references{
+        {"", "rsa1-x86_64.txt"}, {"level_", "rsa1-level-effects-x86_64.txt"},
+        {"level_tc_", "rsa1-level-tc-x86_64.txt"}, {"log_tc_", "rsa1-log-tc-x86_64.txt"}
+    };
+    for (const auto& [prefix, name] : references) {
         std::ifstream file(directory + "/" + name);
         if (!file) throw std::runtime_error("missing RSA1 fitted reference");
         while (std::getline(file, line)) {
@@ -186,7 +189,7 @@ void check_rsa1_residual_diagnostics() {
         }
         ++checks;
     }
-    if (inputs.size() != 8 || checks != 24) throw std::runtime_error("incomplete RSA1 diagnostic evidence");
+    if (inputs.size() != 12 || checks != 36) throw std::runtime_error("incomplete RSA1 diagnostic evidence");
 }
 
 } // namespace
