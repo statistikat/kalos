@@ -746,6 +746,28 @@ multi-round witnesses, and the pass3-reset divergences (`kr_gs2`,
 against the golden table (1641 checks). See
 [tramo-kernel-rounds-contract.md](tramo-kernel-rounds-contract.md).
 
+## TRAMO fit assembly (23-F F.4)
+
+`test_tramo_fit.cpp`, the triple-identical 35-case corpus under
+`validation/evidence/native/tramo-fit/` (Scratch23f: the public
+`TramoKernel.process` entry, the per-seam module ENTRY records, the arma
+`olsResiduals` hand-over, the final cl/unscaledCovariance/cov bits; 34/35
+identity all-1 plus the pinned `fit_const` JVM-crash witness) and the
+generator `tools/gen_tramo_fit_golden.py` qualify `kalos::tramo_fit` — the
+monthly automatic-TRAMO assembly with ZERO own stage logic: the fail-closed
+refusal matrix (10 corpus rows + the d6/i10 synthetic rows), the LIVE
+23-A/23-B mirrors with desync throws, the decoded `isFullySpecified`
+`ami()` branch, the F.3 round driver verbatim, the per-seam LIVE 23-C/23-D
+re-runs on the captured entry state under the EVOLVING seasonality context
+(measured tiers 27 live / 54 fact, pinned per case and never forceable),
+the differenced-response recompute on the reversed `BackFilter` taps, and
+the D9 regression covariance `V = unscaledCovariance * (ssq/(dim-nx-k))` —
+74/74 captured entries replay bit-exact, the ARMA tail kept on the separate
+`final_information` surface. The witness run loads zero x13 classes. The
+sweep `tools/verify_tramo_fit.cpp` cross-qualifies the raw corpus against
+the golden (584 checks). Shim-invariant (26th ledger cell). See
+[tramo-fit-contract.md](tramo-fit-contract.md).
+
 ## SEATS Wiener-Kolmogorov extraction mirror
 
 `test_seats_extract_wk.cpp`, the double-captured 36-case JVM corpus under

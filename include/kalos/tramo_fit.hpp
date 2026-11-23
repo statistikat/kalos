@@ -62,6 +62,16 @@
 // requests. Every refusal row carries its corpus witness
 // (validation/evidence/native/tramo-fit/, ctest #79).
 //
+// Dated 2026-11-23 (F.4 debug): the live seam re-runs consume the EVOLVING
+// seasonality context - the jar module factories read ctx.seasonal at module
+// creation, so stage 4 tracks ctx_seasonal from the pre-stage value through
+// the seasonality_controller seams (TramoKernelSeam.seasonal_after); the
+// pre-stage flag alone is the pass-1 reading only. The ami() branch is the
+// decoded isFullySpecified (transform decided && !autoModel && !outliers &&
+// !meanTest); the empty seam stream is a cross-checked consequence, never
+// the authority. See docs/contracts/tramo-fit-contract.md ("Debug
+// correctives").
+//
 // All doubles are raw IEEE-754 values (the probe's %.17g / bit columns;
 // every replay comparison is exact bit equality). Statuses: "available",
 // "refused:<...>" (the fail-closed matrix), plus the fail-closed throws

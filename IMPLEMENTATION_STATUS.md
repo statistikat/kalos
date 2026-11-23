@@ -3544,3 +3544,69 @@ divergences unchanged: estimation_control/x13_automatic_oracle rc=0,
 arma_identification/diffuse_state_space rc=134 — the declared profile);
 `check-manifest.py` 185/112/320 post-commit; `verify-migration.py` 406;
 evidence `SHA256SUMS.csv` replayed 10/10 (corpus not re-captured).
+
+## TRAMO fit assembly: 23-F F.4 lands `kalos::tramo_fit` — D9 executes — 2026-11-23
+
+`kalos::tramo_fit` (item 23-F F.4, roadmap 23-F LANDED) assembles the
+monthly automatic-TRAMO pipeline with ZERO own stage logic: the fail-closed
+refusal matrix (D11 frequency, D10 calendar family, I-10 auto-methods, the
+never-witnessed `+oc` pre-correction, D6 decomposition, missing values — 10
+corpus refusal rows + the d6/i10 synthetic rows), the LIVE 23-A builder and
+23-B transform mirrors (any desync with the captured pre-stage throws), the
+decoded `isFullySpecified` `ami()` branch (transform decided && nothing
+automatic — the seam stream cross-checks the verdict both ways), the F.3
+round driver verbatim, per-seam LIVE 23-C/23-D re-runs over the captured
+module ENTRY state with the EVOLVING seasonality context (`ctx.seasonal` at
+module creation, tracked through the `seasonality_controller` seams), the
+differenced-response recompute on the reversed `BackFilter` taps, and the
+D9 regression-block covariance `V = unscaledCovariance * (ssq/(dim-nx-k))`
+— **74/74 captured upper-triangle entries bit-exact**, the ARMA tail kept
+on the separate `final_information` surface (D9 + the SEATS-variance
+separation: no substitution across the two). The corpus is the
+triple-identical Scratch23f capture under
+`validation/evidence/native/tramo-fit/` (35 rows: 34 golden cases + the
+pinned `fit_const` JVM-crash witness; `SHA256SUMS.csv` replayed 10/10; the
+class-load witness shows zero `jdplus.spec.x13` loads and
+`tramo.FinalEstimator` only from `tramoseats.tramo`). The golden
+`tests/jvm_tramo_fit.h` regenerates byte-identically from BOTH captures;
+measured live/fact seam tiers 27/54 are pinned per case — the census can
+never drift silently.
+
+**Debug correctives (dated, javap-decoded, corpus-adjudicated; six root
+causes):** the differenced response applies the reversed filter directly
+(`weightsToArray` emits reversed taps; the parity form landed `-0.0` where
+the JVM sums `+0.0` at the fit_fct_air index-99 cancelled pair); the
+stage-1 orders gate admits only the decoded `testSeasonality` m011
+downgrade shape; the `ami()` branch reads the decoded `isFullySpecified`
+(fit_nomean's auto transform runs the iterate loop); the stage-4 modules
+read the EVOLVING context seasonal (gs2 seam 18, shortfail seams 6/17/19);
+the 23-C unit's Changed-law compares against the ENTRY orders, not the
+initial-round start, and its airline branches were re-transcribed to
+`SarimaOrders.airline` (ARIMA(0,1,1)(0,1,1), `bp = 0`) — the battery never
+entered with non-zero orders, so both stayed latent until the fit corpus;
+the 23-D unit now mirrors the `ArmaModule.process` catch (no selector-
+internal try exists — `ArmaModelSelector` carries no exception table) so an
+HR pipeline RuntimeException answers `Failed` and never throws. Appendix in
+the 23-C contract; dated notes in the 23-D contract; full table in the
+tramo-fit contract.
+
+**Boundary.** No interpolation/calendar/auto-method paths (refused); no
+SEATS decomposition (the `TramoSeatsFit` assembly stays 24-D); the
+end-to-end `TramoKernel.process` observer oracle stays 23-G; quarterly
+TRAMO stays refused (D11).
+
+**Gates.** Fresh ctest **79/79 in BOTH lanes** (tree 23f4-b1 1188 s; fresh
+tree 23f4-b2 1218 s; new `test_tramo_fit` #79 passed both; baseline 78
+pre-F.4). ASan/UBSan dedicated build (23f4-laneD): the fit replay + the
+23-C/23-D suites green, zero sanitizer reports. All twenty-three existing
+verify sweeps rc=0 AT RECORDED COUNTS — zero drift — plus the new
+`verify_tramo_fit` PASS (34 cases, 584 checks: identity flags, fitseam/
+post-state/scontroller/rsnap/fitresid censuses, the fitdec verdict and the
+fituc = nx(nx+1)/2 = D9-entry identity against the raw corpus, then full
+replay). Shim-invariance battery post-lane on the b1 tree: **26/26 ledger cells plain=0
+ledger100=PASS INVARIANT** (the informational `:92` unbound-variable echo
+is the known cosmetic line — the declared profile) with `test_tramo_fit`
+as the 26th cell;
+`check-manifest.py` 187/112/331 post-commit (the F.4 landing had missed
+the manifest registration — closed here); `verify-migration.py` 406;
+evidence `SHA256SUMS.csv` replayed (corpus not re-captured).

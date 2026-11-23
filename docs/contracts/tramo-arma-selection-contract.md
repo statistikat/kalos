@@ -35,6 +35,11 @@ upstream regression stage; the golden captures pin the hand-over bit-exactly
 `ArmaModule` builder pins map to the request defaults: seasonal = true,
 acceptWhiteNoise(wn) = false, modelsCount = 5; the maxP/maxQ/maxBp/maxBq
 caps are NOT builder state but the `calcmaxspec` output of the module.
+(Dated 2026-11-23, 23-F.4 decode: the live `seasonal` operand is the
+`TramoKernel` module factory reading `ctx.seasonal` at module creation —
+the request carries that evolving context per call; "true" was the corpus
+default, not the law. The 23-D corpus never created a module under
+`ctx.seasonal = false`.)
 
 ## Capture and corpus
 

@@ -21,7 +21,10 @@
 #
 # Usage: tools/ci-shim-invariance.sh <ctest-build-dir> [out-dir]
 # Requires Linux (LD_PRELOAD + dladdr). Outputs: $OUT/<suite>.<cell>.log and
-# a summary table on stdout.
+# a summary table on stdout. LD_LIBRARY_PATH is cleared INTERNALLY by run()
+# (every suite process runs under env -u LD_LIBRARY_PATH), so an outer export
+# is harmless - the historical LAPACKE_dsyev_work phantoms came from suites
+# invoked WITHOUT that clearing, which this script performs itself.
 set -u
 BUILD=${1:?usage: ci-shim-invariance.sh <build-dir> [out-dir]}
 BUILD=$(cd "$BUILD" && pwd)

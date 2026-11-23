@@ -82,8 +82,9 @@ token verbatim (item 23-B bit-pattern discipline).
 - **isMeanCorrection** is the length table {<= 80: 1.96, <= 155: 1.98,
   <= 230: 2.1, <= 320: 2.3, else 2.5} on `|tmean| > threshold` against the
   response length; the description update replaces the spec iff the ladder
-  moved d or bd (module spec replaces the whole orders) and follows
-  `isMeanCorrection()` for the mean, marking Changed.
+  end differs from the ENTRY orders (module spec replaces the whole
+  orders) and follows `isMeanCorrection()` for the mean, marking Changed
+  (both comparisons are against the entry state — see the dated appendix).
 
 ## Pinned machines and root causes
 
@@ -209,3 +210,37 @@ Unprocessed unit case, in both build lanes. ASan/UBSan clean (this unit plus
 the units exercising the shared deviances machine). Sweep corpus-invariance:
 the existing verify tools all re-run at 0 failures at landing;
 `check-manifest.py` 155/112/236 and `verify-migration.py` 406 pass.
+
+## Dated appendix — 23-F.4 debug correctives (2026-11-23)
+
+The tramo-fit corpus (23-F F.4, `validation/evidence/native/tramo-fit/`)
+supplied entry states the battery never had (initial-round calls on
+non-zero entry orders, seasonal short-series failures) and exposed three
+latent transcriptions, each fixed under the javap re-decode:
+
+- **Changed-law comparison = ENTRY, not START.**
+  `DifferencingModule.process(RegSarimaModelling)` compares the ladder-end
+  `this.spec.getD()/getBd()` against the spec captured from
+  `desc.specification()` BEFORE the ladder runs (javap offsets 200-206 slot
+  8, comparison at 293-316); the mean compares `isMeanCorrection()` against
+  `desc.isMean()` at the same tail. A ladder climbing from the
+  initial-round `0,0` onto an entry `1,1` therefore answers UNCHANGED and
+  leaves the description untouched (fit_tr3_air/fit_mean_air/fit_pure seam
+  witnesses: `Unchanged 0,1,1,0,1,1`). The battery always entered at
+  `0,0,0,0,0,0`, where start and entry coincide.
+- **Airline shape.** `SarimaOrders.isAirline(seasonal)` tests
+  `p == 0 && q == 1 && d == 1` (+ `bp == 0 && bq == 1 && bd == 1` under
+  seasonality) and `ModelDescription.setAirline(seasonal)` writes
+  `SarimaOrders.airline(freq)` = ARIMA(0,1,1)(0,1,1) — `bp = 0` — or
+  `m011(freq)` = (0,1,1)(0,0,0) (fit_shortfail seam-6 `(1,0,1,0,0,0)` +
+  mean on, seam-17 `(0,1,1,0,1,1)` + mean off). The landing had `p0 == 1`
+  /`bp0 == 1` guards and a `spec_bp = seasonal` write; the hand probe
+  `test_comespd_airline` had encoded the bug and was re-pinned.
+- **Filter orientation stays parity inside this unit.** The fit RESPONSE
+  recompute applies the reversed polynomial directly
+  (`BackFilter.weightsToArray` emits reversed taps — see
+  tramo-fit-contract.md); the two forms are entry-wise equal up to the
+  sign of zero, and the ladder consumes `w` only through means,
+  cross-products, roots and comparisons, where the parity form is
+  corpus-proven on every panel. The 23-C `initstep`/`computeTMean` parity
+  flip therefore stands unchanged.

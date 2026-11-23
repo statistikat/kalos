@@ -320,6 +320,26 @@ pinned values without a maintainer ruling (the 21 precedent).
   `verify_tramo_kernel_rounds` (raw-corpus cross-qualification, 1641
   checks). Contract `tramo-kernel-rounds`. The `tramo_fit`/`TramoSeatsFit`
   assembly stays 24-D/23-G.
+- **LANDED 2026-11-23 (23-F F.4: `tramo_fit` assembly — D9 executes).**
+  `kalos::tramo_fit` assembles the monthly automatic-TRAMO pipeline with
+  ZERO own stage logic: refusal matrix (D11/D10/I-10/oc/D6/missing) →
+  live 23-A build + 23-B transform mirrors (cross-checked, throw on
+  desync) → the decoded `isFullySpecified` `ami()` branch → the F.3 round
+  driver verbatim → per-seam LIVE 23-C/23-D re-runs on the captured ENTRY
+  state with the evolving seasonality context (measured tiers 27 live /
+  54 fact, pinned per case) → the final surface and the D9 regression
+  covariance `V = unscaledCovariance * (ssq/(dim - nx - k))` replayed
+  **74/74 entries bit-exact** (the ARMA tail stays the separate
+  final_information surface). Triple-identical Scratch23f capture
+  (`tramo-fit` corpus, 35 rows incl. the pinned `fit_const` crash
+  witness; 0 x13 loads); ctest `test_tramo_fit` #79 (34 cases, 10
+  refusals, d6/i10 synthetic rows), sweep `verify_tramo_fit` (584 checks,
+  raw-corpus cross-qualification). Debug correctives (dated, javap-decoded):
+  the ENTRY-order Changed law + airline shape in 23-C, the module-catch
+  widening in 23-D, the reversed-BackFilter response orientation, the m011
+  prestage gate and `ctx.seasonal` factory semantics — see
+  `docs/contracts/tramo-fit-contract.md`. The `TramoSeatsFit` decomposition
+  assembly stays 24-D.
 - **23-G — end-to-end TRAMO oracle** against the double-captured
   `TramoKernel.process` corpus (mirrors 21-H.2/H.3: probe observer, decision-
   bit qualification, measured tiers, sweep).
