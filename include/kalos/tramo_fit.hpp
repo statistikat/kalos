@@ -125,6 +125,11 @@ struct TramoFitSpec {
     double intermediate_precision = 1e-7;
     // RegressionSpec.
     bool mean_is_test = false;          // RegressionSpec.getMean().isTest()
+    bool mean_used = true;              // RegressionSpec.getMean().isUsed()
+    // (+nomean rows register MeanSpec.none(); header amendment 2026-11-23,
+    // post-corpus: the fitbuild row of fit_nomean/fit_pure witnesses the
+    // mean flag the builder consumed - the b512ec2 shape could not express
+    // it.)
     // Refusal-state fields (all default false / unused = the admitted
     // envelope; any true value lands a pinned fail-closed refusal).
     bool td_automatic = false, td_test = false, easter_test = false;
@@ -133,6 +138,11 @@ struct TramoFitSpec {
     // Decomposition/approximation request knob (D6): -1 = unset (admitted);
     // any other value refuses - the fit never decomposes.
     int seats_decomposition_mode = -1;
+    // (Header amendment 2026-11-23, post-corpus: the builder mirror needs
+    // the fixed-template SarimaSpec when using_auto_model is false - the TR
+    // templates register SarimaSpec.AIRLINE, which is request data the
+    // b512ec2 shape did not carry. Unused (period 0) under auto modelling.)
+    tramo_sarima_spec fixed_arima;
 };
 
 // One differencing/arma/scan seam of the cross-check record: which landed
@@ -161,8 +171,11 @@ struct TramoFitFinalRecord {
     std::vector<std::string> outlier_names;
     std::vector<TramoFitVariable> variables;   // names/positions/coefficients
     // Model bits (the probe bit columns): desc.arima().parameters(),
-    // cl.allCoefficients (the regression block, design order: [mean],
-    // then the outlier columns in sortVariables order), the differenced
+    // the estimation design coefficients ge.getCoefficients (the
+    // regression block, design order: [mean], then the outlier columns in
+    // sortVariables order; the cl allCoefficients row additionally carries
+    // the missing-value estimates - the fit_missing witness - and is not
+    // the fit record carrier), the differenced
     // response the landing machine consumed (log-applied, interpolated -
     // the fit recomputes it and asserts equality), and fullResiduals.
     std::vector<double> parameters;            // JVM [phi|bphi|theta|btheta]

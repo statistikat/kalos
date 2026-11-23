@@ -82,6 +82,7 @@ add_library(kalos STATIC
   src/tramo_differencing_battery.cpp
   src/tramo_differencing_decision.cpp
   src/tramo_final_estimation.cpp
+  src/tramo_fit.cpp
   src/tramo_kernel_rounds.cpp
   src/tramo_model_builder.cpp
   src/tramo_outlier_scan.cpp
@@ -226,6 +227,7 @@ if(KALOS_BUILD_TESTS)
     test_tramo_differencing
     test_tramo_differencing_battery
     test_tramo_final_estimation
+    test_tramo_fit
     test_tramo_kernel_rounds
     test_tramo_model_builder
     test_tramo_outlier_scan
@@ -285,6 +287,14 @@ if(KALOS_BUILD_TESTS)
       # 23-F.3 golden replay over the double-captured tramo-kernel-rounds
       # corpus (the ami() round-driver seam, 34 monthly cases + the
       # quarterly D11 refusal); generous for the sanitizer lane.
+      set_tests_properties(${test_name} PROPERTIES TIMEOUT 3600)
+    endif()
+    if(test_name STREQUAL "test_tramo_fit")
+      # 23-F.4 golden replay over the triple-captured tramo-fit corpus
+      # (the automatic-fit assembly: live 23-A/23-B mirrors, the F.3
+      # driver, live 23-C/23-D seam re-runs, the D9 covariance); the
+      # planted-outlier cases replay full estimation histories natively -
+      # generous for the sanitizer lane.
       set_tests_properties(${test_name} PROPERTIES TIMEOUT 3600)
     endif()
   endforeach()
