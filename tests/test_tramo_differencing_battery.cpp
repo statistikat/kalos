@@ -15,6 +15,7 @@
 #include "kalos/arma_diagnostics.hpp"
 #include "kalos/detail/special_functions.hpp"
 #include "kalos/tramo_differencing_battery.hpp"
+#include "kalos/tramo_regression_tests.hpp"
 
 #include "jvm_tramo_battery.h"
 
@@ -472,6 +473,48 @@ void replay(const kalos::test::TbCase& tc) {
         stat_cands += static_cast<long>(want.size());
     }
 
+    if (freq == 12) {
+        std::size_t next = 1;
+        auto estimator = [&](const kalos::TramoOrders& o, bool mean) -> std::optional<BatteryState> {
+            if (next == p.bc.candidates.size()) throw std::runtime_error("extra monthly candidate");
+            const auto& candidate = p.bc.candidates.at(next++);
+            if (o.p != candidate.p || o.d != candidate.d || o.q != candidate.q || o.bp != candidate.bp ||
+                o.bd != candidate.bd || o.bq != candidate.bq || mean != candidate.mean)
+                fail(p.id, "live controller requested a different candidate");
+            if (!candidate.ok) return std::nullopt;
+            for (int i = 0; i < 6; ++i) {
+                const auto& state = *state_at(p.bc, i);
+                if (panel_eq(candidate.mstat, state.mstat) && state.mean == mean &&
+                    state.p == o.p && state.d == o.d && state.q == o.q && state.bp == o.bp &&
+                    state.bd == o.bd && state.bq == o.bq) return state;
+            }
+            BatteryState rejected;
+            rejected.p = o.p; rejected.d = o.d; rejected.q = o.q;
+            rejected.bp = o.bp; rejected.bd = o.bd; rejected.bq = o.bq;
+            rejected.mean = mean;
+            rejected.mstat = candidate.mstat;
+            return rejected;
+        };
+        const auto live = kalos::tramo_monthly_controllers(p.bc.after_entry, p.bc.seasonal, p.bc.ost, estimator);
+        if (live.seasonality != d.seas1 || live.restart != (d.seas1 == BatteryDecision::Result::Changed) ||
+            live.seasonal != d.snaps.front().seasonal || live.seasonality_score != d.snaps.front().ost)
+            fail(p.id, "live initial seasonality controller differs");
+        int selected = -1;
+        const auto transferred = [&](BatteryDecision::Result step, int slot) {
+            if (step == BatteryDecision::Result::Changed && slot >= 1) selected = slot - 1;
+        };
+        transferred(d.seas1, d.cand_pass1);
+        if (!live.restart) {
+            transferred(d.ru1, d.cand_ru1);
+            transferred(d.su1, d.cand_su1);
+            transferred(d.ru2, d.cand_ru2);
+            transferred(d.su2, d.cand_su2);
+        }
+        if (live.selected_candidate != selected) fail(p.id, "live selected candidate differs");
+        if (!live.restart && (live.regular1 != d.ru1 || live.seasonal1 != d.su1 || live.regular2 != d.ru2 ||
+            live.seasonal2 != d.su2 || next != p.bc.candidates.size()))
+            fail(p.id, "live in-order controller transfers differ");
+    }
     // --- per-state ports ------------------------------------------------------
     for (int k = 0; k < 6; ++k) {
         const std::string tag = p.id + kSuffix[k];

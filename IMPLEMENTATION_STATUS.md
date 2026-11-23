@@ -4389,3 +4389,12 @@ forecast standard error on 12 monthly RSA1 fits. These include an
 unchanged level series, detected AO and LS, and stock TC on both scales.
 The reference records 1,152 numerical values across the four fields.
 Reproduce it with `capture-tramo-seats-bridge.py --stage rsa1-forecast-errors`.
+
+### M5 / 23-G — controller state transfers
+
+The monthly controller sweep now requests candidate estimates on demand
+and uses each accepted fit as the next controller's input. Across twelve
+original monthly battery runs the candidate orders, mean, transfer index,
+seasonality score, early restart and remaining four controller decisions
+match the original traces. The integration test supplies captured candidate
+fits at this boundary. The raw TR3 caller must supply them from observations.

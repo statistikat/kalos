@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Apply the monthly automatic TRAMO controllers in order, including selected
+  candidate transfers and the initial seasonality restart.
+
 - Build the complete monthly seasonality-controller diagnostic panel from
   linearized data or fitted residuals, including autoregressive spectral peaks.
 

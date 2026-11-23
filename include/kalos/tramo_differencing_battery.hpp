@@ -28,6 +28,7 @@
 // fails closed with std::runtime_error; nothing is approximated.
 
 #include <cstdint>
+#include <functional>
 #include <optional>
 #include <vector>
 
@@ -170,6 +171,23 @@ struct BatteryDecision {
     };
     std::vector<Snap> snaps;
 };
+
+struct TramoOrders;
+using TramoControllerEstimator = std::function<std::optional<BatteryState>(const TramoOrders&, bool mean)>;
+
+struct TramoMonthlyControllerResult {
+    BatteryDecision::Result seasonality, regular1, seasonal1, regular2, seasonal2;
+    bool seasonal;
+    int seasonality_score;
+    int selected_candidate; // zero-based in estimation order; -1 retains the entry model
+    bool restart; // the kernel returns immediately on a first-pass seasonality change
+};
+
+// Apply the controllers to the current fitted state. Each selected candidate
+// becomes the input to the next controller. An estimator returning null
+// represents the JVM estimator's failed attempt.
+TramoMonthlyControllerResult tramo_monthly_controllers(const BatteryState& entry, bool seasonal,
+                                                       int seasonality_score, const TramoControllerEstimator& estimate);
 
 // Replays the SeasonalityController pass, the four battery steps and the
 // second pass over the pinned inputs. The pass-1 re-estimation and every
