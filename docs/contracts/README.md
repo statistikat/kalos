@@ -714,10 +714,37 @@ and the estimation-domain sig2 plateau), plus the
 `(p,d,q)(Bp,Bd,Bq)` info-detail rendering. All 65 decision rows replay
 bit-exactly (raw IEEE-754 bits) off the live bytecode (split-package
 probe, reflection for access only); the 10 `fe_est` rows driving the live
-five-round `estimate()` loop are inert until the F.2 round-loop driver.
+five-round `estimate()` loop went ACTIVE with the F.2 round-loop driver
+(`tramo_final_estimator_run`, 10/10 bit-exact).
 The witness pins `tramo.FinalEstimator` loaded from the pinned jar with
 zero `x13.regarima.FinalEstimator` loads. See
 [tramo-final-estimation-contract.md](tramo-final-estimation-contract.md).
+
+## Tramo kernel round driver (23-F F.3)
+
+`test_tramo_kernel_rounds.cpp`, the double-captured 35-case corpus under
+`validation/evidence/native/tramo-kernel-rounds/` (Scratch23r: the real
+`TramoKernel.process` and a bytecode-faithful manual driver in one JVM,
+35/35 identity on events, final model bits and aggregate; witness mode
+byte-identical) and the generator `tools/gen_tramo_kernel_rounds_golden.py`
+qualify `kalos::tramo_run_kernel_rounds` — the `ami()` ten-iterate
+round-driver seam: the init/`calcCv` trigger, the iterate guards
+(round-2/outliers, `needDifferencing`, `needAutoModelling`), the change
+accumulator with its assignment/overwrite/or polarity, the pass-1 outlier
+drop, the `estimateModel` retry ladder over the landed 23-E machines, the
+round-0 reference snapshot and accept rule, the `pass2(!changed, m)`
+refStats gate, the pass3 reset, the result-ignoring controller sweep and
+the whole kernel-owned log structure. 34 monthly cases replay bit-exactly
+(events, per-iterate snapshots, init bits) plus the quarterly `kr_q_air`
+D11 refusal; the Ljung-Box p-values of all 65 stats rows recompute
+bit-exactly from the captured residual arrays via the landed primitives.
+This is where decision D3 (option A) executes: the 23-B `divergent = 1`
+rows (`sc_so`, `sc_spanout`, `sc_spannone`) are asserted as POSITIVE
+multi-round witnesses, and the pass3-reset divergences (`kr_gs2`,
+`kr_shortfail`) replay as 3-iterate ladders. The sweep
+`tools/verify_tramo_kernel_rounds.cpp` cross-qualifies the raw corpus
+against the golden table (1641 checks). See
+[tramo-kernel-rounds-contract.md](tramo-kernel-rounds-contract.md).
 
 ## SEATS Wiener-Kolmogorov extraction mirror
 

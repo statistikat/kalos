@@ -299,6 +299,27 @@ pinned values without a maintainer ruling (the 21 precedent).
   `estimate()` loop, the multi-round `FastOutliersDetector` machine, the
   `TramoKernel` iterate/pass/pass3 wiring and the D3 divergent=1 flip stay
   F.2/F.3. Contract `tramo-final-estimation`.
+- **LANDED 2026-11-23 (23-F F.2: multi-round machine + round loop).** The
+  `FastOutliersDetector.process` port (`tramo_outlier_rounds`) replays 37/37
+  bit-exact off the dual-machine Scratch23g corpus (identity + agreement +
+  witness gates, pinning SECTION 27), and `tramo_final_estimator_run` drives
+  the five-round `estimate()` loop — the 10 `fe_est` rows went ACTIVE
+  (return/nnsig/orders/pars/state/cl/vd/events, raw bits, SECTION 28). The
+  `tramo-outlier-scan` D3 flip table is executed by F.3 below.
+- **LANDED 2026-11-23 (23-F F.3: kernel round driver — D3 executes).**
+  `kalos::tramo_run_kernel_rounds` ports the `TramoKernel.ami()` iterate
+  loop (guards, change accumulator, `estimateModel` ladder, round-0
+  snapshot/accept, the `pass2(!changed, m)` refStats gate on the landed 23-E
+  machine, pass3 reset, controller sweep) over the ordered seam facts of the
+  double-captured 35-case `tramo-kernel-rounds` corpus: 34 monthly replays
+  bit-exact (events/snapshots/init) + the `kr_q_air` quarterly D11 refusal,
+  the 65 stats-row Ljung-Box p-values recomputed bit-exactly from the
+  captured e-arrays. D3 (option A) CLOSES: the 23-B `divergent = 1` rows
+  (`sc_so`/`sc_spanout`/`sc_spannone`) flip to positive multi-round
+  assertions; `kr_gs2`/`kr_shortfail` witness the pass3 reset. Sweep
+  `verify_tramo_kernel_rounds` (raw-corpus cross-qualification, 1641
+  checks). Contract `tramo-kernel-rounds`. The `tramo_fit`/`TramoSeatsFit`
+  assembly stays 24-D/23-G.
 - **23-G — end-to-end TRAMO oracle** against the double-captured
   `TramoKernel.process` corpus (mirrors 21-H.2/H.3: probe observer, decision-
   bit qualification, measured tiers, sweep).
@@ -566,7 +587,7 @@ with the six pinned refusal reasons and the status-row tier map.
 |---|---|---|---|
 | D1 | SEATS extraction path envelope: WK-only first, Kalman/Matrix estimator later (probe: neither is loaded by the default path) | 24-C | recommend WK-only first, others fail-closed |
 | D2 | Spec coverage order: rsa3-first mirroring X-13, rsafull end-to-end deferred to 24-E and gated by 21-I | 23-G/24-E | recommend yes (roadmap acceptance still requires both before item 24 closes) |
-| D3 | TRAMO outlier iteration semantics: round/pass3 wiring, `curva`/`reduceVa`/pcr adaptation, maxOutliers/maxIter defaults | 23-B | **CLOSED APPROVED 2026-11-22 (maintainer, option A)**: faithful multi-round port in 23-F — round/pass3 wiring + `curva`/`reduceVa`/pcr adaptation ported, `maxOutliers`/`maxIter` defaults decoded as constants where the jar shows them constant, pass wiring ported only where the live trace shows execution (24-A dead-code discipline); the 23-B `divergent=1` final-state rows (`sc_so`/`sc_spanout` emptied picks, `sc_spannone` collapsed scan — contract `tramo-outlier-scan`) become POSITIVE multi-round assertions in 23-F; round-0 unit stays as-is (correct component); option B (round-0-only + fail-closed) rejected |
+| D3 | TRAMO outlier iteration semantics: round/pass3 wiring, `curva`/`reduceVa`/pcr adaptation, maxOutliers/maxIter defaults | 23-B | **CLOSED APPROVED 2026-11-22 (maintainer, option A)**: faithful multi-round port in 23-F — round/pass3 wiring + `curva`/`reduceVa`/pcr adaptation ported, `maxOutliers`/`maxIter` defaults decoded as constants where the jar shows them constant, pass wiring ported only where the live trace shows execution (24-A dead-code discipline); the 23-B `divergent=1` final-state rows (`sc_so`/`sc_spanout` emptied picks, `sc_spannone` collapsed scan — contract `tramo-outlier-scan`) become POSITIVE multi-round assertions in 23-F; round-0 unit stays as-is (correct component); option B (round-0-only + fail-closed) rejected. **EXECUTED 2026-11-23 (23-F F.3): the three rows replay as positive multi-round witnesses (`kr_scso`/`kr_spanout`/`kr_spannone`, 2 iterates each) — flip table closed in contract `tramo-kernel-rounds`** |
 | D4 | FastBIC search: reuse HR unit as initializer vs faithful `ArmaModelSelector` port | 23-D | recommend faithful port of the selector with HR reuse inside (21-F lesson: decode before reusing) |
 | D5 | TRAMO call-site minimizer: pinned LM at the units, BFGS stays the core default (probed: TRAMO builds an LM minimizer) | 23-B…F | recommend the 21-D.2 precedent verbatim |
 | D6 | Non-decomposable model policy: which `ModelApproximationMode` values are in the envelope | 24-B | **CLOSED APPROVED at 24-B landing**: decomposable-only envelope — `approximation_required` decisions and `Noisy` mode refuse fail-closed with the pinned reasons; the crashing `DefaultModelApproximator` is NOT ported (validator classifies, unit refuses; contract `decompose-ucarima`) |

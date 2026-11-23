@@ -158,3 +158,18 @@ JVM microscope dumps every intermediate at `%.17g#bits` and the unit-vs-
 dump gate is bit-exact on all 22 numerically-observable cases (plus 3
 Failed, 1 Unchanged, 1 seam throw). ASan/UBSan run of the replay;
 `check-manifest.py`; `verify-migration.py` 406; existing suite invariant.
+
+## D3 flip CLOSED (2026-11-23, item 23-F F.3)
+
+Decision D3 option A executes with `kalos::tramo_run_kernel_rounds`
+(contract `tramo-kernel-rounds`): the three `divergent=1` final-state rows
+of this contract stop being documented divergence and become POSITIVE
+multi-round assertions at the round-driver level — `sc_so` and `sc_spanout`
+emptied picks and `sc_spannone` collapsed scan each replay as a 2-iterate
+ladder (`kr_scso`, `kr_spanout`, `kr_spannone` of the `tramo-kernel-rounds`
+corpus, events + per-iterate snapshots + init bits all raw-bit exact), and
+the multi-round pass3 divergences replay as the 3-iterate `kr_gs2` /
+`kr_shortfail` runs. This contract's unit stays round-0-only and its
+historical fixtures are untouched; the flip witness lives exclusively in
+`tests/test_tramo_kernel_rounds.cpp` and the `verify_tramo_kernel_rounds`
+sweep.
