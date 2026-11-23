@@ -4,6 +4,8 @@
 
 - Added dated, structured initial and bias-corrected SEATS component series
   to the Wiener–Kolmogorov extractor for M5 pipeline assembly.
+- Corrected the white-noise ARMA candidate's BIC on macOS ARM64 by using
+  the same pinned likelihood as the reference panel.
 
 ## 0.1.0 — initial repository split
 

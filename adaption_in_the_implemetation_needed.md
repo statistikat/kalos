@@ -20,7 +20,11 @@ Reviewed 2026-11-23 on macOS ARM64, based on `ce7da0d`.
 
 ## Verification of the current fixes
 
-Clean builds with Homebrew OpenBLAS 0.3.34 and with the checksum-pinned OpenBLAS 0.3.34 each passed **78 of 79 CTests**, including Ucarima, SEATS extraction, TRAMO differencing and both automatic X-13 oracles. The export manifest, historical migration audit, installed header and provider-selection regressions passed. The remaining failure was the exact BIC comparison in `test_arma_refinement`. A separate build of the pre-change revision `ce7da0d`, using the missing standard headers as compiler includes and checksum-pinned OpenBLAS 0.3.34, reproduced the same assertion.
+Before the subsequent ARMA panel fix, clean builds with Homebrew OpenBLAS 0.3.34 and with the checksum-pinned OpenBLAS 0.3.34 each passed **78 of 79 CTests**, including Ucarima, SEATS extraction, TRAMO differencing and both automatic X-13 oracles. The export manifest, historical migration audit, installed header and provider-selection regressions passed. The remaining failure was the exact BIC comparison in `test_arma_refinement`. A separate build of the pre-change revision `ce7da0d`, using the missing standard headers as compiler includes and checksum-pinned OpenBLAS 0.3.34, reproduced the same assertion.
+
+The follow-up fixed the one-ULP white-noise BIC difference by evaluating the
+candidate with the pinned JVM arithmetic. The original exact assertion now
+passes with both providers. The full serial suite on the checksum-pinned provider passed **79/79 CTests**. [ARMA identification contract](docs/contracts/initial-arma-identification-contract.md)
 
 ## Original review checks at `0e064dd`
 

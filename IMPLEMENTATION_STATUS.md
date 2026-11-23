@@ -3635,3 +3635,19 @@ regression-effect attributes, repins the fitted coefficients, and supplies
 model fits. Qualifying this handoff and the subsequent deterministic-effect
 merge requires reference input/output pairs from the combined kernel. The
 extraction result alone does not enable an end-to-end TRAMO/SEATS fit.
+
+### ARMA panel portability gate (2026-11-23)
+
+The macOS ARM64 failure in `test_arma_refinement` came from the
+`m_wn96_a` white-noise candidate. With no ARMA coefficients, its generic
+physical likelihood used host long-double arithmetic and produced BIC2
+2.6345110282485509. The captured JVM result is 2.6345110282485513.
+The panel now evaluates that candidate with the existing design-free
+pinned concentrated likelihood. All four other preferred candidates already
+matched their exact reference values.
+
+The original assertion passed against checksum-pinned and Homebrew OpenBLAS
+0.3.34. The frozen 21-E identification sweep passed 4,368 checks with one
+documented skip, and the 21-F refinement sweep passed 423 checks. All 14
+evidence-file hashes matched. The identification, refinement and WK extraction
+tests also passed in the OpenMP and ASan/UBSan builds. The full serial Release suite passed **79/79 CTests** on the pinned provider, including the X-13 automatic fit and horizon oracles.
