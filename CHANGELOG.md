@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- TRAMO computes its first automatic candidate from dated data through
+  differencing, ARMA selection, renewed outlier detection and estimation.
+
 - The monthly TRAMO loop builds its first reference fit from the dated
   observations, including its automatic outliers and mean-test refits.
 

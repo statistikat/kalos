@@ -4206,3 +4206,16 @@ round-zero reference in the F4 corpus reproduces the selected orders,
 mean, dated outliers, parameters, compact residuals, BIC, standard error
 and Ljung–Box statistic and probability. Later automatic passes and their
 controller decisions still consume witnesses in this entry point.
+
+### M5 / 23-G — first automatic candidate from observations
+
+All 21 initial reference models and all 18 first auto-model candidates in
+the admitted F4 corpus are now computed from the data. The first candidate
+uses the fitted outlier-corrected response for differencing, the new
+differenced OLS design for ARMA selection, then a fresh outlier search
+and fit. Its orders, mean, dated outliers, parameters and likelihood
+diagnostics agree with the original JDemetra+ rounds. A separate regression
+covers exchanging monthly (d, bd) = (1, 1) for (2, 0), which clears outliers
+because the differencing polynomial degree changes from 13 to 2. The
+reference comparison, subsequent controller sweep and restart decisions
+are the remaining stages on this route.

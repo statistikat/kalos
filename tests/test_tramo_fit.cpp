@@ -92,6 +92,7 @@ long long run_case(const FitExpect& e, std::size_t& live_total,
         return static_cast<std::size_t>(std::count_if(rq.kernel.seams.begin(), rq.kernel.seams.end(),
             [kind](const auto& seam) { return kind == seam.kind; }));
     };
+    CHECK(r.first_candidate_computed == (count(TramoKernelSeamKind::pass2_gate) != 0));
     CHECK(r.reference_model_computed == (count(TramoKernelSeamKind::round0) != 0));
     CHECK(r.statistics_checked == count(TramoKernelSeamKind::round0) + count(TramoKernelSeamKind::pass2_gate));
     CHECK(r.regression_tests_checked == count(TramoKernelSeamKind::regression_test));
@@ -183,7 +184,8 @@ long long run_case(const FitExpect& e, std::size_t& live_total,
               << r.covariance.covariance_upper.size() << "/"
               << e.d9_entries << " live " << r.seams_live << " fact "
               << r.seams_fact << " stats " << r.statistics_checked << " regressions "
-              << r.regression_tests_checked << "\n";
+              << r.regression_tests_checked << " reference " << r.reference_model_computed
+              << " first-candidate " << r.first_candidate_computed << "\n";
     return r.covariance.covariance_upper.size();
 }
 

@@ -188,6 +188,23 @@ std::string lb_witness() {
            std::to_string(rows) + " rows bit-exact from the e-array\n";
 }
 
+void seasonal_difference_drop() {
+    // Both (1,1) and (2,0) use two differences; their monthly polynomial
+    // degrees are 13 and 2. The JVM clears the prior outliers at this site.
+    TramoKernelRoundsRequest rq;
+    build_case("kr_ao", rq);
+    for (std::size_t i = 1; i < rq.seams.size(); ++i) {
+        if (rq.seams[i].kind != TramoKernelSeamKind::differencing_drop) continue;
+        auto& diff = rq.seams[i - 1];
+        CHECK(diff.kind == TramoKernelSeamKind::differencing);
+        diff.orders.d = 2;
+        diff.orders.bd = 0;
+        CHECK(!tramo_run_kernel_rounds(rq).snapshots.empty());
+        return;
+    }
+    throw std::runtime_error("missing seasonal difference-drop witness");
+}
+
 // The D3 flip table (23-F.2 SECTION 28.2) as POSITIVE expectations:
 // {id, observed multi-round} per the divergent rows flipping to witness.
 void d3_flip_checks() {
@@ -267,6 +284,7 @@ std::uint64_t hex_str(std::uint64_t b) { return b; }
 int main() {
     try {
         std::printf("%s", lb_witness().c_str());
+        seasonal_difference_drop();
         d3_flip_checks();
         std::printf("D3 flip table: positive multi-round + pass3-reset "
                     "witnesses hold\n");
