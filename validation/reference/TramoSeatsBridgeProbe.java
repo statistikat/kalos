@@ -75,7 +75,7 @@ public class TramoSeatsBridgeProbe {
         }
     }
 
-    private static void merge(String id, String template, RegSarimaModel model, SeatsModelSpec seats,
+    static void merge(String id, String template, RegSarimaModel model, SeatsModelSpec seats,
                               int backcasts, int forecasts) {
         var options = DecompositionSpec.DEFAULT.toBuilder()
             .forecastCount(forecasts).backcastCount(backcasts).build();

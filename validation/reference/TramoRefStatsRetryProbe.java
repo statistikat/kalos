@@ -1,4 +1,8 @@
+import java.lang.reflect.Method;
 import java.util.ArrayList;
+import jdplus.toolkit.base.core.regsarima.regular.RegSarimaModel;
+import jdplus.tramoseats.base.api.seats.SeatsModelSpec;
+import jdplus.tramoseats.base.core.tramoseats.TramoSeatsKernel;
 import java.util.List;
 import jdplus.toolkit.base.api.data.DoubleSeq;
 import jdplus.toolkit.base.api.processing.ProcessingLog;
@@ -34,7 +38,7 @@ public final class TramoRefStatsRetryProbe {
         return y;
     }
 
-    static void observe(int seed, int profile, List<Integer> expected) {
+    static void observe(boolean wk, int seed, int profile, List<Integer> expected) throws Exception {
         var data = TsData.of(TsPeriod.monthly(1990, 1), DoubleSeq.of(series(seed, profile)));
         List<Integer> rounds = new ArrayList<>();
         var kernel = TramoKernel.of(TramoSpec.TR3, new ModellingContext());
@@ -44,16 +48,22 @@ public final class TramoRefStatsRetryProbe {
             }
         });
         if (model == null || !rounds.equals(expected)) throw new AssertionError(rounds);
-        TramoSeatsBridgeProbe.rawAutomatic("fit_ref_retry_" + seed + "_" + profile, data, "rsa3");
+        String id = "fit_ref_retry_" + seed + "_" + profile;
+        if (wk) {
+            Method bridge = TramoSeatsKernel.class.getDeclaredMethod("of", RegSarimaModel.class);
+            bridge.setAccessible(true);
+            TramoSeatsBridgeProbe.merge(id, "TR3", model, (SeatsModelSpec)bridge.invoke(null, model), 0, -2);
+        } else TramoSeatsBridgeProbe.rawAutomatic(id, data, "rsa3");
     }
 
-    public static void main(String[] args) {
-        observe(0, 5, List.of(0, 1, 2, 1));
-        observe(0, 1, List.of(0, 1, 2, 1, 4));
-        observe(1, 5, List.of(0, 1, 2, 3));
-        observe(2, 0, List.of(0, 1, 2, 3));
-        observe(0, 4, List.of(0, 1, 2, 3, 1));
-        observe(17, 2, List.of(0, 1, 2, 3, 4));
-        observe(18, 2, List.of(0, 1, 2, 3, 1));
+    public static void main(String[] args) throws Exception {
+        boolean wk = args.length == 1 && args[0].equals("wk");
+        observe(wk, 0, 5, List.of(0, 1, 2, 1));
+        observe(wk, 0, 1, List.of(0, 1, 2, 1, 4));
+        observe(wk, 1, 5, List.of(0, 1, 2, 3));
+        observe(wk, 2, 0, List.of(0, 1, 2, 3));
+        observe(wk, 0, 4, List.of(0, 1, 2, 3, 1));
+        observe(wk, 17, 2, List.of(0, 1, 2, 3, 4));
+        observe(wk, 18, 2, List.of(0, 1, 2, 3, 1));
     }
 }

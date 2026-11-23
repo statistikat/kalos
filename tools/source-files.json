@@ -524,6 +524,7 @@
     "validation/evidence/native/tramo-seats-bridge/rsa3-additional-x86_64.txt",
     "validation/evidence/native/tramo-seats-bridge/rsa3-mean-retry-diagnostics-x86_64.txt",
     "validation/evidence/native/tramo-seats-bridge/rsa3-mean-retry-x86_64.txt",
+    "validation/evidence/native/tramo-seats-bridge/rsa3-ref-retry-wk-x86_64.txt",
     "validation/evidence/native/tramo-seats-bridge/rsa3-ref-retry-x86_64.txt",
     "validation/evidence/native/tramo-seats-bridge/rsa3-residual-diagnostics-x86_64.txt",
     "validation/evidence/native/tramo-seats-bridge/rsa3-x86_64.txt",

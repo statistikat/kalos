@@ -4531,3 +4531,11 @@ match on all seven fitted models, 909 residuals and 5,640 product values.
 ### M5 RSA3 residual diagnostics after the fast mean retry
 
 Four public RSA3 fits requiring a fourth pass after removal of the mean produced identical diagnostic captures in two independent pinned JVMs (SHA-256 `afd4385d7096652c2e142f3cd4377140183b0513ac701d887569d3e2a9532f8d`). All 20 scales, statistics and probabilities matched bit-for-bit in both Release and serial ASan/UBSan. Together with the previous nine fits this covers 13 automatically selected models and 65 numerical values. [Fast-mean diagnostic capture](validation/evidence/native/tramo-seats-bridge/rsa3-mean-retry-diagnostics-x86_64.txt)
+
+### M5 / 24-D — unrecombined extractions after an automatic round retry
+
+The seven reference-retry models now also have independent JVM records
+of the final WK rows before deterministic effects are restored. The paired
+snapshots preserve missing component kinds and the distinction between a
+SEATS parameter cutoff and a changed model. This supplies the extraction
+and merger boundaries for the public stock results.
