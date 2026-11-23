@@ -3937,6 +3937,23 @@ calendar generation, F-test, regression and TRAMO fit tests passed 4/4. The
 14 comparisons also passed ASan/UBSan. The full TRfull route still needs
 LP/Easter decisions, the later controller and automatic-model assembly.
 
+### M5 / 21-I.3 — initial stock TRfull calendar regression
+
+From unadjusted monthly observations the native initial TRfull module now
+fits the base, working-day and trading-day candidates with the template's
+six-day Easter regressor. When it selects trading days it refits with the
+leap-year column. The public result includes the mean, leap-year and Easter
+t statistics, the retained variables and the JDemetra module's change status.
+
+Twenty level/log runs across ten calendar and trend patterns matched the
+actual stock 3.9.0 module for every candidate SSQ, probability, t statistic,
+selection and processing status. Its measured precision is 1e−5. The two
+independent JVM captures are identical. The earlier 14 configurable
+comparison cases still pass. Release calendar, regression and automatic-fit
+tests passed 4/4. The 34 calendar comparisons passed ASan/UBSan. The late
+trading-day controller, subsequent
+rounds on fitted descriptions and the end-to-end TRfull gate remain open.
+
 ### M5 / 24-E — public RSA0 preprocessing residual oracle
 
 The six public RSA0 cases now record the dated `residuals.tsres` series and

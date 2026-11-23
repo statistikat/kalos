@@ -188,9 +188,26 @@ with `validation/reference/capture-tramo-seats-bridge.py --stage calendar-ftest`
 and the pinned x86-64 Java 21.0.11 and 3.9.0 jar directories.
 [Calendar F-test evidence](../validation/evidence/native/tramo-calendar-ftest/panel.txt)
 
-The length-of-period, Easter and mean significance updates, re-estimation
-with existing regressors, later controllers and the end-to-end TRfull route
-remain open.
+The stock `tramo_full_initial_calendar` entry also performs the selected
+model's leap-year, Easter and mean tests. It starts with the unadjusted
+monthly airline description and its mean, optionally log-transforms the
+observations, and uses the template's estimated Easter column (six days,
+end position zero, simple centering). The selected TD model includes the
+leap-year column in the final refit. With no trading days, the base
+model supplies the mean and Easter tests. The thresholds are 1.96 for
+the mean, 2.0 for leap year and 2.2 for Easter. The module's processing
+status also matches the reference when adding trading days alone.
+
+The stock F-test processor from 3.9.0 uses 1e−5 precision. The separate
+configurable comparison above was qualified at 1e−3. The 20 level/log
+stock-template cases reproduce the candidate likelihoods, probabilities,
+selected-model t statistics, retained variables and processing status.
+The `trfull-calendar` capture stage replays the locked template factory
+and its real regression module on two JVMs.
+[Stock TRfull calendar evidence](../validation/evidence/native/tramo-calendar-ftest/full.txt)
+
+Re-estimation on later model descriptions, the trading-day controller and
+the end-to-end TRfull route remain open.
 
 ## What this unblocks (downstream map)
 

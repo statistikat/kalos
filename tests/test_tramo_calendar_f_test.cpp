@@ -15,6 +15,48 @@ double read_bits(const std::string& text) {
     std::memcpy(&value, &bits, sizeof(value));
     return value;
 }
+
+bool check_full_template() {
+    std::ifstream oracle(KALOS_FULL_CALENDAR_PANEL);
+    kalos::TramoFullCalendarResult fit{};
+    int count = 0, id = 0;
+    bool log = false;
+    for (std::string line; std::getline(oracle, line);) {
+        std::istringstream row(line);
+        std::string kind, token;
+        row >> kind;
+        if (kind == "input") {
+            std::vector<double> values;
+            row >> id >> log;
+            while (row >> token) values.push_back(read_bits(token));
+            fit = kalos::tramo_full_initial_calendar(values, 1990, 1, log);
+            continue;
+        }
+        int columns;
+        bool mean, lp, easter;
+        std::string status, base, one, six, p1, p6, mean_t, lp_t, easter_t;
+        row >> status >> columns >> std::boolalpha >> mean >> lp >> easter >> base >> one >> six >>
+            p1 >> p6 >> mean_t >> lp_t >> easter_t;
+        if (!row || kind != "result") return false;
+        const auto& r = fit.comparison;
+        const int selected = r.selected == kalos::TramoTradingDays::None ? 0 :
+            r.selected == kalos::TramoTradingDays::WorkingDays ? 1 : 6;
+        const auto expected_lp = lp_t == "-" ? std::nullopt : std::optional<double>(read_bits(lp_t));
+        if (r.base_ssq != read_bits(base) || r.working_days.residual_ssq != read_bits(one) ||
+            r.trading_days.residual_ssq != read_bits(six) || r.working_days.lower_probability != read_bits(p1) ||
+            r.trading_days.lower_probability != read_bits(p6) || columns != selected ||
+            fit.keep_mean != mean || fit.keep_leap_year != lp || fit.keep_easter != easter ||
+            fit.module_changed() != (status == "Changed") || fit.mean_t != read_bits(mean_t) ||
+            fit.leap_year_t != expected_lp || fit.easter_t != read_bits(easter_t)) {
+            std::cerr << "TRfull calendar mismatch at " << id << " log=" << log << "\n";
+            return false;
+        }
+        ++count;
+    }
+    std::cout << count << " stock TRfull calendar comparisons\n";
+    return count == 20;
+}
+
 }
 
 int main() {
@@ -61,5 +103,5 @@ int main() {
     ok &= invalid(std::vector<double>(22, 1.0), .01);
     ok &= invalid(series.at(0), std::numeric_limits<double>::quiet_NaN());
     std::cout << cases << " public TRAMO calendar F-test comparisons\n";
-    return ok ? 0 : 1;
+    return check_full_template() && ok ? 0 : 1;
 }

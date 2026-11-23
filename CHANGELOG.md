@@ -11,6 +11,7 @@
   and regression-test decisions from the fitted likelihood. It reports the
   fixed-column regression covariance in the original variable order.
 
+- Added the stock TRfull initial mean, leap-year and Easter decisions on level or log monthly data.
 - Added the monthly TRAMO airline F-test for working-day and trading-day effects.
 
 - Added the public monthly RSA0 residual Ljung–Box diagnostic with its
