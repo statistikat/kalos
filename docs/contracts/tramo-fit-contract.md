@@ -209,3 +209,12 @@ restoration invalidates the cached effects. All 20 selectors agree with
 the public path, including the five-variable model after the seasonality
 controller and the short-series HR failure. On an unchanged airline
 fallback the returned description preserves its entering orders.
+
+The last stationary scan is covered by the monthly regular AR(1)/AR(2)
+scanner with a mean and complete input. The LS column is zero-ended, and
+its nonzero constant correction enters the scan weights and the initial
+sum of squares for a stationary model. Six dedicated public-module and
+internal round traces cover AO, LS, TC and unchanged outcomes. Across the
+34 fit cases all 126 differencing, ARMA, scan and final-estimation module
+checks now run numerically. The recorded loop and final-model data are
+still part of the separate fit request.

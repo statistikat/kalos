@@ -3981,3 +3981,14 @@ already-airline orders intact. The native failure path now preserves
 those orders. The 34-case suite reports 125 live and one recorded check,
 the stationary AR(2) scan. Physical round assembly and export of the
 public automatic fit record remain separate.
+
+### M5 / 23-G — stationary scans and complete four-module census
+
+Monthly stationary regular AR(1) and AR(2) scans with a mean now use
+the zero-ended LS design and its frequency-zero constant correction.
+Six fresh cases replay every captured round, coefficient and detector
+decision against the public module and the independently driven private
+machine. The two captures from separate pinned x86-64 JVMs are identical.
+The final previously recorded AR(2) scan in the fit now runs directly:
+all 126 module checks are live. The automatic loop still receives its
+round events and final fitted-model record in the existing replay API.

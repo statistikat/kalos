@@ -15314,7 +15314,7 @@ inline const std::vector<FitExpect>& fit_expectations() {
       {"fit_s30ml", "", "Strong", 3, 6, 0, 0},
       {"fit_aoonly", "", "Strong", 3, 6, 0, 3},
       {"fit_cv4", "", "Strong", 3, 6, 0, 6},
-      {"fit_shortfail", "", "NotObservable", 0, 9, 1, 0},
+      {"fit_shortfail", "", "NotObservable", 0, 10, 0, 0},
       {"fit_mrstack", "", "Strong", 3, 6, 0, 28},
       {"fit_mrls", "", "Strong", 3, 7, 0, 3},
       {"fit_missing", "refused:missing-values", "Weak", 1, 6, 0, 1},

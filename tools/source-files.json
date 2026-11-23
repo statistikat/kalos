@@ -469,6 +469,8 @@
     "validation/evidence/native/tramo-outlier-rounds/mr-classload.log",
     "validation/evidence/native/tramo-outlier-rounds/mr-witness.out",
     "validation/evidence/native/tramo-outlier-rounds/run.sh",
+    "validation/evidence/native/tramo-outlier-rounds/stationary-cases.txt",
+    "validation/evidence/native/tramo-outlier-rounds/stationary-witness.out",
     "validation/evidence/native/tramo-outlier-scan/SHA256SUMS.csv",
     "validation/evidence/native/tramo-outlier-scan/cases.csv",
     "validation/evidence/native/tramo-outlier-scan/inputs.csv",

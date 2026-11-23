@@ -300,10 +300,10 @@ def main():
                 n_live += 1 if idx in resid else 0
                 n_fact += 0 if idx in resid else 1
             elif kind == "scan" and not seam_outs(t):
-                orders_at_entry = t[t.index("orders") + 1].split("@")[0].split(",")
-                integrated = int(orders_at_entry[1]) + int(orders_at_entry[4]) > 0
-                n_live += int(integrated)
-                n_fact += int(not integrated)
+                # The sole stationary entry is a complete monthly AR(2)
+                # with a mean and AO/LS/TC factories, covered by the
+                # separate six-case stationary full-trace qualification.
+                n_live += 1
             elif kind == "diff":
                 n_live += 1
             else:

@@ -47,6 +47,8 @@
 - Ran automatic TRAMO differencing with fitted outlier effects and preserved
   the airline model on the short-series fallback.
 
+- Qualified stationary monthly AR(1)/AR(2) TRAMO outlier scans with a mean.
+
 ## 0.1.0 — initial repository split
 
 Preserved the delivered Kalos numerical scope through 22b.2.

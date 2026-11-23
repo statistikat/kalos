@@ -121,7 +121,7 @@ struct DetectedOutlier {
     std::string name;
 };
 
-std::vector<DetectedOutlier> check_scan(const TramoFitSpec& spec, const tramo_build_result& built, bool log,
+std::optional<std::vector<DetectedOutlier>> check_scan(const TramoFitSpec& spec, const tramo_build_result& built, bool log,
                 const TramoFitSeamInputs& in, const TramoKernelSeam& expected) {
     TramoOutlierScanRequest request{};
     request.y = built.interpolated;
@@ -147,6 +147,7 @@ std::vector<DetectedOutlier> check_scan(const TramoFitSpec& spec, const tramo_bu
     request.max_outliers = 50;
     request.cv = expected.critical_value;
     request.upper_bound = built.estimation_length;
+    if (o.d == 0 && o.bd == 0 && !tramo_stationary_scan_supported(request)) return std::nullopt;
     const auto scan = tramo_outlier_rounds(request);
     const auto outcome = scan.status == TramoOutlierRoundsResult::Status::Failed ? TramoKernelStageResult::failed :
         scan.outliers.empty() ? TramoKernelStageResult::unchanged : TramoKernelStageResult::changed;
@@ -592,13 +593,16 @@ TramoFitResult tramo_fit(const TramoFitRequest& request) {
             check.tier = "live";
             check.note = "match " + stage_word(mapped) + " " +
                          orders_word(post);
-        } else if (seam.kind == TramoKernelSeamKind::scan && !has_fixed_regressors &&
-                   in.entry_outliers.empty() &&
-                   (in.entry_orders.d > 0 || in.entry_orders.bd > 0)) {
-            final_entry = EstimationEntry{in.entry_orders, in.entry_mean,
-                check_scan(spec, built, prestage.log, in, seam)};
-            check.tier = "live";
-            check.note = "match " + stage_word(seam.result) + ", ordered outlier selection";
+        } else if (seam.kind == TramoKernelSeamKind::scan && !has_fixed_regressors && in.entry_outliers.empty()) {
+            auto selected = check_scan(spec, built, prestage.log, in, seam);
+            if (selected) {
+                final_entry = EstimationEntry{in.entry_orders, in.entry_mean, std::move(*selected)};
+                check.tier = "live";
+                check.note = "match " + stage_word(seam.result) + ", ordered outlier selection";
+            } else {
+                check.tier = "fact";
+                check.note = "outside the qualified stationary scan design";
+            }
         } else if (seam.kind == TramoKernelSeamKind::arma &&
                    (can_derive_arma || !in.ols_residuals.empty())) {
             TramoArmaSelectionRequest areq;
