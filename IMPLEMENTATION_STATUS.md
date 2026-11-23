@@ -4367,3 +4367,15 @@ JVMs agreed byte-for-byte. All 60 standard errors, statistics and
 probabilities match the reference bit-for-bit across 12 models. The
 release diagnostics, raw RSA0 and raw automatic SEATS CTests passed.
 [Public diagnostic evidence](validation/evidence/native/tramo-seats-bridge/rsa1-residual-diagnostics-x86_64.txt)
+
+### M5 / 23-G — complete monthly seasonality panel
+
+The autoregressive peak test fits thirty ordered lags by unpivoted QR
+and classifies the six seasonal frequencies on the trading-day-adjusted
+grid. The paired JVM panel agrees on all 168 AR and Tukey outcomes
+including both availability cutoffs. On the original battery corpus,
+both full panels for every one of the 72 monthly states match the JVM:
+Qs/Friedman statistics and probabilities, differencing length, available
+peak tests, six harmonic classifications when available, and the final
+ladder score. The seasonal regression F test and candidate refits are
+the next dependencies for the integrated controller.

@@ -15,10 +15,10 @@
 #include "kalos/arma_diagnostics.hpp"
 #include "kalos/detail/special_functions.hpp"
 #include "kalos/tramo_differencing_battery.hpp"
-#include "kalos/tramo_transform_decision.hpp"
 
 #include "jvm_tramo_battery.h"
 
+#include <algorithm>
 #include <cmath>
 #include <cstdio>
 #include <cstdlib>
@@ -482,26 +482,21 @@ void replay(const kalos::test::TbCase& tc) {
             continue;
         }
         if (freq == 12) {
-            const auto compare = [&](const auto& actual, const BatteryTests& expected, const char* source) {
-                if (!bits_eq(actual.qs.value, expected.qs_v) || !bits_eq(actual.qs.p_value, expected.qs_p) ||
-                    !bits_eq(actual.friedman.value, expected.np_v) || !bits_eq(actual.friedman.p_value, expected.np_p))
-                    fail(p.id, std::string(source) + " seasonal statistics differ in " + tag);
+            const auto compare = [&](const std::vector<double>& values, kalos::TramoSeasonalTestInput input,
+                                     const BatteryTests& expected) {
+                const auto actual = kalos::tramo_monthly_seasonal_tests(values, input);
+                if (!bits_eq(actual.qs_v, expected.qs_v) || !bits_eq(actual.qs_p, expected.qs_p) ||
+                    !bits_eq(actual.np_v, expected.np_v) || !bits_eq(actual.np_p, expected.np_p) ||
+                    actual.qs_null != expected.qs_null || actual.np_null != expected.np_null ||
+                    actual.differenced_length != expected.differenced_length || actual.ar_null != expected.ar_null ||
+                    actual.tukey_null != expected.tukey_null || !std::equal(actual.peaks.begin(), actual.peaks.end(),
+                        expected.peaks.begin(), expected.peaks.end(), [](const auto& a, const auto& b) {
+                            return a.ar == b.ar && a.tukey == b.tukey;
+                        }) || battery_ladder_score(actual, freq) != battery_ladder_score(expected, freq))
+                    fail(p.id, "computed monthly seasonality panel differs in " + tag);
             };
-            compare(kalos::tramo_seasonality_statistics(st->resid), st->resl, "residual");
-            const auto linearized = kalos::tramo_seasonality(p.linearized.at(tag));
-            compare(linearized, st->ctlst, "linearized");
-            const auto check_tukey = [&](const std::vector<double>& values, const BatteryTests& expected) {
-                const auto peaks = kalos::tramo_monthly_tukey_peaks(values);
-                if (peaks.empty() != expected.tukey_null)
-                    fail(p.id, "Tukey availability in " + tag);
-                if (!expected.peaks.empty()) {
-                    if (peaks.size() != expected.peaks.size() || !std::equal(peaks.begin(), peaks.end(),
-                            expected.peaks.begin(), [](auto peak, const auto& row) { return peak == row.tukey; }))
-                        fail(p.id, "Tukey seasonal peaks in " + tag);
-                }
-            };
-            check_tukey(st->resid, st->resl);
-            check_tukey(linearized.differenced, st->ctlst);
+            compare(st->resid, kalos::TramoSeasonalTestInput::residuals, st->resl);
+            compare(p.linearized.at(tag), kalos::TramoSeasonalTestInput::linearized, st->ctlst);
         }
         const auto tests = kalos::tramo_comparator_residual_tests(st->resid);
         if (!bits_eq(tests.absolute_skewness, st->mstat.skew_abs) ||
@@ -706,6 +701,11 @@ void check_monthly_spectra() {
             actual += peak == PeakTukey::T ? '2' : peak == PeakTukey::t ? '1' : '0';
         if ((actual.empty() ? "-" : actual) != expected_tukey)
             fail("Tukey spectrum", "length " + std::to_string(n) + ", seed " + std::to_string(seed));
+        actual.clear();
+        for (auto peak : kalos::tramo_monthly_ar_peaks(x))
+            actual += peak == PeakAr::A ? '2' : peak == PeakAr::a ? '1' : '0';
+        if ((actual.empty() ? "-" : actual) != expected_ar)
+            fail("AR spectrum", "length " + std::to_string(n) + ", seed " + std::to_string(seed));
         ++count;
     }
     if (count != 168) fail("monthly spectrum", "incomplete classifier corpus");

@@ -43,6 +43,9 @@ enum class PeakTukey : unsigned char { T, t, none, undef };
 // Tukey test; the returned vector is empty in that case.
 std::vector<PeakTukey> tramo_monthly_tukey_peaks(const std::vector<double>& values);
 
+// Fixed-order OLS autoregressive spectrum at the six monthly harmonics.
+std::vector<PeakAr> tramo_monthly_ar_peaks(const std::vector<double>& values);
+
 struct PeakRecord {
     PeakAr ar;
     PeakTukey tukey;
@@ -61,6 +64,11 @@ struct BatteryTests {
     // SpectralPeaks.hasSeasonalPeaks).
     std::vector<PeakRecord> peaks;
 };
+
+enum class TramoSeasonalTestInput { linearized, residuals };
+// Full monthly controller panel, including both spectral tests and their
+// respective minimum sample lengths.
+BatteryTests tramo_monthly_seasonal_tests(const std::vector<double>& values, TramoSeasonalTestInput input);
 
 // The SeasonalFTest triple (StatisticalTest value, JVM-computed p-value and
 // the two degrees of freedom read from the F description string).

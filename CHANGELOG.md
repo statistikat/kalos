@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Build the complete monthly seasonality-controller diagnostic panel from
+  linearized data or fitted residuals, including autoregressive spectral peaks.
+
 - Compute monthly Tukey spectral-peak significance for TRAMO controllers.
 
 - Added the monthly Qs and Friedman tests used on TRAMO fitted residuals
