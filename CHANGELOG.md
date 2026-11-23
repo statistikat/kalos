@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Corrected the cosine used in the SEATS spectrum minimum search to reproduce
+  the pinned x86-64 HotSpot kernel on monthly level-shift fits.
+
 - Added monthly TR1 preprocessing from dated observations, with automatic
   log/level selection and outlier detection on the fixed-order airline model.
 

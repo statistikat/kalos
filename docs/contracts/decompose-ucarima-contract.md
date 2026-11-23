@@ -144,3 +144,18 @@ corpus: 32 cases / 1620 lines exact, 17 exact-reason refusals, 32 grammar
 audits, 0 failures. ASan/UBSan builds of unit and sweep: clean. Existing
 suite unchanged; `tools/check-manifest.py` and `tools/verify-migration.py`
 green.
+
+### Cosine in the spectrum minimum search
+
+Temurin 21.0.11 x86-64 evaluates `Math.cos` with the HotSpot intrinsic.
+At frequency `0x1.70b097e19e38fp+1`, its result differs from the
+host-lineage cosine by one ULP. The resulting spectrum minimum affects
+the trend and seasonal extraction. The native implementation reduces
+the argument on the pi/32 grid, reflects a 17-entry high-precision
+quarter-wave table and sums the sine/cosine polynomials with compensation.
+The reference runner's `spectrum-cos` stage checks 36,614 inputs and
+three adjacent frequencies in two independent JVMs. The existing spectrum
+and standalone component oracles retain their exact bit comparisons.
+
+The range reduction and polynomial scheme are described in the
+[OpenJDK x86 cosine implementation](https://github.com/openjdk/jdk21u/blob/master/src/hotspot/cpu/x86/stubGenerator_x86_64_cos.cpp).

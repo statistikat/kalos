@@ -5,6 +5,9 @@
 // line for line, double for double (%.17g round-trips through strtod, so the
 // captured text is the comparison itself).
 #include <array>
+#include <cmath>
+#include <cstdint>
+#include <fstream>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
@@ -15,6 +18,7 @@
 
 #include "jvm_seats_wk_extraction.h"
 #include "kalos/seats_extract_wk.hpp"
+#include "kalos/detail/hostlineage.hpp"
 #include "tramo_seats_model_replay.h"
 
 namespace {
@@ -27,6 +31,50 @@ bool g_verbose = false;
 void fail(const std::string& id, const std::string& what) {
   ++g_failures;
   g_problems.push_back(id + ": " + what);
+}
+
+void check_spectrum_cos() {
+  constexpr double pi = 0x1.921fb54442d18p+1;
+  std::uint64_t signature = 0xcbf29ce484222325ULL;
+  std::size_t count = 0;
+  const auto bits = [](double value) {
+    std::uint64_t word;
+    std::memcpy(&word, &value, sizeof word);
+    return word;
+  };
+  const auto sample = [&](double x) {
+    signature = (signature ^ bits(kalos::detail::hotspot_spectrum_cos(x))) * 0x100000001b3ULL;
+    ++count;
+  };
+  for (int k = -320; k <= 320; ++k) {
+    for (const double step : {static_cast<double>(k), k + 0.5}) {
+      const double x = step * pi / 32.0;
+      sample(std::nextafter(x, -std::numeric_limits<double>::infinity()));
+      sample(x);
+      sample(std::nextafter(x, std::numeric_limits<double>::infinity()));
+    }
+  }
+  std::uint64_t state = 21900;
+  for (int i = 0; i < 32768; ++i) {
+    state = state * 6364136223846793005ULL + 1442695040888963407ULL;
+    sample(static_cast<double>(state >> 11) * 0x1p-53 * (2.0 * pi) - pi);
+  }
+  std::ifstream ref(KALOS_SPECTRUM_COS);
+  std::string key;
+  std::size_t inputs;
+  std::uint64_t expected;
+  if (!(ref >> key >> inputs >> std::hex >> expected) || key != "sample" ||
+      inputs != count || expected != signature) fail("spectrum cosine", "JVM sample fingerprint");
+  for (int i = 0; i < 3; ++i) {
+    std::uint64_t input;
+    if (!(ref >> key >> input >> expected) || key != "frequency") {
+      fail("spectrum cosine", "missing optimizer frequency");
+      break;
+    }
+    double x;
+    std::memcpy(&x, &input, sizeof x);
+    if (bits(kalos::detail::hotspot_spectrum_cos(x)) != expected) fail("spectrum cosine", "optimizer frequency");
+  }
 }
 
 std::vector<double> parse_values(const char* s) {
@@ -92,6 +140,7 @@ void check_components(const golden_swk::Case& c, const std::string& stage,
 }  // namespace
 
 int main(int argc, char** argv) {
+  check_spectrum_cos();
   g_verbose = argc > 1 && std::strcmp(argv[1], "-v") == 0;
   std::size_t n = 0;
   const golden_swk::Case* cs = golden_swk::table(n);

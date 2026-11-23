@@ -24,7 +24,7 @@ def main():
                         help="directory containing pinned jars (repeatable)")
     parser.add_argument("--stage", choices=["bridge", "merge", "rsa0", "rsa0-forecast-errors",
                         "rsa0-residuals", "rsa0-ljung-box", "rsa0-doornik-hansen", "rsa1", "rsa3",
-                        "calendar-ftest", "trfull-calendar", "residual-td"], default="bridge")
+                        "calendar-ftest", "trfull-calendar", "residual-td", "spectrum-cos"], default="bridge")
     parser.add_argument("--output", type=Path, help="write a new capture instead of verifying the frozen file")
     args = parser.parse_args()
     reference = json.loads((EVIDENCE / "reference.json").read_text())
@@ -50,7 +50,7 @@ def main():
         if arch not in {"x86_64", "amd64"}:
             raise SystemExit("TRAMO calendar F-test uses the pinned x86-64 numerical profile")
         output_name = "../tramo-calendar-ftest/" + calendar_outputs[args.stage]
-    if args.stage.startswith("rsa"):
+    if args.stage.startswith("rsa") or args.stage == "spectrum-cos":
         if arch not in {"x86_64", "amd64"}:
             raise SystemExit("raw TRAMO-SEATS presets use the pinned x86-64 numerical profile")
         output_name = args.stage + "-x86_64.txt"

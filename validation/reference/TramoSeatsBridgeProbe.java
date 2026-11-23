@@ -261,8 +261,35 @@ public class TramoSeatsBridgeProbe {
         }
     }
 
+    // The SEATS spectrum optimizer evaluates Math.cos on x86 HotSpot.
+    // Pin a fingerprint of the binary64 results over independent inputs.
+    private static void spectrumCos() {
+        long signature = 0xcbf29ce484222325L;
+        int count = 0;
+        for (int k = -320; k <= 320; ++k) {
+            for (double step : new double[]{k, k + 0.5}) {
+                double x = step * Math.PI / 32.0;
+                for (double a : new double[]{Math.nextDown(x), x, Math.nextUp(x)}) {
+                    signature = (signature ^ Double.doubleToRawLongBits(Math.cos(a))) * 0x100000001b3L;
+                    ++count;
+                }
+            }
+        }
+        long state = 21900;
+        for (int i = 0; i < 32768; ++i) {
+            state = state * 6364136223846793005L + 1442695040888963407L;
+            double x = (double)(state >>> 11) * 0x1p-53 * (2.0 * Math.PI) - Math.PI;
+            signature = (signature ^ Double.doubleToRawLongBits(Math.cos(x))) * 0x100000001b3L;
+            ++count;
+        }
+        System.out.printf("sample %d %016x%n", count, signature);
+        for (long angle : new long[]{0x40070b097e19e38eL, 0x40070b097e19e38fL, 0x40070b097e19e390L})
+            System.out.printf("frequency %016x %s%n", angle, bits(Math.cos(Double.longBitsToDouble(angle))));
+    }
+
     public static void main(String[] args) throws Exception {
         String stage = args.length > 1 ? args[1] : "bridge";
+        if (stage.equals("spectrum-cos")) { spectrumCos(); return; }
         boolean raw = stage.startsWith("rsa");
         Method bridge = TramoSeatsKernel.class.getDeclaredMethod("of", RegSarimaModel.class);
         bridge.setAccessible(true);

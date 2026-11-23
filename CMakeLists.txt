@@ -269,6 +269,10 @@ if(KALOS_BUILD_TESTS)
       target_compile_definitions(${test_name} PRIVATE
         KALOS_RSA0_DIAGNOSTIC_DIR="${CMAKE_CURRENT_SOURCE_DIR}/validation/evidence/native/tramo-seats-bridge")
     endif()
+    if(test_name STREQUAL "test_seats_extract_wk")
+      target_compile_definitions(${test_name} PRIVATE
+        KALOS_SPECTRUM_COS="${CMAKE_CURRENT_SOURCE_DIR}/validation/evidence/native/tramo-seats-bridge/spectrum-cos-x86_64.txt")
+    endif()
     if(test_name STREQUAL "test_tramo_seats_automatic")
       target_compile_definitions(${test_name} PRIVATE
         KALOS_AUTOMATIC_ORACLES="${CMAKE_CURRENT_SOURCE_DIR}/validation/evidence/native/tramo-seats-bridge")

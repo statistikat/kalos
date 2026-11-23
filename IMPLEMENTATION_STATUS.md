@@ -4141,3 +4141,15 @@ transformation outcomes, every SARIMA and regression coefficient, the
 ordered AO/LS variables, raw and adjusted likelihoods and 570 full
 residuals. This qualifies preprocessing. Public component and forecast
 comparisons are owned by the independent RSA1 pipeline gate.
+
+### M5 / 24-D — x86-64 spectrum cosine
+
+One of 1,082 distinct cosine inputs in the stock RSA1 log level-shift fit
+differed from the pinned x86-64 HotSpot result by one ULP. It occurred
+inside the Newton search for the minimum of the component spectrum. The
+fitted model and the complete SEATS input already matched. A compensated
+pi/32 reduction now reproduces the JVM frequency response on every host.
+Two independent JVMs agree on the 36,614-input fingerprint and the three
+adjacent binary64 values at the observed frequency. All earlier standalone
+SEATS validation, UCARIMA, extraction and fitted pipeline cases pass at
+their existing precision.
