@@ -4164,3 +4164,12 @@ pipeline additionally tests zero and custom horizons. The structured
 extraction now reports its model-change flag, including both mixed-outlier
 approximation runs from the fitted pipeline. The existing bridge restrictions
 on supported deterministic and approximation shapes still apply.
+
+### M5 / 23-G — initial no-calendar regression test
+
+The initial regression test now constructs its model after the live
+seasonality and transform decision, fits at the kernel's intermediate
+precision, and evaluates the default mean threshold. All 22 admitted
+F4 cases that enter the round loop reproduce the original processing
+result and mean flag, including the retained mean and the nonseasonal
+downgrade. The two fully specified cases continue to bypass this stage.

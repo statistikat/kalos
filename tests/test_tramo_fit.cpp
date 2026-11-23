@@ -87,6 +87,7 @@ long long run_case(const FitExpect& e, std::size_t& live_total,
     }
     CHECK(r.status == "available");
     CHECK(r.final_model_computed);
+    CHECK(r.initial_regression_checked == !rq.kernel.seams.empty());
     const auto count = [&](TramoKernelSeamKind kind) {
         return static_cast<std::size_t>(std::count_if(rq.kernel.seams.begin(), rq.kernel.seams.end(),
             [kind](const auto& seam) { return kind == seam.kind; }));

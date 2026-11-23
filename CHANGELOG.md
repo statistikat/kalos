@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Automatic TRAMO computes the initial mean decision from the post-transform
+  model at the kernel's intermediate precision.
+
 - Added the raw monthly RSA1 seasonal-adjustment pipeline and the SEATS
   model-change indicator. Six public cases reproduce all 3,960 product values.
 

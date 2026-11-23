@@ -323,6 +323,26 @@ FittedOutlierEffects check_final_estimation(const TramoFitSpec& spec, const std:
     return effects;
 }
 
+TramoRegressionTestDecision initial_mean_test(const TramoFitSpec& spec, const std::vector<double>& y,
+                                              const TramoOrders& orders, bool mean) {
+    TramoRegressionTestRequest test;
+    test.kind = TramoRegressionTestKind::def;
+    test.test_mean = tramo_ami_check_mu(spec.using_auto_model, spec.mean_is_test);
+    test.mean = mean;
+    if (test.test_mean && mean) {
+        // DefaultRegressionTest estimates its own copy with the intermediate
+        // precision. The description is still in its post-seasonality orders.
+        auto options = spec;
+        options.precision = spec.intermediate_precision;
+        options.using_auto_model = false;
+        EstimationEntry trial{orders, mean, {}};
+        auto fit = fit_estimation(options, y, trial, 0);
+        require(fit.fit.returned && fit.fit.cl_state != 0, "initial mean-test likelihood unavailable");
+        test.statistics = fitted_test_statistics(fit);
+    }
+    return run_tramo_regression_tests(test);
+}
+
 TramoFitFinalRecord project_fitted_record(const FittedOutlierEffects& effects,
                                          const std::vector<double>& observations, bool log, int frequency) {
     const auto& fit = effects.fit;
@@ -724,6 +744,23 @@ TramoFitResult tramo_fit(const TramoFitRequest& request) {
     // after a "scontroller res Changed" flip back to seasonal.
     const bool has_fixed_regressors = std::any_of(built.variables.begin(), built.variables.end(),
         [](const auto& var) { return var.kind != tramo_variable_kind::trend_constant; });
+    if (!fully_specified && !has_fixed_regressors && prestage.outliers.empty()) {
+        auto arima = built.arima;
+        if (spec.using_auto_model && !result.transformation.seasonal) {
+            arima.bd = 0;
+            arima.btheta.clear();
+        }
+        const TramoOrders orders{static_cast<int>(arima.phi.size()), arima.d, static_cast<int>(arima.theta.size()),
+            static_cast<int>(arima.bphi.size()), arima.bd, static_cast<int>(arima.btheta.size())};
+        const auto y = differenced_response(built.interpolated, result.transformation.log_transform,
+                                            built.annual_frequency, 0, 0);
+        const auto initial = initial_mean_test(spec, y, orders, built.mean);
+        const char* name = initial.result == TramoRegressionTestResult::unprocessed ? "Unprocessed" :
+                           initial.result == TramoRegressionTestResult::changed ? "Changed" : "Unchanged";
+        require(orders_equal(orders, prestage.orders) && initial.mean == prestage.mean &&
+                prestage.regression_test == name, "initial fitted mean test disagrees with the pre-stage");
+        result.initial_regression_checked = true;
+    }
     bool ctx_seasonal = prestage.seasonal;
     std::size_t next_input = 0;
     std::optional<EstimationEntry> final_entry;
