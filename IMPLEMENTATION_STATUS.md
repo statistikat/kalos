@@ -3610,3 +3610,80 @@ as the 26th cell;
 `check-manifest.py` 187/112/331 post-commit (the F.4 landing had missed
 the manifest registration — closed here); `verify-migration.py` 406;
 evidence `SHA256SUMS.csv` replayed (corpus not re-captured).
+
+## Calendar-detection machines: 21-I.3 lands `kalos::calendar_detection` — the 23-E seam opens — 2026-11-23
+
+`kalos::calendar_detection` (item 21-I.3, roadmap 21-I.3 LANDED under this
+unit name, wider than the planned `tramo_trading_days_controller` per the I-4
+maintainer ruling) transcribes the automatic calendar-detection layer of the
+pinned stack bit-exactly: the shared `TradingDaysRegressionComparator`
+(`bestModel` incl. the unreachable-`-1`/AIOOBE surface, the dcmpl/dcmpg
+`waldTest` p-loop + descend/j-loop with the pinned NaN polarities and the
+`DStatException`→failed surface), the TRAMO ladders `AutomaticRegressionTest`
+/ `AutomaticWaldRegressionTest` (comparator row layout, selection guards
+`best < 2 → td[best-2]` / `best < 1 → lp`, unconditional
+`addVariable("td", tdVar, calendarAMI)` — the Wald branch passes the WD
+variable — mean test, UNGUARDED easter tstat → `failed`, `canPre`),
+`AutomaticFRegressionTest` (no forced airline/mean in its OWN
+`createTestModel`; no-lp Info models with the arg2→ll1/arg3→ll6 swap; the
+three-branch walk with exact NaN polarities; per-branch SECOND update models
+WITH lp; `pftd = 1 − f_upper_p`), the sa machines
+`AutomaticTradingDaysRegressionTest` / `AutomaticTradingDaysWaldTest`
+(`[TD2c, TD2, TD3, TD3c, TD4, TD7]` order — fork-preserving vs TRAMO's
+`[TD2, TD2c, ...]`, `has_lp` always true, keep/swap/add/remove walk with
+core-equality and the early-return quirk, no mean/easter tests), and the
+ACTIVATED 23-E calendar seams: the `FastRegressionTest`/`DefaultRegressionTest`
+calendar branches (variable lookup + `isAutomaticallyIdentified`, the
+dim-1→wdTest routing that holds EVEN under `joinTest`, lp on `t0td`,
+`setPreadjustment`, `m.set(desc, null)`/`clearEstimation()`) with the
+`JointTest` join arm (`|p| < 0.05` dcmpg law — a NaN p ACCEPTS — the
+`lcholesky`/`solveLx`/`DataBlock.ssq` operand mirrors over column-major
+covariance hand-overs, public `kalos::calendar_joint_test` entry mirroring
+the jar's public class for the dim-1 form the step routing never reaches).
+**Zero new distribution kernels**: every p-value routes through the landed
+23-C.2 `detail::f_upper_p`; no t-CDF anywhere. Estimation results are
+REQUIRED REQUEST DATA hand-overs (21-G precedent); the `TradingDaysController`
+gate itself is spec wiring, pinned through the PT/PX pipeline witnesses
+instead.
+
+**Corpus + replay.** `validation/reference/CalendarDetectionProbe.java`
+(public entry points only; six machines via builders, comparator rows
+re-estimated live, `JointTest`, TRfull/X13 pipeline decoders) +
+`validation/reference/capture-calendar-detection.R` (one JVM per case,
+OpenJDK-21 gate, `UnlockDiagnosticVMOptions`+`DisableIntrinsic=_dexp/_dlog`
+recipe with `StrictMath` ground-truth guard, five class-load witnesses).
+DOUBLE capture, all 50 data files byte-identical, SHA256SUMS verified; 43
+cases (4 CM comparator, 7 TA, 5 FT, 7 SA, 4 FS, 6 DS incl. two join arms,
+3 JT forms, 4 PT + 3 PX pipeline witnesses). EVERY golden double rides raw
+IEEE-754 bits: the pinned JVM's `String.format("%.17g")` proved
+NOT bit-faithful against glibc for equal doubles (formatter erratum, pinning
+§10), so the probe emits `doubleToRawLongBits` hex and only the
+threshold CONSTANTS stay decimal in `inputs.csv` (crossed via `strtod` bits).
+`tools/gen_calendar_detection_golden.py` → `tests/jvm_calendar_detection.h`
+(43 cases, 335 raw-bit pools); `tests/calendar_detection_replay.h` (shared
+ctest/sweep) rebuilds every request from the captured hand-overs, compares
+229 checks bit-for-bit INCLUDING the reconstructed jar post-state variable
+lists and the `det ATD`/`det FT` journal echoes. Fresh-decode errata vs the
+§9 dump (FTEST `createTestModel` shape, branch labels, ladder selection
+guards, `bestModel` `-1`, candidate-side `mapping()`, the sa `alltd` order,
+ctor `nsig` values, the dim-1→wdTest routing) are recorded in
+`tmp_opencode/kalos-21i-pinning.md` §10.1 ("DUMP NOT TRUST").
+
+**Gates.** Fresh ctest **80/80 in BOTH lanes** (tree 23f4-b1 1460 s; fresh tree 23f4-b2 1490 s;
+new `test_calendar_detection` #80, TIMEOUT 3600, 229 checks). ASan/UBSan
+(laneD): the calendar-detection replay plus the 23-E and F.4 neighbours green, zero sanitizer reports. All twenty-four existing verify sweeps rc=0 AT RECORDED
+COUNTS — zero drift — plus the new `verify_calendar_detection` PASS (43
+cases, 229 replay + 320 raw-corpus cross-checks: inventory/family counts,
+decimal thresholds re-parsed into bits, `res` result/mean/est tokens,
+`det ATD`, `det FT` hex maps, `jt` echoes, `tdspec` lines). Shim-invariance
+battery post-lane on the b1 tree: **27/27 ledger cells plain=0 ledger100=PASS INVARIANT** (the informational `:96` unbound-variable echo is the known cosmetic line - the declared profile) with `test_calendar_detection` as the 27th cell;
+`check-manifest.py` 189/112/383 post-commit; `verify-migration.py` 406;
+evidence `SHA256SUMS.csv` replayed (corpus not re-captured post-landing).
+
+**Gaps (honest).** The ladder machines consume comparator candidate
+hand-overs (the ladder's own re-estimations are capture-side hand-overs, as
+in 23-E); sa `update()` consumes witness booleans (present/adjusted/log/
+core-equals) as REQUEST DATA — the jar reads live description state.
+I-6/I-10 crash input classes stay envelope refusals (not emulated). The
+X-13-side `CalendarEffectsDetection` battery stays 21-I.2; the pipeline
+witnesses pin wiring, not the full kernels.
