@@ -3685,3 +3685,17 @@ is at index 48. The correction uses the input estimation calendar for all
 45 affected fixture records. The header regenerated identically from the
 two original captures. Its 34-case replay passed, including date-to-index
 checks for the returned variables, 74 D9 entries and the 27/54 seam counts.
+
+### M5 / 24-D — native fitted-model bridge
+
+`make_tramo_seats_model` consumes an available 23-F result, validates its
+calendar/design envelope, and returns the fixed-model request used by 24-C.
+The installed interface preserves fitted orders, flags and four coefficient
+blocks. With identical fitted input values, five bridge replays match the
+JVM variance and every one of the 576 adjusted observations bit-for-bit.
+The test calls the real 23-F assembly for every case and independently checks
+its decisions and calendars before comparing the bridge arithmetic at the
+frozen fitted inputs. Unsupported regressor classes, missing observations,
+subdomains and length-of-period corrections refuse explicitly. OpenMP and
+ASan/UBSan each passed the three affected tests. The manifest (189/112/334)
+and historical migration audit (406 files) passed.

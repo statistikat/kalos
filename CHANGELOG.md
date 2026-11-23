@@ -8,6 +8,8 @@
   the same pinned likelihood as the reference panel.
 - Froze five fitted-model reference handoffs from TRAMO to SEATS and added
   a two-JVM replay against the pinned JDemetra jars.
+- Added the monthly, fitted TRAMO-to-SEATS model handoff for the five
+  qualified AO/LS and no-effect reference cases.
 
 ## 0.1.0 — initial repository split
 

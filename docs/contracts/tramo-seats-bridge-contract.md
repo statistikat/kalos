@@ -50,7 +50,11 @@ series rows give the first year, one-based month, length, then those bits.
   transformation, and the independently observed SEATS input.
 
 The scope is the reference handoff for these five fitted models (576 monthly
-observations). Native replay is the next implementation gate. Nonzero additive
+observations). The native replay enters through `make_tramo_seats_model(fit)`
+(`kalos/tramo_seats_bridge.hpp`). It uses the available 23-F result on its
+complete estimation calendar, the AO/zero-ended LS factories, and the pinned
+exponential. Malformed or unsupported fits throw `std::invalid_argument`.
+The fixed request can be passed directly to `seats_extract_wk`. Nonzero additive
 effects, TC/SO, calendar and missing-data surfaces have no witnesses in this
 corpus. The SEATS extraction can be tested separately. Restoring deterministic
 effects to the final components via `TwoStepsDecomposition.merge` and the
