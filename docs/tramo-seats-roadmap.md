@@ -374,7 +374,10 @@ pinned values without a maintainer ruling (the 21 precedent).
   component series, including the extraction standard deviations (36-case
   replay, 1,055 rows). Five fitted-model bridge reference pairs are frozen
   (576 observations, TR0/TR1/TR3). The native fitted-model handoff reproduces all
-  five at identical fitted inputs. The deterministic-effects merge remains open. [Bridge reference](contracts/tramo-seats-bridge-contract.md) [Extraction gate](contracts/seats-wk-extraction-contract.md)
+  five at identical fitted inputs. The native deterministic-effects merge now
+  reproduces all 65 rows / 4,005 values under both JVM profiles. The fitted
+  WK pipeline reproduces the x86-64 reference for four decomposable cases
+  and preserves D6 refusal for the mixed case. [Bridge reference](contracts/tramo-seats-bridge-contract.md) [Extraction gate](contracts/seats-wk-extraction-contract.md)
 - **24-E — end-to-end TRAMO/SEATS oracle + composition**:
   `tramo_seats_fit` driver = 23-F + 24-D; acceptance corpus MUST cover rsa3
   AND rsafull end to end (roadmap acceptance), the latter gated by 21-I for

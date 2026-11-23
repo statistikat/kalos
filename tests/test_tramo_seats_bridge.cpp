@@ -1,4 +1,7 @@
 #include "kalos/tramo_seats_bridge.hpp"
+#include "kalos/tramo_seats_pipeline.hpp"
+#include <algorithm>
+#include <map>
 #include "jvm_tramo_fit.h"
 
 #include <cassert>
@@ -91,6 +94,70 @@ std::vector<Case> read_cases() {
     return cases;
 }
 
+struct MergeCase {
+    std::string id;
+    int backcasts = 0, forecasts = 0;
+    bool approximation = false;
+    std::vector<seats_component_series> wk, merged;
+};
+
+std::vector<MergeCase> read_merge_cases(const char* path) {
+    const std::map<std::string, seats_component> types{
+        {"Series", seats_component::series}, {"Trend", seats_component::trend},
+        {"Seasonal", seats_component::seasonal}, {"SeasonallyAdjusted", seats_component::seasonally_adjusted},
+        {"Irregular", seats_component::irregular}};
+    const std::map<std::string, seats_information> kinds{
+        {"Value", seats_information::value}, {"Forecast", seats_information::forecast},
+        {"Stdev", seats_information::stdev}, {"Backcast", seats_information::backcast},
+        {"StdevForecast", seats_information::stdev_forecast}, {"StdevBackcast", seats_information::stdev_backcast}};
+    std::ifstream in(path);
+    assert(in);
+    std::vector<MergeCase> cases;
+    for (std::string line; std::getline(in, line);) {
+        std::istringstream row(line);
+        std::string key, token, type, kind;
+        row >> key;
+        if (key == "case") {
+            cases.emplace_back();
+            auto& c = cases.back();
+            row >> c.id >> token >> token >> c.backcasts >> token >> c.forecasts;
+            row >> token >> token >> token >> std::boolalpha >> c.approximation;
+        } else {
+            auto& c = cases.back();
+            assert(key == "wk" || key == "merged");
+            auto& rows = key == "wk" ? c.wk : c.merged;
+            seats_component_series r;
+            std::size_t length;
+            row >> type >> kind >> r.start_year >> r.start_month >> length;
+            r.component = types.at(type);
+            r.information = kinds.at(kind);
+            for (std::size_t j = 0; j < length; ++j) { row >> token; r.values.push_back(unpack(token)); }
+            rows.push_back(std::move(r));
+        }
+        assert(!row.fail());
+    }
+    return cases;
+}
+
+bool check_rows(const std::vector<seats_component_series>& actual,
+                const std::vector<seats_component_series>& expected, const std::string& label) {
+    if (actual.size() != expected.size()) {
+        std::cerr << label << ": got " << actual.size() << " rows, expected " << expected.size() << "\n";
+        return false;
+    }
+    for (std::size_t j = 0; j < expected.size(); ++j) {
+        const auto& a = actual[j];
+        const auto& e = expected[j];
+        if (a.component != e.component || a.information != e.information ||
+            a.start_year != e.start_year || a.start_month != e.start_month ||
+            !identical(a.values, e.values)) {
+            std::cerr << label << ": differing component, domain or values in row " << j << "\n";
+            return false;
+        }
+    }
+    return true;
+}
+
 void refusals(const TramoFitResult& fit) {
     auto refuses = [&](auto change) {
         auto bad = fit;
@@ -118,7 +185,11 @@ void refusals(const TramoFitResult& fit) {
 int main() {
     const auto cases = read_cases();
     assert(cases.size() == 5);
-    std::size_t observations = 0;
+    bool ok = true;
+    const auto merges = read_merge_cases(KALOS_MERGE_X64);
+    const auto arm_merges = read_merge_cases(KALOS_MERGE_FACTS);
+    assert(merges.size() == 6 && arm_merges.size() == 6);
+    std::size_t observations = 0, merged_values = 0, native_runs = 0;
     for (const auto& c : cases) {
         TramoFitRequest request;
         build_fit(c.id, request);
@@ -161,7 +232,54 @@ int main() {
             return 1;
         }
         observations += replay.series.size();
+        for (const auto& m : arm_merges) {
+            if (m.id == c.id)
+                ok &= check_rows(merge_tramo_seats_components(fit, m.wk), m.merged, m.id + " ARM JVM merge");
+        }
+        for (const auto& m : merges) {
+            if (m.id != c.id) continue;
+            const auto merged = merge_tramo_seats_components(fit, m.wk);
+            ok &= check_rows(merged, m.merged, m.id + " isolated merge");
+            for (const auto& row : merged) merged_values += row.values.size();
+            if (m.id == "fit_tr0_air") {
+                auto invalid = [&](auto rows) {
+                    try { (void)merge_tramo_seats_components(fit, rows); }
+                    catch (const std::invalid_argument&) { return; }
+                    throw std::runtime_error("malformed WK component grid accepted");
+                };
+                auto rows = m.wk;
+                rows.front().start_month++;
+                invalid(rows);
+                rows = m.wk;
+                rows.push_back(rows.front());
+                invalid(rows);
+                rows.pop_back();
+                rows.erase(rows.begin());
+                invalid(rows);
+                const auto observed_only = run_tramo_seats_pipeline(fit, 0, 0);
+                assert(observed_only.finals.size() == 5);
+                for (const auto& row : observed_only.finals)
+                    assert(row.information == seats_information::value);
+            }
+            if (m.approximation) {
+                bool refused = false;
+                try { (void)run_tramo_seats_pipeline(fit, m.backcasts, m.forecasts); }
+                catch (const std::invalid_argument& e) {
+                    refused = std::string(e.what()).find("approximation_required") != std::string::npos;
+                }
+                assert(refused);
+            } else {
+                const auto product = run_tramo_seats_pipeline(fit, m.backcasts, m.forecasts);
+                assert(product.extraction.fact("status") == "ok");
+                ok &= check_rows(product.extraction.final_components(), m.wk, m.id + " WK");
+                ok &= check_rows(product.finals, m.merged, m.id + " native pipeline");
+                ++native_runs;
+            }
+        }
+
     }
     std::cout << cases.size() << " fitted bridge handoffs, " << observations
-              << " bit-exact adjusted observations\n";
+              << " bit-exact adjusted observations, " << merged_values
+              << " isolated merged values, " << native_runs << " admitted native pipeline comparisons\n";
+    return ok ? 0 : 1;
 }

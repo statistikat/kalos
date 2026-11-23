@@ -3746,3 +3746,21 @@ in 64-bit arithmetic and validates the complete Burman domain, including
 filter padding, before building forecast arrays. Both extreme signed
 integer requests refuse deterministically. The normal WK corpus and the
 overflow cases passed, including the ASan/UBSan build.
+
+### M5 / 24-D — native deterministic-effects merge and fitted WK pipeline
+
+The pipeline accepts an available fitted TRAMO result, builds the SEATS
+request, runs WK extraction and restores fitted AO/LS effects. Across six
+horizon/model cases, the standalone merger reproduces all 65 product rows
+and 4,005 binary64 values on both JVM profiles. Four decomposable fitted
+inputs reproduce all corresponding bias-corrected WK and product rows
+against the pinned x86-64 JVM. The mixed fit requires SEATS approximation
+and refuses under D6 on both tested horizons. The regression also covers
+duplicate, missing and misdated WK rows and a zero-horizon fit. The focused
+tests passed in serial, OpenMP and ASan/UBSan builds.
+
+These comparisons use identical fitted inputs. An ordinary series-to-fit
+route without 23-F witness injection still needs the 23-G estimator and
+round-driver oracle. The 24-E end-to-end gate requires rsa3 and rsafull;
+21-I remains the dependency for TRfull's calendar tests.
+[Public API and contract](docs/contracts/tramo-seats-bridge-contract.md)

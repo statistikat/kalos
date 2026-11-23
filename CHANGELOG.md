@@ -16,6 +16,9 @@
 - Reject SEATS horizons whose padded monthly domain exceeds the signed
   index range before allocating forecasts.
 
+- Added the fitted monthly TRAMO-SEATS component pipeline with checked
+  restoration of deterministic effects on observed, forecast and backcast domains.
+
 ## 0.1.0 — initial repository split
 
 Preserved the delivered Kalos numerical scope through 22b.2.

@@ -56,9 +56,7 @@ complete estimation calendar, the AO/zero-ended LS factories, and the pinned
 exponential. Malformed or unsupported fits throw `std::invalid_argument`.
 The fixed request can be passed directly to `seats_extract_wk`. Nonzero additive
 effects, TC/SO, calendar and missing-data surfaces have no witnesses in this
-corpus. The SEATS extraction can be tested separately. Restoring deterministic
-effects to the final components via `TwoStepsDecomposition.merge` and the
-23-G/24-E end-to-end oracles remain separate gates.
+corpus. The merged product surface and its qualification are described below.
 
 ## Deterministic-effects merge gate
 
@@ -89,3 +87,25 @@ host-lineage math targets the pinned x86 JVM. The runner checks the total
 capture against the executing JVM's profile. The native composition gate uses
 the x86-64 profile on every host. The isolated merge gate uses both.
 [x86-64 paired reference](../../validation/evidence/native/tramo-seats-bridge/merge-x86_64.txt)
+
+## Native fitted-model composition
+
+`kalos/tramo_seats_pipeline.hpp` exposes two entry points. Given a fitted
+23-F result and the bias-corrected WK components, `merge_tramo_seats_components`
+restores the original observed series and applies the fitted AO and LS
+effects on the observed and extended domains. It requires the five
+component rows on each nonempty interval, checks dates and lengths and
+skips zero-length extensions. The observed WK series must equal the bridge
+input. The 65 merged rows agree bit for bit on both pinned JVM profiles.
+
+`run_tramo_seats_pipeline(fit, backcast_count, forecast_count)` builds the
+fixed handoff, extracts WK components and merges the product. Its extraction
+retains the dated initial and bias-corrected rows and standard deviations.
+Its finals contain estimates for value, forecast and backcast intervals.
+The default is zero backcasts and two years of forecasts. A WK error status
+produces empty finals. The mixed AO/LS model requires approximation and
+raises the established D6 refusal. Four decomposable fitted models reproduce
+the complete x86-64 reference extraction-final and product rows at identical
+fitted inputs. Running a raw series and specification without captured fit
+witnesses and qualifying the mandatory rsa3 and rsafull end-to-end oracles
+remain 23-G/24-E work.
