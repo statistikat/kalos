@@ -29,10 +29,20 @@ def main():
     if sha256(CASES) != reference["inputs_sha256"]:
         raise SystemExit("23-F source cases digest differs")
     java = args.jdk / "bin/java"
-    version = subprocess.check_output([java, "-version"], stderr=subprocess.STDOUT, text=True)
+    version = subprocess.check_output([java, "-XshowSettings:properties", "-version"], stderr=subprocess.STDOUT, text=True)
     if f'version "{reference["java_version"]}"' not in version:
         raise SystemExit(f"unexpected JVM: {version.splitlines()[0]}")
 
+    arch = next((line.split("=", 1)[1].strip() for line in version.splitlines()
+                 if line.strip().startswith("os.arch =")), "")
+    output_name = "bridge.txt"
+    if args.stage == "merge":
+        if arch in {"aarch64", "arm64"}:
+            output_name = "merge.txt"
+        elif arch in {"x86_64", "amd64"}:
+            output_name = "merge-x86_64.txt"
+        else:
+            raise SystemExit(f"no frozen merge reference for JVM architecture {arch!r}")
     jars = []
     for name, digest in reference["jars"].items():
         jar = next((d / name for d in args.jar_dir if (d / name).is_file()), None)
@@ -49,7 +59,7 @@ def main():
             raise SystemExit("two independent JVM captures differ")
     if args.output:
         args.output.write_bytes(first)
-    elif first != (EVIDENCE / f"{args.stage}.txt").read_bytes():
+    elif first != (EVIDENCE / output_name).read_bytes():
         raise SystemExit("live capture differs from the frozen bridge evidence")
     print(f"{args.stage}: five fitted models, two independent JVMs, SHA-256 {hashlib.sha256(first).hexdigest()}")
 

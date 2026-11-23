@@ -79,3 +79,13 @@ lengths and values to match. On the mixed case the JVM changed the model
 during SEATS approximation. Its frozen WK result qualifies the subsequent
 merge independently. D6 requires the native extraction route to refuse that
 fit. The AO-only case cuts off a parameter and stays in the admitted envelope.
+
+The fitted bridge bytes reproduce unchanged on ARM64 and x86-64 Temurin
+21.0.11. Two of the valid fitted models expose architecture differences in
+the JVM's WK numerics. Replaying the *identical* fixed inputs on the two JVMs
+changed 29 of 40 initial/final rows for TR3 AirPassengers and 30 of 40 for
+the LS case. The other two admitted models matched on both. Kalos's existing
+host-lineage math targets the pinned x86 JVM. The runner checks the total
+capture against the executing JVM's profile. The native composition gate uses
+the x86-64 profile on every host. The isolated merge gate uses both.
+[x86-64 paired reference](../../validation/evidence/native/tramo-seats-bridge/merge-x86_64.txt)

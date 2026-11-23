@@ -3719,3 +3719,11 @@ WK translation units defined those symbols. The header definitions are now
 inline. The installed-consumer regression links and runs both public
 operations in one executable, alongside the provider check. That regression
 and both decomposition/WK corpus tests passed on macOS ARM64.
+
+**24-D reference profile.** A second Temurin 21.0.11 JVM (x86-64) reproduced
+the exact fitted bridge capture and independently double-produced the paired
+merge capture with SHA-256
+`292da22739c949e4a73ba2398e456c842bf52af85521b66f47a8679dca5a756f`.
+The fixed-input JVM comparison identifies architecture-specific WK arithmetic
+in TR3 AirPassengers and LS. The x86 profile is the existing Kalos math
+target. Both exact captures remain available for testing component restoration.
