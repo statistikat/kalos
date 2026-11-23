@@ -427,8 +427,10 @@ SaAutoTdDecision run_sa_auto_td_test(const SaAutoTdRequest& request);
 // slot exactly as the jar wires it). statistics is the LIVE estimation's
 // concentrated likelihood (est.getEstimation()), nhp the copied
 // description's spec free-parameter count, tvar the builder field feeding
-// every calendar test (TRegressionTest(tvar) / (tvar, tvar) arms
-// identical thresholds; the landed 23-E bucket law applies).
+// every calendar test. Fresh-ctor bytecode: tdTest = TRegressionTest(tvar,
+// tvar) - the TWO-arg constructor with nsig = 2; wd/lp/mh tests are the
+// ONE-arg TRegressionTest(tvar) with nsig = 1 (all arms tlow = thigh =
+// tvar; the landed 23-E bucket law applies).
 struct TramoFastCalendarStepRequest {
     struct Slot {
         bool present = false;
@@ -469,15 +471,27 @@ TramoFastCalendarStep run_tramo_fast_calendar_step(
 // calendar arm first looks the machine variable up on descTest
 // (variable(core) != null && isAutomaticallyIdentified) and the lp arm
 // additionally requires the td arm to have been kept. join_test selects
-// the tdTest implementation: the T arm (t0td 2.0 / t1td 2.6 / nsig 1,
-// twd 2.2) or FRegressionTest(0.05) with the JointTest quadratic form
-// (the |p| < 0.05 dcmpg law). The joint-test statistic runs here on the
-// hand-over: z = ssq(solveLx(lcholesky(bvar[S,S]), b[S])) / |S|,
-// f = z / (ssq / (dim - nx - nhp)), p = f_upper_p(|S|, dim - nx - nhp, f);
-// the Cholesky/solveLx/ssq operand order mirrors
-// SymmetricMatrix.lcholesky / LowerTriangularMatrix.solveLx /
-// DataBlock.ssq bit-for-bit. select_all = (first == 0 && dim == nx) is
-// the jar's no-selection short circuit (S = all coefficients).
+// the tdTest implementation: the T arm - tdTest = TRegressionTest(t0td,
+// t1td) with nsig = 2, wdTest = TRegressionTest(twd) nsig = 1, lpTest =
+// TRegressionTest(t0td) nsig = 1 (lp rides on t0td, not twd), mhTest =
+// TRegressionTest(teaster) nsig = 1 - or FRegressionTest(0.05) (hardcoded
+// eps in the ctor bytecode) with the JointTest quadratic form (the
+// |p| < eps dcmpg law, NaN p ACCEPTS). The joint-test statistic runs here
+// on the hand-over: z = ssq(solveLx(lcholesky(bvar[S,S]), b[S])) / |S|,
+// f = z / (ssq / (dim - nx - nhp)), p = f_upper_p(f, |S|,
+// dim - nx - nhp); the Cholesky/solveLx/ssq operand order mirrors
+// SymmetricMatrix.lcholesky (lapack.Cholesky provider, tol = 0) /
+// LowerTriangularMatrix.solveLx / DataBlock.ssq bit-for-bit over the
+// column-major storage of the covariance hand-over. select_all =
+// (first == 0 && nx == dim) is the jar's no-selection short circuit
+// (S = all coefficients, b copied through toArray()). The covariance
+// hand-over (column-major, nx = coefficient count) is REQUIRED whenever
+// the td arm runs with join_test; its absence is a malformed request
+// (std::invalid_argument, fail closed). lcholesky/solveLx throw surfaces
+// (m_err_chol on a negative or zero pivot, m_err_sing on a zero solve
+// pivot; NaN pivots take the arithmetic branch, NOT the throw) propagate
+// as std::domain_error - the jar lets the MatrixException leave the
+// machine.
 struct TramoDefaultCalendarStepRequest {
     struct Lookup {
         bool variable_present = false;
@@ -487,6 +501,10 @@ struct TramoDefaultCalendarStepRequest {
     };
     TramoTestStatistics statistics;  // the descTest estimation's cl
     int nhp = 0;                     // descTest.getArimaSpec().freeParametersCount()
+    // join_test arm: the unscaledCovariance of the same estimation as a
+    // column-major square matrix (nx x nx, nx = the coefficient count of
+    // the hand-over above). Required when the td arm runs with join_test.
+    std::vector<double> covariance;
     Lookup td;
     Lookup lp;
     Lookup easter;

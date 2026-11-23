@@ -25,6 +25,21 @@ int double_compare(double a, double b) {
     return a != a ? (b != b ? 0 : 1) : -1;  // NaN sorts last
 }
 
+// JVM dcmpl/dcmpg (the landed per-TU pattern).
+int dcmpl(double a, double b) {
+    if (a > b) return 1;
+    if (a < b) return -1;
+    if (a == b) return 0;
+    return -1;  // NaN
+}
+
+int dcmpg(double a, double b) {
+    if (a > b) return 1;
+    if (a < b) return -1;
+    if (a == b) return 0;
+    return 1;  // NaN
+}
+
 // TradingDaysRegressionComparator.comparator(f): the lambda is
 // compare(a, b) = a absent ? 1 : b absent ? -1
 //                : Double.compare(key(a), key(b))   (nulls sort last).
@@ -490,6 +505,322 @@ SaAutoTdDecision run_sa_auto_td_test(const SaAutoTdRequest& request) {
     decision.result = changed ? CalendarProcessingResult::changed
                               : CalendarProcessingResult::unchanged;
     return decision;
+}
+
+namespace {
+
+// SymmetricMatrix.lcholesky(FastMatrix) through the pinned default SPI
+// provider (matrices.lapack.Cholesky, tol = 0) over the compact
+// column-major storage of an n x n symmetric matrix (row increment 1,
+// column increment n, start 0), in place. The storage indices mirror the
+// bytecode walkers (diagonal idx10, row-walker idx11, next-column idx12)
+// operation for operation, including the operand order of the update
+// `storage[q] -= v * storage[p]` (v read as A[row i, column c]).
+// Throw surfaces: MatrixException "m_err_chol" - a pivot d failing the
+// strict dcmpg(d, -0.0) > 0 test (negative or zero; a NaN pivot passes and
+// propagates through the sqrt) - is std::domain_error here. The d < tol
+// zero-pivot branch is unreachable at tol = 0 (any d < 0 throws first).
+void lcholesky_std(std::vector<double>& storage, int n) {
+    if (n == 0) return;
+    if (n == 1) {
+        const double d = storage[0];
+        if (dcmpl(d, -0.0) <= 0) {
+            throw std::domain_error("lcholesky: m_err_chol");
+        }
+        storage[0] = std::sqrt(d);  // the d < 0 store-zero arm is dead
+        return;
+    }
+    int diag = 0;              // idx10: A[i, i]
+    int row_walk = 0;          // idx11: A[i, 0]
+    int col_end = n;           // idx12: start of column i + 1
+    for (int i = 0; diag != n * (n + 1); ++i) {
+        double d = storage[static_cast<std::size_t>(diag)];
+        for (int k = row_walk; k != diag; k += n) {
+            const double v = storage[static_cast<std::size_t>(k)];
+            d -= v * v;
+        }
+        if (dcmpl(d, -0.0) <= 0) {
+            throw std::domain_error("lcholesky: m_err_chol");
+        }
+        const double l = std::sqrt(d);
+        storage[static_cast<std::size_t>(diag)] = l;
+        for (int k = row_walk; k != diag; k += n) {
+            const double v = storage[static_cast<std::size_t>(k)];
+            if (dcmpl(v, 0.0) != 0) {  // NaN enters the elimination
+                for (int off = 1; diag + off < col_end; ++off) {
+                    storage[static_cast<std::size_t>(diag + off)] -=
+                        v * storage[static_cast<std::size_t>(k + off)];
+                }
+            }
+        }
+        const double inv = 1.0 / l;
+        for (int off = 1; diag + off < col_end; ++off) {
+            storage[static_cast<std::size_t>(diag + off)] *= inv;
+        }
+        ++row_walk;
+        diag += n + 1;
+        col_end += n;
+        (void)i;
+    }
+}
+
+// LowerTriangularMatrix.solveLx(L, DataBlock) (tol = 0, unit x-increment)
+// over the column-major lower triangle `l` and the contiguous vector `x`.
+// Operand order x[j] -= s * L[j, i] mirrors the bytecode. Throw surface:
+// MatrixException "m_err_sing" (a zero-ish pivot with a non-NaN, not
+// strictly-smaller rhs entry; dcmpg/dcmpl polarities pinned): a NaN pivot
+// takes the division branch, a NaN rhs entry under a dead pivot zeroes x.
+void solve_lx(const std::vector<double>& l, std::vector<double>& x, int n) {
+    int diag = 0;
+    for (int i = 0; i < n; ++i) {
+        const double xi = x[static_cast<std::size_t>(i)];
+        const double ld = l[static_cast<std::size_t>(diag)];
+        if (dcmpg(std::fabs(ld), 0.0) <= 0) {  // NaN pivots enter division
+            if (dcmpl(std::fabs(xi), 0.0) < 0) {
+                x[static_cast<std::size_t>(i)] = 0.0;  // NaN rhs arm
+            } else {
+                throw std::domain_error("solveLx: m_err_sing");
+            }
+        } else {
+            const double s = xi / ld;
+            x[static_cast<std::size_t>(i)] = s;
+            for (int j = i + 1, p = diag + 1; j < n; ++j, ++p) {
+                x[static_cast<std::size_t>(j)] -=
+                    s * l[static_cast<std::size_t>(p)];
+            }
+        }
+        diag += n + 1;
+    }
+}
+
+// DataBlock.ssq(): left fold of d += v * v skipping the non-finite
+// entries (Double.isFinite guard in the bytecode).
+double datablock_ssq(const std::vector<double>& x) {
+    double d = 0.0;
+    for (const double v : x) {
+        if (std::isfinite(v)) d += v * v;
+    }
+    return d;
+}
+
+struct JointTestOutcome {
+    double f = 0.0;
+    double pvalue = 0.0;
+    int df1 = 0;
+    int df2 = 0;
+};
+
+// JointTest.build() over the hand-over for variableSelection(first, dim)
+// and hyperParametersCount(nhp): the b[S] copy, the bvar[S, S] selection,
+// the in-place lcholesky + solveLx, the ssq / |S| quadratic form, then
+// f = z / (ssq / df) and the F(|S|, df) UPPER p-value (f_upper_p; a NaN
+// out of it IS the jar's DStatException throw - propagated).
+JointTestOutcome joint_test_build(const TramoTestStatistics& statistics,
+                                  const std::vector<double>& covariance,
+                                  int first, int dim, int nhp) {
+    const int nx = static_cast<int>(statistics.coefficients.size());
+    if (nx == 0 || dim <= 0 || first < 0 || first + dim > nx) {
+        throw std::invalid_argument(
+            "the JointTest variable window lies outside the hand-over "
+            "(jar surface: ArrayIndexOutOfBounds)");
+    }
+    if (static_cast<int>(covariance.size()) != nx * nx) {
+        throw std::invalid_argument(
+            "the join_test arm needs the full nx x nx unscaledCovariance "
+            "hand-over");
+    }
+    const bool select_all = first == 0 && dim == nx;  // b.length() == dim
+    std::vector<double> bS(static_cast<std::size_t>(dim));
+    std::vector<double> w(static_cast<std::size_t>(dim) *
+                          static_cast<std::size_t>(dim));
+    for (int q = 0; q < dim; ++q) {
+        const int jq = select_all ? q : first + q;
+        bS[static_cast<std::size_t>(q)] =
+            statistics.coefficients[static_cast<std::size_t>(jq)];
+        for (int r = 0; r < dim; ++r) {
+            const int jr = select_all ? r : first + r;
+            w[static_cast<std::size_t>(q) * static_cast<std::size_t>(dim) +
+              static_cast<std::size_t>(r)] =
+                covariance[static_cast<std::size_t>(jq) *
+                               static_cast<std::size_t>(nx) +
+                           static_cast<std::size_t>(jr)];
+        }
+    }
+    lcholesky_std(w, dim);
+    solve_lx(w, bS, dim);
+    JointTestOutcome out;
+    out.df1 = dim;
+    out.df2 = statistics.dim - nx - nhp;  // blue = true: n - rows - hyper
+    const double z = datablock_ssq(bS) / static_cast<double>(dim);
+    out.f = z / (statistics.ssq / static_cast<double>(out.df2));
+    out.pvalue = detail::f_upper_p(out.f, static_cast<double>(out.df1),
+                                   static_cast<double>(out.df2));
+    if (out.pvalue != out.pvalue) {
+        throw std::domain_error(
+            "JointTest F p-value: the jar's DStatException surface");
+    }
+    return out;
+}
+
+// The landed TRegressionTest bucket law through a bounds guard whose throw
+// mirrors the jar's array surface (23-E convention: std::invalid_argument).
+bool t_accepts_guarded(const TramoTestStatistics& statistics, int first,
+                       int dim, double tlow, double thigh, int nsig) {
+    return tramo_t_accepts(statistics, first, dim, tlow, thigh, nsig)
+        .accepted;
+}
+
+}  // namespace
+
+TramoFastCalendarStep run_tramo_fast_calendar_step(
+    const TramoFastCalendarStepRequest& request) {
+    TramoFastCalendarStep step;
+    step.mean_after = request.desc_mean;
+    bool changed = false;
+    bool td_dropped = false;
+    if (request.td.present) {
+        // dim == 1 takes wdTest = T(tvar) (nsig 1), otherwise
+        // tdTest = T(tvar, tvar) (nsig 2).
+        const bool accept =
+            t_accepts_guarded(request.statistics, request.td.position,
+                              request.td.dim, request.tvar, request.tvar,
+                              request.td.dim == 1 ? 1 : 2);
+        if (!accept) td_dropped = true;
+    }
+    if (td_dropped && request.lp.present) {
+        step.lp_test_ran = true;
+        const bool accept =
+            t_accepts_guarded(request.statistics, request.lp.position, 1,
+                              request.tvar, request.tvar, 1);
+        if (accept) {
+            td_dropped = false;
+            step.lp_rescued_td = true;
+        } else {
+            step.lp_removed = true;  // the rescue arm removes lp
+            changed = true;
+        }
+    }
+    if (td_dropped) {
+        // Removes the td variable and, when wired, the lp variable.
+        step.td_removed = true;
+        if (request.lp.present) step.lp_removed = true;
+        changed = true;
+    }
+    if (request.easter.present) {
+        step.easter_test_ran = true;
+        if (!t_accepts_guarded(request.statistics, request.easter.position, 1,
+                               request.tvar, request.tvar, 1)) {
+            step.easter_removed = true;
+            changed = true;
+        }
+    }
+    if (request.test_mean && request.regarima_mean) {
+        step.mean_test_ran = true;
+        if (!t_accepts_guarded(request.statistics, 0, 1, request.tmean,
+                               request.tmean, 1)) {
+            step.mean_removed = true;
+            step.mean_after = false;
+            changed = true;
+        }
+    }
+    if (changed) {
+        step.estimation_cleared = true;  // m.set(desc, null)
+        step.result = CalendarProcessingResult::changed;
+    }
+    return step;
+}
+
+TramoDefaultCalendarStep run_tramo_default_calendar_step(
+    const TramoDefaultCalendarStepRequest& request) {
+    TramoDefaultCalendarStep step;
+    step.mean_after = request.desc_mean;
+    // The jar's Unprocessed guard reads the builder fields (witnessed
+    // through variable_present, which a probe sets exactly when the field
+    // is wired AND the test model carries the variable); meanTest == null
+    // is !test_mean.
+    if (!request.td.variable_present && !request.lp.variable_present &&
+        !request.easter.variable_present && !request.test_mean) {
+        step.unprocessed = true;
+        return step;
+    }
+    bool changed = false;
+    bool keep_td = false;
+    if (request.td.variable_present && request.td.auto_identified) {
+        bool accept = false;
+        if (request.td.dim == 1) {
+            accept = t_accepts_guarded(request.statistics, request.td.position,
+                                       1, request.twd, request.twd, 1);
+        } else if (request.join_test) {
+            const JointTestOutcome jt =
+                joint_test_build(request.statistics, request.covariance,
+                                 request.td.position, request.td.dim,
+                                 request.nhp);
+            step.joint_test_ran = true;
+            step.joint_f = jt.f;
+            step.joint_pvalue = jt.pvalue;
+            step.joint_df1 = jt.df1;
+            step.joint_df2 = jt.df2;
+            // accept: dcmpg(Math.abs(p), eps) < 0 - a NaN p ACCEPTS.
+            accept = dcmpg(std::fabs(jt.pvalue), request.feps) < 0;
+        } else {
+            accept =
+                t_accepts_guarded(request.statistics, request.td.position,
+                                  request.td.dim, request.t0td, request.t1td,
+                                  2);
+        }
+        if (accept) {
+            keep_td = true;
+            step.td_kept = true;
+            changed = true;
+        }
+    }
+    if (request.lp.variable_present && request.lp.auto_identified &&
+        keep_td) {
+        // lpTest = T(t0td) - lp rides on the t0td threshold, nsig 1.
+        if (t_accepts_guarded(request.statistics, request.lp.position, 1,
+                              request.t0td, request.t0td, 1)) {
+            const int pos = request.lp.position;
+            if (pos < 0 || static_cast<std::size_t>(pos) >=
+                               request.statistics.coefficients.size()) {
+                throw std::invalid_argument(
+                    "the lp coefficient lies outside the hand-over "
+                    "(jar surface: ArrayIndexOutOfBounds)");
+            }
+            const double coeff =
+                request.statistics.coefficients[static_cast<std::size_t>(pos)];
+            // setPreadjustment under adjust && descTest.isLogTransformation()
+            // && dcmpg(cl.coefficient(pos), 0.0) > 0 (NaN adds instead).
+            if (request.adjust && request.desc_test_log &&
+                dcmpg(coeff, 0.0) > 0) {
+                step.lp_action = 1;
+            } else {
+                step.lp_action = 2;
+            }
+            changed = true;
+        }
+    }
+    if (request.easter.variable_present && request.easter.auto_identified) {
+        // mhTest = T(teaster), nsig 1; NO keep_td guard.
+        if (t_accepts_guarded(request.statistics, request.easter.position, 1,
+                              request.teaster, request.teaster, 1)) {
+            step.easter_action = 1;
+            changed = true;
+        }
+    }
+    if (request.test_mean && request.regarima_mean) {
+        step.mean_test_ran = true;
+        if (!t_accepts_guarded(request.statistics, 0, 1, request.tmean,
+                               request.tmean, 1)) {
+            step.mean_removed = true;
+            step.mean_after = false;
+            changed = true;
+        }
+    }
+    if (changed) {
+        step.estimation_cleared = true;  // m.clearEstimation()
+        step.result = CalendarProcessingResult::changed;
+    }
+    return step;
 }
 
 }  // namespace kalos
