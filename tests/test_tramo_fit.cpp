@@ -64,6 +64,20 @@ long long run_case(const FitExpect& e, std::size_t& live_total,
         std::cout << e.id << ": refused " << r.refusal_note << "\n";
         return 0;
     }
+    std::size_t regenerated = 0;
+    for (auto& input : rq.seam_inputs) {
+        if (input.entry_outliers.empty() && !input.ols_residuals.empty()) {
+            regenerated += input.ols_residuals.size();
+            input.ols_residuals.clear();
+            input.nobs = 0;
+        }
+    }
+    if (regenerated) {
+        const auto replay = tramo_fit(rq);
+        CHECK(replay.status == r.status && replay.seams_live == r.seams_live &&
+              replay.seams_fact == r.seams_fact && replay.parameters == r.parameters);
+        std::cout << e.id << ": regenerated " << regenerated << " ARMA input observations\n";
+    }
     CHECK(r.status == "available");
     CHECK(r.transform_matches_capture);
     if (e.verdict[0] != '-') {
@@ -173,6 +187,19 @@ int main() {
         rq2.spec.auto_method = tramo_auto_method::bic;  // td flags stay off
         const TramoFitResult r2 = tramo_fit(rq2);
         CHECK(r2.status == "refused:i10-automethod");
+        TramoFitRequest corrupt;
+        build_fit("fit_tr3_air", corrupt);
+        for (auto& input : corrupt.seam_inputs) {
+            if (input.ols_residuals.empty()) continue;
+            input.ols_residuals.front() += 1.0;
+            bool refused = false;
+            try { (void)tramo_fit(corrupt); }
+            catch (const std::invalid_argument& ex) {
+                refused = std::string(ex.what()).find("native ARMA residuals") != std::string::npos;
+            }
+            CHECK(refused);
+            break;
+        }
         std::cout << "synthetic: d6 and i10 refusals pinned\n";
     } catch (const std::exception& ex) {
         std::cout << "FAIL synthetic: " << ex.what() << "\n";

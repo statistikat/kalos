@@ -3799,3 +3799,14 @@ bits of all 30 ARMA residual records in the 34-case golden (2,991 values);
 the separate constant-series crash witness has no golden. All 614 sweep
 checks pass. The selected models, measured 27 live / 54 recorded seams,
 10 refusals and 74 D9 covariance entries agree with the original decisions.
+
+### M5 / 23-G — native ARMA input residuals for the mean-only design
+
+The automatic TRAMO ARMA selector now derives its input from the original
+series, the kernel's entry differencing orders and its mean flag when the
+design contains no other regressors. The fitting path applies the selected
+log transformation and exact BackFilter orientation, and uses the pinned
+OLS solve for the optional mean. Supplied residuals are checked bit for bit.
+Re-running 16 cases without the former 1,443 input residual values reproduced
+the same fitted decisions and seam census. Corrupting a supplied witness is
+detected. The 34-case fit regression and 614-check raw sweep passed.

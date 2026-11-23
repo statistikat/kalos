@@ -150,3 +150,11 @@ per-case live/fact tiers, the d6/i10 synthetic refusals) in both lanes; the
 sweep `tools/verify_tramo_fit` re-drives the golden surface off the raw
 capture. ASan/UBSan clean. Shim-invariance battery 26/26 with
 `test_tramo_fit` as the 26th cell.
+
+### 23-G ARMA input preparation
+
+When an ARMA module entry has no registered regressors beyond an optional
+mean, the fit reconstructs the selected response and differences, solves
+the mean on the differenced domain, and passes those residuals to the
+selector. The OLS vector and observation count can be omitted in those
+entries. When supplied they must match in length and binary64 bits.
