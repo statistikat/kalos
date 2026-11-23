@@ -4298,3 +4298,13 @@ positive-series inputs. Native replay matched all three models, 249
 residuals and 1,800 observed and forecast values bit-for-bit. The initial
 six RSA1 fits, all three additive outlier fits and the fixed-model bridge
 also passed. [Contract and capture](docs/contracts/tramo-seats-bridge-contract.md)
+
+### M5 / 23-G — seasonal tests on fitted monthly data
+
+The seasonal controller now has a shared Qs and Friedman calculation for
+its two different inputs. Seventy-two fitted states reproduce the JVM's
+statistic and probability on both the centered, first-differenced
+linearized series and the uncentered concentrated-likelihood residuals.
+All 576 binary64 values match the original battery observations. The
+spectral peak tests and the seasonal regression F test are still needed
+to run the full controller from observations.

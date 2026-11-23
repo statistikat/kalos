@@ -15,6 +15,7 @@
 #include "kalos/arma_diagnostics.hpp"
 #include "kalos/detail/special_functions.hpp"
 #include "kalos/tramo_differencing_battery.hpp"
+#include "kalos/tramo_transform_decision.hpp"
 
 #include "jvm_tramo_battery.h"
 
@@ -121,6 +122,7 @@ struct StepExp {
 struct Parsed {
     std::string id;
     BatteryCase bc;
+    std::map<std::string, std::vector<double>> linearized;
     std::map<std::string, int> over;        // tag -> code (>= 0); absent on error
     std::map<std::string, int> resl_score;  // tag -> captured ladder score
     std::map<std::string, int> has_resl;    // tag -> JVM hasSeasonalPeaks
@@ -281,6 +283,9 @@ Parsed parse_case(const kalos::test::TbCase& tc) {
                 s->bphi1 = bphi.empty() ? 0.0 : bphi[0];
                 s->btheta1 = btheta.empty() ? 0.0 : btheta[0];
             }
+        } else if (key == "lin" && st >= 0) {
+            auto& values = p.linearized[tag];
+            for (std::size_t i = 3; i < t.size(); ++i) values.push_back(tok(t[i]));
         } else if (key == "resid") {
             if (st < 0) {
                 continue;
@@ -473,6 +478,15 @@ void replay(const kalos::test::TbCase& tc) {
         if (st->resid.empty() && st->mstat.nobs == 0) {
             fail(p.id, "unparsed state " + tag);
             continue;
+        }
+        if (freq == 12) {
+            const auto compare = [&](const auto& actual, const BatteryTests& expected, const char* source) {
+                if (!bits_eq(actual.qs.value, expected.qs_v) || !bits_eq(actual.qs.p_value, expected.qs_p) ||
+                    !bits_eq(actual.friedman.value, expected.np_v) || !bits_eq(actual.friedman.p_value, expected.np_p))
+                    fail(p.id, std::string(source) + " seasonal statistics differ in " + tag);
+            };
+            compare(kalos::tramo_seasonality_statistics(st->resid), st->resl, "residual");
+            compare(kalos::tramo_seasonality(p.linearized.at(tag)), st->ctlst, "linearized");
         }
         const auto tests = kalos::tramo_comparator_residual_tests(st->resid);
         if (!bits_eq(tests.absolute_skewness, st->mstat.skew_abs) ||

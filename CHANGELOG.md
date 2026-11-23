@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Added the monthly Qs and Friedman tests used on TRAMO fitted residuals
+  and linearized data in the late seasonality controllers.
+
 - Compared the first automatic TRAMO candidate with the independent
   reference fit and corrected seasonal AR indexing at model reversion.
 
