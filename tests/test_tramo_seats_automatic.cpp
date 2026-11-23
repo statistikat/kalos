@@ -196,6 +196,7 @@ int main() {
     run("rsa1", 6, 3960);
     run("rsa3", 6, 3960);
     run("rsa3-additional", 3, 1800);
+    run("rsa3-mean-retry", 4, 2580);
     run("rsa1-level-effects", 2, 1200, "level_");
     run("rsa1-level-tc", 1, 600, "level_tc_");
     run("rsa1-log-tc", 3, 1800, "log_tc_");

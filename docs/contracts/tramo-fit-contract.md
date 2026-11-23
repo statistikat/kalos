@@ -260,6 +260,8 @@ test, and a completed controller sweep. A seasonality restart repeats identifica
 with the new seasonal state and reruns the late controllers. Nine public
 snapshots in `tramo-seats-bridge/rsa3-x86_64.txt` and
 `tramo-seats-bridge/rsa3-additional-x86_64.txt` cover this route.
-A rejected first reference comparison and a removed fast-regression mean
-currently raise a stage-specific exception. SEATS uses the same fitted pipeline, horizon
+Four additional stock models in `rsa3-mean-retry-x86_64.txt` remove the
+fast-regression mean, retain the selected outliers and re-estimate the
+orders in pass four. A rejected first reference comparison currently raises
+a stage-specific exception. SEATS uses the same fitted pipeline, horizon
 semantics, and decomposition-policy checks as the raw RSA1 route.

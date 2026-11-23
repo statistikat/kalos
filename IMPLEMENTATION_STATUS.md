@@ -4503,3 +4503,13 @@ ARMA(1,1) paired with regular AR(2) or ARMA(1,1), with a mean. Their
 complete detector traces were captured twice with the original multi-round
 detector probe. The Release scan replay matched all three traces alongside
 the existing cases, including first-pick scores and the retained level shift.
+
+### M5 / 23-G and 24-D — stock fourth-pass mean re-estimation
+
+The raw monthly fit now retains the selected outlier variables and refits
+the model without the discarded mean in pass four before running the late
+controllers. All four public retry cases match bitwise, including 372 fitted
+residuals, the retained level-shift coefficient, and all 2,580 dated product
+values. Across all 13 stock RSA3 cases this brings coverage to 1,196 fitted
+residuals and 8,340 product values. The Release outlier-scan and raw pipeline
+tests passed. Retry after a rejected reference comparison remains open.

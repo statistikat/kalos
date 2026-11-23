@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Re-estimate the selected monthly TR3 model after the fast regression test
+  removes the mean, preserving its automatic outliers.
+
 - Support stationary monthly seasonal ARMA(1,1) outlier scans with regular
   AR(2) or ARMA(1,1) and an estimated mean.
 
