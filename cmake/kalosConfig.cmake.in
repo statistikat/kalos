@@ -1,7 +1,13 @@
 @PACKAGE_INIT@
 include(CMakeFindDependencyMacro)
 list(PREPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}")
-find_dependency(KalosOpenBLAS)
+# REVIEW-1.C: the bundled FindKalosOpenBLAS runs the same LP64 + CBLAS +
+# LAPACKE link probe and the selection-change invalidation here that an
+# in-tree build gets, so a provider accepted at install time is re-
+# validated in the consumer's own configure; REQUIRED keeps the failure a
+# clean find_dependency diagnostic instead of a missing-target error from
+# kalosTargets.cmake.
+find_dependency(KalosOpenBLAS REQUIRED)
 if(@KALOS_WITH_OPENMP@)
   find_dependency(OpenMP COMPONENTS CXX)
 endif()

@@ -4,18 +4,10 @@ option(KALOS_OPENMP "Enable owned OpenMP regions when available" ON)
 option(KALOS_BUILD_TESTS "Build standalone tests" ON)
 option(KALOS_SANITIZERS "Enable address and undefined behavior sanitizers" OFF)
 list(PREPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
+# The finder carries the shared LP64 + CBLAS + LAPACKE link probe and the
+# selection-change invalidation (REVIEW-1.C): builds and installed
+# consumers (kalosConfig -> find_dependency) run the same check.
 find_package(KalosOpenBLAS REQUIRED)
-include(CheckCXXSourceCompiles)
-set(CMAKE_REQUIRED_LIBRARIES Kalos::OpenBLAS)
-check_cxx_source_compiles("#include <cblas.h>
-#include <lapacke.h>
-#include <type_traits>
-static_assert(sizeof(int)==4 && std::is_same<lapack_int,int>::value, \"LP64 required\");
-int main() { return openblas_get_config() ? 0 : 1; }" KALOS_LP64_PROVIDER)
-unset(CMAKE_REQUIRED_LIBRARIES)
-if(NOT KALOS_LP64_PROVIDER)
-  message(FATAL_ERROR "Kalos requires OpenBLAS with CBLAS, LAPACKE and a 32-bit LP64 integer ABI")
-endif()
 # A committed binding snapshot supplies its own exact revision header.
 if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/include/kalos/revision.hpp")
   file(READ "${CMAKE_CURRENT_SOURCE_DIR}/include/kalos/revision.hpp" KALOS_REVISION_HEADER)
@@ -369,6 +361,22 @@ if(KALOS_BUILD_TESTS)
     COMMAND ${CMAKE_COMMAND} --build ${CMAKE_CURRENT_BINARY_DIR}
             --target kalos_standalone_headers --parallel 4)
   set_tests_properties(kalos_standalone_headers PROPERTIES TIMEOUT 3600)
+  # REVIEW-1.C: cmake provider-case suite (see tests/cmake/provider-cases
+  # .sh.in for the matrix). Skips (77) on lanes whose provider has no
+  # root/include/lapacke.h layout.
+  get_filename_component(KALOS_CASE_LIBDIR "${KalosOpenBLAS_LIBRARY}" DIRECTORY)
+  get_filename_component(KALOS_CASE_ROOT "${KALOS_CASE_LIBDIR}" DIRECTORY)
+  set(KALOS_SRC "${CMAKE_CURRENT_SOURCE_DIR}")
+  set(KALOS_CMAKE "${CMAKE_COMMAND}")
+  set(KALOS_CXX "${CMAKE_CXX_COMPILER}")
+  set(KALOS_GENERATOR "${CMAKE_GENERATOR}")
+  set(KALOS_ROOT "${KALOS_CASE_ROOT}")
+  configure_file(tests/cmake/provider-cases.sh.in
+    "${CMAKE_CURRENT_BINARY_DIR}/provider-cases/provider-cases.sh" @ONLY)
+  add_test(NAME test_cmake_provider_cases
+    COMMAND bash "${CMAKE_CURRENT_BINARY_DIR}/provider-cases/provider-cases.sh")
+  set_tests_properties(test_cmake_provider_cases PROPERTIES
+    TIMEOUT 3600 SKIP_RETURN_CODE 77)
 endif()
 include(GNUInstallDirs)
 include(CMakePackageConfigHelpers)
