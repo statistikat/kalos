@@ -159,18 +159,19 @@ public class TramoSeatsBridgeProbe {
         var logged = new ProcessingLog() {};
         var fit = TramoKernel.of(TramoSpec.TR0, context).process(series, logged);
         require(fit != null, id + " TR0");
-        if (stage.equals("rsa0-ljung-box")) {
+        if (stage.equals("rsa0-ljung-box") || stage.equals("rsa0-doornik-hansen")) {
+            String key = stage.equals("rsa0-ljung-box") ? "residuals.lb" : "residuals.doornikhansen";
             var sa = TramoSeatsKernel.of(TramoSeatsSpec.RSA0, new ModellingContext()).process(series, logged);
-            var test = sa.getData("residuals.lb", jdplus.toolkit.base.api.stats.StatisticalTest.class);
-            require(test != null, "public residuals.lb");
+            var test = sa.getData(key, jdplus.toolkit.base.api.stats.StatisticalTest.class);
+            require(test != null, "public " + key);
             System.out.println("case " + id);
-            System.out.println("residuals.lb " + bits(test.getValue()) + " " + bits(test.getPvalue())
+            System.out.println(key + " " + bits(test.getValue()) + " " + bits(test.getPvalue())
                     + " " + test.getDescription().trim());
             if (id.equals("fit_tr0_air")) {
                 for (int n : new int[]{36, 37, 38}) {
                     var input = TsData.ofInternal(series.getStart(), java.util.Arrays.copyOf(series.getValues().toArray(), n));
                     var shortFit = TramoSeatsKernel.of(TramoSeatsSpec.RSA0, new ModellingContext()).process(input, logged);
-                    var edge = shortFit.getData("residuals.lb", jdplus.toolkit.base.api.stats.StatisticalTest.class);
+                    var edge = shortFit.getData(key, jdplus.toolkit.base.api.stats.StatisticalTest.class);
                     var values = shortFit.getData("residuals.tsres", TsData.class).getValues().toArray();
                     StringBuilder line = new StringBuilder("short ").append(n).append(" ").append(values.length)
                         .append(" ").append(bits(edge.getValue())).append(" ").append(bits(edge.getPvalue()));

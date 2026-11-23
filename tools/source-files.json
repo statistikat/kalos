@@ -497,6 +497,7 @@
     "validation/evidence/native/tramo-seats-bridge/merge-x86_64.txt",
     "validation/evidence/native/tramo-seats-bridge/merge.txt",
     "validation/evidence/native/tramo-seats-bridge/reference.json",
+    "validation/evidence/native/tramo-seats-bridge/rsa0-doornik-hansen-x86_64.txt",
     "validation/evidence/native/tramo-seats-bridge/rsa0-forecast-errors-x86_64.txt",
     "validation/evidence/native/tramo-seats-bridge/rsa0-ljung-box-x86_64.txt",
     "validation/evidence/native/tramo-seats-bridge/rsa0-residuals-x86_64.txt",

@@ -4043,3 +4043,12 @@ residuals. The public RSA1/RSA3 runs record component and forecast values
 and the approximation decision. All twelve return decompositions. Only
 the mixed-outlier RSA3 case changes its fitted SEATS model. The corpus
 sets the target for the native raw presets, which are still in progress.
+
+### Public RSA0 residual normality reference (2026-11-23)
+
+The public RSA0 kernel now has a frozen reference for
+`residuals.doornikhansen`, including the six fitted series and three
+short AirPassengers spans with 23, 24 and 25 residuals. Two fresh pinned
+x86-64 JVMs produced identical statistics, upper-tail probabilities and
+the chi-squared distribution with two degrees of freedom.
+[Public capture](validation/evidence/native/tramo-seats-bridge/rsa0-doornik-hansen-x86_64.txt)

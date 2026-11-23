@@ -22,7 +22,9 @@ def main():
     parser.add_argument("--jdk", type=Path, required=True, help="Java 21.0.11 JDK home")
     parser.add_argument("--jar-dir", type=Path, action="append", required=True,
                         help="directory containing pinned jars (repeatable)")
-    parser.add_argument("--stage", choices=["bridge", "merge", "rsa0", "rsa0-forecast-errors", "rsa0-residuals", "rsa0-ljung-box", "rsa1", "rsa3", "calendar-ftest"], default="bridge")
+    parser.add_argument("--stage", choices=["bridge", "merge", "rsa0", "rsa0-forecast-errors",
+                        "rsa0-residuals", "rsa0-ljung-box", "rsa0-doornik-hansen", "rsa1", "rsa3",
+                        "calendar-ftest"], default="bridge")
     parser.add_argument("--output", type=Path, help="write a new capture instead of verifying the frozen file")
     args = parser.parse_args()
     reference = json.loads((EVIDENCE / "reference.json").read_text())
