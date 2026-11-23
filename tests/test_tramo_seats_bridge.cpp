@@ -263,6 +263,7 @@ int main() {
             }
             const auto product = run_tramo_seats_pipeline(fit, m.backcasts, m.forecasts);
             assert(product.extraction.fact("status") == "ok");
+            ok &= product.extraction.model_changed == m.approximation;
             ok &= check_rows(product.extraction.final_components(), m.wk, m.id + " WK");
             ok &= check_rows(product.finals, m.merged, m.id + " native pipeline");
             ++native_runs;

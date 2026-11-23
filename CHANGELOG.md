@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Added the raw monthly RSA1 seasonal-adjustment pipeline and the SEATS
+  model-change indicator. Six public cases reproduce all 3,960 product values.
+
 - Corrected the cosine used in the SEATS spectrum minimum search to reproduce
   the pinned x86-64 HotSpot kernel on monthly level-shift fits.
 

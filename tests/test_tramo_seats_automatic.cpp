@@ -1,5 +1,5 @@
 // Raw public preset comparisons. Native calls receive only dated observations.
-#include "kalos/tramo_fit.hpp"
+#include "kalos/tramo_seats_pipeline.hpp"
 #include "kalos/preparation.hpp"
 
 #include <array>
@@ -8,6 +8,7 @@
 #include <fstream>
 #include <iostream>
 #include <limits>
+#include <map>
 #include <sstream>
 #include <stdexcept>
 
@@ -39,26 +40,32 @@ void series(std::istream& row, const std::vector<double>& data, int year, int mo
 }
 
 void run(const std::string& preset) {
+    using C = kalos::seats_component;
+    using I = kalos::seats_information;
+    const std::map<std::string, C> components{{"Series", C::series}, {"Trend", C::trend}, {"Seasonal", C::seasonal},
+        {"SeasonallyAdjusted", C::seasonally_adjusted}, {"Irregular", C::irregular}};
+    const std::map<std::string, I> kinds{{"Value", I::value}, {"Forecast", I::forecast}};
     std::ifstream stream(std::string(KALOS_AUTOMATIC_ORACLES) + "/" + preset + "-x86_64.txt");
     check(stream.good(), "missing oracle " + preset);
-    kalos::TramoFitResult fit;
-    std::size_t cases = 0, residuals = 0, variable = 0;
+    kalos::tramo_seats_automatic_result result;
+    std::size_t cases = 0, nrows = 0, nvalues = 0, variable = 0, product = 0;
     std::string id;
     for (std::string line; std::getline(stream, line);) {
         std::istringstream row(line);
         std::string key, label;
         row >> key;
+        const auto& fit = result.preprocessing;
         if (key == "case") {
-            check(variable == fit.regression_coefficients.size(), id + " extra fields");
+            check(product == result.decomposition.finals.size() && variable == fit.regression_coefficients.size(), id + " extra fields");
             row >> id;
             ++cases;
-            variable = 0;
+            product = variable = 0;
         } else if (key == "input") {
             int year, month, n;
             row >> year >> month >> n;
             std::vector<double> observations(n);
             for (auto& v : observations) v = value(row);
-            fit = kalos::estimate_tramo_tr1(observations, year, month);
+            result = kalos::run_tramo_seats_rsa1(observations, year, month);
             check(fit.final_model_computed && fit.status == "available", id + " estimation");
         } else if (key == "model") {
             bool log, mean;
@@ -87,16 +94,27 @@ void run(const std::string& preset) {
             const auto start = kalos::TimeDomain(b.domain_year, b.domain_position + 1, 12, b.domain_length)
                 .at(b.domain_length - fit.ls_eff);
             series(row, fit.full_residuals, start.first, start.second, id + " full residuals");
-            residuals += fit.full_residuals.size();
-        } else if (key == "product" || key == "merged") {
-            continue; // Seasonal-adjustment results belong to the pipeline comparison.
+        } else if (key == "product") {
+            std::string present;
+            bool changed;
+            row >> present >> label >> std::boolalpha >> changed;
+            check(present == "present" && result.decomposition.extraction.model_changed == changed, id + " approximation flag");
+        } else if (key == "merged") {
+            std::string type, kind;
+            row >> type >> kind;
+            const auto& actual = result.decomposition.finals.at(product++);
+            check(actual.component == components.at(type) && actual.information == kinds.at(kind), id + " component");
+            series(row, actual.values, actual.start_year, actual.start_month, id + " " + type + " " + kind);
+            ++nrows;
+            nvalues += actual.values.size();
         } else throw std::runtime_error(id + " unknown record " + key);
         check(!row.fail(), id + " truncated " + key);
         std::string extra;
         check(!(row >> extra), id + " extra " + key);
     }
-    check(cases == 6 && residuals == 570 && variable == fit.regression_coefficients.size(), preset + " incomplete corpus");
-    std::cout << preset << ": " << cases << " public preprocessing fits and " << residuals << " residuals\n";
+    check(cases == 6 && nrows == 60 && nvalues == 3960 && product == result.decomposition.finals.size() &&
+          variable == result.preprocessing.regression_coefficients.size(), preset + " incomplete corpus");
+    std::cout << preset << ": " << cases << " public fits, " << nrows << " dated rows, " << nvalues << " product values\n";
 }
 }
 

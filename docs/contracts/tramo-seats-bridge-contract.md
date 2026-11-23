@@ -207,3 +207,12 @@ The six public fits and the three short fits are frozen in
 as the public independence diagnostic. Reproduce the capture with
 `capture-tramo-seats-bridge.py --stage rsa0-doornik-hansen` and the
 locked x86-64 JDK and jars. The test compares both binary64 values.
+
+`run_tramo_seats_rsa1(series, year, month, backcasts, forecasts)` calls
+TR1 preprocessing and passes the complete fitted result to the existing
+fixed-model SEATS pipeline. The returned structure includes the fitted
+preprocessing state, the WK extraction with its model-change indicator,
+and final component values. Six public raw inputs match every one of
+the 3,960 dated fitted and forecast values at the stock horizon.
+The bridge's existing AO/LS deterministic and D6 approximation envelope
+applies whenever another monthly series selects a different configuration.

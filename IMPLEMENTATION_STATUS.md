@@ -4153,3 +4153,14 @@ Two independent JVMs agree on the 36,614-input fingerprint and the three
 adjacent binary64 values at the observed frequency. All earlier standalone
 SEATS validation, UCARIMA, extraction and fitted pipeline cases pass at
 their existing precision.
+
+### M5 / 24-D — raw RSA1 public product
+
+`run_tramo_seats_rsa1` takes the original dated observations. All six
+public RSA1 reference fits reproduce the fitted model, 570 residuals,
+60 final dated series and every one of 3,960 component and forecast values
+bit-for-bit. The stock two-year forecast was used throughout. The fitted
+pipeline additionally tests zero and custom horizons. The structured
+extraction now reports its model-change flag, including both mixed-outlier
+approximation runs from the fitted pipeline. The existing bridge restrictions
+on supported deterministic and approximation shapes still apply.
