@@ -241,6 +241,20 @@ public class TramoSeatsBridgeProbe {
         }
     }
 
+    private static void rsa1ForecastErrors(String id, TsData input) {
+        var sa = TramoSeatsKernel.of(TramoSeatsSpec.RSA1, new ModellingContext()).process(input, new ProcessingLog() {});
+        require(sa != null, id + " RSA1");
+        System.out.println("case " + id);
+        var forecasts = sa.getPreprocessing().forecasts(24);
+        var publicErrors = sa.getData("y_ef(24)", TsData.class);
+        require(publicErrors != null && publicErrors.equals(forecasts.getForecastsStdev()), id + " public y_ef");
+        series("raw_forecast", forecasts.getRawForecasts());
+        series("raw_forecast_stdev", forecasts.getRawForecastsStdev());
+        series("y_ef", publicErrors);
+        series("wk_series_stdev_forecast", sa.getDecomposition().getFinalComponents()
+            .getSeries(ComponentType.Series, ComponentInformation.StdevForecast));
+    }
+
     private static void rawAutomatic(String id, TsData series, String stage) {
         var preset = stage.startsWith("rsa1") ? TramoSeatsSpec.RSA1
             : stage.equals("rsafull") ? TramoSeatsSpec.RSAfull : TramoSeatsSpec.RSA3;
@@ -352,14 +366,16 @@ public class TramoSeatsBridgeProbe {
             if (levelEffects) values = levelInput(values);
             if (logTc) values = logTcInput(values);
             TsData data = TsData.of(start, DoubleSeq.of(values));
-            if (stage.equals("rsa1-residual-diagnostics")) {
-                rsa1ResidualDiagnostics(id, data);
+            if (stage.equals("rsa1-residual-diagnostics") || stage.equals("rsa1-forecast-errors")) {
+                java.util.function.BiConsumer<String, TsData> observe = stage.equals("rsa1-forecast-errors")
+                    ? TramoSeatsBridgeProbe::rsa1ForecastErrors : TramoSeatsBridgeProbe::rsa1ResidualDiagnostics;
+                observe.accept(id, data);
                 if (id.equals("fit_ao") || id.equals("fit_ls") || id.equals("fit_multi")) {
                     String prefix = id.equals("fit_multi") ? "level_tc_" : "level_";
-                    rsa1ResidualDiagnostics(prefix + id, TsData.of(start, DoubleSeq.of(levelInput(values))));
+                    observe.accept(prefix + id, TsData.of(start, DoubleSeq.of(levelInput(values))));
                 }
                 if (logTcCases.contains(id)) {
-                    rsa1ResidualDiagnostics("log_tc_" + id, TsData.of(start, DoubleSeq.of(logTcInput(values))));
+                    observe.accept("log_tc_" + id, TsData.of(start, DoubleSeq.of(logTcInput(values))));
                 }
                 continue;
             }

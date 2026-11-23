@@ -4379,3 +4379,13 @@ Qs/Friedman statistics and probabilities, differencing length, available
 peak tests, six harmonic classifications when available, and the final
 ladder score. The seasonal regression F test and candidate refits are
 the next dependencies for the integrated controller.
+
+
+### M5 / 24-D — raw RSA1 forecast-error reference
+
+Two fresh pinned JVMs agreed on the public `y_ef(24)`, its raw-scale
+forecast location and standard error, and the independent WK series
+forecast standard error on 12 monthly RSA1 fits. These include an
+unchanged level series, detected AO and LS, and stock TC on both scales.
+The reference records 1,152 numerical values across the four fields.
+Reproduce it with `capture-tramo-seats-bridge.py --stage rsa1-forecast-errors`.
