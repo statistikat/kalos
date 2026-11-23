@@ -227,3 +227,13 @@ QR for derivatives. All 39 round rows and 46 fast mean-test decisions in
 the admitted corpus agree bit-for-bit, including each post-test t-vector
 and the empty vector after the mean test clears an estimation. The
 standalone round-replay input still carries these values for comparison.
+
+The final model can be computed without a reference record by setting
+`TramoFitRequest::verify_final_record = false`. The native estimator must
+have a fitted state. The result then exposes the projected coefficients,
+residuals, likelihood and model-selection criteria and scaled regression
+covariance. `covariance.matches_capture` is false and its captured triangle
+is empty on that route. With the default verification option, every final
+field and the complete covariance triangle are checked against the oracle.
+Both paths run over all 24 admitted cases. The round sequence is still a
+separate input to this replay interface.

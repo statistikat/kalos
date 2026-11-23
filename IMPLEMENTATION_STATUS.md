@@ -4062,3 +4062,14 @@ upper-tail probabilities matched the paired JVM capture bit-for-bit,
 including two zero probabilities. The diagnostic test also retains the
 public Ljung–Box and automatic controller regression comparisons.
 [Public diagnostic contract](docs/contracts/tramo-seats-bridge-contract.md)
+
+### M5 / 23-G — build the final automatic-model record
+
+Every one of the 24 admitted monthly F4 cases now completes with the
+reference final record removed. This includes the two fixed-airline cases
+that skip the automatic loop. The live estimator reproduces every order,
+regression coefficient and unscaled covariance, the 74 scaled covariance
+entries, 2,267 public full residuals, the log transformation adjustment
+and all six information criteria. Tests first compare the reference
+record bit-for-bit and then omit it completely. The replay request still
+supplies the automatic round sequence and module entry descriptions.

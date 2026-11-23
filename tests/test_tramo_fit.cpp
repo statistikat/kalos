@@ -73,13 +73,20 @@ long long run_case(const FitExpect& e, std::size_t& live_total,
             input.nobs = 0;
         }
     }
-    if (regenerated) {
-        const auto replay = tramo_fit(rq);
+    {
+        auto independent = rq;
+        independent.final = {};
+        independent.verify_final_record = false;
+        const auto replay = tramo_fit(independent);
+        CHECK(replay.final_model_computed && !replay.covariance.matches_capture);
+        CHECK(replay.covariance.covariance_upper == rq.final.captured_covariance_upper);
+        CHECK(replay.full_residuals == rq.final.full_residuals && to_bits(replay.ls_ll) == to_bits(rq.final.ls_ll));
         CHECK(replay.status == r.status && replay.seams_live == r.seams_live &&
               replay.seams_fact == r.seams_fact && replay.parameters == r.parameters);
-        std::cout << e.id << ": regenerated " << regenerated << " ARMA input observations\n";
+        if (regenerated) std::cout << e.id << ": regenerated " << regenerated << " ARMA input observations\n";
     }
     CHECK(r.status == "available");
+    CHECK(r.final_model_computed);
     const auto count = [&](TramoKernelSeamKind kind) {
         return static_cast<std::size_t>(std::count_if(rq.kernel.seams.begin(), rq.kernel.seams.end(),
             [kind](const auto& seam) { return kind == seam.kind; }));
@@ -122,6 +129,11 @@ long long run_case(const FitExpect& e, std::size_t& live_total,
     CHECK(to_bits(r.log_determinant) == to_bits(rq.final.log_determinant));
     CHECK(to_bits(r.ls_ll) == to_bits(rq.final.ls_ll));
     CHECK(to_bits(r.ls_aic) == to_bits(rq.final.ls_aic));
+    CHECK(r.ls_obs == rq.final.ls_obs && r.ls_eff == rq.final.ls_eff && r.ls_npar == rq.final.ls_npar);
+    CHECK(to_bits(r.ls_tadj) == to_bits(rq.final.ls_tadj) && to_bits(r.ls_all) == to_bits(rq.final.ls_all));
+    CHECK(to_bits(r.ls_ssq) == to_bits(rq.final.ls_ssq) && to_bits(r.ls_aicc) == to_bits(rq.final.ls_aicc));
+    CHECK(to_bits(r.ls_bic) == to_bits(rq.final.ls_bic) && to_bits(r.ls_bic2) == to_bits(rq.final.ls_bic2));
+    CHECK(to_bits(r.ls_bicc) == to_bits(rq.final.ls_bicc) && to_bits(r.ls_hq) == to_bits(rq.final.ls_hq));
     CHECK(r.full_residuals.size() == rq.final.full_residuals.size());
     for (std::size_t i = 0; i < r.full_residuals.size(); ++i)
         CHECK(to_bits(r.full_residuals[i]) ==

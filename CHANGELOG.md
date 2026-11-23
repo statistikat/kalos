@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Automatic TRAMO replay can build the final fitted model, residuals,
+  information criteria and regression covariance with no final-record input.
+
 - Added the public RSA0 residual Doornik–Hansen normality test.
 
 - The monthly automatic TRAMO replay now computes its round diagnostics
