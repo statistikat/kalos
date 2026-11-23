@@ -380,4 +380,116 @@ TramoFtestTdDecision run_tramo_ftest_td_test(
     return decision;
 }
 
+SaAutoTdDecision run_sa_auto_td_test(const SaAutoTdRequest& request) {
+    SaAutoTdDecision decision;
+    int best = -1;
+    try {
+        if (request.selector == SaAutoTdRequest::Selector::wald) {
+            const CalendarWaldTestResult w = calendar_wald_test(
+                request.ladder, request.pmodel, request.pconstraint);
+            if (w.failed) return decision;  // DStatException -> Failed
+            best = w.best;
+        } else {
+            best = calendar_best_model(
+                request.ladder,
+                request.selector == SaAutoTdRequest::Selector::aicc);
+        }
+    } catch (const std::exception&) {
+        return decision;  // AIOOBE / NPE surfaces -> Failed
+    }
+    if (best < 0 || static_cast<std::size_t>(best) >= request.candidates.size() ||
+        static_cast<std::size_t>(best) >= request.ladder.size()) {
+        return decision;  // malformed hand-over: fail closed
+    }
+    decision.best = best;
+    decision.selected_name_index = best;
+    // tdSel = (best < 2 ? null : ladder[best - 2]), lpSel = (best < 1 ||
+    // lp == null ? null : lp) - the same guards as the TRAMO ladders.
+    const bool td_selected = best >= 2;
+    const bool lp_selected = request.has_lp && best >= 1;
+    // The AIC/BIC machine logs "no trading days" when its td selection is
+    // null; the Wald machine has no such constant in its pool.
+    decision.no_trading_days_log =
+        request.selector != SaAutoTdRequest::Selector::wald && !td_selected;
+    const CalendarCandidateHandover& cand =
+        request.candidates[static_cast<std::size_t>(best)];
+    const SaCalendarDescWitnesses& w = request.witnesses;
+    bool changed = false;
+    const bool can_pre = request.adjust && request.desc_log_transformation;
+    // The td walk on the CURRENT description (desc.variable("td"), core
+    // equals witness against the selected ladder variable).
+    if (td_selected) {
+        if (w.desc_td_present) {
+            const std::size_t i = static_cast<std::size_t>(best - 2);
+            const bool eq = i < w.td_core_equals.size() && w.td_core_equals[i];
+            if (eq) {
+                decision.td_kept = true;  // equals -> no-op
+            } else {
+                decision.td_swapped = true;  // remove("td") + add(tdSel)
+                changed = true;
+            }
+        } else {
+            decision.td_added = true;
+            changed = true;
+        }
+    } else if (w.desc_td_present) {
+        decision.td_removed = true;
+        changed = true;
+    }
+    // The lp arm: desc.variable("lp") is re-read into the same local after
+    // the td walk; the tstat uses the CANDIDATE description's findPosition,
+    // UNGUARDED (pos < 0 -> the jar's tstat AIOOBE -> Failed).
+    if (lp_selected) {
+        bool oor = false;
+        const double t = tstat_at(cand.statistics, cand.lp_position, oor);
+        if (oor) return decision;
+        if (!(std::fabs(t) <= request.tlp)) {  // dcmpl: NaN enters
+            if (!w.desc_lp_present) {
+                if (can_pre && !(t <= 0.0)) {  // dcmpl: NaN enters
+                    if (!w.desc_adjusted) {
+                        decision.lp_preadjusted = true;
+                        decision.early_return = 1;  // return Changed
+                        decision.changed = true;
+                        decision.result = CalendarProcessingResult::changed;
+                        return decision;
+                    }
+                    // isAdjusted: 186 ifne 263 - fall through to the tail.
+                } else {
+                    decision.lp_added = true;
+                    decision.early_return = 2;  // return Changed
+                    decision.changed = true;
+                    decision.result = CalendarProcessingResult::changed;
+                    return decision;
+                }
+            } else {
+                if (can_pre && !(t <= 0.0)) {
+                    decision.lp_preadjusted = true;
+                    decision.lp_removed_with_preadjust = true;
+                    decision.early_return = 3;  // return Changed
+                    decision.changed = true;
+                    decision.result = CalendarProcessingResult::changed;
+                    return decision;
+                }
+                // The pinned quirk (259): this arm RETURNS Unchanged,
+                // discarding any change the td walk made.
+                decision.early_return = 4;
+                decision.result = CalendarProcessingResult::unchanged;
+                return decision;
+            }
+        }
+    }
+    // The tail (263): remove a stale lp, else reset a stale preadjustment.
+    if (w.desc_lp_present) {
+        decision.lp_removed = true;
+        changed = true;
+    } else if (w.desc_adjusted && can_pre) {
+        decision.preadjust_reset_none = true;
+        changed = true;
+    }
+    decision.changed = changed;
+    decision.result = changed ? CalendarProcessingResult::changed
+                              : CalendarProcessingResult::unchanged;
+    return decision;
+}
+
 }  // namespace kalos
