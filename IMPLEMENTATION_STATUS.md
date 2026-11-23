@@ -4317,3 +4317,15 @@ error, Ljung–Box and Doornik–Hansen results for six original inputs
 and two shifted series with additive outliers. The probability
 distributions have 22 and two degrees of freedom respectively.
 [Eight-case reference](validation/evidence/native/tramo-seats-bridge/rsa1-residual-diagnostics-x86_64.txt)
+
+
+### Public RSA1 residual normality, independence and standard error (2026-11-24)
+
+All eight raw models reproduce the five public binary64 diagnostic values
+exactly: residual standard error, Ljung–Box statistic and probability,
+and Doornik–Hansen statistic and probability. The monthly airline
+independence test has 24 lags and two fitted MA parameters. The standard
+error uses the fitted residual sum of squares and the effective count
+minus the number of estimated parameters excluding variance. Three
+Release CTests passed for diagnostics and both complete raw products.
+[Projection contract](docs/contracts/tramo-seats-bridge-contract.md)

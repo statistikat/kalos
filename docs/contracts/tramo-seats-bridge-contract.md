@@ -251,3 +251,19 @@ with AO and multiple LS effects on `fit_multi`. Two independent captures
 from the public x86-64 JVM agree on all three models and 1,800 final
 component values. Reproduce them with
 `capture-tramo-seats-bridge.py --stage rsa1-log-tc`.
+
+### Public residual tests after TR1 preprocessing
+
+The complete monthly airline residual controls are shared by RSA0 and
+RSA1. `monthly_airline_residual_ljung_box()` evaluates 24 lags using
+two free MA parameters and zero-mean autocorrelations.
+`tramo_residual_normality()` computes the centered Doornik–Hansen
+statistic. `tramo_residual_standard_error()` divides the fitted residual
+SSQ by the effective count less the number of free coefficients, then
+takes its square root. LikelihoodStatistics also counts the estimated
+variance, so the coefficient count is its estimated count less one.
+
+The public `rsa1-residual-diagnostics` stage obtains all three getters
+from the original observations in fresh x86-64 JVMs. Six original
+models and two shifted level fits compare all 40 returned numerical
+values bit-for-bit. The original RSA0 entry point names remain available.

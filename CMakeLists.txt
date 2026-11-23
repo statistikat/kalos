@@ -267,7 +267,7 @@ if(KALOS_BUILD_TESTS)
     endif()
     if(test_name STREQUAL "test_arma_diagnostics")
       target_compile_definitions(${test_name} PRIVATE
-        KALOS_RSA0_DIAGNOSTIC_DIR="${CMAKE_CURRENT_SOURCE_DIR}/validation/evidence/native/tramo-seats-bridge")
+        KALOS_TRAMO_DIAGNOSTIC_DIR="${CMAKE_CURRENT_SOURCE_DIR}/validation/evidence/native/tramo-seats-bridge")
     endif()
     if(test_name STREQUAL "test_seats_extract_wk")
       target_compile_definitions(${test_name} PRIVATE

@@ -8,6 +8,8 @@
 - Compared the first automatic TRAMO candidate with the independent
   reference fit and corrected seasonal AR indexing at model reversion.
 
+- Qualified monthly TR1 residual standard error, Ljung–Box and Doornik–Hansen statistics.
+
 - TRAMO computes its first automatic candidate from dated data through
   differencing, ARMA selection, renewed outlier detection and estimation.
 

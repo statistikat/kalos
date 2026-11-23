@@ -75,7 +75,7 @@ void check(const golden_diag::Row& r, const char* what, double got) {
 
 template <class Check>
 void check_rsa0_residual_test(const std::string& file, const std::string& key, Check check) {
-    const std::string directory = KALOS_RSA0_DIAGNOSTIC_DIR;
+    const std::string directory = KALOS_TRAMO_DIAGNOSTIC_DIR;
     std::ifstream residual_file(directory + "/rsa0-residuals-x86_64.txt");
     std::ifstream public_tests(directory + "/" + file);
     if (!residual_file || !public_tests) throw std::runtime_error("missing RSA0 diagnostic reference");
@@ -129,9 +129,70 @@ void check_rsa0_residual_test(const std::string& file, const std::string& key, C
     if (cases != 6 || edges != 3) throw std::runtime_error("incomplete RSA0 diagnostic reference");
 }
 
+void check_rsa1_residual_diagnostics() {
+    const std::string directory = KALOS_TRAMO_DIAGNOSTIC_DIR;
+    struct Input {
+        double ssq = 0;
+        int effective = 0, estimated = 0;
+        std::vector<double> residuals;
+    };
+    std::map<std::string, Input> inputs;
+    std::string id, line, key;
+    for (const auto& prefix : {std::string(), std::string("level_")}) {
+        const auto name = prefix.empty() ? "rsa1-x86_64.txt" : "rsa1-level-effects-x86_64.txt";
+        std::ifstream file(directory + "/" + name);
+        if (!file) throw std::runtime_error("missing RSA1 fitted reference");
+        while (std::getline(file, line)) {
+            std::istringstream row(line);
+            row >> key;
+            if (key == "case") { row >> id; id = prefix + id; }
+            if (key == "likelihood") {
+                std::string ignored;
+                std::uint64_t ssq;
+                auto& fit = inputs[id];
+                row >> ignored >> ignored >> ignored >> std::hex >> ssq >> std::dec >> fit.effective >> fit.estimated;
+                fit.ssq = golden_diag::bits(ssq);
+            } else if (key == "residuals") {
+                int year, month, count;
+                row >> year >> month >> count;
+                auto& fit = inputs.at(id);
+                std::uint64_t bits;
+                while (row >> std::hex >> bits) fit.residuals.push_back(golden_diag::bits(bits));
+                if (count != fit.effective || fit.residuals.size() != static_cast<std::size_t>(count))
+                    throw std::runtime_error("invalid RSA1 residual count");
+            }
+        }
+    }
+    std::ifstream tests(directory + "/rsa1-residual-diagnostics-x86_64.txt");
+    int checks = 0;
+    while (std::getline(tests, line)) {
+        std::istringstream row(line);
+        row >> key;
+        if (key == "case") { row >> id; continue; }
+        const auto& fit = inputs.at(id);
+        std::uint64_t statistic, pvalue;
+        row >> std::hex >> statistic;
+        if (key == "residuals.ser") {
+            if (!same(kalos::tramo_residual_standard_error(fit.ssq, fit.effective, fit.estimated), statistic)) ++failures;
+        } else {
+            row >> pvalue;
+            if (key == "residuals.lb") {
+                const auto test = kalos::monthly_airline_residual_ljung_box(fit.residuals);
+                if (!test.built || test.df != 22 || !same(test.value, statistic) || !same(test.p, pvalue)) ++failures;
+            } else if (key == "residuals.doornikhansen") {
+                const auto test = kalos::tramo_residual_normality(fit.residuals);
+                if (!test || test->df != 2 || !same(test->value, statistic) || !same(test->p, pvalue)) ++failures;
+            } else throw std::runtime_error("unrecognized public diagnostic");
+        }
+        ++checks;
+    }
+    if (inputs.size() != 8 || checks != 24) throw std::runtime_error("incomplete RSA1 diagnostic evidence");
+}
+
 } // namespace
 
 int main() {
+    check_rsa1_residual_diagnostics();
     check_rsa0_residual_test("rsa0-ljung-box-x86_64.txt", "residuals.lb",
         [](const auto& values, auto statistic, auto pvalue) {
             const auto test = kalos::rsa0_residual_ljung_box(values);
