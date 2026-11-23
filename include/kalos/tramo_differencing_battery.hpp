@@ -179,7 +179,6 @@ struct BatteryDecision {
     std::vector<Snap> snaps;
 };
 
-struct TramoOrders;
 using TramoControllerEstimator = std::function<std::optional<BatteryState>(const TramoOrders&, bool mean)>;
 
 struct TramoMonthlyControllerResult {

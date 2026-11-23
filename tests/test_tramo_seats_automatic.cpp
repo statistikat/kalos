@@ -65,8 +65,12 @@ void run(const std::string& preset, std::size_t expected_cases, std::size_t expe
             row >> year >> month >> n;
             std::vector<double> observations(n);
             for (auto& v : observations) v = value(row);
-            result = kalos::run_tramo_seats_rsa1(observations, year, month);
+            result = preset == "rsa3" ? kalos::run_tramo_seats_rsa3(observations, year, month)
+                                      : kalos::run_tramo_seats_rsa1(observations, year, month);
             check(fit.final_model_computed && fit.status == "available", id + " estimation");
+            if (preset == "rsa3")
+                check(fit.reference_model_computed && fit.first_candidate_computed && fit.initial_regression_checked,
+                      id + " automatic identification");
         } else if (key == "model") {
             bool log, mean;
             row >> label >> std::boolalpha >> log >> label >> mean >> label;
@@ -120,6 +124,7 @@ void run(const std::string& preset, std::size_t expected_cases, std::size_t expe
 
 int main() {
     run("rsa1", 6, 3960);
+    run("rsa3", 6, 3960);
     run("rsa1-level-effects", 2, 1200);
     run("rsa1-level-tc", 1, 600);
     run("rsa1-log-tc", 3, 1800);

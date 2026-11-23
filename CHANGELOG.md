@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Added raw monthly TR3 preprocessing and RSA3 seasonal adjustment for fits
+  accepted by the first automatic comparison and controller sweep.
+
 - Apply the monthly automatic TRAMO controllers in order, including selected
   candidate transfers and the initial seasonality restart.
 

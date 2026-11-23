@@ -249,3 +249,15 @@ returns directly on either pass. The final regression coefficients are
 in design order, with the mean first. The six public oracles cover both
 model scales, zero to three automatic variables, and all 570 residuals.
 The supported input is complete monthly data spanning at least two years.
+
+### Raw monthly TR3
+
+`estimate_tramo_tr3(series, year, month)` and
+`run_tramo_seats_rsa3(series, year, month, backcasts, forecasts)` use
+the stock monthly preset with no processing trace as input. The initial
+route covers a passed reference comparison, a retained fast regression
+test, and a completed controller sweep. The six public snapshots in
+`tramo-seats-bridge/rsa3-x86_64.txt` are the numerical reference.
+Additional automatic passes and the seasonality restart currently raise
+a stage-specific exception. SEATS uses the same fitted pipeline, horizon
+semantics, and decomposition-policy checks as the raw RSA1 route.

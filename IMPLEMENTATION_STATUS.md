@@ -4414,3 +4414,19 @@ MA orders 0–1, level and differenced models, and combinations of trading days,
 additive outliers and level shifts. All 48 fields match the two-JVM capture.
 The tests also cover a singular design and insufficient residual degrees of
 freedom. The stock raw RSA3 and RSAfull orchestration is still in progress.
+
+### M5 / 23-G and 24-D — monthly raw TR3 and RSA3
+
+The first accepted raw TR3 path now runs from observations through
+transformation, initial mean testing, differencing and ARMA selection,
+outlier scanning, final estimation, the reference comparison and all five
+late controllers. The fitted bridge and decomposition consume that result.
+Six public RSA3 runs reproduce every model, 573 fitted residuals, all 60
+dated component/forecast series and all 3,960 product values bit-for-bit.
+The mixed-outlier input also reproduces the SEATS approximation flag.
+
+The integration currently reports a specific failure if the reference
+comparison rejects the first candidate, the late fast mean test clears the
+estimate, or the seasonality controller requests an identification restart.
+The original 96-observation restart case explicitly exercises that boundary.
+The stock monthly route requires complete observations spanning two years.

@@ -85,6 +85,14 @@ long long run_case(const FitExpect& e, std::size_t& live_total,
               replay.seams_fact == r.seams_fact && replay.parameters == r.parameters);
         if (regenerated) std::cout << e.id << ": regenerated " << regenerated << " ARMA input observations\n";
     }
+    if (std::string(e.id) == "fit_gs2") {
+        bool restart = false;
+        try { (void)estimate_tramo_tr3(rq.series, rq.start_year, rq.start_month); }
+        catch (const std::invalid_argument& error) {
+            restart = std::string(error.what()).find("requires an automatic-model restart") != std::string::npos;
+        }
+        CHECK(restart);
+    }
     CHECK(r.status == "available");
     CHECK(r.final_model_computed);
     CHECK(r.initial_regression_checked == !rq.kernel.seams.empty());
