@@ -4033,3 +4033,13 @@ column pivoting for its point and derivatives. The final likelihood fixes
 the columns in description order, as the pinned `RegSarimaComputer.optimize`
 does after optimization. The round stream, controllers and final public
 record still require independent assembly for a raw automatic fit.
+
+### M5 / 23-G and 24-D — raw RSA1 and RSA3 public reference outputs
+
+Two fresh pinned x86-64 JVMs agree on six monthly inputs for each preset.
+The public TR1/TR3 runs record the selected transform, mean, orders,
+parameters, ordered regression names and coefficients, likelihood and dated
+residuals. The public RSA1/RSA3 runs record component and forecast values
+and the approximation decision. All twelve return decompositions. Only
+the mixed-outlier RSA3 case changes its fitted SEATS model. The corpus
+sets the target for the native raw presets, which are still in progress.

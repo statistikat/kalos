@@ -501,6 +501,8 @@
     "validation/evidence/native/tramo-seats-bridge/rsa0-ljung-box-x86_64.txt",
     "validation/evidence/native/tramo-seats-bridge/rsa0-residuals-x86_64.txt",
     "validation/evidence/native/tramo-seats-bridge/rsa0-x86_64.txt",
+    "validation/evidence/native/tramo-seats-bridge/rsa1-x86_64.txt",
+    "validation/evidence/native/tramo-seats-bridge/rsa3-x86_64.txt",
     "validation/evidence/native/tramo-seats-model/SHA256SUMS.csv",
     "validation/evidence/native/tramo-seats-model/cases.csv",
     "validation/evidence/native/tramo-seats-model/inputs.csv",

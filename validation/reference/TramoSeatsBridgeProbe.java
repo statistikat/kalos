@@ -151,7 +151,7 @@ public class TramoSeatsBridgeProbe {
 
     // The public kernel receives only the original dated series and RSA0.
     // These rows never use the private fitted bridge or the isolated WK path.
-    private static final Set<String> RSA0 = Set.of(
+    private static final Set<String> RAW_CASES = Set.of(
         "fit_tr0_air", "fit_noout", "fit_ls", "fit_ao", "fit_multi", "fit_nearur");
 
     private static void rawRsa0(String id, TsData series, String stage) {
@@ -224,9 +224,45 @@ public class TramoSeatsBridgeProbe {
         }
     }
 
+    // Public preprocessing and seasonal-adjustment kernels receive only
+    // the monthly observations and their respective standard preset.
+    private static void rawAutomatic(String id, TsData series, String stage) {
+        boolean rsa1 = stage.equals("rsa1");
+        var model = TramoKernel.of(rsa1 ? TramoSpec.TR1 : TramoSpec.TR3, new ModellingContext())
+            .process(series, new ProcessingLog() {});
+        System.out.println("case " + id);
+        series("input", series);
+        require(model != null, id + " preprocessing");
+        var arima = model.arima();
+        System.out.printf("model log %b mean %b order %d %d %d %d %d %d%n",
+            model.getDescription().isLogTransformation(), model.isMeanCorrection(),
+            arima.getP(), arima.getD(), arima.getQ(), arima.getBp(), arima.getBd(), arima.getBq());
+        StringBuilder pars = new StringBuilder("parameters");
+        for (var block : List.of(arima.getPhi(), arima.getBphi(), arima.getTheta(), arima.getBtheta()))
+            for (double value : block.toArray()) pars.append(' ').append(bits(value));
+        System.out.println(pars);
+        var variables = model.getDescription().getVariables();
+        var estimates = model.getEstimation().getCoefficients();
+        require(variables.length == estimates.length(), "one coefficient per variable");
+        for (int i = 0; i < variables.length; ++i)
+            System.out.println("variable " + variables[i].getName() + " " + bits(estimates.get(i)));
+        var stats = model.getEstimation().getStatistics();
+        System.out.printf("likelihood %s %s %s %s %d %d%n", bits(stats.getLogLikelihood()),
+            bits(stats.getTransformationAdjustment()), bits(stats.getAdjustedLogLikelihood()), bits(stats.getSsqErr()),
+            stats.getEffectiveObservationsCount(), stats.getEstimatedParametersCount());
+        series("residuals", model.fullResiduals());
+        var sa = TramoSeatsKernel.of(rsa1 ? TramoSeatsSpec.RSA1 : TramoSeatsSpec.RSA3,
+            new ModellingContext()).process(series, new ProcessingLog() {});
+        if (sa == null) System.out.println("product absent");
+        else {
+            System.out.printf("product present changed %b%n", sa.getDecomposition().isModelChanged());
+            components("merged", sa.getFinals());
+        }
+    }
+
     public static void main(String[] args) throws Exception {
         String stage = args.length > 1 ? args[1] : "bridge";
-        boolean raw = stage.startsWith("rsa0");
+        boolean raw = stage.startsWith("rsa");
         Method bridge = TramoSeatsKernel.class.getDeclaredMethod("of", RegSarimaModel.class);
         bridge.setAccessible(true);
         List<String> lines = Files.readAllLines(Path.of(args[0]));
@@ -235,7 +271,7 @@ public class TramoSeatsBridgeProbe {
             if (!lines.get(i).startsWith("KER ")) continue;
             String[] header = lines.get(i).split(" ");
             String id = header[1];
-            if (!(raw ? RSA0 : TEMPLATES.keySet()).contains(id)) continue;
+            if (!(raw ? RAW_CASES : TEMPLATES.keySet()).contains(id)) continue;
             require(seen.add(id), id + " duplicated");
             int n = header.length;
             require(header[n-3].equals("12") && lines.get(i+1).startsWith("values "), id);
@@ -243,9 +279,10 @@ public class TramoSeatsBridgeProbe {
             double[] values = Arrays.stream(lines.get(i+1).substring(7).split(" "))
                 .mapToDouble(Double::parseDouble).toArray();
             TsData data = TsData.of(start, DoubleSeq.of(values));
-            if (raw) rawRsa0(id, data, stage);
+            if (stage.startsWith("rsa0")) rawRsa0(id, data, stage);
+            else if (raw) rawAutomatic(id, data, stage);
             else observe(bridge, id, TEMPLATES.get(id), data, args.length > 1 && args[1].equals("merge"));
         }
-        require(seen.equals(raw ? RSA0 : TEMPLATES.keySet()), "incomplete corpus");
+        require(seen.equals(raw ? RAW_CASES : TEMPLATES.keySet()), "incomplete corpus");
     }
 }

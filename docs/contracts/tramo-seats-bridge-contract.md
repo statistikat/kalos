@@ -180,3 +180,13 @@ fits must match the original binary64 statistic and probability.
 Additional AirPassengers prefixes of 36, 37 and 38 observations exercise
 23, 24 and 25 fitted innovations. The first two statistics and
 probabilities are undefined. The last yields a finite public test.
+
+### Raw RSA1 and RSA3 oracles
+
+The capture stages `rsa1` and `rsa3` run the public preprocessing and
+seasonal-adjustment kernels from the same six monthly inputs as RSA0.
+They record the full dated observations, selected model and regression
+coefficients, public likelihood, full residuals, final component series,
+forecast series and the model-change flag. SHA-256 and the source inputs,
+jar and VM profile are recorded alongside the fixture. Replaying the stage
+checks both independently started JVMs against the frozen bytes.
