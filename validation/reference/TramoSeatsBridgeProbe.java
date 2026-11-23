@@ -242,9 +242,9 @@ public class TramoSeatsBridgeProbe {
         }
     }
 
-    private static void rsa1ForecastErrors(String id, TsData input) {
-        var sa = TramoSeatsKernel.of(TramoSeatsSpec.RSA1, new ModellingContext()).process(input, new ProcessingLog() {});
-        require(sa != null, id + " RSA1");
+    private static void forecastErrors(String id, TsData input, TramoSeatsSpec preset) {
+        var sa = TramoSeatsKernel.of(preset, new ModellingContext()).process(input, new ProcessingLog() {});
+        require(sa != null, id + " forecast errors");
         System.out.println("case " + id);
         var forecasts = sa.getPreprocessing().forecasts(24);
         var publicErrors = sa.getData("y_ef(24)", TsData.class);
@@ -371,6 +371,7 @@ public class TramoSeatsBridgeProbe {
         require(model != null && rounds.equals(List.of("round 0", "round 1", "round 4")), "fast mean retry");
         String id = "fit_fast_mean_" + seed + "_" + mode;
         if (stage.equals("rsa3-mean-retry-diagnostics")) residualDiagnostics(id, data, TramoSeatsSpec.RSA3);
+        else if (stage.equals("rsa3-forecast-errors")) forecastErrors(id, data, TramoSeatsSpec.RSA3);
         else rawAutomatic(id, data, stage);
     }
 
@@ -390,7 +391,7 @@ public class TramoSeatsBridgeProbe {
             : stage.equals("rsa1-level-tc") ? Set.of("fit_multi")
             : levelEffects ? Set.of("fit_ao", "fit_ls")
             : raw ? RAW_CASES : TEMPLATES.keySet();
-        if (stage.equals("rsa3-residual-diagnostics")) {
+        if (stage.equals("rsa3-residual-diagnostics") || stage.equals("rsa3-forecast-errors")) {
             cases = new java.util.HashSet<>(RAW_CASES);
             cases.addAll(Set.of("fit_gs2", "fit_mrstack", "fit_mrls"));
         }
@@ -412,13 +413,17 @@ public class TramoSeatsBridgeProbe {
             if (levelEffects) values = levelInput(values);
             if (logTc) values = logTcInput(values);
             TsData data = TsData.of(start, DoubleSeq.of(values));
+            if (stage.equals("rsa3-forecast-errors")) {
+                forecastErrors(id, data, TramoSeatsSpec.RSA3);
+                continue;
+            }
             if (stage.equals("rsa3-residual-diagnostics")) {
                 residualDiagnostics(id, data, TramoSeatsSpec.RSA3);
                 continue;
             }
             if (stage.equals("rsa1-residual-diagnostics") || stage.equals("rsa1-forecast-errors")) {
                 java.util.function.BiConsumer<String, TsData> observe = stage.equals("rsa1-forecast-errors")
-                    ? TramoSeatsBridgeProbe::rsa1ForecastErrors : (key, input) -> residualDiagnostics(key, input, TramoSeatsSpec.RSA1);
+                    ? (key, input) -> forecastErrors(key, input, TramoSeatsSpec.RSA1) : (key, input) -> residualDiagnostics(key, input, TramoSeatsSpec.RSA1);
                 observe.accept(id, data);
                 if (id.equals("fit_ao") || id.equals("fit_ls") || id.equals("fit_multi")) {
                     String prefix = id.equals("fit_multi") ? "level_tc_" : "level_";
@@ -432,6 +437,9 @@ public class TramoSeatsBridgeProbe {
             if (stage.startsWith("rsa0")) rawRsa0(id, data, stage);
             else if (raw) rawAutomatic(id, data, stage);
             else observe(bridge, id, TEMPLATES.get(id), data, args.length > 1 && args[1].equals("merge"));
+        }
+        if (stage.equals("rsa3-forecast-errors")) {
+            for (int[] pair : new int[][]{{26, 0}, {51, 5}, {66, 0}, {73, 2}}) rsa3MeanRetry(stage, pair[0], pair[1]);
         }
         if (stage.equals("rsafull")) {
             // Reuse the exact regression-module inputs for the public end-to-end template.

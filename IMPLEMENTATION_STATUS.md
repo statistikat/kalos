@@ -4539,3 +4539,6 @@ of the final WK rows before deterministic effects are restored. The paired
 snapshots preserve missing component kinds and the distinction between a
 SEATS parameter cutoff and a changed model. This supplies the extraction
 and merger boundaries for the public stock results.
+### M5 public RSA3 forecast-error reference
+
+Two independent pinned x86-64 JVMs produced the same forecasts and uncertainties for the six original RSA3 fits, three additional restart or multiple-outlier fits, and four fast-mean fourth passes. Each fit has 24 raw forecasts and their errors, the public original-series errors and the separate final WK errors. The 13-case capture SHA-256 is `a1b77b26c7d8d9f7ad98f08f067bd20d21db94d3cbe341661bf82e455157eb2a`. [JVM evidence](validation/evidence/native/tramo-seats-bridge/rsa3-forecast-errors-x86_64.txt)
