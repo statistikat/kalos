@@ -109,8 +109,14 @@ public final class CalendarDetectionProbe {
   static final String HEX_RSA4
       = "0ab7010a060a0010011801120b080a1900000000000000c01a1f0a040a02414f0a040a024c530a040a025443120029666666666666e63f301e220c18012202100130013a0210012a4c080111666666666666ee3f19000000000000f03f21280af4893c49c23f29cdccccccccccf03f31d151812fae7ef03f392fbae8a28b2ef23f419a9999999999b93f4967202a1dd933f03f580132161a0a08011001300250016200220808011008180152003a0b0a001148afbc9af2d77a3e1224100122010029000000000000f83f31000000000000044038ffffffffffffffffff0160031a16100219000000000000f03f21000000000000f03f2801";
 
+  // GOLDEN PAYLOAD FORMATTER: raw doubleToRawLongBits hex. (Java's
+  // String.format %.17g is NOT a faithful 17-digit renderer - it printed
+  // 0x3fb52536ff790458 as 0.082599103328008800 where glibc prints
+  // ...8794 for the SAME double; every corpus double therefore rides its
+  // bit pattern and the golden generator parses hex. Live witness
+  // 2026-11-23 in the 21-I.3 session notes.)
   static String g(double v) {
-    return String.format(Locale.ROOT, "%.17g", v);
+    return Long.toHexString(Double.doubleToRawLongBits(v));
   }
 
   static String bits(double v) {
