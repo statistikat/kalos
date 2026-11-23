@@ -1,3 +1,4 @@
+#include <cstdlib>
 #include "kalos/regression_likelihood.hpp"
 #include "kalos/parallel.hpp"
 

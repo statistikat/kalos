@@ -2,8 +2,12 @@
 
 Experimental C++17 time-series engine extracted from Persephone. The core has no
 R, Rcpp, Python or Java dependency. It supports fixed-order SARIMA estimation,
-qualified inference/prediction modes and X-11 primitives through initial additive
-tables. Full seasonal-adjustment fitting and automatic model selection remain open.
+qualified inference and prediction, and the X-11 selection passes and finals.
+The [restricted fixed X-13 route](docs/contracts/x13-fit-contract.md) uses fixed coefficients and zero horizons.
+[Automatic monthly X-13](docs/contracts/x13-automatic-pipeline-contract.md)
+supports backcasts and forecasts and reports unsupported detection options explicitly.
+[Monthly TRAMO](docs/contracts/tramo-fit-contract.md) requires kernel facts,
+seam witnesses and a final record. End-to-end TRAMO-SEATS assembly remains open.
 
 ## Build
 
@@ -23,8 +27,8 @@ Use `-DKALOS_OPENMP=OFF` for a serial build; OpenMP is otherwise detected option
 No process-wide BLAS/OpenMP policy is changed. Configure the external provider's
 thread count separately to avoid oversubscription.
 
-Numerical sources use an internal nine-routine provider boundary. Standalone and
-Python link OpenBLAS; rkalos supplies R's configured BLAS/LAPACK implementation.
+Numerical sources use an internal nine-routine provider boundary. The standalone core and
+the Python and R bindings link the OpenBLAS C API.
 The provider is selected at build time, never switched dynamically.
 
 See [implementation status](IMPLEMENTATION_STATUS.md), [contracts](docs/contracts/),

@@ -98,6 +98,8 @@ jobs:
             ctest --test-dir build -N                                 > "${GITHUB_WORKSPACE}/diag/ctest-list.txt" || true
             exit 1
           }
+      - name: Check the installed consumer and provider selection
+        run: python tests/check_installed_provider.py build "${{ runner.temp }}/openblas"
       - name: Upload test diagnostics
         if: failure()
         uses: actions/upload-artifact@v4

@@ -612,6 +612,20 @@ void t01_status_matrix() {
                "unsupported:x13 fit requires an explicit sigma policy",
                "forecast is no gate either");
   }
+  // Invalid extensions must be refused before estimation or allocation.
+  for (auto limits : {std::make_pair(std::numeric_limits<int>::min(), 0),
+                      std::make_pair(0, -200000000),
+                      std::make_pair(1073741820, 1073741820)}) {
+    auto r = baseline(24);
+    r.backcast = limits.first;
+    r.forecast = limits.second;
+    bool refused = false;
+    try { kalos::x13_automatic_fit(r); }
+    catch (const std::invalid_argument& e) {
+      refused = std::string(e.what()).find("extended series") != std::string::npos;
+    }
+    check(refused, "oversized extended series refused");
+  }
   // explicit sigma policy
   {
     kalos::X13AutomaticRequest r = baseline(24);

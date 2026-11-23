@@ -5,17 +5,6 @@ option(KALOS_BUILD_TESTS "Build standalone tests" ON)
 option(KALOS_SANITIZERS "Enable address and undefined behavior sanitizers" OFF)
 list(PREPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 find_package(KalosOpenBLAS REQUIRED)
-include(CheckCXXSourceCompiles)
-set(CMAKE_REQUIRED_LIBRARIES Kalos::OpenBLAS)
-check_cxx_source_compiles("#include <cblas.h>
-#include <lapacke.h>
-#include <type_traits>
-static_assert(sizeof(int)==4 && std::is_same<lapack_int,int>::value, \"LP64 required\");
-int main() { return openblas_get_config() ? 0 : 1; }" KALOS_LP64_PROVIDER)
-unset(CMAKE_REQUIRED_LIBRARIES)
-if(NOT KALOS_LP64_PROVIDER)
-  message(FATAL_ERROR "Kalos requires OpenBLAS with CBLAS, LAPACKE and a 32-bit LP64 integer ABI")
-endif()
 # A committed binding snapshot supplies its own exact revision header.
 if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/include/kalos/revision.hpp")
   file(READ "${CMAKE_CURRENT_SOURCE_DIR}/include/kalos/revision.hpp" KALOS_REVISION_HEADER)

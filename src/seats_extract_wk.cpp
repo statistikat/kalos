@@ -19,6 +19,7 @@
 // preserved; the build uses -ffp-contract=off so no FMA is introduced.
 // Math.log/Math.exp map to the fdlibm port (the HotSpot implementations).
 
+#include <exception>
 #include "kalos/seats_extract_wk.hpp"
 
 #include <cmath>

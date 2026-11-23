@@ -734,3 +734,5 @@ decision, and no provider in the qualification matrix comes close to
 all-outputs-1-ulp (the qualified provider reproduces the goldens exactly,
 75/75 on both lanes with the RUNPATH-pinned build).
 
+
+Automatic requests normalize negative horizon counts to years of twelve months before estimation. An extended series exceeding the signed integer index range or vector length limit raises `std::invalid_argument`.
