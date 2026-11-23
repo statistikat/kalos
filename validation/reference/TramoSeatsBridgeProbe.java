@@ -381,6 +381,23 @@ public class TramoSeatsBridgeProbe {
             for (int[] pair : new int[][]{{26, 0}, {51, 5}, {66, 0}, {73, 2}}) rsa3MeanRetry(stage, pair[0], pair[1]);
             return;
         }
+        if (stage.equals("rsafull-calendar-wk")) {
+            String input = Files.readAllLines(Path.of(args[2])).stream().filter(row -> row.startsWith("input 8 1 "))
+                .findFirst().orElseThrow();
+            String[] fields = input.split(" ");
+            double[] values = Arrays.stream(fields, 3, fields.length)
+                .mapToDouble(x -> Double.longBitsToDouble(Long.parseUnsignedLong(x, 16))).toArray();
+            var original = TsData.of(TsPeriod.monthly(1990, 1), DoubleSeq.of(values));
+            var fit = TramoSeatsKernel.of(TramoSeatsSpec.RSAfull, new ModellingContext())
+                .process(original, new ProcessingLog() {});
+            Method bridge = TramoSeatsKernel.class.getDeclaredMethod("of", RegSarimaModel.class);
+            bridge.setAccessible(true);
+            var model = (SeatsModelSpec) bridge.invoke(null, fit.getPreprocessing());
+            System.out.println("case calendar_8_log");
+            series("bridge", model.getSeries());
+            components("wk", fit.getDecomposition().getFinalComponents());
+            return;
+        }
         if (stage.equals("spectrum-cos")) { spectrumCos(); return; }
         boolean raw = stage.startsWith("rsa");
         boolean levelEffects = stage.startsWith("rsa1-level-");
