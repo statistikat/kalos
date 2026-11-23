@@ -228,9 +228,9 @@ public class TramoSeatsBridgeProbe {
 
     // Public preprocessing and seasonal-adjustment kernels receive only
     // the monthly observations and their respective standard preset.
-    private static void rsa1ResidualDiagnostics(String id, TsData series) {
-        var sa = TramoSeatsKernel.of(TramoSeatsSpec.RSA1, new ModellingContext()).process(series, new ProcessingLog() {});
-        require(sa != null, id + " RSA1");
+    private static void residualDiagnostics(String id, TsData series, TramoSeatsSpec preset) {
+        var sa = TramoSeatsKernel.of(preset, new ModellingContext()).process(series, new ProcessingLog() {});
+        require(sa != null, id + " residual diagnostics");
         var ser = sa.getData("residuals.ser", Double.class);
         require(ser != null, "public residuals.ser");
         System.out.println("case " + id);
@@ -388,6 +388,10 @@ public class TramoSeatsBridgeProbe {
             : stage.equals("rsa1-level-tc") ? Set.of("fit_multi")
             : levelEffects ? Set.of("fit_ao", "fit_ls")
             : raw ? RAW_CASES : TEMPLATES.keySet();
+        if (stage.equals("rsa3-residual-diagnostics")) {
+            cases = new java.util.HashSet<>(RAW_CASES);
+            cases.addAll(Set.of("fit_gs2", "fit_mrstack", "fit_mrls"));
+        }
         Method bridge = TramoSeatsKernel.class.getDeclaredMethod("of", RegSarimaModel.class);
         bridge.setAccessible(true);
         List<String> lines = Files.readAllLines(Path.of(args[0]));
@@ -406,9 +410,13 @@ public class TramoSeatsBridgeProbe {
             if (levelEffects) values = levelInput(values);
             if (logTc) values = logTcInput(values);
             TsData data = TsData.of(start, DoubleSeq.of(values));
+            if (stage.equals("rsa3-residual-diagnostics")) {
+                residualDiagnostics(id, data, TramoSeatsSpec.RSA3);
+                continue;
+            }
             if (stage.equals("rsa1-residual-diagnostics") || stage.equals("rsa1-forecast-errors")) {
                 java.util.function.BiConsumer<String, TsData> observe = stage.equals("rsa1-forecast-errors")
-                    ? TramoSeatsBridgeProbe::rsa1ForecastErrors : TramoSeatsBridgeProbe::rsa1ResidualDiagnostics;
+                    ? TramoSeatsBridgeProbe::rsa1ForecastErrors : (key, input) -> residualDiagnostics(key, input, TramoSeatsSpec.RSA1);
                 observe.accept(id, data);
                 if (id.equals("fit_ao") || id.equals("fit_ls") || id.equals("fit_multi")) {
                     String prefix = id.equals("fit_multi") ? "level_tc_" : "level_";

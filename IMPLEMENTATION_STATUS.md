@@ -4513,3 +4513,6 @@ residuals, the retained level-shift coefficient, and all 2,580 dated product
 values. Across all 13 stock RSA3 cases this brings coverage to 1,196 fitted
 residuals and 8,340 product values. The Release outlier-scan and raw pipeline
 tests passed. Retry after a rejected reference comparison remains open.
+### M5 public raw RSA3 residual diagnostic references
+
+Two independent pinned x86-64 JVMs produced identical residual scale, Ljung–Box and Doornik–Hansen statistics for the six original and three additional raw RSA3 fits. The nine Ljung–Box tests have 21, 22 or 23 degrees of freedom according to the selected ARMA order. The frozen capture SHA-256 is `3811bf5c301e7e0dfe08827fa6e11beac6e3d0754399d4cd0ac759a2e4fb3716`. [Reference](validation/evidence/native/tramo-seats-bridge/rsa3-residual-diagnostics-x86_64.txt)
