@@ -218,3 +218,12 @@ internal round traces cover AO, LS, TC and unchanged outcomes. Across the
 34 fit cases all 126 differencing, ARMA, scan and final-estimation module
 checks now run numerically. The recorded loop and final-model data are
 still part of the separate fit request.
+
+The integrated replay computes every round-0 and pass-2 statistics row
+from the preceding fitted likelihood. The final reporting QR operates in
+fixed design order. Its residual tail supplies `cl.e()`; a design-free
+fit uses unscaled Kalman innovations. The optimizer uses its own pivoted
+QR for derivatives. All 39 round rows and 46 fast mean-test decisions in
+the admitted corpus agree bit-for-bit, including each post-test t-vector
+and the empty vector after the mean test clears an estimation. The
+standalone round-replay input still carries these values for comparison.

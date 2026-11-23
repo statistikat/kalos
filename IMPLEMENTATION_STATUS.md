@@ -4021,3 +4021,15 @@ machine. The two captures from separate pinned x86-64 JVMs are identical.
 The final previously recorded AR(2) scan in the fit now runs directly:
 all 126 module checks are live. The automatic loop still receives its
 round events and final fitted-model record in the existing replay API.
+
+### M5 / 23-G — fitted likelihood for round decisions
+
+All 39 reference and pass-2 model-statistics rows and all 46 fast regression
+tests in the 24 admitted cases now run from the live estimation. The native
+QR residuals, Ljung–Box statistic and p-value, standard error, BIC, counts
+and post-test t-statistics match the frozen JVM bits. The mean-removal
+retry and reference-model restoration are included. The optimizer retains
+column pivoting for its point and derivatives. The final likelihood fixes
+the columns in description order, as the pinned `RegSarimaComputer.optimize`
+does after optimization. The round stream, controllers and final public
+record still require independent assembly for a raw automatic fit.

@@ -18,6 +18,7 @@
 
 #include "jvm_tramo_fit.h"
 
+#include <algorithm>
 #include <cstdint>
 #include <cstring>
 #include <iostream>
@@ -79,6 +80,12 @@ long long run_case(const FitExpect& e, std::size_t& live_total,
         std::cout << e.id << ": regenerated " << regenerated << " ARMA input observations\n";
     }
     CHECK(r.status == "available");
+    const auto count = [&](TramoKernelSeamKind kind) {
+        return static_cast<std::size_t>(std::count_if(rq.kernel.seams.begin(), rq.kernel.seams.end(),
+            [kind](const auto& seam) { return kind == seam.kind; }));
+    };
+    CHECK(r.statistics_checked == count(TramoKernelSeamKind::round0) + count(TramoKernelSeamKind::pass2_gate));
+    CHECK(r.regression_tests_checked == count(TramoKernelSeamKind::regression_test));
     CHECK(r.transform_matches_capture);
     if (e.verdict[0] != '-') {
         CHECK(r.transformation.seasonality.verdict == e.verdict);
@@ -161,7 +168,8 @@ long long run_case(const FitExpect& e, std::size_t& live_total,
               << " orders " << orders_word(r.orders) << " cov "
               << r.covariance.covariance_upper.size() << "/"
               << e.d9_entries << " live " << r.seams_live << " fact "
-              << r.seams_fact << "\n";
+              << r.seams_fact << " stats " << r.statistics_checked << " regressions "
+              << r.regression_tests_checked << "\n";
     return r.covariance.covariance_upper.size();
 }
 
