@@ -98,11 +98,15 @@ enum class CalendarProcessingResult { changed, unchanged, failed };
 // One candidate-model hand-over row. `present` is false exactly where the
 // jar leaves a null array entry (row 1 with no lp arm; a probe must never
 // set present = false elsewhere, bestModel/waldTest null semantics cover
-// the jar surface). aic/bic keys are the comparator keys of the row's
-// LikelihoodStatistics: aiccComparator reads getAicc(), bicComparator
-// reads getBic(). ssq/nx/degrees_of_freedom are the concentrated
-// likelihood reads of the same estimation (waldTest and the FTEST Info
-// math). Statistics for absent rows are never read.
+// the jar surface). The keys ride on the row's LikelihoodStatistics; the
+// ssq/nx/degrees_of_freedom are the concentrated likelihood reads of the
+// same estimation (waldTest and the FTEST Info math). Statistics for
+// absent rows are never read. Keys verified against the fresh bytecode:
+// aiccComparator reads LikelihoodStatistics.getAICC(), bicComparator reads
+// getBIC(); the comparator lambda is
+// compare(a, b) = (a == null ? 1 : b == null ? -1
+//                            : Double.compare(key(a), key(b)))
+// (nulls sort last).
 struct CalendarModelRow {
     bool present = true;
     double aicc = 0.0;
@@ -112,12 +116,14 @@ struct CalendarModelRow {
     int degrees_of_freedom = 0;
 };
 
-// TradingDaysRegressionComparator.bestModel: skip the leading absent rows
-// (all absent -> -1, the jar's ArrayIndexOutOfBounds surface is the
-// caller's failure, see the machine functions), then replace while
-// comparator.compare(current, candidate) > 0 over present rows only;
-// comparator.compare = Double.compare(key(candidate), key(current)) for
-// aicc/bic (lower key wins, ties keep the earlier index).
+// TradingDaysRegressionComparator.bestModel: skip the leading absent rows,
+// then replace while comparator.compare(ests[best], ests[candidate]) > 0
+// over present rows only (lower key wins, ties keep the earlier index).
+// The jar's `-1` return (all rows absent) is UNREACHABLE bytecode: the
+// all-absent array throws ArrayIndexOutOfBounds in the scan loop (the
+// bounds test follows the element load), which the machines catch as
+// Failed. The mirror throws std::out_of_range on all-absent; the machine
+// functions translate it to result = failed.
 // `selector_aicc` picks the aicc key, otherwise the bic key.
 int calendar_best_model(const std::vector<CalendarModelRow>& rows,
                         bool selector_aicc);
@@ -235,12 +241,15 @@ CalendarTramoUpdateEcho tramo_calendar_update(
 // AutomaticRegressionTest.test / AutomaticWaldRegressionTest.test as one
 // function (the two differ only in how `best` is selected and share
 // createTestModel/update byte-for-byte). The re-estimation of the
-// selected candidate is request data: the caller supplies the candidate
-// hand-over produced by createTestModel(est, tdSel, lpSel) +
-// processor(true, precision) (airline/mean forced on inside
-// createTestModel, witnessed by the probe). `nhp` is
-// desc.getArimaSpec().freeParametersCount() (the CURRENT description).
-// bestModel returning -1 (all rows absent) is the JVM
+// selected candidate is request data carried FULLY: candidates[i] is the
+// createTestModel(est, tdSel(i), lpSel(i)) + processor(true, precision)
+// hand-over the machine would build for ladder row i (airline/mean forced
+// on inside createTestModel, witnessed by the probe; tdSel = null for
+// rows 0/1 and lpSel = null for row 0, so candidates[0] carries no td and
+// no lp positions). The machine's selection picks candidates[best]; the
+// probe captures every row so no caller has to know `best` first.
+// `nhp` is desc.getArimaSpec().freeParametersCount() (the CURRENT
+// description). bestModel returning -1 (all rows absent) is the JVM
 // ArrayIndexOutOfBounds -> catch -> Failed surface. The sa-style
 // names[best] / Info log is echoed as selected_name_index.
 struct TramoAutoTdRequest {
@@ -248,9 +257,9 @@ struct TramoAutoTdRequest {
     double pmodel = 0.01;       // wald selector: tdSpec.probabilityForFTest
     double pconstraint = 0.1;   // wald selector: decoder literal
     std::vector<CalendarModelRow> ladder;
+    std::vector<CalendarCandidateHandover> candidates;  // same length
     CalendarTramoUpdateState update;
     bool has_lp = true;   // machine lp field != null (leapYear wiring)
-    CalendarCandidateHandover candidate;
     int nhp = 0;
 };
 
@@ -267,26 +276,38 @@ TramoAutoTdDecision run_tramo_auto_td_test(const TramoAutoTdRequest& request);
 // The TRAMO FTEST machine (AutomaticFRegressionTest)
 // ---------------------------------------------------------------------------
 
-// AutomaticFRegressionTest.test. The three candidate hand-overs are the
-// createTestModel estimations for (td, lp), (wd, lp) and (null, null);
-// the branch decides which one the update() layer consumes. The update()
-// nhp argument is the descTest[0] spec free-parameter count (equal to the
-// current desc value; carried separately to keep the mirror honest).
-// Branch letters follow the contract table: 'q' = no td field wired
-// (quarterly), 'a' = TD kept, 'b' = no td, 'c' = WD (TD7) swap,
-// 'e' = JVM exception surface.
+// AutomaticFRegressionTest.test. The FTEST machine's OWN createTestModel
+// does not force airline/mean (unlike the AR/Wald/sa families - fresh
+// bytecode erratum): every candidate is copyOf(desc) + the requested
+// variables. The Info likelihood rows come from the NO-lp models
+// (null,null), (wd,null), (td,null); the update() layer consumes a
+// separate estimation per branch: the q/none branches use the (null,null)
+// model, the TD branch its (td,lp) model, the WD branch its (wd,lp)
+// model. Branch walk (exact bytecode polarity):
+//   A: pftd6 > pftd1 (dcmpl) && pftd6 > 1 - fpvalue (dcmpl)  [NaN -> true]
+//      -> branch 'a': update(tdVar=td,  candidate_td)
+//   else pftd1 >= 1 - fpvalue (dcmpg)                        [NaN -> false]
+//      -> branch 'c': update(tdVar=wd,  candidate_wd)  (the WD swap)
+//   else -> branch 'n': update(tdVar=null, candidate_none)
+// Branch 'q' is the no-td-field early exit (update on candidate_none);
+// 'e' is the catch-Exception -> Failed surface. The update()/Info nhp is
+// candidate_none's spec free-parameter count (bytecode local 7).
 struct TramoFtestTdRequest {
     double fpvalue = 0.01;
     CalendarTramoUpdateState update;  // easter_guarded = true
     bool has_td = true;               // TD7 wiring
     bool has_wd = true;               // TD2 wiring
     bool has_lp = true;               // leapYear wiring
-    // Ladder rows in Info order (the jar swaps them into the fields).
+    // Info rows: the NO-lp models (the jar swaps args 2/3 into fields
+    // ll1/ll6): model0 from (null,null), model_wd from (wd,null),
+    // model_td from (td,null).
     CalendarModelRow model0;
     CalendarModelRow model_wd;
     CalendarModelRow model_td;
-    int info_free_parameters = 0;  // desc.getArimaSpec().freeParametersCount()
-    int nhp = 0;                   // descTest0 spec free-parameter count
+    int info_free_parameters = 0;  // candidate_none spec free-parameter count
+    int nhp = 0;                   // same value (single bytecode local)
+    // Update-model hand-overs: candidate_none = (null,null),
+    // candidate_td = (td,lp), candidate_wd = (wd,lp).
     CalendarCandidateHandover candidate_none;
     CalendarCandidateHandover candidate_td;
     CalendarCandidateHandover candidate_wd;
@@ -326,8 +347,10 @@ struct SaCalendarDescWitnesses {
 // machine logs "no trading days" when the td selection is null, the
 // Wald machine always logs "selected trading days: " + names[best]).
 // tlp is the builder default 2.0 in both wirings; adjust is
-// spec.isAutoAdjust. The candidate hand-over is the re-estimated
-// createTestModel(descTest with airline + mean forced) row.
+// spec.isAutoAdjust. candidates[i] is the createTestModel(est, tdSel(i),
+// lpSel(i)) + processor(true, precision) hand-over for ladder row i
+// (airline + mean forced on, no easter - the sa machine has none); the
+// selection picks candidates[best].
 struct SaAutoTdRequest {
     enum class Selector { aicc, bic, wald } selector = Selector::aicc;
     double pmodel = 0.01;      // wald selector: autoPvalue1
@@ -335,8 +358,8 @@ struct SaAutoTdRequest {
     double tlp = 2.0;
     bool adjust = true;
     std::vector<CalendarModelRow> ladder;
+    std::vector<CalendarCandidateHandover> candidates;  // same length
     bool has_lp = true;        // leapYear wiring (always wired in 3.9.0)
-    CalendarCandidateHandover candidate;
     int nhp = 0;               // desc.getArimaSpec().freeParametersCount()
     bool desc_log_transformation = false;
     SaCalendarDescWitnesses witnesses;
