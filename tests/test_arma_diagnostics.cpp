@@ -12,7 +12,11 @@
 #include <cmath>
 #include <cstdio>
 #include <cstring>
+#include <fstream>
+#include <map>
+#include <sstream>
 #include <stdexcept>
+#include <string>
 #include <vector>
 
 namespace {
@@ -69,9 +73,66 @@ void check(const golden_diag::Row& r, const char* what, double got) {
     }
 }
 
+void check_rsa0_residual_ljung_box() {
+    const std::string directory = KALOS_RSA0_LB_DIR;
+    std::ifstream residual_file(directory + "/rsa0-residuals-x86_64.txt");
+    std::ifstream public_tests(directory + "/rsa0-ljung-box-x86_64.txt");
+    if (!residual_file || !public_tests) throw std::runtime_error("missing RSA0 diagnostic reference");
+    std::map<std::string, std::vector<double>> residuals;
+    std::string line, id;
+    while (std::getline(residual_file, line)) {
+        std::istringstream row(line);
+        std::string kind;
+        row >> kind;
+        if (kind == "case") row >> id;
+        if (kind != "residuals.tsres") continue;
+        int year, month, n;
+        row >> year >> month >> n;
+        auto& values = residuals[id];
+        std::uint64_t bits;
+        while (row >> std::hex >> bits) values.push_back(golden_diag::bits(bits));
+        if (values.size() != static_cast<std::size_t>(n)) throw std::runtime_error("invalid residual count");
+    }
+    int cases = 0, edges = 0;
+    while (std::getline(public_tests, line)) {
+        std::istringstream row(line);
+        std::string kind;
+        row >> kind;
+        if (kind == "case") {
+            row >> id;
+            continue;
+        }
+        auto values = residuals.at(id);
+        std::uint64_t statistic, pvalue;
+        if (kind == "short") {
+            std::size_t observations, count;
+            if (!(row >> observations >> count >> std::hex >> statistic >> pvalue))
+                throw std::runtime_error("invalid short RSA0 Ljung-Box row");
+            values.clear();
+            std::uint64_t bits;
+            while (row >> std::hex >> bits) values.push_back(golden_diag::bits(bits));
+            if (values.size() != count || count + 13 != observations)
+                throw std::runtime_error("invalid short RSA0 residual count");
+            ++edges;
+        } else if (kind == "residuals.lb") {
+            if (!(row >> std::hex >> statistic >> pvalue)) throw std::runtime_error("invalid JVM statistic");
+            ++cases;
+        } else {
+            throw std::runtime_error("unrecognized RSA0 Ljung-Box reference row");
+        }
+        const auto result = kalos::rsa0_residual_ljung_box(values);
+        if (!result.built || result.df != 22 || !same(result.value, statistic) || !same(result.p, pvalue)) {
+            std::printf("FAIL public residuals.lb: %s (%zu residuals)\n", id.c_str(), values.size());
+            ++failures;
+        }
+    }
+    if (cases != 6 || edges != 3) throw std::runtime_error("incomplete RSA0 Ljung-Box reference");
+}
+
 } // namespace
 
 int main() {
+    check_rsa0_residual_ljung_box();
     const auto series = load_series();
     std::size_t count = 0;
     const golden_diag::Row* rows = golden_diag::table(count);

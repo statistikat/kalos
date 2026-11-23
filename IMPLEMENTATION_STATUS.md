@@ -3936,3 +3936,20 @@ seasonal cycles. Release and ASan/UBSan RSA0 tests pass. In same-process
 diagnostic timings on this ARM64 host, the 24-month projection itself took
 approximately 0.03 ms on AirPassengers. The package-level benchmark is
 tracked separately.
+
+### M6 — public RSA0 residual Ljung–Box test
+
+The public `residuals.lb` accessor uses a zero-mean autocorrelation
+function, 24 monthly lags and two fitted MA parameters. The existing
+model-controller diagnostic centers its input. Its statistic and
+probability differ on all six reference series.
+
+`rsa0_residual_ljung_box` reuses the core autocorrelation and chi-square
+machinery. It reproduced all six public statistics and p-values bit for
+bit with 22 degrees of freedom. Public fits from 36, 37 and 38 monthly
+observations also reproduced the undefined/undefined/finite outcomes
+across the 24-lag boundary. Two fresh pinned x86-64 JVM runs produced
+the same capture. Release CTest passed these nine cases and the 1,637
+existing diagnostic rows.
+[Contract](docs/contracts/tramo-seats-bridge-contract.md) ·
+[Public oracle](validation/evidence/native/tramo-seats-bridge/rsa0-ljung-box-x86_64.txt)

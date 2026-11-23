@@ -163,3 +163,20 @@ and accumulate independent future innovation variance. Runtime is linear in
 the input and forecast lengths at the fixed monthly order. The two variance
 scales remain unchanged. The general endpoint-covariance projection is an
 independent test at three additional MA configurations and 39 horizons.
+
+### Public monthly RSA0 residual independence test
+
+`rsa0_residual_ljung_box` accepts the complete preprocessing innovation
+series returned in `tramo_tr0_result.residuals.values`. The JD+ 3.9.0
+public `residuals.lb` accessor calls `NiidTests.ljungBox()` with the
+zero-mean autocorrelation function, 24 monthly lags and two fitted ARMA
+parameters. The resulting chi-square reference has 22 degrees of freedom.
+Controller acceptance still centers its input before evaluating its
+separate Ljung–Box test.
+
+The `rsa0-ljung-box` reference stage captures the public statistic,
+upper-tail probability and chi-square description. All six ordinary
+fits must match the original binary64 statistic and probability.
+Additional AirPassengers prefixes of 36, 37 and 38 observations exercise
+23, 24 and 25 fitted innovations. The first two statistics and
+probabilities are undefined. The last yields a finite public test.
