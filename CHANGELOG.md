@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Added the monthly TRAMO airline F-test for working-day and trading-day effects.
+
 - Added the public monthly RSA0 residual Ljung–Box diagnostic with its
   zero-mean convention and paired JVM evidence.
 

@@ -3924,6 +3924,19 @@ also passed ASan/UBSan; the independent raw extraction sweep passed 132/132.
 Other approximation families, autonomous TR3/Full fitting and the wider
 end-to-end qualification remain open.
 
+### M5 / 21-I.3 — monthly airline TRAMO F-test comparison
+
+Kalos now fits the base, working-day (TD2) and trading-day (TD7) alternatives
+from the original monthly estimation series and its dates, with an optional
+mean. The 14 public JDemetra calls reproduce the residual sums of squares,
+both degrees of freedom, both mean squares, lower-tail probabilities and final
+choice bit for bit. Cases cover no selection, one and six contrasts, a tie at
+one and both exact significance cutoffs with their adjacent binary64 values.
+Two independent x86-64 Java runs produced byte-identical evidence. Release
+calendar generation, F-test, regression and TRAMO fit tests passed 4/4. The
+14 comparisons also passed ASan/UBSan. The full TRfull route still needs
+LP/Easter decisions, the later controller and automatic-model assembly.
+
 ### M5 / 24-E — public RSA0 preprocessing residual oracle
 
 The six public RSA0 cases now record the dated `residuals.tsres` series and
