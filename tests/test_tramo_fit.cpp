@@ -92,6 +92,7 @@ long long run_case(const FitExpect& e, std::size_t& live_total,
         return static_cast<std::size_t>(std::count_if(rq.kernel.seams.begin(), rq.kernel.seams.end(),
             [kind](const auto& seam) { return kind == seam.kind; }));
     };
+    CHECK(r.reference_model_computed == (count(TramoKernelSeamKind::round0) != 0));
     CHECK(r.statistics_checked == count(TramoKernelSeamKind::round0) + count(TramoKernelSeamKind::pass2_gate));
     CHECK(r.regression_tests_checked == count(TramoKernelSeamKind::regression_test));
     CHECK(r.transform_matches_capture);

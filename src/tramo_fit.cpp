@@ -343,6 +343,32 @@ TramoRegressionTestDecision initial_mean_test(const TramoFitSpec& spec, const st
     return run_tramo_regression_tests(test);
 }
 
+// Compute the first reference model from the dated description. Only
+// estimateModel(pass=0) repeats the fast mean test and the model fit.
+std::optional<FittedOutlierEffects> fit_reference(const TramoFitSpec& spec, const tramo_build_result& built,
+                                                   bool log, const std::vector<double>& y, EstimationEntry entry) {
+    if (spec.outliers_used) {
+        const double cv = spec.critical_value == 0.0 ? tramo_critical_value(built.estimation_length)
+                                                    : spec.critical_value;
+        auto selection = run_scan(spec, built, log, entry.orders, entry.mean, cv);
+        if (!selection) return std::nullopt;
+        entry.variables = std::move(selection->variables);
+    }
+    for (int retry = 0; ; ++retry) {
+        auto fitted = fit_estimation(spec, y, entry, 0);
+        if (!fitted.fit.returned || fitted.fit.cl_state == 0) return std::nullopt;
+        if (retry == 5) return fitted;
+        TramoRegressionTestRequest test;
+        test.mean = fitted.mean;
+        test.test_mean = tramo_ami_check_mu(spec.using_auto_model, spec.mean_is_test);
+        test.mean_threshold = 1.96;
+        test.statistics = fitted_test_statistics(fitted);
+        const auto decision = run_tramo_regression_tests(test);
+        if (!decision.estimation_cleared) return fitted;
+        entry.mean = decision.mean;
+    }
+}
+
 TramoFitFinalRecord project_fitted_record(const FittedOutlierEffects& effects,
                                          const std::vector<double>& observations, bool log, int frequency) {
     const auto& fit = effects.fit;
@@ -744,6 +770,7 @@ TramoFitResult tramo_fit(const TramoFitRequest& request) {
     // after a "scontroller res Changed" flip back to seasonal.
     const bool has_fixed_regressors = std::any_of(built.variables.begin(), built.variables.end(),
         [](const auto& var) { return var.kind != tramo_variable_kind::trend_constant; });
+    std::optional<FittedOutlierEffects> independent_reference;
     if (!fully_specified && !has_fixed_regressors && prestage.outliers.empty()) {
         auto arima = built.arima;
         if (spec.using_auto_model && !result.transformation.seasonal) {
@@ -760,6 +787,9 @@ TramoFitResult tramo_fit(const TramoFitRequest& request) {
         require(orders_equal(orders, prestage.orders) && initial.mean == prestage.mean &&
                 prestage.regression_test == name, "initial fitted mean test disagrees with the pre-stage");
         result.initial_regression_checked = true;
+        if (spec.using_auto_model || spec.outliers_used)
+            independent_reference = fit_reference(spec, built, result.transformation.log_transform, y,
+                                                  {orders, initial.mean, {}});
     }
     bool ctx_seasonal = prestage.seasonal;
     std::size_t next_input = 0;
@@ -773,8 +803,20 @@ TramoFitResult tramo_fit(const TramoFitRequest& request) {
                                    static_cast<int>(built.interpolated.size()), s);
             ++result.statistics_checked;
         }
-        if (seam.kind == TramoKernelSeamKind::round0)
+        if (seam.kind == TramoKernelSeamKind::round0) {
+            if (independent_reference) {
+                const auto& physical = *independent_reference;
+                require(effects && orders_equal(effects->orders, physical.orders) &&
+                        physical.mean == effects->mean && physical.names == effects->names &&
+                        std::equal(physical.parameters.begin(), physical.parameters.end(),
+                                   effects->parameters.begin(), effects->parameters.end(), bit_equal),
+                        "independent round-zero model disagrees");
+                check_round_statistics(physical, seam.stats, built.annual_frequency, built.estimation_length, s);
+                effects = std::move(independent_reference);
+                result.reference_model_computed = true;
+            }
             reference_effects = effects;
+        }
         if (seam.kind == TramoKernelSeamKind::pass2_gate && seam.reverted)
             effects = reference_effects;
         if (seam.kind == TramoKernelSeamKind::estimation && seam.estimation_taken)

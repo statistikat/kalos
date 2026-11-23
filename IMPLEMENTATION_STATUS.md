@@ -4183,3 +4183,13 @@ precision, and evaluates the default mean threshold. All 22 admitted
 F4 cases that enter the round loop reproduce the original processing
 result and mean flag, including the retained mean and the nonseasonal
 downgrade. The two fully specified cases continue to bypass this stage.
+
+### M5 / 23-G — independent initial reference model
+
+The first round now builds the outlier design from dated observations and
+the configured threshold, runs the stock final estimator, and repeats
+estimation when the fast mean test clears a coefficient. Every admitted
+round-zero reference in the F4 corpus reproduces the selected orders,
+mean, dated outliers, parameters, compact residuals, BIC, standard error
+and Ljung–Box statistic and probability. Later automatic passes and their
+controller decisions still consume witnesses in this entry point.

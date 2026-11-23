@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- The monthly TRAMO loop builds its first reference fit from the dated
+  observations, including its automatic outliers and mean-test refits.
+
 - Automatic TRAMO computes the initial mean decision from the post-transform
   model at the kernel's intermediate precision.
 
