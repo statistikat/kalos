@@ -3610,3 +3610,12 @@ as the 26th cell;
 `check-manifest.py` 187/112/331 post-commit (the F.4 landing had missed
 the manifest registration — closed here); `verify-migration.py` 406;
 evidence `SHA256SUMS.csv` replayed (corpus not re-captured).
+
+### M5 / 24-D — structured WK extraction gate (2026-11-23)
+
+The first 24-D pipeline substep exposes the two decompositions that the
+qualified 24-C kernel computes. Its frozen gate covers every initial and
+bias-corrected component in the 36-case WK JVM corpus, including calendar,
+row presence, binary64 values, and existing error/refusal behavior. The
+TRAMO-to-SEATS bridge and deterministic-effects merge follow independently.
+[Extraction contract](docs/contracts/seats-wk-extraction-contract.md)

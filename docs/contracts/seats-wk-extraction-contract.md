@@ -124,3 +124,22 @@ aborted the run.
 - Kalman smoothing (D1), Noisy mode / approximation (D6), the quarterly
   frequency path (D11) and the ConcentratedLikelihood variance path stay
   fail-closed by register decision.
+
+## 24-D extraction result for pipeline assembly
+
+The pipeline consumes the initial and bias-corrected decompositions already
+returned by the JVM probe. The structured C++ entry points on
+`seats_extract_wk_result` are `initial_components()` and `final_components()`.
+Each returns the present component series in the probe's component/information
+order. Each row identifies its component, information kind, calendar start
+(year and one-based month), and original binary64 values. A present row with
+zero observations retains its calendar. A missing row is omitted. An extraction
+error returns two empty decompositions and its existing status. Request
+refusals still throw.
+
+The comparator is the existing double-captured 36-case WK corpus. The exit
+gate requires the ordered keys, dates, lengths and every value of both views
+to match the JVM rows, with the same status/refusal decisions. Standard
+deviations here describe conditional extraction uncertainty. The
+`TwoStepsDecomposition.merge` result has a different set of rows and has its
+own later gate.
