@@ -73,10 +73,11 @@ void check(const golden_diag::Row& r, const char* what, double got) {
     }
 }
 
-void check_rsa0_residual_ljung_box() {
-    const std::string directory = KALOS_RSA0_LB_DIR;
+template <class Check>
+void check_rsa0_residual_test(const std::string& file, const std::string& key, Check check) {
+    const std::string directory = KALOS_RSA0_DIAGNOSTIC_DIR;
     std::ifstream residual_file(directory + "/rsa0-residuals-x86_64.txt");
-    std::ifstream public_tests(directory + "/rsa0-ljung-box-x86_64.txt");
+    std::ifstream public_tests(directory + "/" + file);
     if (!residual_file || !public_tests) throw std::runtime_error("missing RSA0 diagnostic reference");
     std::map<std::string, std::vector<double>> residuals;
     std::string line, id;
@@ -107,32 +108,43 @@ void check_rsa0_residual_ljung_box() {
         if (kind == "short") {
             std::size_t observations, count;
             if (!(row >> observations >> count >> std::hex >> statistic >> pvalue))
-                throw std::runtime_error("invalid short RSA0 Ljung-Box row");
+                throw std::runtime_error("invalid short RSA0 diagnostic row");
             values.clear();
             std::uint64_t bits;
             while (row >> std::hex >> bits) values.push_back(golden_diag::bits(bits));
             if (values.size() != count || count + 13 != observations)
                 throw std::runtime_error("invalid short RSA0 residual count");
             ++edges;
-        } else if (kind == "residuals.lb") {
+        } else if (kind == key) {
             if (!(row >> std::hex >> statistic >> pvalue)) throw std::runtime_error("invalid JVM statistic");
             ++cases;
         } else {
-            throw std::runtime_error("unrecognized RSA0 Ljung-Box reference row");
+            throw std::runtime_error("unrecognized RSA0 diagnostic reference row");
         }
-        const auto result = kalos::rsa0_residual_ljung_box(values);
-        if (!result.built || result.df != 22 || !same(result.value, statistic) || !same(result.p, pvalue)) {
-            std::printf("FAIL public residuals.lb: %s (%zu residuals)\n", id.c_str(), values.size());
+        if (!check(values, statistic, pvalue)) {
+            std::printf("FAIL public %s: %s (%zu residuals)\n", key.c_str(), id.c_str(), values.size());
             ++failures;
         }
     }
-    if (cases != 6 || edges != 3) throw std::runtime_error("incomplete RSA0 Ljung-Box reference");
+    if (cases != 6 || edges != 3) throw std::runtime_error("incomplete RSA0 diagnostic reference");
 }
 
 } // namespace
 
 int main() {
-    check_rsa0_residual_ljung_box();
+    check_rsa0_residual_test("rsa0-ljung-box-x86_64.txt", "residuals.lb",
+        [](const auto& values, auto statistic, auto pvalue) {
+            const auto test = kalos::rsa0_residual_ljung_box(values);
+            return test.built && test.df == 22 && same(test.value, statistic) && same(test.p, pvalue);
+        });
+    check_rsa0_residual_test("rsa0-doornik-hansen-x86_64.txt", "residuals.doornikhansen",
+        [](const auto& values, auto statistic, auto pvalue) {
+            const auto test = kalos::rsa0_residual_normality(values);
+            return test && test->df == 2 && same(test->value, statistic) && same(test->p, pvalue);
+        });
+    if (kalos::rsa0_residual_normality(std::vector<double>(7))) ++failures;
+    const auto constant = kalos::rsa0_residual_normality(std::vector<double>(8, 1.0));
+    if (!constant || !std::isnan(constant->value) || !std::isnan(constant->p)) ++failures;
     const auto series = load_series();
     std::size_t count = 0;
     const golden_diag::Row* rows = golden_diag::table(count);

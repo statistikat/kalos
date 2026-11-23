@@ -190,3 +190,20 @@ coefficients, public likelihood, full residuals, final component series,
 forecast series and the model-change flag. SHA-256 and the source inputs,
 jar and VM profile are recorded alongside the fixture. Replaying the stage
 checks both independently started JVMs against the frozen bytes.
+
+### Public monthly RSA0 residual normality test
+
+`rsa0_residual_normality(residuals)` projects the public
+`residuals.doornikhansen` result from the complete fitted preprocessing
+residuals. The reference computes the centered third and fourth moments
+using population variance, applies the finite-sample Doornik–Hansen
+transform, and evaluates the combined statistic against a chi-squared
+distribution with two degrees of freedom. Seven or fewer observations
+yield an absent test. A constant sequence with at least eight
+observations yields undefined statistic and probability.
+
+The six public fits and the three short fits are frozen in
+`rsa0-doornik-hansen-x86_64.txt` and use the same dated input residuals
+as the public independence diagnostic. Reproduce the capture with
+`capture-tramo-seats-bridge.py --stage rsa0-doornik-hansen` and the
+locked x86-64 JDK and jars. The test compares both binary64 values.

@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Added the public RSA0 residual Doornik–Hansen normality test.
+
 - The monthly automatic TRAMO replay now computes its round diagnostics
   and regression-test decisions from the fitted likelihood. It reports the
   fixed-column regression covariance in the original variable order.

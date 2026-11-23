@@ -4052,3 +4052,13 @@ short AirPassengers spans with 23, 24 and 25 residuals. Two fresh pinned
 x86-64 JVMs produced identical statistics, upper-tail probabilities and
 the chi-squared distribution with two degrees of freedom.
 [Public capture](validation/evidence/native/tramo-seats-bridge/rsa0-doornik-hansen-x86_64.txt)
+
+
+### RSA0 residual normality calculation (2026-11-23)
+
+`rsa0_residual_normality()` computes the Doornik–Hansen test from
+the fitted residual vector. All nine public statistics and chi-squared
+upper-tail probabilities matched the paired JVM capture bit-for-bit,
+including two zero probabilities. The diagnostic test also retains the
+public Ljung–Box and automatic controller regression comparisons.
+[Public diagnostic contract](docs/contracts/tramo-seats-bridge-contract.md)
