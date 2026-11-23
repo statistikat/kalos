@@ -5,6 +5,7 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.HexFormat;
 import java.util.List;
+import java.util.ArrayList;
 import java.util.Map;
 import java.util.Set;
 import jdplus.sa.base.api.ComponentType;
@@ -337,8 +338,46 @@ public class TramoSeatsBridgeProbe {
         return result;
     }
 
+    // Monthly trend, seasonal cycle and deterministic ARMA noise used to
+    // exercise the public fast-regression retry after the first comparison.
+    private static void rsa3MeanRetry(String stage, int seed, int mode) {
+        double[] y = new double[new int[]{60, 84, 96, 144}[seed % 4]];
+        long state = seed + 173;
+        double previous = 0, last = 0, level = 400;
+        for (int t = 0; t < y.length; ++t) {
+            state = (1664525 * state + 1013904223) & 0xffffffffL;
+            double e = ((state >>> 16) - 32768) / 4096.0;
+            double regular = (.3 + .2 * (seed % 4)) * previous + e + .5 * last;
+            level += .05 + (mode % 2 == 0 ? .08 * regular : .025 * e);
+            int month = (t + seed) % 12;
+            double seasonal = (5 * month + month * month) % 15 - 7;
+            double cycle = switch (mode) {
+                case 0 -> Math.sin(t * 2 * Math.PI / (16 + seed % 8)) * 9;
+                case 2 -> t > y.length / 2 ? seasonal * 4 : -seasonal * 3;
+                case 5 -> t > y.length / 3 && t < 2 * y.length / 3 ? 20 : 0;
+                default -> throw new IllegalArgumentException("unknown retry profile");
+            };
+            y[t] = level + regular + seasonal * (seed % 5) + cycle;
+            previous = regular;
+            last = e;
+        }
+        TsData data = TsData.of(TsPeriod.monthly(1990, 1), DoubleSeq.of(y));
+        List<String> rounds = new ArrayList<>();
+        var model = TramoKernel.of(TramoSpec.TR3, new ModellingContext()).process(data, new ProcessingLog() {
+            public void step(String name, Object detail) {
+                if (name.startsWith("round ")) rounds.add(name);
+            }
+        });
+        require(model != null && rounds.equals(List.of("round 0", "round 1", "round 4")), "fast mean retry");
+        rawAutomatic("fit_fast_mean_" + seed + "_" + mode, data, stage);
+    }
+
     public static void main(String[] args) throws Exception {
         String stage = args.length > 1 ? args[1] : "bridge";
+        if (stage.equals("rsa3-mean-retry")) {
+            for (int[] pair : new int[][]{{26, 0}, {51, 5}, {66, 0}, {73, 2}}) rsa3MeanRetry(stage, pair[0], pair[1]);
+            return;
+        }
         if (stage.equals("spectrum-cos")) { spectrumCos(); return; }
         boolean raw = stage.startsWith("rsa");
         boolean levelEffects = stage.startsWith("rsa1-level-");

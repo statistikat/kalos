@@ -4473,3 +4473,12 @@ candidates matched in position, type, signed t statistic and coefficient.
 Five fits retained fifteen outliers in total. The other eleven retained none.
 The original prespecified AO warm-refit case also reproduces its observed
 first selection. The full stock TRfull controller integration remains open.
+
+### M5 / 23-G — stock fast-regression fourth-pass evidence
+
+Four deterministic monthly series enter passes 0, 1 and 4 in the pinned
+public TR3 kernel. The capture checks the actual processing log before
+recording the four fitted models and RSA3 products. The series exercise
+three different final orders and a retained level shift. Two fresh x86-64
+JVMs reproduced the fitted models, 372 residuals and 2,580 component and
+forecast values.
