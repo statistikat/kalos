@@ -1,6 +1,8 @@
 #include "kalos/x11_musgrave.hpp"
 #include <algorithm>
 #include <cmath>
+#include <cstddef>
+#include <cstdint>
 #include <stdexcept>
 namespace kalos {
 namespace {

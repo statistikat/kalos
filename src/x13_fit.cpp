@@ -9,7 +9,9 @@
 #include "kalos/detail/fdlibm.hpp"
 #include "kalos/detail/hostlineage.hpp"
 #include <cmath>
+#include <cstddef>
 #include <stdexcept>
+#include <vector>
 namespace kalos {
 namespace {
 // The pinned X13Kernel.updateSpec forcing (item 22c M3c contract): a non-log

@@ -1,8 +1,11 @@
 #include "kalos/regression_variable_tests.hpp"
 
 #include <algorithm>
+#include <cmath>
+#include <cstddef>
 #include <limits>
 #include <stdexcept>
+#include <vector>
 
 namespace kalos {
 

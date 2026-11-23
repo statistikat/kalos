@@ -8,9 +8,11 @@
 
 #include <algorithm>
 #include <cmath>
+#include <cstddef>
 #include <limits>
 #include <stdexcept>
 #include <utility>
+#include <vector>
 
 namespace kalos {
 namespace detail {

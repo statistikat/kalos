@@ -1,6 +1,10 @@
 #ifndef KALOS_X11_NORMALIZATION_HPP
 #define KALOS_X11_NORMALIZATION_HPP
 #include "x11_filters.hpp"
+
+#include <cstddef>
+#include <vector>
+
 namespace kalos {
 enum class X11NormalizationRule { nearest, requested_stable, short_span, short_3x15_span };
 struct X11SeasonalNormalization {

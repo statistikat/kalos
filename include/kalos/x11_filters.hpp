@@ -1,6 +1,10 @@
 #ifndef KALOS_X11_FILTERS_HPP
 #define KALOS_X11_FILTERS_HPP
 #include "numerics.hpp"
+
+#include <cstdint>
+#include <vector>
+
 namespace kalos {
 enum class X11FilterKind { trend, seasonal, henderson };
 struct X11FilterDefinition {

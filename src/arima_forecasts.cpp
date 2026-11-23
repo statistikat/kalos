@@ -2,6 +2,9 @@
 
 #include <algorithm>
 #include <cmath>
+#include <cstddef>
+#include <utility>
+#include <vector>
 
 // Faithful port of the JVM ExactArimaForecasts consumer stack as
 // X13Kernel.initialStep drives it (item 21-H.4; pinning record

@@ -18,7 +18,10 @@
 #include "kalos/tramo_regression_tests.hpp"
 
 #include <cmath>
+#include <cstddef>
 #include <limits>
+#include <stdexcept>
+#include <vector>
 
 #include "kalos/arma_diagnostics.hpp"
 #include "kalos/detail/fdlibm.hpp"

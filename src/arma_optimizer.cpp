@@ -3,8 +3,12 @@
 #include "kalos/detail/fdlibm.hpp"
 
 #include <cmath>
+#include <cstddef>
 #include <limits>
+#include <memory>
 #include <stdexcept>
+#include <utility>
+#include <vector>
 
 namespace kalos {
 OptimizationResult optimize_arma_objective(const MaskedSeries& series,

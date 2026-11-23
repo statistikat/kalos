@@ -2,10 +2,14 @@
 #include "kalos/parallel.hpp"
 #include <algorithm>
 #include <cmath>
+#include <cstddef>
+#include <cstdint>
 #include <exception>
 #include <limits>
+#include <memory>
 #include <stdexcept>
 #include <utility>
+#include <vector>
 
 namespace kalos {
 ForecastInformation forecast_information(const MaskedSeries& series,

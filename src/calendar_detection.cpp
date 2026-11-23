@@ -1,8 +1,11 @@
 #include "kalos/calendar_detection.hpp"
 
 #include <cmath>
+#include <cstddef>
+#include <exception>
 #include <limits>
 #include <stdexcept>
+#include <vector>
 
 #include "kalos/detail/special_functions.hpp"
 

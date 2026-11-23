@@ -1,8 +1,11 @@
 #include "kalos/x11_mean_endpoints.hpp"
 #include <algorithm>
 #include <cmath>
+#include <cstddef>
+#include <cstdint>
 #include <limits>
 #include <stdexcept>
+#include <vector>
 namespace kalos {
 namespace {
 void boundary_mean(const MaskedSeries& input,std::size_t start,std::size_t count,

@@ -37,6 +37,7 @@
 // behaviour.
 
 #include <string>
+#include <utility>
 #include <vector>
 
 #include "kalos/tramo_seats_model_validator.hpp"

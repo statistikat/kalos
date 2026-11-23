@@ -4,6 +4,8 @@
 #include "arma_objective.hpp"
 #include "optimizer.hpp"
 
+#include <vector>
+
 namespace kalos {
 struct ArmaOptimizationPoint {
     std::vector<double> coordinates; // The existing map's z/direct coordinates.

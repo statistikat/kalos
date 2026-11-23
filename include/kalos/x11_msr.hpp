@@ -1,7 +1,9 @@
 #ifndef KALOS_X11_MSR_HPP
 #define KALOS_X11_MSR_HPP
 #include "numerics.hpp"
+#include <cstddef>
 #include <limits>
+#include <vector>
 namespace kalos {
 enum class X11MsrMode { absolute, relative };
 enum class X11MsrStatus {

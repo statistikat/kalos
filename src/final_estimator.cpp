@@ -7,7 +7,9 @@
 #include "kalos/detail/filter_utility.hpp"
 
 #include <cmath>
+#include <cstddef>
 #include <stdexcept>
+#include <vector>
 
 namespace kalos {
 

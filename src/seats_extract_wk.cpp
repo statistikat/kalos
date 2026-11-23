@@ -22,9 +22,13 @@
 #include "kalos/seats_extract_wk.hpp"
 
 #include <cmath>
+#include <cstddef>
 #include <cstdio>
+#include <exception>
 #include <optional>
+#include <stdexcept>
 #include <string>
+#include <utility>
 #include <vector>
 
 #include "kalos/detail/fdlibm.hpp"

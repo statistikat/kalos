@@ -3,7 +3,10 @@
 
 #include "arma_parameters.hpp"
 #include "linear_algebra.hpp"
+#include <cstddef>
 #include <optional>
+#include <string>
+#include <vector>
 
 namespace kalos {
 

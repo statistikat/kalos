@@ -4,6 +4,12 @@
 #include "arma_identification.hpp"
 #include "information.hpp"
 
+#include <cstddef>
+#include <memory>
+#include <optional>
+#include <string>
+#include <vector>
+
 namespace kalos {
 enum class ArmaInformationMode { ProfileML, ConditionalResidualDF, TramoResidual };
 enum class ArmaCovarianceMode { Accurate, Legacy };

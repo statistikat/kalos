@@ -1,8 +1,12 @@
 #include "kalos/x11_d_pass.hpp"
 #include "kalos/detail/x11_pinned.hpp"
 #include <cmath>
+#include <cstddef>
+#include <cstdint>
 #include <limits>
 #include <stdexcept>
+#include <utility>
+#include <vector>
 namespace kalos {
 namespace {
 using namespace detail;

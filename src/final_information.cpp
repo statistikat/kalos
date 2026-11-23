@@ -13,7 +13,9 @@
 #include "kalos/detail/filter_utility.hpp"
 
 #include <cmath>
+#include <cstddef>
 #include <limits>
+#include <optional>
 #include <stdexcept>
 #include <vector>
 

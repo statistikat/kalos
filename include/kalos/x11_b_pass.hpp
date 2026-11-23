@@ -19,6 +19,7 @@
 #include "x11_sigma.hpp"
 #include <array>
 #include <cstddef>
+#include <cstdint>
 #include <string>
 #include <vector>
 namespace kalos {

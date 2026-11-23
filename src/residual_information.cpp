@@ -2,8 +2,10 @@
 #include <algorithm>
 #include <array>
 #include <cmath>
+#include <cstddef>
 #include <limits>
 #include <stdexcept>
+#include <vector>
 
 namespace kalos {
 ResidualInformation residual_information(const ResidualFunction& function,

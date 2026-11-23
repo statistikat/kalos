@@ -4,7 +4,10 @@
 #include "arma_parameters.hpp"
 #include "regression_likelihood.hpp"
 
+#include <array>
 #include <optional>
+#include <string>
+#include <vector>
 
 namespace kalos {
 

@@ -12,7 +12,10 @@
 #include "mlj_engine.hpp"
 
 #include <cmath>
+#include <cstddef>
 #include <stdexcept>
+#include <utility>
+#include <vector>
 
 namespace kalos {
 namespace {

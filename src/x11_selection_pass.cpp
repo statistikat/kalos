@@ -2,7 +2,12 @@
 #include "kalos/detail/x11_pinned.hpp"
 #include "kalos/x11_trend_selection.hpp"
 #include <algorithm>
+#include <cstddef>
+#include <cstdint>
 #include <stdexcept>
+#include <string>
+#include <utility>
+#include <vector>
 namespace kalos {
 namespace {
 using namespace detail;

@@ -2,8 +2,11 @@
 #include "kalos/parallel.hpp"
 #include <algorithm>
 #include <cmath>
+#include <cstddef>
+#include <cstdint>
 #include <limits>
 #include <stdexcept>
+#include <vector>
 namespace kalos {
 namespace {
 // Independent reimplementation of the pinned default corrector replacement

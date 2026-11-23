@@ -1,6 +1,8 @@
 #include "kalos/x11_seasonal_plan.hpp"
 #include <algorithm>
+#include <cstddef>
 #include <stdexcept>
+#include <vector>
 namespace kalos {
 X11SeasonalPlan x11_seasonal_plan(int frequency,const std::vector<X11SeasonalRequest>& requests,
     X11SeasonalStage stage) {

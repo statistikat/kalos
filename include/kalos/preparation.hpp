@@ -3,8 +3,11 @@
 #include "numerics.hpp"
 #include "regression_likelihood.hpp"
 #include "transforms.hpp"
+#include <cstddef>
+#include <cstdint>
 #include <optional>
 #include <string>
+#include <vector>
 
 namespace kalos {
 struct EstimationWindow {

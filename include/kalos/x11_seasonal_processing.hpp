@@ -1,6 +1,10 @@
 #ifndef KALOS_X11_SEASONAL_PROCESSING_HPP
 #define KALOS_X11_SEASONAL_PROCESSING_HPP
 #include "x11_seasonal_endpoints.hpp"
+
+#include <cstddef>
+#include <vector>
+
 namespace kalos {
 enum class X11ShortSeriesPolicy { reject, x11 };
 enum class X11SeasonalRowMethod { stable, symmetric, left, right, short_mean };

@@ -48,6 +48,7 @@
 #include "x11_selection_pass.hpp"
 #include "x13_fit.hpp"
 #include <array>
+#include <cstddef>
 #include <limits>
 #include <map>
 #include <optional>

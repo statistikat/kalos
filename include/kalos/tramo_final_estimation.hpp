@@ -30,6 +30,7 @@
 // flipped by the caller.
 
 #include <string>
+#include <utility>
 #include <vector>
 
 namespace kalos {

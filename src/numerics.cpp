@@ -1,10 +1,15 @@
 #include "kalos/numerics.hpp"
 #include "kalos/parallel.hpp"
 
+#include <algorithm>
 #include <cmath>
+#include <cstddef>
+#include <cstdint>
 #include <limits>
 #include <stdexcept>
 #include <unordered_set>
+#include <utility>
+#include <vector>
 
 namespace kalos {
 namespace {

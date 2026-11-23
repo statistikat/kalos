@@ -1,6 +1,11 @@
 #ifndef KALOS_X11_MSR_SELECTION_HPP
 #define KALOS_X11_MSR_SELECTION_HPP
 #include "x11_msr.hpp"
+
+#include <cstddef>
+#include <limits>
+#include <vector>
+
 namespace kalos {
 enum class X11MsrPilotStatus {
     available, insufficient_observations, missing_observations,

@@ -1,10 +1,12 @@
 #include "kalos/interpolation_information.hpp"
 #include "kalos/parallel.hpp"
 #include <cmath>
+#include <cstddef>
 #include <exception>
 #include <limits>
 #include <stdexcept>
 #include <utility>
+#include <vector>
 
 namespace kalos {
 InterpolationInformation interpolation_information(const MaskedSeries& series,

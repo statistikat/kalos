@@ -3,10 +3,14 @@
 #include "kalos/detail/fdlibm.hpp"
 
 #include <algorithm>
+#include <array>
 #include <cmath>
+#include <cstddef>
 #include <limits>
 #include <stdexcept>
+#include <string>
 #include <utility>
+#include <vector>
 
 namespace kalos {
 namespace {

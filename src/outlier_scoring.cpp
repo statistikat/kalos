@@ -6,9 +6,13 @@
 #include "outlier_detail.hpp"
 
 #include <algorithm>
+#include <array>
 #include <cmath>
+#include <cstddef>
+#include <cstdint>
 #include <limits>
 #include <stdexcept>
+#include <vector>
 
 namespace kalos {
 

@@ -1,7 +1,10 @@
 #include "kalos/x11_initial.hpp"
 #include "kalos/parallel.hpp"
 #include <cmath>
+#include <cstddef>
+#include <cstdint>
 #include <stdexcept>
+#include <vector>
 namespace kalos {
 X11InitialAdditive x11_initial_additive(const MaskedSeries& series,int frequency,
     int first_period,const std::vector<int>& filters,const Interrupt& interrupt) {

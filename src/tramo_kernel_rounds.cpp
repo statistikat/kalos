@@ -12,8 +12,10 @@
 #include <kalos/tramo_transform_decision.hpp>
 
 #include <cmath>
+#include <cstddef>
 #include <stdexcept>
 #include <string>
+#include <vector>
 
 namespace kalos {
 namespace {

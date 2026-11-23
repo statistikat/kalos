@@ -50,6 +50,7 @@
 //   sqrt, matching std::sqrt bit-for-bit; p-values reuse detail::chi2_upper_p
 //   (no new distribution kernel).
 
+#include <cstddef>
 #include <stdexcept>
 #include <vector>
 

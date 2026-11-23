@@ -1,7 +1,10 @@
 #include "kalos/arma_information.hpp"
 #include <algorithm>
 #include <cmath>
+#include <cstddef>
 #include <limits>
+#include <utility>
+#include <vector>
 
 namespace kalos {
 JointRegressionInformation joint_regression_information(const MaskedSeries& series,
