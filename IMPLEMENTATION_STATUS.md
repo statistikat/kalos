@@ -3909,3 +3909,17 @@ six standard errors match both reference runs exactly. The public scalar
 uses the effective sample less three fitted coefficients. Release and
 ASan/UBSan RSA0 tests pass with the existing 3,960 component values,
 fitted coefficients and preprocessing forecast errors still covered.
+
+### M5 / 23-G — final estimator with detected outlier regressors
+
+All 45 final-estimator calls in the admitted panel now run on the observed
+series and dated regression design. The native HR start uses the reference
+pivoted OLS operation for multi-column regression. A stable date sort on
+the actual scan selections supplies the design used by ModelDescription,
+including six AO columns in the stacked case and mixed AO/LS columns.
+The current model also feeds the initial call, post-ARMA call and mean-test
+retry. Return status, changed-parameter count, orders, sorted outliers and
+all fitted ARMA coefficients match exactly. The 34-case census is 112 live
+and 14 recorded checks, with all 74 D9 covariance entries passing.
+Automatic round-loop assembly and the final public RSA3 model still need
+independent gates.

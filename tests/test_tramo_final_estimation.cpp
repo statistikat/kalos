@@ -379,6 +379,21 @@ void fork_edges() {
         CHECK(rejected);
     }
 
+    {
+        TramoFinalEstimatorRunRequest no_mean;
+        no_mean.mean = false;
+        const auto simple_regression = tramo_final_estimator_run(no_mean, {1., 3., 5.}, {{1., 2., 3.}});
+        CHECK(simple_regression.returned && simple_regression.cl_coefs.size() == 1);
+        CHECK(std::abs(simple_regression.cl_coefs[0] - 22.0 / 14.0) < 1e-14);
+        bool rejected = false;
+        try {
+            tramo_final_estimator_run(no_mean, {1., 3., 5.}, {{1., 2.}});
+        } catch (const std::invalid_argument&) {
+            rejected = true;
+        }
+        CHECK(rejected);
+    }
+
     // Static-input validation fails explicitly.
     bool threw = false;
     try {

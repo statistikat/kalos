@@ -33,6 +33,9 @@
 
 - Added the dated RSA0 preprocessing residuals and residual standard error.
 
+- Reproduced automatic TRAMO final estimation with dated outlier regressors,
+  including all 45 final-estimator calls on the fitting panel.
+
 ## 0.1.0 — initial repository split
 
 Preserved the delivered Kalos numerical scope through 22b.2.

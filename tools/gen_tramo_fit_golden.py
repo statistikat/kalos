@@ -313,7 +313,9 @@ def main():
             module_steps = kr.record_walk(case)[-1]
             for i, step in enumerate(module_steps):
                 if step["kind"] == "estmodel":
-                    live = i > 0 and module_steps[i-1]["kind"] == "scan" and not module_steps[i-1]["outs"]
+                    # The admitted capture carries each estimator entry through
+                    # its initial model, ARMA selection, scan or mean-test retry.
+                    live = i > 0 and module_steps[i-1]["kind"] in ("estimate", "scan", "arma", "regtest")
                     n_live += int(live)
                     n_fact += int(not live)
         d9 = nx * (nx + 1) // 2

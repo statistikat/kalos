@@ -189,3 +189,15 @@ threshold. Return status, changed-parameter count, all six returned orders
 and every fitted ARMA coefficient agree exactly with the JVM. The 29 other
 final-estimator calls retain their captured results. These calls extend
 the fit census to 83 live and 43 recorded across the four modules.
+
+The multi-column extension differences each raw regression column along
+with the response. The HR start uses the pinned pivoted OLS solve and
+subtracts each fitted column in model order. The fit preserves detector
+order for the scan comparison, then stably sorts the selected automatic
+outliers by date as ModelDescription does before final estimation. The
+first estimation, ARMA hand-over and post-mean-test retry also supply the
+model and mean at entry. All 45 final-estimation calls in the admitted
+panel reproduce the return, changed-parameter count, orders, dated outlier
+order and fitted ARMA coefficient bits. The census is 112 live / 14
+recorded. Initial, intermediate and final public fitted-record assembly
+are separate parts of the automatic path.
