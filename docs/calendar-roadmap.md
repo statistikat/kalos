@@ -118,7 +118,7 @@ every inventory (probe `instanceof` preloading) — only the main-class and
 | --- | --- | --- |
 | AICc + likelihood comparison | LANDED (`transformation_decision.hpp`, `arma_refinement.hpp`, `regression_likelihood`) | REUSE — family A needs only candidate registration + comparator margin `getAicDiff()` |
 | F upper-tail pvalue | LANDED 23-C.2 (`detail::f_upper_p`, incBeta) | REUSE for family B (Lower = 1 − f_upper_p); family A needs NO F at all |
-| Wald statistic | not landed | NEW small kernel mirroring `ConcentratedLikelihoodWithMissing.tstat(I,I,Z)` — **IN SCOPE in 21-I.3 per maintainer I-4 ruling 2026-11-22** |
+| Wald statistic | not landed | DECODED 2026-11-23 (21-I.3 probe, pinning §9): `ConcentratedLikelihoodWithMissing.tstat(I,I,Z)` is pure algebra — `sqrt((vcov·ssq)/dof)`; no distribution kernel. Every p-value across all six calendar machines reduces to `SpecialFunctions.FProbability` = incBeta = the landed 23-C.2 `f_upper_p` (FTEST pftd = 1−upper-tail). **Zero new distribution kernels in 21-I.3**; t-thresholds compare |t| directly (no t-CDF referenced anywhere) |
 | OLS + `Ftest()` assembly | LANDED (23-C surfaces) | REUSE; only the `AutomaticFRegressionTest$Info` bookkeeping is new |
 | TD/LoP/Easter/Ramp/User columns | NOT landed (23-A refuses everything but static TD2) | NEW unit (21-I.1), byte-for-byte from the gen capture |
 | Builder registration (`ami`/`regeffect` attrs, names) | pattern landed (23-A) | FOLLOW pattern, pin measured names (`td`, `lp`, `easter [8]`, …) |
@@ -164,6 +164,9 @@ Easter/TD beyond pinning the one measured quarterly row (D11 precedent).
 | I-7 | Detection re-fires per estimation round (3 rounds observed) — integration contract replays per-round, not once per fit | 21-I.2/4 | yes — pin the round-conditional firing |
 | I-8 | Refusal-retirement ladder for the `21-I` refusal in `persephone3` ("x13 automatic fit defers calendar/easter/TD/user detection") | 21-I.4 | **APPROVED 2026-11-22** — retire in three steps: calendar-free rsa4/5c passes → TD-effect passes → full parity flag; holidays/user-TD/julian stay refused |
 | I-9 | UserVariables out-of-domain 0-fill and the negative-Ramp sign convention are pinned semantics (accept, document, unit-test) | 21-I.1 | yes — measured, deterministic |
+| I-10 | TRAMO auto-methods AIC/BIC/WALD on strong-TD inputs: pinned jar NPEs in `RegularUnderDifferencingTest2.process` (post-ATD, AMI family — same class as the I-6 TR5 crash; reproduced byte-identical in two JVMs, 21-I.3 decode §9.6) | 21-I.3 | recommend per I-6 precedent: do NOT emulate the crash; fail-closed on the input class with pinned reason — pending maintainer confirmation 2026-11-23 |
+
+Decode errata (2026-11-23, 21-I.3 probe, full record in `tmp_opencode/kalos-21i-pinning.md` §9): X-13 `autoPvalue1/2` spec defaults are **0.01/0.1** (earlier working notes said 0.9/0.001 — wrong; jar evidence in §9); TRAMO Wald `pconstraint` is hardcoded 0.1; TRAMO auto-methods override `estimationPrecision` to the builder default 0.001 (AmiOptions.intermediatePrecision); TRfull `lptype` is `LeapYear`; the TRAMO/X-13 alltd candidate lists differ in ORDER (sa puts TD2c first) — fork-preserving per I-3.
 
 ## What this unblocks (downstream map)
 
