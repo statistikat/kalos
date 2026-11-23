@@ -16,6 +16,38 @@ double read_bits(const std::string& text) {
     return value;
 }
 
+bool check_residual_trading_days() {
+    std::ifstream oracle(KALOS_RESIDUAL_TD_PANEL);
+    std::vector<double> residuals;
+    int year = 0, month = 0, length = 0, cases = 0;
+    for (std::string line; std::getline(oracle, line);) {
+        std::istringstream row(line);
+        std::string kind, token;
+        row >> kind;
+        if (kind == "residuals") {
+            row >> year >> month >> length;
+            residuals.clear();
+            while (row >> token) residuals.push_back(read_bits(token));
+            continue;
+        }
+        std::string threshold, statistic, probability;
+        bool selected;
+        row >> threshold >> statistic >> probability >> std::boolalpha >> selected;
+        if (!row || kind != "gate") return false;
+        const auto gate = kalos::tramo_residual_trading_days(residuals, year, month, length, read_bits(threshold));
+        if (!gate || gate->statistic != read_bits(statistic) || gate->upper_probability != read_bits(probability) ||
+            gate->needs_processing != selected) {
+            std::cerr << "TradingDaysController gate differs at " << year << "-" << month << "\n";
+            return false;
+        }
+        ++cases;
+    }
+    if (kalos::tramo_residual_trading_days(std::vector<double>(36, 0.0), 1990, 1, 48, .01))
+        return false;
+    std::cout << cases << " residual trading-day controller decisions\n";
+    return cases == 32;
+}
+
 bool check_full_template() {
     std::ifstream oracle(KALOS_FULL_CALENDAR_PANEL);
     kalos::TramoFullCalendarResult fit{};
@@ -103,5 +135,5 @@ int main() {
     ok &= invalid(std::vector<double>(22, 1.0), .01);
     ok &= invalid(series.at(0), std::numeric_limits<double>::quiet_NaN());
     std::cout << cases << " public TRAMO calendar F-test comparisons\n";
-    return check_full_template() && ok ? 0 : 1;
+    return check_residual_trading_days() && check_full_template() && ok ? 0 : 1;
 }

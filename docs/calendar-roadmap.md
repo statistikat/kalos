@@ -206,8 +206,17 @@ The `trfull-calendar` capture stage replays the locked template factory
 and its real regression module on two JVMs.
 [Stock TRfull calendar evidence](../validation/evidence/native/tramo-calendar-ftest/full.txt)
 
-Re-estimation on later model descriptions, the trading-day controller and
-the end-to-end TRfull route remain open.
+The late `TradingDaysController` tests the fitted model's residuals for remaining
+working-day effects. `tramo_residual_trading_days` aligns those residuals to the
+end of the estimation domain and fits the single TD2 contrast by OLS without an
+intercept. It returns the F statistic, upper-tail probability and decision to
+refit. A probability exactly at the threshold leaves the current fit in place.
+The 32 reference tests include both sides of that boundary across eight fitted
+descriptions and four calendar starts. A zero residual vector produces no test.
+[Residual trading-day decisions](../validation/evidence/native/tramo-calendar-ftest/residual-td.txt)
+
+The later controller's candidate re-estimation and model comparison, and the
+end-to-end TRfull route remain open.
 
 ## What this unblocks (downstream map)
 

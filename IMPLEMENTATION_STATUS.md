@@ -3979,6 +3979,20 @@ tests passed 4/4. The 34 calendar comparisons passed ASan/UBSan. The late
 trading-day controller, subsequent
 rounds on fitted descriptions and the end-to-end TRfull gate remain open.
 
+### M5 / 21-I.4 — residual trading-day test
+
+The late TRfull controller can now decide from concentrated-likelihood residuals
+whether to refit with working days. The test aligns the TD2 contrast to the
+end of the monthly estimation domain and uses the existing pivoted QR solver.
+Across eight fitted descriptions, the F statistic, upper-tail probability and
+all 32 decisions matched JDemetra exactly, including thresholds equal to the
+observed probability and one representable value to either side. A zero
+residual vector correctly skipped the test. Six related Release tests passed.
+The calendar test also passed with AddressSanitizer and UndefinedBehaviorSanitizer,
+including the existing 14 F-test and 20 stock initial-calendar cases. Candidate
+re-estimation and the final model comparison remain open.
+[Reference cases](validation/evidence/native/tramo-calendar-ftest/residual-td.txt)
+
 ### M5 / 24-E — public RSA0 preprocessing residual oracle
 
 The six public RSA0 cases now record the dated `residuals.tsres` series and
