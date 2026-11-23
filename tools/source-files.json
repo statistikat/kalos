@@ -416,6 +416,7 @@
     "validation/evidence/native/tramo-differencing-battery/loadwitness.csv",
     "validation/evidence/native/tramo-differencing-battery/metadata.R",
     "validation/evidence/native/tramo-differencing-battery/monthly-spectral-peaks.txt",
+    "validation/evidence/native/tramo-differencing-battery/seasonal-f.txt",
     "validation/evidence/native/tramo-differencing-battery/summaries.csv",
     "validation/evidence/native/tramo-differencing/SHA256SUMS.csv",
     "validation/evidence/native/tramo-differencing/cases.csv",

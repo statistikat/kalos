@@ -24,7 +24,7 @@ def main():
                         help="directory containing pinned jars (repeatable)")
     parser.add_argument("--stage", choices=["bridge", "merge", "rsa0", "rsa0-forecast-errors",
                         "rsa0-residuals", "rsa0-ljung-box", "rsa0-doornik-hansen", "rsa1", "rsa1-level-effects", "rsa1-level-tc", "rsa1-log-tc", "rsa1-residual-diagnostics", "rsa1-forecast-errors", "rsa3", "rsafull",
-                        "calendar-ftest", "trfull-calendar", "residual-td", "td-controller", "fast-calendar", "spectrum-cos", "seasonal-peaks"], default="bridge")
+                        "calendar-ftest", "trfull-calendar", "residual-td", "td-controller", "fast-calendar", "spectrum-cos", "seasonal-peaks", "seasonal-f"], default="bridge")
     parser.add_argument("--output", type=Path, help="write a new capture instead of verifying the frozen file")
     args = parser.parse_args()
     reference = json.loads((EVIDENCE / "reference.json").read_text())
@@ -51,10 +51,11 @@ def main():
         if arch not in {"x86_64", "amd64"}:
             raise SystemExit("TRAMO calendar F-test uses the pinned x86-64 numerical profile")
         output_name = "../tramo-calendar-ftest/" + calendar_outputs[args.stage]
-    if args.stage == "seasonal-peaks":
+    if args.stage in {"seasonal-peaks", "seasonal-f"}:
         if arch not in {"x86_64", "amd64"}:
-            raise SystemExit("monthly spectral peaks use the pinned x86-64 numerical profile")
-        output_name = "../tramo-differencing-battery/monthly-spectral-peaks.txt"
+            raise SystemExit("monthly seasonality tests use the pinned x86-64 numerical profile")
+        name = "monthly-spectral-peaks.txt" if args.stage == "seasonal-peaks" else "seasonal-f.txt"
+        output_name = "../tramo-differencing-battery/" + name
     if args.stage.startswith("rsa") or args.stage == "spectrum-cos":
         if arch not in {"x86_64", "amd64"}:
             raise SystemExit("raw TRAMO-SEATS presets use the pinned x86-64 numerical profile")
@@ -67,7 +68,8 @@ def main():
         jars.append(str(jar))
     calendar_probes = {"calendar-ftest": "CalendarFTestProbe", "trfull-calendar": "TramoFullCalendarProbe",
                        "residual-td": "TramoResidualTradingDaysProbe",
-                       "td-controller": "TramoTradingDaysControllerProbe", "fast-calendar": "TramoFastCalendarProbe"}
+                       "td-controller": "TramoTradingDaysControllerProbe", "fast-calendar": "TramoFastCalendarProbe",
+                       "seasonal-f": "TramoSeasonalFProbe"}
     probe = calendar_probes.get(args.stage, "TramoSeatsBridgeProbe")
     arguments = [] if args.stage in calendar_probes else [CASES, args.stage]
     if args.stage == "rsafull":
@@ -79,7 +81,7 @@ def main():
         probe = "TramoSeasonalPeaksProbe"
         arguments = []
     sources = [HERE / (probe + ".java")]
-    if args.stage in {"trfull-calendar", "residual-td", "td-controller", "fast-calendar"}:
+    if args.stage in {"trfull-calendar", "residual-td", "td-controller", "fast-calendar", "seasonal-f"}:
         sources.append(HERE / "CalendarFTestProbe.java")
     with tempfile.TemporaryDirectory() as directory:
         subprocess.run([args.jdk / "bin/javac", "--release", "21", "-cp", os.pathsep.join(jars),
