@@ -4463,3 +4463,13 @@ the independent JVM captures for fitted parameters, regression coefficients,
 F4 fit and automatic pipeline Release tests passed. The remaining raw TR3
 gates are retry after a rejected reference comparison and re-estimation after
 the fast regression test removes the mean.
+### M5 outlier detection conditional on calendar regressors
+
+The first scan and the full monthly outlier detector now carry ordered
+calendar columns through differencing, regression, warm ARIMA estimation
+and outlier verification. Sixteen independent JDemetra fits cover TD2, TD7,
+leap year, Easter, AO, LS and TC on both model scales. All sixteen first
+candidates matched in position, type, signed t statistic and coefficient.
+Five fits retained fifteen outliers in total. The other eleven retained none.
+The original prespecified AO warm-refit case also reproduces its observed
+first selection. The full stock TRfull controller integration remains open.

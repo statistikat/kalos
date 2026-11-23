@@ -12,10 +12,7 @@ kalos::scan_tramo_outliers from the header tokens and compares the decision
 status and the first selected [position, type] pair against the captured
 module facts; the so and spanout cases carry divergent=1 because the live
 multi-round driver later empties their selection (round-0 stop gate, D3
-evidence) and the replay there pins only the request echoes; pexao47 carries
-seam_throw because the JVM reaches its observation through warm re-estimation
-on a non-constant design, which the qualified Levenberg-Marquardt seam fails
-closed on. Regenerate with:
+evidence) and the replay there pins only the request echoes. Regenerate with:
   python3 tools/gen_tramo_outlier_scan_golden.py \
       validation/evidence/native/tramo-outlier-scan tests/jvm_tramo_outlier_scan.h
 """
@@ -29,17 +26,6 @@ NAN_BITS = 0x7FF8000000000000
 # The live multi-round driver removes the round-0 pick before the module
 # reads the set: the final status diverges from the round-0 observation.
 DIVERGENT = {"sc_so", "sc_spanout"}
-
-# Constructions whose round-0 observation the JVM reaches through warm
-# re-estimation (a non-invertible HannanRissanen landing combined with a
-# non-constant regression design). The warm Levenberg-Marquardt seam is
-# qualified for design-free / constant-column designs only, so the unit fails
-# closed there with the message below instead of approximating the machine.
-SEAM_THROW = {
-    "sc_pexao47": "scan_tramo_outliers: warm re-estimation with non-constant "
-                  "designs is outside the qualified seam",
-}
-
 
 def cstr(s):
     out = ['"']
@@ -121,7 +107,6 @@ def main(corpus_dir, dst):
     out.append("    int divergent; // 1: multi-round removes the round-0 pick (D3 evidence)")
     out.append("    const char* status;  // captured ProcessingResult name")
     out.append("    const char* outliers; // captured first-entry grammar \"[p, t],...\"")
-    out.append("    const char* seam_throw; // non-empty: the pinned seam fails closed")
     out.append("    std::size_t nlines;")
     out.append("    const char* const* lines;")
     out.append("    std::size_t nreq;")
@@ -155,11 +140,10 @@ def main(corpus_dir, dst):
     out.append("    static const Case kCases[] = {")
     for cid in order:
         c = cases[cid]
-        out.append("        {%s, %d, %s, %s, %s, %d, k_line_%s, %d, k_req_%s, %d, k_val_%s, %d,"
+        out.append("        {%s, %d, %s, %s, %d, k_line_%s, %d, k_req_%s, %d, k_val_%s, %d,"
                    " k_fact_%s, %d, k_evt_%s}," % (
                        cstr(cid), 1 if cid in DIVERGENT else 0,
                        cstr(c["status"]), cstr(c["outliers"]),
-                       cstr(SEAM_THROW.get(cid, "")),
                        len(src[cid]), cid, len(req[cid]), cid,
                        len(values.get(cid, [])), cid,
                        len(facts[cid]), cid, len(events[cid]), cid))
