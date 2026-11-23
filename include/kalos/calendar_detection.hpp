@@ -155,6 +155,11 @@ struct CalendarWaldTestResult {
     int best = 0;
     std::vector<double> p;  // per-row p as left by the loops (1.0 default)
     std::vector<double> f;  // per-row last f value (0.0 default)
+    // The jar's F.getProbability(DStatException) surface (df <= 0 or a NaN
+    // value reaching incBeta - the iteration bound throws): the machine
+    // catches Exception -> Failed. Set when a needed p-value cannot be
+    // produced; best/p/f are then meaningless.
+    bool failed = false;
 };
 
 CalendarWaldTestResult calendar_wald_test(
@@ -190,6 +195,9 @@ struct CalendarFtestInfo {
     double ssmc6 = 0.0;
     double pftd1 = 0.0;
     double pftd6 = 0.0;
+    // DStatException surface of either F call (invalid df or a NaN value
+    // reaching incBeta): the machine catches it as Failed.
+    bool failed = false;
 };
 
 CalendarFtestInfo calendar_ftest_info(const CalendarModelRow& model0,
@@ -234,6 +242,7 @@ struct CalendarTramoUpdateState {
 struct CalendarTramoUpdateEcho {
     bool mean_test_ran = false;
     bool mean_test_set = false;    // setMean() executed
+    bool mean_after = true;        // desc mean state after the test
     double mean_tstat = 0.0;       // raw tstat(0, nhp, true) (pre-abs)
     bool td_added = false;         // addVariable("td", tdVar, calendarAMI)
     int lp_action = 0;             // 0 none, 1 setPreadjustment, 2 addVariable
@@ -279,7 +288,6 @@ struct TramoAutoTdRequest {
     std::vector<CalendarCandidateHandover> candidates;  // same length
     CalendarTramoUpdateState update;
     bool has_lp = true;   // machine lp field != null (leapYear wiring)
-    int nhp = 0;
 };
 
 struct TramoAutoTdDecision {
@@ -324,7 +332,8 @@ struct TramoFtestTdRequest {
     CalendarModelRow model_wd;
     CalendarModelRow model_td;
     int info_free_parameters = 0;  // candidate_none spec free-parameter count
-    int nhp = 0;                   // same value (single bytecode local)
+                                   // (the single bytecode local feeding both
+                                   // the Info nhp and every update() nhp)
     // Update-model hand-overs: candidate_none = (null,null),
     // candidate_td = (td,lp), candidate_wd = (wd,lp).
     CalendarCandidateHandover candidate_none;
@@ -379,7 +388,6 @@ struct SaAutoTdRequest {
     std::vector<CalendarModelRow> ladder;
     std::vector<CalendarCandidateHandover> candidates;  // same length
     bool has_lp = true;        // leapYear wiring (always wired in 3.9.0)
-    int nhp = 0;               // desc.getArimaSpec().freeParametersCount()
     bool desc_log_transformation = false;
     SaCalendarDescWitnesses witnesses;
 };
