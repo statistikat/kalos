@@ -4090,3 +4090,15 @@ entries, 2,267 public full residuals, the log transformation adjustment
 and all six information criteria. Tests first compare the reference
 record bit-for-bit and then omit it completely. The replay request still
 supplies the automatic round sequence and module entry descriptions.
+
+### M5 / 23-G — public TR1 preprocessing from raw observations
+
+`estimate_tramo_tr1` requires only the original complete monthly data
+and start. It registers the TR1 template, selects log or level, computes
+the detection threshold, fits dated outliers and returns the final model.
+For this fixed-order template the detector inputs repeat across passes.
+Six independent public TR1 oracle cases match exactly, including the two
+transformation outcomes, every SARIMA and regression coefficient, the
+ordered AO/LS variables, raw and adjusted likelihoods and 570 full
+residuals. This qualifies preprocessing. Public component and forecast
+comparisons are owned by the independent RSA1 pipeline gate.

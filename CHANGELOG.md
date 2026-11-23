@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Added monthly TR1 preprocessing from dated observations, with automatic
+  log/level selection and outlier detection on the fixed-order airline model.
+
 - Automatic TRAMO replay can build the final fitted model, residuals,
   information criteria and regression covariance with no final-record input.
 

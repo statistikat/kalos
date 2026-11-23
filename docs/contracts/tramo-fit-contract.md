@@ -237,3 +237,15 @@ is empty on that route. With the default verification option, every final
 field and the complete covariance triangle are checked against the oracle.
 Both paths run over all 24 admitted cases. The round sequence is still a
 separate input to this replay interface.
+
+### Raw monthly TR1 preprocessing
+
+`estimate_tramo_tr1(series, start_year, start_month)` registers the stock
+TR1 mean and airline orders and selects the transformation and automatic
+outliers from the original values. Both TR1 scans receive identical input
+after clearing automatic outliers, use the same threshold, and leave the
+fixed mean and orders in place. The final estimator's non-AMI branch
+returns directly on either pass. The final regression coefficients are
+in design order, with the mean first. The six public oracles cover both
+model scales, zero to three automatic variables, and all 570 residuals.
+The supported input is complete monthly data spanning at least two years.
