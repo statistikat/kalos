@@ -22,6 +22,9 @@
 - Added raw monthly TR0 estimation and the corresponding RSA0 product
   component pipeline, verified against the public reference kernels.
 
+- Added an independent RSA0 original-series forecast standard-error projection
+  using the preprocessing model’s public reporting scales.
+
 ## 0.1.0 — initial repository split
 
 Preserved the delivered Kalos numerical scope through 22b.2.

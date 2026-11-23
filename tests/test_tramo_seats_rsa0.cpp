@@ -5,6 +5,7 @@
 #include <algorithm>
 #include <cstdint>
 #include <cstring>
+#include <cmath>
 #include <fstream>
 #include <iostream>
 #include <limits>
@@ -31,6 +32,44 @@ bool exact(double a, double b) {
     return std::memcmp(&a, &b, sizeof(a)) == 0;
 }
 
+void check_forecast_errors(const std::string& id, const kalos::tramo_seats_rsa0_result& result,
+                           std::istream& evidence) {
+    std::string key, case_id;
+    evidence >> key >> case_id;
+    check(key == "case" && case_id == id, id + " forecast-error case");
+    const auto& wk = result.decomposition.extraction.final_components();
+    auto row = std::find_if(wk.begin(), wk.end(), [](const auto& r) {
+        return r.component == kalos::seats_component::series &&
+               r.information == kalos::seats_information::stdev_forecast;
+    });
+    check(row != wk.end(), id + " missing WK forecast errors");
+    int year, month, count;
+    evidence >> key >> year >> month >> count;
+    check(key == "y_ef" && count == 24 && year == row->start_year && month == row->start_month,
+          id + " public forecast-error domain");
+    const auto predicted = kalos::tramo_tr0_forecast_errors(result.preprocessing, count);
+    check(predicted.status == "available" && predicted.standard_errors.size() == row->values.size() &&
+          predicted.standard_errors.size() == static_cast<std::size_t>(count), id + " public forecast errors");
+    for (double actual : predicted.standard_errors) {
+        const double expected = read_bits(evidence);
+        check(std::abs(actual - expected) <= 2e-8 * (1 + std::abs(expected)), id + " public y_ef");
+    }
+    const auto one = kalos::tramo_tr0_forecast_errors(result.preprocessing, 1);
+    check(one.status == "available" && one.standard_errors.size() == 1 &&
+          std::abs(one.standard_errors[0] - predicted.standard_errors[0]) < 1e-9, id + " one-month forecast");
+    bool negative_refused = false;
+    try { (void)kalos::tramo_tr0_forecast_errors(result.preprocessing, -1); }
+    catch (const std::invalid_argument&) { negative_refused = true; }
+    check(negative_refused, id + " negative horizon");
+    const auto none = kalos::tramo_tr0_forecast_errors(result.preprocessing, 0);
+    check(none.status == "no_requested_predictions" && none.standard_errors.empty(), id + " zero horizon");
+    evidence >> key >> year >> month >> count;
+    check(key == "wk_series_stdev_forecast" && count == 24 && year == row->start_year && month == row->start_month,
+          id + " WK forecast-error domain");
+    for (double actual : row->values)
+        check(exact(actual, read_bits(evidence)), id + " WK forecast errors");
+}
+
 void refusals() {
     auto check_refused = [](const std::vector<double>& values, int month) {
         try { (void)kalos::estimate_tramo_tr0(values, 1990, month); }
@@ -52,6 +91,7 @@ int main() {
         {"Seasonal", C::seasonal}, {"SeasonallyAdjusted", C::seasonally_adjusted}, {"Irregular", C::irregular}};
     const std::map<std::string, I> kinds{{"Value", I::value}, {"Forecast", I::forecast}};
     std::ifstream input(KALOS_RSA0_FACTS);
+    std::ifstream forecast_errors(KALOS_RSA0_ERRORS);
     std::size_t cases = 0, rows = 0, values = 0, index = 0;
     kalos::tramo_seats_rsa0_result result;
     std::string id;
@@ -71,6 +111,7 @@ int main() {
             std::vector<double> series(count);
             for (auto& v : series) v = read_bits(row);
             result = kalos::run_tramo_seats_rsa0(series, year, month);
+            check_forecast_errors(id, result, forecast_errors);
         } else if (key == "fit") {
             const auto& fit = result.preprocessing;
             for (double v : {fit.model.theta.at(0), fit.model.btheta.at(0), fit.mean_coefficient,

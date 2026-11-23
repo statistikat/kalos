@@ -129,3 +129,21 @@ series matched the public JVM's TR0 estimation and RSA0 finals, including all
 records, selected orders or coefficient inputs from a caller. RSA3's automatic
 driver and the TRfull calendar stages still have separate qualification gates.
 [Raw-input reference panel](../../validation/evidence/native/tramo-seats-bridge/rsa0-x86_64.txt)
+
+### Original-series forecast standard errors
+
+`tramo_tr0_forecast_errors(fit, months)` projects the fitted TR0 model's
+public `y_ef(months)` field. It accepts a nonnegative future horizon in
+months and returns a status with the standard errors. Zero months yields
+`no_requested_predictions` and an empty vector. The caller can request this
+projection independently of WK extraction and its Series/StdevForecast rows.
+
+The fixed-fit covariance engine provides separate unit process and estimated
+mean contributions. With residual sum of squares Q, effective sample n and
+four estimated parameters k (including the innovation variance), the public
+process component scales by Q/(n−k), and the mean component by Q/(n−k+1).
+The 24-month reference covers 144 public standard errors and the corresponding
+144 WK rows' values. The former use the existing forecast covariance budget
+of 2e−8 × (1 + |reference|). The largest measured absolute error was
+2.42e−13, and the paired WK values reproduced bit for bit.
+[Forecast-error evidence](../../validation/evidence/native/tramo-seats-bridge/rsa0-forecast-errors-x86_64.txt)

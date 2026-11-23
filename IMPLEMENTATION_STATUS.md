@@ -3820,3 +3820,14 @@ output. These are separate quantities. The unqualified public `y_ef` key
 defaults to 12 months. The explicit 24-month key covers the default SEATS
 horizon. Two fresh x86-64 Temurin JVMs matched every byte.
 [Paired forecast errors](validation/evidence/native/tramo-seats-bridge/rsa0-forecast-errors-x86_64.txt)
+
+### M5/M6 — RSA0 public original-series forecast standard errors
+
+`tramo_tr0_forecast_errors(fit, months)` exposes the preprocessing model's
+`y_ef` on demand. The projection uses the existing forecast covariance with
+separate JVM scales for the process and the estimated mean. All 144 public
+values from six monthly series met the established forecast tolerance,
+with maximum absolute error 2.42e−13. The 144 paired WK conditional errors
+remain bit-exact. The regression checks zero and one-month requests as well
+as the default 24-month horizon.
+[Forecast error contract](docs/contracts/tramo-seats-bridge-contract.md)
