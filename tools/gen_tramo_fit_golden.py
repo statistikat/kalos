@@ -235,8 +235,10 @@ def main():
         for l in fl:
             if l.startswith("fitresid "):
                 t = l.split()
+                if len(t) < 8 or t[6] != "n" or len(t[8:]) != int(t[7]):
+                    fail(cid + ": invalid fitresid length: " + l)
                 resid[int(t[1])] = (int(t[3]), int(t[5]),
-                                    [bits(x) for x in t[7:]])
+                                    [bits(x) for x in t[8:]])
 
         rf = {}
         for l in fl:

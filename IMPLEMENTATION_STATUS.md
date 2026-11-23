@@ -3789,3 +3789,13 @@ series against the public TR0/RSA0 JVM kernels. The focused serial and
 OpenMP tests passed. Ordinary automatic RSA3 still needs its 23-G round
 seams, and RSAfull needs the 21-I calendar tests.
 [Usage and qualification](docs/contracts/tramo-seats-bridge-contract.md)
+
+### 23-G prerequisite — exact ARMA selection inputs
+
+The 23-F fixture generator had decoded the decimal length after `fitresid n`
+as a leading binary64 observation. Both original JVM captures regenerate the
+same corrected header. The raw sweep now compares the length and binary64
+bits of all 30 ARMA residual records in the 34-case golden (2,991 values);
+the separate constant-series crash witness has no golden. All 614 sweep
+checks pass. The selected models, measured 27 live / 54 recorded seams,
+10 refusals and 74 D9 covariance entries agree with the original decisions.
