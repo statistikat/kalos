@@ -21,7 +21,11 @@ public final class CalendarFTestProbe {
     }
 
     static double[] series(int effect) {
-        double[] result = new double[180];
+        return series(effect, 180);
+    }
+
+    static double[] series(int effect, int length) {
+        double[] result = new double[length];
         Random noise = new Random(8712);
         for (int t = 0; t < result.length; ++t) {
             YearMonth month = YearMonth.of(1990, 1).plusMonths(t);

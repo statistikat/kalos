@@ -24,7 +24,7 @@ def main():
                         help="directory containing pinned jars (repeatable)")
     parser.add_argument("--stage", choices=["bridge", "merge", "rsa0", "rsa0-forecast-errors",
                         "rsa0-residuals", "rsa0-ljung-box", "rsa0-doornik-hansen", "rsa1", "rsa3",
-                        "calendar-ftest", "trfull-calendar", "residual-td", "spectrum-cos"], default="bridge")
+                        "calendar-ftest", "trfull-calendar", "residual-td", "td-controller", "spectrum-cos"], default="bridge")
     parser.add_argument("--output", type=Path, help="write a new capture instead of verifying the frozen file")
     args = parser.parse_args()
     reference = json.loads((EVIDENCE / "reference.json").read_text())
@@ -45,7 +45,8 @@ def main():
             output_name = "merge-x86_64.txt"
         else:
             raise SystemExit(f"no frozen merge reference for JVM architecture {arch!r}")
-    calendar_outputs = {"calendar-ftest": "panel.txt", "trfull-calendar": "full.txt", "residual-td": "residual-td.txt"}
+    calendar_outputs = {"calendar-ftest": "panel.txt", "trfull-calendar": "full.txt", "residual-td": "residual-td.txt",
+                        "td-controller": "td-controller.txt"}
     if args.stage in calendar_outputs:
         if arch not in {"x86_64", "amd64"}:
             raise SystemExit("TRAMO calendar F-test uses the pinned x86-64 numerical profile")
@@ -61,11 +62,12 @@ def main():
             raise SystemExit(f"missing pinned jar or checksum mismatch: {name}")
         jars.append(str(jar))
     calendar_probes = {"calendar-ftest": "CalendarFTestProbe", "trfull-calendar": "TramoFullCalendarProbe",
-                       "residual-td": "TramoResidualTradingDaysProbe"}
+                       "residual-td": "TramoResidualTradingDaysProbe",
+                       "td-controller": "TramoTradingDaysControllerProbe"}
     probe = calendar_probes.get(args.stage, "TramoSeatsBridgeProbe")
     arguments = [] if args.stage in calendar_probes else [CASES, args.stage]
     sources = [HERE / (probe + ".java")]
-    if args.stage in {"trfull-calendar", "residual-td"}:
+    if args.stage in {"trfull-calendar", "residual-td", "td-controller"}:
         sources.append(HERE / "CalendarFTestProbe.java")
     with tempfile.TemporaryDirectory() as directory:
         subprocess.run([args.jdk / "bin/javac", "--release", "21", "-cp", os.pathsep.join(jars),
