@@ -228,7 +228,7 @@ public class TramoSeatsBridgeProbe {
     // Public preprocessing and seasonal-adjustment kernels receive only
     // the monthly observations and their respective standard preset.
     private static void rawAutomatic(String id, TsData series, String stage) {
-        boolean rsa1 = stage.equals("rsa1");
+        boolean rsa1 = stage.startsWith("rsa1");
         var model = TramoKernel.of(rsa1 ? TramoSpec.TR1 : TramoSpec.TR3, new ModellingContext())
             .process(series, new ProcessingLog() {});
         System.out.println("case " + id);
@@ -291,6 +291,9 @@ public class TramoSeatsBridgeProbe {
         String stage = args.length > 1 ? args[1] : "bridge";
         if (stage.equals("spectrum-cos")) { spectrumCos(); return; }
         boolean raw = stage.startsWith("rsa");
+        boolean levelEffects = stage.equals("rsa1-level-effects");
+        Set<String> cases = levelEffects ? Set.of("fit_ao", "fit_ls")
+            : raw ? RAW_CASES : TEMPLATES.keySet();
         Method bridge = TramoSeatsKernel.class.getDeclaredMethod("of", RegSarimaModel.class);
         bridge.setAccessible(true);
         List<String> lines = Files.readAllLines(Path.of(args[0]));
@@ -299,18 +302,19 @@ public class TramoSeatsBridgeProbe {
             if (!lines.get(i).startsWith("KER ")) continue;
             String[] header = lines.get(i).split(" ");
             String id = header[1];
-            if (!(raw ? RAW_CASES : TEMPLATES.keySet()).contains(id)) continue;
+            if (!cases.contains(id)) continue;
             require(seen.add(id), id + " duplicated");
             int n = header.length;
             require(header[n-3].equals("12") && lines.get(i+1).startsWith("values "), id);
             TsPeriod start = TsPeriod.monthly(Integer.parseInt(header[n-2]), Integer.parseInt(header[n-1]));
             double[] values = Arrays.stream(lines.get(i+1).substring(7).split(" "))
                 .mapToDouble(Double::parseDouble).toArray();
+            if (levelEffects) for (int j = 0; j < values.length; ++j) values[j] -= 1000;
             TsData data = TsData.of(start, DoubleSeq.of(values));
             if (stage.startsWith("rsa0")) rawRsa0(id, data, stage);
             else if (raw) rawAutomatic(id, data, stage);
             else observe(bridge, id, TEMPLATES.get(id), data, args.length > 1 && args[1].equals("merge"));
         }
-        require(seen.equals(raw ? RAW_CASES : TEMPLATES.keySet()), "incomplete corpus");
+        require(seen.equals(cases), "incomplete corpus");
     }
 }

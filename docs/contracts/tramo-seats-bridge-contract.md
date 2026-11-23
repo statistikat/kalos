@@ -216,3 +216,15 @@ and final component values. Six public raw inputs match every one of
 the 3,960 dated fitted and forecast values at the stock horizon.
 The bridge's existing AO/LS deterministic and D6 approximation envelope
 applies whenever another monthly series selects a different configuration.
+
+
+### Level-model AO and LS effects
+
+Subtracting 1,000 from each observation in `fit_ao` and `fit_ls` selects
+levels for both stock RSA1 fits. The first detects an AO and the second
+an LS followed by an AO. The bridge subtracts their combined fitted
+effect before WK extraction. Final components add the LS to trend and
+the AO to irregular, with both effects included in the series forecasts
+and seasonally adjusted rows. Two fresh, pinned x86-64 JVMs agreed on
+all model, residual and public output bits. Reproduce these fixtures with
+`capture-tramo-seats-bridge.py --stage rsa1-level-effects`.

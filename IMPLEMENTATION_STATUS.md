@@ -4232,3 +4232,12 @@ covers exchanging monthly (d, bd) = (1, 1) for (2, 0), which clears outliers
 because the differencing polynomial degree changes from 13 to 2. The
 reference comparison, subsequent controller sweep and restart decisions
 are the remaining stages on this route.
+
+### M5 / 24-D — additive AO and LS restoration
+
+The fitted bridge and raw RSA1 product accept complete monthly level fits
+with AO and LS effects. Two independent public JVM runs agreed on two
+shifted historical series. Native replay matches every fitted parameter,
+regression coefficient, likelihood, all 166 residuals and 1,200 observed
+and forecast product values. The existing six RSA1 product fits and the
+fitted bridge replay also passed. [Contract and capture](docs/contracts/tramo-seats-bridge-contract.md)

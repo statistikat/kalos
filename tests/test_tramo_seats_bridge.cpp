@@ -174,7 +174,6 @@ void refusals(const TramoFitResult& fit) {
     refuses([](auto& f) { f.ls_eff = f.ls_npar; });
     refuses([](auto& f) { f.parameters.pop_back(); });
     if (!fit.variables.empty()) {
-        refuses([](auto& f) { f.log = false; });
         refuses([](auto& f) { f.variables.front().type = TramoOutlierKind::Tc; });
         refuses([](auto& f) { f.variables.front().position = -1; });
         refuses([](auto& f) { f.variables.front().column = {1}; });

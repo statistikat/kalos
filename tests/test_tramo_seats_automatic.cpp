@@ -39,7 +39,7 @@ void series(std::istream& row, const std::vector<double>& data, int year, int mo
     for (double actual : data) number(row, actual, field);
 }
 
-void run(const std::string& preset) {
+void run(const std::string& preset, std::size_t expected_cases, std::size_t expected_values) {
     using C = kalos::seats_component;
     using I = kalos::seats_information;
     const std::map<std::string, C> components{{"Series", C::series}, {"Trend", C::trend}, {"Seasonal", C::seasonal},
@@ -112,14 +112,15 @@ void run(const std::string& preset) {
         std::string extra;
         check(!(row >> extra), id + " extra " + key);
     }
-    check(cases == 6 && nrows == 60 && nvalues == 3960 && product == result.decomposition.finals.size() &&
+    check(cases == expected_cases && nrows == 10 * expected_cases && nvalues == expected_values && product == result.decomposition.finals.size() &&
           variable == result.preprocessing.regression_coefficients.size(), preset + " incomplete corpus");
     std::cout << preset << ": " << cases << " public fits, " << nrows << " dated rows, " << nvalues << " product values\n";
 }
 }
 
 int main() {
-    run("rsa1");
+    run("rsa1", 6, 3960);
+    run("rsa1-level-effects", 2, 1200);
     auto invalid = [](std::vector<double> values, int month) {
         try { (void)kalos::estimate_tramo_tr1(values, 1990, month); }
         catch (const std::invalid_argument&) { return; }
