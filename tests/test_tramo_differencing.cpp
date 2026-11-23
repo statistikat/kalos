@@ -255,10 +255,13 @@ void test_comespd_airline() {
     CHECK(d.spec_d == 1 && d.spec_bd == 1 && d.spec_q == 1 && d.spec_bq == 1);
     CHECK(!d.mean);
 
-    r.p0 = 1;
+    // Dated 2026-11-23: the jar airline shape is ARIMA(0,1,1)(0,1,1) -
+    // SarimaOrders.isAirline tests p == 0 and bp == 0 (javap; the earlier
+    // p0/bp0 = 1 here transcribed the landing bug this test guards).
+    r.p0 = 0;
     r.d0 = 1;
     r.q0 = 1;
-    r.bp0 = 1;
+    r.bp0 = 0;
     r.bd0 = 1;
     r.bq0 = 1;
     d = kalos::decide_tramo_differencing(r);

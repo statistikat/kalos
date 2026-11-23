@@ -692,10 +692,17 @@ TramoDifferencingDecision decide_tramo_differencing(
         decision.default_model = true;
         // airline(): spec.isAirline(seasonal) guard, then setAirline and
         // setMean(false) on the description.
+        // Dated 2026-11-23 (javap SarimaOrders.isAirline/setAirline +
+        // fit_shortfail seam-17 witness): the airline form is
+        // ARIMA(0,1,1)(0,1,1) - the seasonal block carries bp = 0
+        // (SarimaOrders.airline(freq) under seasonality, m011(freq)
+        // otherwise); the first landing transcribed the AR guards and the
+        // seasonal write as 1, and no battery row reached the seasonal
+        // guard in a discriminating entry shape.
         const bool reg_air =
-            request.p0 == 1 && request.q0 == 1 && request.d0 == 1;
+            request.p0 == 0 && request.q0 == 1 && request.d0 == 1;
         const bool seas_air =
-            request.bp0 == 1 && request.bq0 == 1 && request.bd0 == 1;
+            request.bp0 == 0 && request.bq0 == 1 && request.bd0 == 1;
         if (reg_air && (!request.seasonal || seas_air)) {
             decision.result = TramoDifferencingDecision::Result::Unprocessed;
         } else {
@@ -704,7 +711,7 @@ TramoDifferencingDecision decide_tramo_differencing(
             decision.spec_p = 0;
             decision.spec_d = 1;
             decision.spec_q = 1;
-            decision.spec_bp = request.seasonal ? 1 : 0;
+            decision.spec_bp = 0;
             decision.spec_bd = request.seasonal ? 1 : 0;
             decision.spec_bq = request.seasonal ? 1 : 0;
             decision.mean = false;
@@ -731,10 +738,17 @@ TramoDifferencingDecision decide_tramo_differencing(
     if (failed) {
         events.push_back("remark differencing selection failed");
         decision.selection_failed = true;
+        // Dated 2026-11-23 (javap SarimaOrders.isAirline/setAirline +
+        // fit_shortfail seam-17 witness): the airline form is
+        // ARIMA(0,1,1)(0,1,1) - the seasonal block carries bp = 0
+        // (SarimaOrders.airline(freq) under seasonality, m011(freq)
+        // otherwise); the first landing transcribed the AR guards and the
+        // seasonal write as 1, and no battery row reached the seasonal
+        // guard in a discriminating entry shape.
         const bool reg_air =
-            request.p0 == 1 && request.q0 == 1 && request.d0 == 1;
+            request.p0 == 0 && request.q0 == 1 && request.d0 == 1;
         const bool seas_air =
-            request.bp0 == 1 && request.bq0 == 1 && request.bd0 == 1;
+            request.bp0 == 0 && request.bq0 == 1 && request.bd0 == 1;
         if (reg_air && (!request.seasonal || seas_air)) {
             decision.result = TramoDifferencingDecision::Result::Unprocessed;
         } else {
@@ -743,7 +757,7 @@ TramoDifferencingDecision decide_tramo_differencing(
             decision.spec_p = 0;
             decision.spec_d = 1;
             decision.spec_q = 1;
-            decision.spec_bp = request.seasonal ? 1 : 0;
+            decision.spec_bp = 0;
             decision.spec_bd = request.seasonal ? 1 : 0;
             decision.spec_bq = request.seasonal ? 1 : 0;
             decision.mean = false;
@@ -781,8 +795,14 @@ TramoDifferencingDecision decide_tramo_differencing(
     decision.spec_bp = request.bp0;
     decision.spec_bd = request.bd0;
     decision.spec_bq = request.bq0;
-    if (ladder.spec.d != (request.initial_round ? 0 : request.d0)
-        || ladder.spec.bd != (request.initial_round ? 0 : request.bd0)) {
+    // Dated 2026-11-23 (javap DifferencingModule.process(RegSarimaModelling)
+    // offsets 293-316 + fit-tr3_air witness): the Changed comparison is
+    // against the ENTRY description orders, not the (initial-round zeroed)
+    // ladder start - a ladder that climbs from 0,0 back onto an entry
+    // 1,1/0,1 leaves the description untouched (Unchanged). The 23-C battery
+    // always entered at 0,0, so both readings agreed there; the fit corpus
+    // supplies the discriminating rows.
+    if (ladder.spec.d != request.d0 || ladder.spec.bd != request.bd0) {
         changed = true;
         decision.spec_p = ladder.spec.p;
         decision.spec_d = ladder.spec.d;
