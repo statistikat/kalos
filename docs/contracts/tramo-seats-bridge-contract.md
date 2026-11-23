@@ -267,3 +267,25 @@ The public `rsa1-residual-diagnostics` stage obtains all three getters
 from the original observations in fresh x86-64 JVMs. Six original
 models, two shifted level fits and four stock transitory-change cases on
 the level and log scales compare all 60 returned numerical values bit-for-bit. The original RSA0 entry point names remain available.
+
+
+### Raw RSA1 original-series forecast standard errors
+
+`tramo_tr1_forecast_errors(fit, months)` projects the public `y_ef` on a
+complete monthly stock TR1 airline fit. The 13-innovation boundary
+covariance conditions on the fitted history. Filtering the differenced
+regressor columns with the same gains yields the sensitivity of each
+forecast to the fitted drift, AO, zero-ended LS and stock TC coefficients.
+The prediction variance adds the process contribution at `ssq/(effective
+- estimated)` and the quadratic form in the fitted coefficient covariance.
+Level fits return its square root. For log fits the raw forecast location
+and standard deviation determine the original-scale lognormal deviation.
+The filter also accepts the fitted AO model with a regular MA coefficient
+within `6e-9` of −1. Its finite moving-average covariance is well defined.
+
+The frozen `rsa1-forecast-errors` stage includes 12 raw fits, their 288
+public forecast errors, raw forecast locations and scales, and the separate
+WK series errors. The direct public-error gate uses the RSA0 budget of
+`2e-8 * (1 + abs(reference))`. Zero months return `no_requested_predictions`
+and a positive-horizon out-of-range covariance returns `covariance_range`
+with no partial values. Shorter requested horizons use the same dated prefix.

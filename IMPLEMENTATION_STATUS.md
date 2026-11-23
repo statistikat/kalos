@@ -4438,3 +4438,15 @@ late controller switches seasonality and restarts identification, plus
 two additional multiple-outlier series. Two independently launched
 JVMs agree on all three public products, including the 251 residuals
 and 1,800 observed/forecast component values.
+
+### M5 / 24-D — public monthly RSA1 forecast standard errors
+
+`tramo_tr1_forecast_errors` calculates original-series prediction errors
+from the fitted TR1 model, including drift and outlier uncertainty and
+lognormal conversion. It shares the conditional 13-innovation covariance
+with the RSA0 projection. All 288 public default-horizon errors agreed
+with the pinned JVM within 3.34e−14 scaled. The accompanying 288 WK
+standard errors matched their original fitted-decomposition references.
+Zero, one and seven months, invalid horizons and out-of-range covariance
+were checked. The raw RSA1, raw RSA0 and fixed-model bridge suites passed
+in Release and serial ASan/UBSan builds. [Contract and capture](docs/contracts/tramo-seats-bridge-contract.md)
