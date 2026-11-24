@@ -4723,3 +4723,14 @@ Henderson length. Its independent run of the MSR selector also has to agree
 with the kernel's filter and iteration count. The nine fits supply 36 trend
 decisions and nine seasonal decisions across additive and multiplicative
 modes. [Frozen decisions](validation/evidence/native/x13-estimated-templates/selection-x86_64.txt)
+
+### M5b / 28 — native X-11 selection on all nine fitted-template inputs
+
+Using the dated public B1 series and its full 12-month forecast extension,
+`x11_selection_pass` reproduced all 36 selected Henderson lengths and I/C
+ratios, all nine MSR filters, attempt counts (one, two or four), default
+flags and final MSR ratios. The resolved 12-phase plans and every B7, C7,
+D7, D10, D11, D12 and D13 observation/forecast value (7,812 total) matched
+bit-for-bit. The existing rules cover these decisions without a new selector.
+The four adjacent Release CTests passed. Producing B1 from a raw fixed-
+template fit remains the independent preprocessing gate.

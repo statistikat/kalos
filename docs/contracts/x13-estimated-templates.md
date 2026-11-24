@@ -42,3 +42,11 @@ and the SA and trend forecasts cover a further 216 values. Dates, row
 presence, model orders, variables and selector decisions are exact checks.
 The existing X-13 table tolerances apply when qualifying a native product.
 Each template requires its own native regression and binding qualification.
+
+## Fitted X-11 selection gate
+
+`--estimated-selection --portable-x86` captures the 36 I/C ratios and
+Henderson choices and nine MSR decisions after the public X-13 fit.
+The capture digest is `ecf3db42c189abaccc71742db4d393533a3e39fc04832a2080933fc660a33261`.
+The native regression starts with each public extended B1. It requires bitwise
+agreement on those decisions and all 7,812 B7, C7, D7 and D10–D13 values.
