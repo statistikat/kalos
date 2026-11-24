@@ -268,3 +268,23 @@ preprocessing parameters, final design, likelihood and 909 residuals
 match the public kernel. SEATS extraction and deterministic restoration
 on these seven models have separate coverage. SEATS uses the same fitted pipeline, horizon
 semantics, and decomposition-policy checks as the raw RSA1 route.
+
+### Raw monthly TRfull
+
+`estimate_tramo_trfull(series, start_year, start_month)` accepts a complete
+monthly series. It selects the transformation, mean, SARIMA orders, trading
+days, leap year, six-day Easter and automatic outliers from those observations.
+`run_tramo_seats_rsafull` takes the same inputs plus backcast and forecast
+counts, with defaults of zero backcasts and two years of forecasts.
+
+Differencing identification corrects only automatic outlier effects. ARMA
+identification includes the fitted calendar design. Outlier scans and all
+refits preserve the calendar selection until the relevant regression test
+changes it. The late trading-day controller tests the current likelihood
+residuals and compares the refitted working-day model with the incumbent.
+Three public reference cases acquire working days only at this step.
+
+The 26 original stock fits and three late-controller fits match all fitted
+orders, variables, estimates, likelihoods and 4,165 residuals. Two higher-order
+WK discrepancies are tracked independently. The native preprocessing and
+calendar restoration checks remain exact for both.

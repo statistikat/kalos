@@ -4,6 +4,8 @@
 
 - Retain the known roots of positive seasonal factors during SEATS decomposition.
 
+- Fit stock monthly TRfull and RSAfull from dated observations, including automatic SARIMA, outlier and calendar selection and the late working-day regression test.
+
 - Restore seasonal values and forecasts when the fitted SEATS decomposition
   contains no stochastic seasonal component.
 

@@ -78,8 +78,8 @@ struct WkReference {
     std::vector<kalos::seats_component_series> components;
 };
 
-WkReference read_wk_reference() {
-    std::ifstream input(KALOS_SELECTED_WK_PANEL);
+WkReference read_wk_reference(const char* path) {
+    std::ifstream input(path);
     WkReference wk;
     for (std::string line; std::getline(input, line);) {
         std::istringstream in(line);
@@ -139,18 +139,26 @@ void compare_fit(const Reference& ref, const kalos::TramoFitResult& fit) {
     numbers(fit.full_residuals, ref.residuals, "residuals");
 }
 
-void compare(const Reference& ref, const WkReference& wk, const std::vector<double>& expected_errors, double& worst_error) {
+void compare(const Reference& ref, const WkReference& wk, const std::vector<double>& expected_errors, double& worst_error, bool automatic) {
     if (ref.finals.empty()) {
         auto fit = kalos::estimate_tramo_trfull_reference(ref.series, ref.year, ref.month);
         check(fit.reference_model_computed && !fit.final_model_computed, "reference status");
         compare_fit(ref, fit);
         return;
     }
-    auto fit = kalos::refit_tramo_selected_model(ref.series, ref.year, ref.month, ref.orders, ref.log, ref.mean,
-                                                 ref.calendar, ref.outliers);
+    kalos::tramo_seats_automatic_result run;
+    if (automatic) {
+        run = kalos::run_tramo_seats_rsafull(ref.series, ref.year, ref.month, 0, 24);
+    } else {
+        run.preprocessing = kalos::refit_tramo_selected_model(ref.series, ref.year, ref.month, ref.orders,
+            ref.log, ref.mean, ref.calendar, ref.outliers);
+        run.decomposition = kalos::run_tramo_seats_pipeline(run.preprocessing, 0, 24);
+    }
+    const auto& fit = run.preprocessing;
+    const auto& result = run.decomposition;
     check(fit.status == "available" && fit.final_model_computed, "fit status");
     compare_fit(ref, fit);
-    for (int horizon : {0, 1, 7, 24}) {
+    if (!expected_errors.empty()) for (int horizon : {0, 1, 7, 24}) {
         auto forecast = kalos::tramo_selected_forecast_errors(fit, horizon);
         check(forecast.status == (horizon ? "available" : "no_requested_predictions") &&
               forecast.standard_errors.size() == static_cast<std::size_t>(horizon), "selected model forecast status");
@@ -160,7 +168,6 @@ void compare(const Reference& ref, const WkReference& wk, const std::vector<doub
             worst_error = std::max(worst_error, error);
         }
     }
-    const auto result = kalos::run_tramo_seats_pipeline(fit, 0, 24);
     check(result.extraction.model_changed == ref.changed, "approximation flag");
     // The higher-order WK extraction has an independent regression in progress.
     // Its public provider output isolates calendar restoration on that same fit.
@@ -191,17 +198,19 @@ int main(int argc, char** argv) {
                                          {{48, kalos::TramoOutlierKind::Ao}});
         return 1;
     } catch (const std::invalid_argument&) {}
-    const auto wk = read_wk_reference();
+    const auto wk = read_wk_reference(argc == 3 ? KALOS_LATE_WK_PANEL : KALOS_SELECTED_WK_PANEL);
     const auto forecasts = read_forecast_errors();
     double worst_error = 0.0;
-    std::ifstream stream(argc == 2 ? argv[1] : KALOS_SELECTED_CALENDAR_PANEL);
+    const bool automatic = argc >= 2 && std::string(argv[1]) == "automatic";
+    const char* panel = argc == 3 ? argv[2] : (argc == 2 && !automatic ? argv[1] : KALOS_SELECTED_CALENDAR_PANEL);
+    std::ifstream stream(panel);
     Reference ref;
     int cases = 0, failures = 0, rows = 0;
     std::size_t values = 0, residuals = 0;
     const auto replay = [&] {
         if (ref.id.empty()) return;
         try {
-            compare(ref, wk, forecasts.at(ref.id), worst_error);
+            compare(ref, wk, argc == 3 ? std::vector<double>{} : forecasts.at(ref.id), worst_error, automatic);
         } catch (const std::exception& error) {
             std::cerr << ref.id << ": " << error.what() << "\n";
             ++failures;
@@ -264,9 +273,10 @@ int main(int argc, char** argv) {
         } else throw std::runtime_error("unknown reference row " + tag);
     }
     replay();
-    std::cout << cases << " selected RSAfull models, " << residuals << " residuals, "
+    std::cout << cases << (automatic ? " automatic RSAfull models, " : " selected RSAfull models, ") << residuals << " residuals, "
               << rows << " rows, " << values << " component values\n";
-    if (argc == 2) return cases == 26 && residuals == 3934 && !failures && rows == 0 ? 0 : 1;
+    if (argc == 3 && automatic) return cases == 3 && residuals == 251 && rows == 30 && values == 1800 && !failures ? 0 : 1;
+    if (argc == 2 && !automatic) return cases == 26 && residuals == 3934 && !failures && rows == 0 ? 0 : 1;
     std::cout << "maximum scaled original-series forecast error " << worst_error << "\n";
     return cases == 26 && residuals == 3914 && rows == 260 && values == 24360 && !failures ? 0 : 1;
 }

@@ -534,6 +534,8 @@
     "validation/evidence/native/tramo-seats-bridge/rsa3-x86_64.txt",
     "validation/evidence/native/tramo-seats-bridge/rsafull-calendar-wk-x86_64.txt",
     "validation/evidence/native/tramo-seats-bridge/rsafull-forecast-errors-x86_64.txt",
+    "validation/evidence/native/tramo-seats-bridge/rsafull-late-calendar-x86_64.txt",
+    "validation/evidence/native/tramo-seats-bridge/rsafull-late-wk-x86_64.txt",
     "validation/evidence/native/tramo-seats-bridge/rsafull-reference-x86_64.txt",
     "validation/evidence/native/tramo-seats-bridge/rsafull-residual-diagnostics-x86_64.txt",
     "validation/evidence/native/tramo-seats-bridge/rsafull-x86_64.txt",

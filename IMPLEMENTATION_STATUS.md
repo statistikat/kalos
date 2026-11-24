@@ -4641,3 +4641,20 @@ product values, 2,105 fitted residuals and all 480 WK forecast standard
 errors bit for bit. The 480 public original-series forecast errors match the
 qualified tolerance. Eight adjacent Release tests passed, including the
 existing quarterly and monthly fixed-model decomposition regressions.
+
+### M5 stock TRfull automatic selection and RSAfull products
+
+Both `estimate_tramo_trfull` and `run_tramo_seats_rsafull` now operate on
+dated observations alone. All 26 original models and three additional models
+with late trading-day selection match the public JDemetra preprocessing.
+The three additional cases reproduce the late choice only with the stock
+trading-day controller enabled. Across the 29 cases all 4,165 full residuals,
+orders, mean and transformation decisions, calendar and outlier identities,
+regression and SARIMA estimates, and likelihoods are exact.
+
+Twenty-seven decompositions reproduce every public observation and forecast
+directly. For `calendar_8_log` and `late_td_14`, the input to WK extraction
+is exact and an independent pair of JVMs supplies the intermediate extraction
+for the exact calendar-restoration check. The test suite covers 290 merged
+rows and 26,160 observations and forecasts across the direct and isolated
+checks. Both native higher-order extractions remain open.
