@@ -4838,3 +4838,7 @@ the separate RegArimaUtility GLS processor. Across 15 positive samples
 each branch's likelihood, SSQ, transformation correction, parameter counts
 and AICc match the pinned public kernel bit-for-bit. All 16 decisions match,
 including the observed nonpositive-series bypass.
+
+### M6 combined SI on native automatic X-13 products
+
+All six automatic native fits reproduced the public `diagnostics.seas-si-combined` verdict after cropping D8 to the observation domain. Their 36 stable, moving and rank statistics and probabilities were within 1.68e-13 scaled (limit 1e-12), including log-additive and non-log pseudo-additive extended products. The complete Release automatic oracle also passed its 4,637 checks across 13 historical input specifications. [Native end-to-end replay](tests/test_x13_automatic_oracle.cpp)

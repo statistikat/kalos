@@ -405,6 +405,7 @@ if(KALOS_BUILD_TESTS)
   add_executable(test_x13_automatic_oracle tests/test_x13_automatic_oracle.cpp)
   target_link_libraries(test_x13_automatic_oracle PRIVATE kalos::kalos)
   target_compile_definitions(test_x13_automatic_oracle PRIVATE
+    KALOS_AUTOMATIC_SI="${CMAKE_CURRENT_SOURCE_DIR}/validation/evidence/native/combined-seasonality/automatic-x13-x86_64.txt"
     KALOS_PSEUDO_AUTO="${CMAKE_CURRENT_SOURCE_DIR}/validation/evidence/native/x13-nonlog-pseudo/automatic-x86_64.txt")
   add_test(NAME test_x13_automatic_oracle
            COMMAND test_x13_automatic_oracle)
