@@ -4696,3 +4696,7 @@ also match their dated WK rows, including conditional standard errors.
 The regression suite checks the native route directly throughout. All
 seven adjacent Release tests passed, including the existing fixed-model
 decomposition and forecasting suites.
+
+### M6 public combined SI seasonality reference
+
+Two independent pinned JVMs reproduced the all-years dashboard getter `diagnostics.seas-si-combined` on 34 X-13 and TRAMO/SEATS products and the underlying test at 28 quarterly/monthly boundary inputs. The capture records all three verdicts, the short-series unavailable result, and the stable, moving and rank statistics and probabilities. It includes extended-domain log-additive and pseudo-additive X-13 fits. In two monthly TR3 fits the WK seasonal component is absent and the public diagnostic returns `None` on the irregular alone. Capture SHA-256 is `fcad11cf3be66d16ade151c8695796d863dfb29eebac153e64f8d80adbb606cb`. [Public evidence](validation/evidence/native/combined-seasonality/public-x86_64.txt)

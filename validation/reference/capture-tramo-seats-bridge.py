@@ -24,7 +24,7 @@ def main():
                         help="directory containing pinned jars (repeatable)")
     parser.add_argument("--stage", choices=["bridge", "merge", "rsa0", "rsa0-forecast-errors",
                         "rsa0-residuals", "rsa0-ljung-box", "rsa0-doornik-hansen", "rsa1", "rsa1-level-effects", "rsa1-level-tc", "rsa1-log-tc", "rsa1-residual-diagnostics", "rsa1-forecast-errors", "rsa3", "rsa3-additional", "rsa3-mean-retry", "rsa3-mean-retry-diagnostics", "rsa3-ref-retry", "rsa3-ref-retry-wk", "rsa3-ref-retry-diagnostics", "rsa3-ref-retry-forecast-errors", "rsa3-residual-diagnostics", "rsa3-forecast-errors", "rsafull", "rsafull-calendar-effect", "rsafull-calendar-wk", "rsafull-residual-diagnostics", "rsafull-forecast-errors", "rsafull-reference", "rsafull-late-calendar", "rsafull-late-wk",
-                        "calendar-ftest", "trfull-calendar", "residual-td", "td-controller", "fast-calendar", "spectrum-cos", "seasonal-peaks", "seasonal-f", "calendar-outliers", "td-controller-outliers"], default="bridge")
+                        "combined-seasonality", "calendar-ftest", "trfull-calendar", "residual-td", "td-controller", "fast-calendar", "spectrum-cos", "seasonal-peaks", "seasonal-f", "calendar-outliers", "td-controller-outliers"], default="bridge")
     parser.add_argument("--output", type=Path, help="write a new capture instead of verifying the frozen file")
     args = parser.parse_args()
     reference = json.loads((EVIDENCE / "reference.json").read_text())
@@ -61,8 +61,16 @@ def main():
         if arch not in {"x86_64", "amd64"}:
             raise SystemExit("raw TRAMO-SEATS presets use the pinned x86-64 numerical profile")
         output_name = args.stage + "-x86_64.txt"
+    pins = dict(reference["jars"])
+    if args.stage == "combined-seasonality":
+        if arch not in {"x86_64", "amd64"}:
+            raise SystemExit("combined seasonality uses the pinned x86-64 numerical profile")
+        output_name = "../combined-seasonality/public-x86_64.txt"
+        x13 = json.loads((EVIDENCE.parent / "x13-refusal-jvm-profiles/reference.json").read_text())
+        pins.update({name: digest for name, digest in x13["jars"].items()
+                     if name.startswith(("jdplus-x13-base-api-", "jdplus-x13-base-core-"))})
     jars = []
-    for name, digest in reference["jars"].items():
+    for name, digest in pins.items():
         jar = next((d / name for d in args.jar_dir if (d / name).is_file()), None)
         if jar is None or sha256(jar) != digest:
             raise SystemExit(f"missing pinned jar or checksum mismatch: {name}")
@@ -87,6 +95,9 @@ def main():
     if args.stage.startswith("rsa3-ref-retry"):
         probe = "TramoRefStatsRetryProbe"
         arguments = [args.stage]
+    if args.stage == "combined-seasonality":
+        probe = "CombinedSeasonalityProbe"
+        arguments = [EVIDENCE / "rsa3-x86_64.txt", EVIDENCE / "rsa3-ref-retry-x86_64.txt"]
     sources = [HERE / (probe + ".java")]
     if args.stage.startswith("rsa3-ref-retry"):
         sources.append(HERE / "TramoSeatsBridgeProbe.java")
