@@ -4863,3 +4863,12 @@ Two pinned x86-64 JVMs reproduced the public combined SI seasonality getter on a
 ### M6 combined SI on raw RSAfull and estimated RSA0/RSA1 X-13
 
 The 29 raw RSAfull and six estimated stock X-13 fits reproduced every public dashboard verdict. The combined fixed/WK/stock replay now covers 101 SI inputs, all 594 numerical fields exact on the frozen input, and 59 fully native fits whose 354 numerical fields differ by at most 5.28e-14 scaled. The upstream 35-case stock panel contains 34 `Present` and one `ProbablyNone` verdict. [End-to-end dashboard replay](tests/test_combined_seasonality.cpp)
+
+### M6 adjusted-series residual seasonality reference
+
+Two independent JDemetra+ processes reproduced the public adjusted-series
+Qs and seasonal regression F test on 24 fitted products (four X-13 and
+four TRAMO-SEATS templates on three monthly inputs). The evidence includes
+the actual diagnostic series, the differenced and optionally centered values,
+the fitted differencing order and all 96 public statistics and probabilities.
+The capture SHA-256 is `92a579cd62fb0df24c963da965970d1a00b11cd0290adb5e1a8ec10adae152a0`.

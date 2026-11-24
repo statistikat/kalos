@@ -325,6 +325,7 @@
     "validation/fixtures/native/x11-trend-selection/weights.csv"
   ],
   "evidence": [
+    "validation/evidence/native/adjusted-seasonality/public-x86_64.txt",
     "validation/evidence/native/arma-refinement/SHA256SUMS.csv",
     "validation/evidence/native/arma-refinement/cases.csv",
     "validation/evidence/native/arma-refinement/estimation.csv",
