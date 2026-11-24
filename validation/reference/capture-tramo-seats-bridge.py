@@ -23,7 +23,7 @@ def main():
     parser.add_argument("--jar-dir", type=Path, action="append", required=True,
                         help="directory containing pinned jars (repeatable)")
     parser.add_argument("--stage", choices=["bridge", "merge", "rsa0", "rsa0-forecast-errors",
-                        "rsa0-residuals", "rsa0-ljung-box", "rsa0-doornik-hansen", "rsa1", "rsa1-level-effects", "rsa1-level-tc", "rsa1-log-tc", "rsa1-residual-diagnostics", "rsa1-forecast-errors", "rsa3", "rsa3-additional", "rsa3-mean-retry", "rsa3-mean-retry-diagnostics", "rsa3-ref-retry", "rsa3-ref-retry-wk", "rsa3-residual-diagnostics", "rsa3-forecast-errors", "rsafull", "rsafull-calendar-wk",
+                        "rsa0-residuals", "rsa0-ljung-box", "rsa0-doornik-hansen", "rsa1", "rsa1-level-effects", "rsa1-level-tc", "rsa1-log-tc", "rsa1-residual-diagnostics", "rsa1-forecast-errors", "rsa3", "rsa3-additional", "rsa3-mean-retry", "rsa3-mean-retry-diagnostics", "rsa3-ref-retry", "rsa3-ref-retry-wk", "rsa3-ref-retry-diagnostics", "rsa3-ref-retry-forecast-errors", "rsa3-residual-diagnostics", "rsa3-forecast-errors", "rsafull", "rsafull-calendar-wk",
                         "calendar-ftest", "trfull-calendar", "residual-td", "td-controller", "fast-calendar", "spectrum-cos", "seasonal-peaks", "seasonal-f", "calendar-outliers", "td-controller-outliers"], default="bridge")
     parser.add_argument("--output", type=Path, help="write a new capture instead of verifying the frozen file")
     args = parser.parse_args()
@@ -84,11 +84,11 @@ def main():
     if args.stage == "seasonal-peaks":
         probe = "TramoSeasonalPeaksProbe"
         arguments = []
-    if args.stage in {"rsa3-ref-retry", "rsa3-ref-retry-wk"}:
+    if args.stage.startswith("rsa3-ref-retry"):
         probe = "TramoRefStatsRetryProbe"
-        arguments = ["wk"] if args.stage.endswith("-wk") else []
+        arguments = [args.stage]
     sources = [HERE / (probe + ".java")]
-    if args.stage in {"rsa3-ref-retry", "rsa3-ref-retry-wk"}:
+    if args.stage.startswith("rsa3-ref-retry"):
         sources.append(HERE / "TramoSeatsBridgeProbe.java")
     if args.stage in {"trfull-calendar", "residual-td", "td-controller", "fast-calendar", "seasonal-f", "calendar-outliers", "td-controller-outliers"}:
         sources.append(HERE / "CalendarFTestProbe.java")

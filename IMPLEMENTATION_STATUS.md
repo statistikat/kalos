@@ -4594,3 +4594,6 @@ A separate two-JVM capture supplies its intermediate WK components and
 verifies all ten restored rows independently. Across both checks all
 260 restored rows and 24,360 observed and forecast values match JDemetra.
 The raw RSAfull route still requires automatic selection of these descriptions.
+### M5 public RSA3 reference-retry diagnostics and forecast evidence
+
+Independent pinned JVMs reproduced all seven public second-round or last-chance fits and independently captured their residual scales and tests, original-series forecasts and standard errors and separate WK forecast errors. The diagnostics digest is `e853ff667423e746d281986994b7af44ad59c4763a69a47786069d672a351959` and the forecast digest is `85962cf385ff57e33849904fec2b31545e45e137652199b89a999203712bd6ee`. The unchanged raw product stage also replayed twice. Native diagnostics are checked against the captured residuals and selected model parameters. End-to-end forecast comparison depends on the raw fit checkpoint. [Residual reference](validation/evidence/native/tramo-seats-bridge/rsa3-ref-retry-diagnostics-x86_64.txt) · [Forecast reference](validation/evidence/native/tramo-seats-bridge/rsa3-ref-retry-forecast-errors-x86_64.txt)

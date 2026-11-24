@@ -2,6 +2,7 @@ import java.lang.reflect.Method;
 import java.util.ArrayList;
 import jdplus.toolkit.base.core.regsarima.regular.RegSarimaModel;
 import jdplus.tramoseats.base.api.seats.SeatsModelSpec;
+import jdplus.tramoseats.base.api.tramoseats.TramoSeatsSpec;
 import jdplus.tramoseats.base.core.tramoseats.TramoSeatsKernel;
 import java.util.List;
 import jdplus.toolkit.base.api.data.DoubleSeq;
@@ -38,7 +39,7 @@ public final class TramoRefStatsRetryProbe {
         return y;
     }
 
-    static void observe(boolean wk, int seed, int profile, List<Integer> expected) throws Exception {
+    static void observe(String stage, int seed, int profile, List<Integer> expected) throws Exception {
         var data = TsData.of(TsPeriod.monthly(1990, 1), DoubleSeq.of(series(seed, profile)));
         List<Integer> rounds = new ArrayList<>();
         var kernel = TramoKernel.of(TramoSpec.TR3, new ModellingContext());
@@ -49,21 +50,26 @@ public final class TramoRefStatsRetryProbe {
         });
         if (model == null || !rounds.equals(expected)) throw new AssertionError(rounds);
         String id = "fit_ref_retry_" + seed + "_" + profile;
-        if (wk) {
+        if (stage.equals("rsa3-ref-retry-wk")) {
             Method bridge = TramoSeatsKernel.class.getDeclaredMethod("of", RegSarimaModel.class);
             bridge.setAccessible(true);
             TramoSeatsBridgeProbe.merge(id, "TR3", model, (SeatsModelSpec)bridge.invoke(null, model), 0, -2);
+        } else if (stage.equals("rsa3-ref-retry-diagnostics")) {
+            TramoSeatsBridgeProbe.residualDiagnostics(id, data, TramoSeatsSpec.RSA3);
+        } else if (stage.equals("rsa3-ref-retry-forecast-errors")) {
+            TramoSeatsBridgeProbe.forecastErrors(id, data, TramoSeatsSpec.RSA3);
         } else TramoSeatsBridgeProbe.rawAutomatic(id, data, "rsa3");
     }
 
     public static void main(String[] args) throws Exception {
-        boolean wk = args.length == 1 && args[0].equals("wk");
-        observe(wk, 0, 5, List.of(0, 1, 2, 1));
-        observe(wk, 0, 1, List.of(0, 1, 2, 1, 4));
-        observe(wk, 1, 5, List.of(0, 1, 2, 3));
-        observe(wk, 2, 0, List.of(0, 1, 2, 3));
-        observe(wk, 0, 4, List.of(0, 1, 2, 3, 1));
-        observe(wk, 17, 2, List.of(0, 1, 2, 3, 4));
-        observe(wk, 18, 2, List.of(0, 1, 2, 3, 1));
+        String stage = args.length == 0 ? "rsa3-ref-retry" : args[0];
+        if (stage.equals("wk")) stage = "rsa3-ref-retry-wk";
+        observe(stage, 0, 5, List.of(0, 1, 2, 1));
+        observe(stage, 0, 1, List.of(0, 1, 2, 1, 4));
+        observe(stage, 1, 5, List.of(0, 1, 2, 3));
+        observe(stage, 2, 0, List.of(0, 1, 2, 3));
+        observe(stage, 0, 4, List.of(0, 1, 2, 3, 1));
+        observe(stage, 17, 2, List.of(0, 1, 2, 3, 4));
+        observe(stage, 18, 2, List.of(0, 1, 2, 3, 1));
     }
 }

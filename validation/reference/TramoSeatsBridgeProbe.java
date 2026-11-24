@@ -228,7 +228,7 @@ public class TramoSeatsBridgeProbe {
 
     // Public preprocessing and seasonal-adjustment kernels receive only
     // the monthly observations and their respective standard preset.
-    private static void residualDiagnostics(String id, TsData series, TramoSeatsSpec preset) {
+    static void residualDiagnostics(String id, TsData series, TramoSeatsSpec preset) {
         var sa = TramoSeatsKernel.of(preset, new ModellingContext()).process(series, new ProcessingLog() {});
         require(sa != null, id + " residual diagnostics");
         var ser = sa.getData("residuals.ser", Double.class);
@@ -242,7 +242,7 @@ public class TramoSeatsBridgeProbe {
         }
     }
 
-    private static void forecastErrors(String id, TsData input, TramoSeatsSpec preset) {
+    static void forecastErrors(String id, TsData input, TramoSeatsSpec preset) {
         var sa = TramoSeatsKernel.of(preset, new ModellingContext()).process(input, new ProcessingLog() {});
         require(sa != null, id + " forecast errors");
         System.out.println("case " + id);
