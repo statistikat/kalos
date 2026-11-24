@@ -21,6 +21,8 @@ def main():
     parser.add_argument("--jdk", type=Path, required=True)
     parser.add_argument("--jar-dir", type=Path, action="append", required=True)
     parser.add_argument("--portable-x86", action="store_true")
+    parser.add_argument("--estimated-templates", action="store_true",
+                        help="replay the stock fixed-structure product panel")
     args = parser.parse_args()
     ref = json.loads((EVIDENCE / "reference.json").read_text())
     java = args.jdk / "bin/java"
@@ -45,6 +47,21 @@ def main():
         if not path or digest(path) != expected:
             raise SystemExit(f"Missing pinned jar or digest mismatch: {name}")
         jars.append(str(path))
+    if args.estimated_templates:
+        if not x86 or not args.portable_x86:
+            raise SystemExit("The fixed-structure panel uses the portable x86-64 profile")
+        probe = "X13FixedTemplateProbe"
+        expected = (EVIDENCE.parent / "x13-estimated-templates/templates-x86_64.txt").read_bytes()
+        with tempfile.TemporaryDirectory() as directory:
+            subprocess.run([args.jdk / "bin/javac", "--release", "21", "-cp", os.pathsep.join(jars),
+                            "-d", directory, HERE / (probe + ".java")], check=True)
+            command = [java, "-Dline.separator=\n", *options, "-cp", os.pathsep.join([directory, *jars]),
+                       probe, EVIDENCE]
+            for _ in range(2):
+                if subprocess.check_output(command) != expected:
+                    raise SystemExit("Stock fixed-structure output differs from the frozen panel")
+        print(f"Fixed-structure templates: 9 cases, two JVMs, SHA-256 {hashlib.sha256(expected).hexdigest()}")
+        return
     with (EVIDENCE / "demand.tsv").open() as source:
         expected_rows = [r for r in csv.DictReader(source, delimiter="\t") if r["profile"] == profile]
     if len(expected_rows) != 9:
