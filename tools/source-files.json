@@ -706,6 +706,8 @@
     "validation/evidence/native/x13-horizon/inputs.csv",
     "validation/evidence/native/x13-horizon/metadata.R",
     "validation/evidence/native/x13-horizon/oracle-facts.csv",
+    "validation/evidence/native/x13-nonlog-pseudo/automatic-x86_64.txt",
+    "validation/evidence/native/x13-nonlog-pseudo/fixed-x86_64.txt",
     "validation/evidence/native/x13-refusal-jvm-profiles/README.md",
     "validation/evidence/native/x13-refusal-jvm-profiles/air.csv",
     "validation/evidence/native/x13-refusal-jvm-profiles/ao.csv",

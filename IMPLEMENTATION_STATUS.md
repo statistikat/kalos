@@ -4749,3 +4749,7 @@ D7, D10, D11, D12 and D13 observation/forecast value (7,812 total) matched
 bit-for-bit. The existing rules cover these decisions without a new selector.
 The four adjacent Release CTests passed. Producing B1 from a raw fixed-
 template fit remains the independent preprocessing gate.
+
+### X-13 non-log pseudo-additive public product reference
+
+Two pinned JVM runs preserved a requested pseudo-additive mode with non-log data on two fixed and two automatic model specifications. They captured 14 X-11 and public final tables for each product, with the automatic cases exercising disabled and enabled outlier detection. The fixed capture SHA-256 is `d9192949b8803109b7f8b3873c2375df7281c9411db504d1bc5e64a07e28979e` and the automatic capture SHA-256 is `da18b09fa143471630a389cde13fa800553dca21abaf7cf938c49561c64d9eea`. [Reference captures](validation/evidence/native/x13-nonlog-pseudo)
