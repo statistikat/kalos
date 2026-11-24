@@ -38,7 +38,25 @@ public final class AdjustedSeasonalityProbe {
         }
     }
 
+    static void shortSeries() {
+        for (int n : new int[]{6, 13, 14, 15, 24, 25, 48, 96}) {
+            double[] x = new double[n];
+            for (int i = 0; i < n; ++i)
+                x[i] = (i % 12) * 24 + (i * i + 3 * i) % 19;
+            var data = TsData.ofInternal(TsPeriod.monthly(2001, 3), x);
+            var tests = jdplus.sa.base.core.diagnostics.GenericSeasonalityTests.builder()
+                .series(data).ndiff(0).mean(false).build();
+            System.out.printf("case short_%d 2001 3 0 false%n", n);
+            vector("model_scale_sa", x);
+            for (String key : new String[]{"diagnostics.seas-sa-qs", "diagnostics.seas-sa-f"}) {
+                var test = key.endsWith("qs") ? tests.qsTest() : tests.fTest();
+                System.out.println(key + (test == null ? " unavailable" : " " + bits(test.getValue()) + " " + bits(test.getPvalue())));
+            }
+        }
+    }
+
     public static void main(String[] args) throws Exception {
+        shortSeries();
         for (String id : new String[]{"air", "ao", "seas"}) {
             var lines = Files.readAllLines(Path.of(args[0], id + ".csv"));
             var start = lines.get(0).split(",");

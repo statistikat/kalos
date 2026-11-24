@@ -4873,6 +4873,11 @@ the actual diagnostic series, the differenced and optionally centered values,
 the fitted differencing order and all 96 public statistics and probabilities.
 The capture SHA-256 is `92a579cd62fb0df24c963da965970d1a00b11cd0290adb5e1a8ec10adae152a0`.
 
+Eight additional monthly series isolate finite-sample and seasonal-lag
+boundaries of the public Qs and AR seasonal regression tests. The expanded
+two-process capture has SHA-256
+`7503e03fa9e377efb36921c209605668c2c1611dd385f7fb5716e8806a594851`.
+
 ### M6 stock RSA2c public combined SI references
 
 Two pinned JVMs agreed on the public observed-D8 dashboard getter and its six test fields for each of the three raw monthly stock RSA2c X-13 products. Capture SHA-256 is `3718acbd7fad7e143eb89642e7f3a7b94d50575c4bd40b0d486caa47714a3fd3`. [Stock RSA2c references](validation/evidence/native/combined-seasonality/stock-rsa2c-x86_64.txt)
