@@ -7,7 +7,11 @@ import jdplus.x13.base.core.x13.X13Kernel;
 
 /** Compare the public automatic result getter with D8 on the observed domain. */
 public final class AutomaticCombinedSeasonalityProbe {
-    public static void main(String[] args) throws Exception {
+    interface Observer {
+        void accept(String id, TsData input, jdplus.x13.base.core.x13.X13Results fit);
+    }
+
+    static void publicProducts(String[] args, Observer observer) throws Exception {
         for (String path : args) {
             var lines = Files.readAllLines(Path.of(path));
             var settings = lines.remove(0).split(" ");
@@ -19,11 +23,17 @@ public final class AutomaticCombinedSeasonalityProbe {
             var start = lines.stream().filter(s -> s.startsWith("start ")).findFirst().orElseThrow().substring(6).split(":");
             var data = TsData.ofInternal(TsPeriod.monthly(Integer.parseInt(start[0]), Integer.parseInt(start[1])), values);
             var fit = X13Kernel.of(spec.toBuilder().x11(x11).build(), new ModellingContext()).process(data, null);
+            observer.accept(String.join("_", settings), data, fit);
+        }
+    }
+
+    public static void main(String[] args) throws Exception {
+        publicProducts(args, (id, data, fit) -> {
             var result = fit.getDecomposition();
             var si = TsData.fitToDomain(result.getD8(), data.getDomain());
-            var verdict = CombinedSeasonalityProbe.observe(String.join("_", settings), si,
+            var verdict = CombinedSeasonalityProbe.observe(id, si,
                 result.getMode().isMultiplicative(), "automatic_d8");
-            CombinedSeasonalityProbe.compare(fit.getData(CombinedSeasonalityProbe.KEY, String.class), verdict, settings[0]);
-        }
+            CombinedSeasonalityProbe.compare(fit.getData(CombinedSeasonalityProbe.KEY, String.class), verdict, id);
+        });
     }
 }

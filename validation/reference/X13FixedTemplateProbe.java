@@ -73,6 +73,10 @@ public final class X13FixedTemplateProbe {
 
     static void diagnostics(String preset, String id, jdplus.x13.base.core.x13.X13Results fit) {
         System.out.println("case " + preset + " " + id);
+        diagnostics(fit);
+    }
+
+    static void diagnostics(jdplus.x13.base.core.x13.X13Results fit) {
         var ser = fit.getData("residuals.ser", Double.class);
         if (ser == null) throw new AssertionError("residuals.ser");
         System.out.println("residuals.ser " + bits(ser));

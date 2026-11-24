@@ -5,6 +5,15 @@ is now an independent C++17 library, without R, Rcpp, Python or Java dependencie
 Sibling bindings consume pinned generated snapshots. Persephone will require
 rkalos; Python intentionally exposes only a minimal initial surface.
 
+## M6 automatic X-13 preprocessing reference
+
+Two independent pinned x86-64 JVMs reproduced the fitted model, regression
+coefficients, full dated residuals, likelihood statistics, five public residual
+test values and `y_ef` at four monthly horizons. Three stock RSA3 inputs and
+six decoder-equivalent automatic runs cover level/log, selected mixed SARIMA
+orders, estimated means, outliers and all four decomposition modes. Reproduce
+the panel with `--stage x13-automatic-diagnostics`.
+
 ## M6 stock X-13 preprocessing diagnostics and forecast errors
 
 Monthly stock RSA0, RSA1 and RSA2c now expose residual scale, independence
