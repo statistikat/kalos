@@ -11,6 +11,12 @@ import jdplus.toolkit.base.api.timeseries.regression.ModellingContext;
 import jdplus.toolkit.base.core.stats.tests.TestsUtility;
 import jdplus.tramoseats.base.api.tramoseats.TramoSeatsSpec;
 import jdplus.tramoseats.base.core.tramoseats.TramoSeatsKernel;
+import jdplus.toolkit.base.api.arima.SarimaSpec;
+import jdplus.toolkit.base.api.modelling.TransformationType;
+import jdplus.toolkit.base.api.timeseries.calendars.LengthOfPeriodType;
+import jdplus.x13.base.api.regarima.*;
+import jdplus.x13.base.api.x11.SeasonalFilterOption;
+import jdplus.x13.base.api.x11.X11Spec;
 import jdplus.x13.base.api.x13.X13Spec;
 import jdplus.x13.base.core.x13.X13Kernel;
 
@@ -69,7 +75,27 @@ public final class CombinedSeasonalityProbe {
             observe("x13_" + preset + "_" + id + suffix, si, x11.getMode().isMultiplicative(), "d8"), id);
     }
 
-    static void products(Path path, boolean retries) throws Exception {
+    static void fixed(String id, TsData data) {
+        for (var mode : new DecompositionMode[]{DecompositionMode.Additive, DecompositionMode.Multiplicative,
+                DecompositionMode.LogAdditive, DecompositionMode.PseudoAdditive}) {
+            boolean log = mode == DecompositionMode.Multiplicative || mode == DecompositionMode.LogAdditive;
+            var model = RegArimaSpec.builder().usingAutoModel(false)
+                .basic(BasicSpec.builder().preprocessing(true).build())
+                .transform(TransformSpec.builder().function(log ? TransformationType.Log : TransformationType.None)
+                    .adjust(LengthOfPeriodType.None).outliersCorrection(false).build())
+                .regression(RegressionSpec.builder().build()).outliers(OutlierSpec.DEFAULT_DISABLED)
+                .arima(SarimaSpec.builder().d(1).bd(1).buildWithoutValidation()).estimate(EstimateSpec.DEFAULT).build();
+            var x11 = X11Spec.builder().mode(mode).seasonal(true).filters(new SeasonalFilterOption[]{SeasonalFilterOption.S3X5})
+                .hendersonFilterLength(13).lowerSigma(1.5).upperSigma(2.5).forecastHorizon(0).backcastHorizon(0).build();
+            var fit = X13Kernel.of(X13Spec.builder().regArima(model).x11(x11).build(), new ModellingContext()).process(data, null);
+            var output = fit.getDecomposition();
+            if (output.getMode() != mode) throw new AssertionError("fixed X-13 decomposition mode");
+            compare(fit.getData(KEY, String.class), observe("fixed_" + mode.name() + "_" + id, output.getD8(),
+                mode.isMultiplicative(), "fixed_d8"), id);
+        }
+    }
+
+    static void products(Path path, boolean retries, boolean fixedOnly) throws Exception {
         String id = "";
         for (String line : Files.readAllLines(path)) {
             var fields = line.split(" ");
@@ -78,7 +104,9 @@ public final class CombinedSeasonalityProbe {
             var values = Arrays.stream(fields, 4, fields.length).mapToDouble(hex ->
                 Double.longBitsToDouble(Long.parseUnsignedLong(hex, 16))).toArray();
             var data = TsData.ofInternal(TsPeriod.monthly(Integer.parseInt(fields[1]), Integer.parseInt(fields[2])), values);
-            if (retries) {
+            if (fixedOnly) {
+                if (id.equals("fit_tr0_air")) fixed(id, data);
+            } else if (retries) {
                 if (id.equals("fit_ref_retry_0_5") || id.equals("fit_ref_retry_0_1")) tramo(id, data, "rsa3", TramoSeatsSpec.RSA3);
             } else {
                 tramo(id, data, "rsa0", TramoSeatsSpec.RSA0);
@@ -116,8 +144,9 @@ public final class CombinedSeasonalityProbe {
     }
 
     public static void main(String[] args) throws Exception {
+        if (args.length == 3) { products(Path.of(args[0]), false, true); return; }
         synthetic();
-        products(Path.of(args[0]), false);
-        products(Path.of(args[1]), true);
+        products(Path.of(args[0]), false, false);
+        products(Path.of(args[1]), true, false);
     }
 }
