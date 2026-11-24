@@ -1,6 +1,7 @@
 #include "kalos/combined_seasonality.hpp"
 #include "kalos/seats_extract_wk.hpp"
 #include "kalos/x13_fit.hpp"
+#include "kalos/x13_automatic.hpp"
 #include "kalos/tramo_seats_pipeline.hpp"
 #include <algorithm>
 #include <array>
@@ -30,7 +31,8 @@ struct Input {
 };
 std::map<std::string, Input> read_inputs() {
     std::map<std::string, Input> inputs;
-    for (const char* filename : {"rsa3-x86_64.txt", "rsa3-ref-retry-x86_64.txt"}) {
+    for (const char* filename : {"rsa3-x86_64.txt", "rsa3-ref-retry-x86_64.txt",
+                                 "rsafull-x86_64.txt", "rsafull-late-calendar-x86_64.txt"}) {
         std::ifstream in(std::string(KALOS_COMBINED_SI_INPUTS) + "/" + filename);
         check(in.good(), filename);
         std::string id;
@@ -40,12 +42,20 @@ std::map<std::string, Input> read_inputs() {
             row >> key;
             if (key == "case") row >> id;
             if (key != "input") continue;
-            auto& input = inputs[id];
+            const bool full_template = std::string(filename).compare(0, 7, "rsafull") == 0;
+            auto& input = inputs[full_template ? "rsafull_" + id : id];
             std::size_t n;
             row >> input.year >> input.month >> n;
             for (std::string hex; row >> hex;) input.values.push_back(decode(hex));
             check(input.values.size() == n, id + " input length");
         }
+    }
+    for (const std::string id : {"air", "ao", "seas"}) {
+        std::ifstream in(std::string(KALOS_COMBINED_X13_INPUTS) + "/" + id + ".csv");
+        auto& input = inputs["x13_" + id];
+        char comma;
+        check(static_cast<bool>(in >> input.year >> comma >> input.month) && comma == ',', id + " stock X-13 domain");
+        for (double value; in >> value;) input.values.push_back(value);
     }
     return inputs;
 }
@@ -55,7 +65,7 @@ kalos::X11DecompositionMode mode(const std::string& id, bool multiplicative) {
     return multiplicative ? kalos::X11DecompositionMode::multiplicative : kalos::X11DecompositionMode::additive;
 }
 std::optional<kalos::CombinedSiSeasonality> run_product(const std::string& id, const std::string& source,
-        bool multiplicative, const std::map<std::string, Input>& inputs) {
+        bool multiplicative, const std::map<std::string, Input>& inputs, bool stock) {
     if (source == "fixed_d8") {
         kalos::X13FitRequest request;
         request.input = inputs.at("fit_tr0_air").values;
@@ -67,6 +77,18 @@ std::optional<kalos::CombinedSiSeasonality> run_product(const std::string& id, c
         const auto fit = kalos::x13_fit(request);
         check(fit.status == "available" && fit.mode_effective == request.mode, id + " fixed mode");
         return kalos::x13_si_seasonality(fit);
+    }
+    if (stock && source == "d8") {
+        const auto& input = inputs.at("x13_" + id.substr(id.rfind('_') + 1));
+        const auto run = id.compare(0, 8, "x13_rsa0") == 0 ? kalos::x13_estimated_rsa0 : kalos::x13_estimated_rsa1;
+        const auto result = run(input.values, input.year, input.month);
+        return kalos::x13_si_seasonality(result.fit);
+    }
+    if (id.compare(0, 8, "rsafull_") == 0) {
+        const auto& input = inputs.at(id);
+        const auto fit = kalos::run_tramo_seats_rsafull(input.values, input.year, input.month);
+        check(fit.preprocessing.log == multiplicative, id + " RSAfull preprocessing transform");
+        return kalos::seats_si_seasonality(fit.decomposition.extraction.final_components(), 12, fit.preprocessing.log);
     }
     if (source.compare(0, 3, "wk_") != 0) return std::nullopt;
     const auto& input = inputs.at(id.substr(id.find('_') + 1));
@@ -97,7 +119,8 @@ int main() {
     std::vector<double> si;
     std::map<std::string, int> summaries;
     double worst = 0;
-    for (const char* path : {KALOS_COMBINED_SI_PANEL, KALOS_COMBINED_SI_FIXED}) {
+    for (const char* path : {KALOS_COMBINED_SI_PANEL, KALOS_COMBINED_SI_FIXED, KALOS_COMBINED_STOCK}) {
+      const bool stock = std::string(path) == KALOS_COMBINED_STOCK;
       std::ifstream in(path);
       check(in.good(), path);
       for (std::string line; std::getline(in, line);) {
@@ -106,8 +129,8 @@ int main() {
         row >> key;
         if (key == "case") {
             row >> id >> source >> std::boolalpha >> multiplicative;
-            product = run_product(id, source, multiplicative, inputs);
-            if (source == "fixed_d8" || source.compare(0, 3, "wk_") == 0) {
+            product = run_product(id, source, multiplicative, inputs, stock);
+            if (stock || source == "fixed_d8" || source.compare(0, 3, "wk_") == 0) {
                 check(product.has_value(), id + " native product diagnostic");
                 ++product_count;
             }
@@ -174,6 +197,6 @@ int main() {
       }
     }
     check(!kalos::seats_si_seasonality({},12,false) && !kalos::x13_si_seasonality({}), "absent components");
-    check(count == 66 && statistics == 384 && product_count == 24 && product_statistics == 144 && summaries.size() == 4, "incomplete public SI panel");
+    check(count == 101 && statistics == 594 && product_count == 59 && product_statistics == 354 && summaries.size() == 4, "incomplete public SI panel");
     std::cout << count << " combined SI cases, " << statistics << " numerical checks, maximum scaled difference " << worst << "; " << product_count << " end-to-end products, maximum scaled difference " << product_worst << "\n";
 }

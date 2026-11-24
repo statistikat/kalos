@@ -4859,3 +4859,7 @@ Across all nine RSA0/RSA1/RSA2c fits, the 126 output rows pass the existing
 ### M6 stock calendar and estimated-product dashboard references
 
 Two pinned x86-64 JVMs reproduced the public combined SI seasonality getter on all 29 raw monthly RSAfull fits and the six stock estimated X-13 RSA0/RSA1 fits. The 35 product inputs, scales, public summaries and 210 numerical fields have SHA-256 `41da1bef3242cbfd439649848c26a8de41d5fa2a021ba5d5e2aa6f98affa2005`. [Stock dashboard reference](validation/evidence/native/combined-seasonality/stock-x86_64.txt)
+
+### M6 combined SI on raw RSAfull and estimated RSA0/RSA1 X-13
+
+The 29 raw RSAfull and six estimated stock X-13 fits reproduced every public dashboard verdict. The combined fixed/WK/stock replay now covers 101 SI inputs, all 594 numerical fields exact on the frozen input, and 59 fully native fits whose 354 numerical fields differ by at most 5.28e-14 scaled. The upstream 35-case stock panel contains 34 `Present` and one `ProbablyNone` verdict. [End-to-end dashboard replay](tests/test_combined_seasonality.cpp)
