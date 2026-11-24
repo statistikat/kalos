@@ -693,6 +693,7 @@
     "validation/evidence/native/x13-automatic/metadata.R",
     "validation/evidence/native/x13-automatic/oracle-events.csv",
     "validation/evidence/native/x13-automatic/oracle-facts.csv",
+    "validation/evidence/native/x13-estimated-templates/rsa2c-calendar-x86_64.txt",
     "validation/evidence/native/x13-estimated-templates/selection-x86_64.txt",
     "validation/evidence/native/x13-estimated-templates/templates-x86_64.txt",
     "validation/evidence/native/x13-fit/SHA256SUMS.csv",

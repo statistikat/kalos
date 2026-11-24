@@ -4775,3 +4775,15 @@ The numerical table gate uses 1e-8 relative to max(1, abs(reference)).
 ### Automatic X-13 non-log pseudo-additive mode
 
 Automatic X-13 now shares the fixed route's qualified `X13Kernel.updateSpec` mode rule. On two raw non-log fits with outlier detection disabled and enabled, all 2,688 values across 14 public pseudo-additive tables matched bit-for-bit. All 4,637 historical automatic oracle comparisons, the 143 automatic surface checks and the fixed-fit suite passed alongside these new products in Release with OpenMP. [Public automatic reference](validation/evidence/native/x13-nonlog-pseudo/automatic-x86_64.txt)
+
+### M5b / 28 — stock RSA2c working-day and Easter reference
+
+The actual RSA2c kernel tests the TD2 working-day/length-of-period model
+against its absence, then compares Easter durations 1, 8 and 15 to the chosen
+model without Easter. Fifteen runs include all three original stock inputs
+and twelve deterministic inputs crossing each duration with working days
+present/absent and level/log transformations. The observer records the actual
+six candidate statistics, selected model scale, regressors and leap-year
+adjustments. Two fresh JVMs reproduced SHA-256
+`24844c19a300002c82c4a7711abb41c658d5a442f2663d30439d304d7f205e46`.
+[Public and module evidence](validation/evidence/native/x13-estimated-templates/rsa2c-calendar-x86_64.txt)
