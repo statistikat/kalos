@@ -7,6 +7,11 @@ import jdplus.toolkit.base.api.timeseries.TsData;
 import jdplus.toolkit.base.api.timeseries.TsPeriod;
 import jdplus.toolkit.base.api.timeseries.regression.ModellingContext;
 import jdplus.x13.base.api.x13.X13Spec;
+import jdplus.x13.base.api.x11.X11Spec;
+import jdplus.x13.base.core.x11.X11Kernel;
+import jdplus.x13.base.core.x11.X11Results;
+import jdplus.x13.base.core.x11.filter.AutomaticHenderson;
+import jdplus.x13.base.core.x11.filter.MsrFilterSelection;
 import jdplus.x13.base.core.x13.X13Kernel;
 
 /** Observe the public fixed-structure, estimated-coefficient monthly X-13 templates. */
@@ -31,6 +36,41 @@ public final class X13FixedTemplateProbe {
                data.getValues().toArray());
     }
 
+    static void selection(String template, String id, X11Spec requested, X11Results product, int horizon) {
+        var kernel = new X11Kernel();
+        var spec = requested.toBuilder().mode(product.getMode()).forecastHorizon(horizon).build();
+        var replay = kernel.process(product.getB1(), spec);
+        for (var pair : List.of(List.of(product.getB7(), replay.getB7()),
+                                List.of(product.getC7(), replay.getC7()),
+                                List.of(product.getD7(), replay.getD7()),
+                                List.of(product.getD10(), replay.getD10()),
+                                List.of(product.getD12(), replay.getD12()))) {
+            if (!pair.get(0).equals(pair.get(1))) throw new AssertionError("stock X11 replay " + template + "/" + id);
+        }
+        var ctx = kernel.getContext();
+        var d = kernel.getDstep();
+        System.out.println("case " + template + " " + id);
+        var inputs = List.of(kernel.getBstep().getB6(), kernel.getCstep().getC6(), d.getD6(), d.getD11bis());
+        var stages = List.of("b7", "c7", "d7", "final");
+        for (int i = 0; i < inputs.size(); ++i) {
+            double ratio = AutomaticHenderson.calcICR(ctx, inputs.get(i));
+            int length = i == 0 && ratio >= 1 ? 13 : AutomaticHenderson.selectFilter(ratio, 12);
+            if ((i == 2 && length != product.getD7HendersonFilterLength()) ||
+                (i == 3 && (length != product.getFinalHendersonFilterLength() || ratio != product.getICRatio()))) {
+                throw new AssertionError("stock Henderson selection");
+            }
+            System.out.printf("trend %s %d %s%n", stages.get(i), length, bits(ratio));
+        }
+        var selector = new MsrFilterSelection();
+        var filter = selector.doMSR(d.getD9_g_bis(), ctx);
+        if (filter != product.getD9filter() || selector.getIterCount() != d.getD9msriter()
+            || !Arrays.equals(d.getSeasFilter(), product.getFinalSeasonalFilter())) {
+            throw new AssertionError("stock MSR selection");
+        }
+        System.out.printf("msr %s %d %b %s%n", filter, selector.getIterCount(), selector.isUsingDefault(),
+                          bits(selector.getGlobalMsr()));
+    }
+
     public static void main(String[] args) throws Exception {
         Path root = Path.of(args[0]);
         for (String template : List.of("rsa0", "rsa1", "rsa2c")) {
@@ -49,6 +89,10 @@ public final class X13FixedTemplateProbe {
                 var est = model.getEstimation();
                 var stats = est.getStatistics();
                 var tables = result.getDecomposition();
+                if (args.length == 2 && args[1].equals("selection")) {
+                    selection(template, id, x11, tables, result.getData("y_f", TsData.class).length());
+                    continue;
+                }
                 var finals = result.getFinals();
                 System.out.printf("case %s %s%n", template, id);
                 System.out.printf("requested %s %d %d %d %s%n", x11.getMode(), x11.getBackcastHorizon(),

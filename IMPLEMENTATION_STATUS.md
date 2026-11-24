@@ -4713,3 +4713,13 @@ choices, original-scale forecasts, intermediate X-11 tables and final
 components. A checksum-verified Temurin 21.0.11 replay passed in two fresh
 processes. The decision ledger and native qualification gates are in
 [the item 28 contract](docs/contracts/x13-estimated-templates.md).
+
+### M5b / 28 — automatic Henderson and MSR decisions from stock fits
+
+The public stock X-13 runs supply their preadjusted B1 series to a fresh X-11
+kernel. The probe verifies matching B7, C7, D7, D10 and D12 tables against
+the end-to-end run before recording each stage's computed I/C ratio and
+Henderson length. Its independent run of the MSR selector also has to agree
+with the kernel's filter and iteration count. The nine fits supply 36 trend
+decisions and nine seasonal decisions across additive and multiplicative
+modes. [Frozen decisions](validation/evidence/native/x13-estimated-templates/selection-x86_64.txt)
