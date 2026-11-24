@@ -34,13 +34,14 @@ void compare(std::istream& input, const std::vector<double>& found, double toler
     check(i == found.size(), name + " length");
 }
 
-kalos::X13AutomaticFitResult fit(const std::string& id, int& year, int& month) {
+kalos::X13AutomaticFitResult fit(const std::string& preset, const std::string& id, int& year, int& month) {
     std::ifstream input(std::string(KALOS_X13_TEMPLATE_INPUTS) + "/" + id + ".csv");
     char comma;
     check(static_cast<bool>(input >> year >> comma >> month) && comma == ',', "input calendar");
     std::vector<double> values;
     for (double value; input >> value;) values.push_back(value);
-    return kalos::x13_estimated_rsa0(values, year, month);
+    return preset == "rsa0" ? kalos::x13_estimated_rsa0(values, year, month)
+                            : kalos::x13_estimated_rsa1(values, year, month);
 }
 } // namespace
 
@@ -50,6 +51,7 @@ int main() {
     kalos::X13AutomaticFitResult result;
     std::map<std::string, const std::vector<double>*> tables;
     bool selected = false;
+    std::size_t variable = 0;
     int cases = 0, checked_rows = 0, year = 0, month = 0;
     for (std::string line; std::getline(input, line);) {
         std::istringstream in(line);
@@ -58,9 +60,11 @@ int main() {
         if (tag == "case") {
             std::string preset;
             in >> preset >> id;
-            selected = preset == "rsa0";
+            selected = preset == "rsa0" || preset == "rsa1";
+            variable = 0;
             if (!selected) continue;
-            result = fit(id, year, month);
+            result = fit(preset, id, year, month);
+            id = preset + " " + id;
             check(result.status == "available", id + " " + result.status);
             const auto& t = result.fit;
             const auto& s = t.selection;
@@ -77,8 +81,18 @@ int main() {
             in >> std::boolalpha >> log >> mean >> p >> d >> q >> bp >> bd >> bq;
             check(result.log == log && result.mean == mean && result.p == p && result.d == d &&
                   result.q == q && result.bp == bp && result.bd == bd && result.bq == bq, id + " model");
+        } else if (selected && tag == "variable") {
+            std::string code, date, kind, effect;
+            int dimension;
+            in >> code >> date >> kind >> dimension >> effect;
+            const auto& v = result.variables.at(variable++);
+            check(v.name == code + " " + date && v.regeffect == effect && dimension == 1 &&
+                  kind == "AdditiveOutlier" && v.type == kalos::OutlierType::Additive, id + " outlier");
         } else if (selected && tag == "coefficients") {
-            check(result.variables.empty() && in.peek() == std::char_traits<char>::eof(), id + " regressors");
+            std::vector<double> coefficients;
+            for (const auto& v : result.variables) coefficients.push_back(v.coefficient);
+            check(variable == coefficients.size(), id + " variables");
+            compare(in, coefficients, 1e-8, id + " regressors");
         } else if (selected && tag == "arma") {
             compare(in, {result.coefficients[1].at(0), result.coefficients[3].at(0)}, 0.0, id + " ARIMA");
         } else if (selected && tag == "selected") {
@@ -86,7 +100,9 @@ int main() {
             int d7, last;
             in >> mode >> d7 >> last >> filter;
             const auto& s = result.fit.selection;
-            check(mode == "Additive" && result.fit.mode_effective == kalos::X11DecompositionMode::additive &&
+            const bool additive = result.fit.mode_effective == kalos::X11DecompositionMode::additive;
+            const bool multiplicative = result.fit.mode_effective == kalos::X11DecompositionMode::multiplicative;
+            check(((mode == "Additive" && additive) || (mode == "Multiplicative" && multiplicative)) &&
                   s.d7.length == d7 && s.final.length == last && filter.size() == 4 &&
                   s.msr.selected_filter == std::stoi(filter.substr(3)), id + " X-11 decisions");
         } else if (selected && tables.count(tag)) {
@@ -101,6 +117,6 @@ int main() {
             ++checked_rows;
         }
     }
-    check(cases == 3 && checked_rows == 42, "incomplete stock RSA0 reference");
-    std::cout << cases << " stock RSA0 fits, " << checked_rows << " dated table rows\n";
+    check(cases == 6 && checked_rows == 84, "incomplete stock RSA0/RSA1 reference");
+    std::cout << cases << " stock RSA0/RSA1 fits, " << checked_rows << " dated table rows\n";
 }

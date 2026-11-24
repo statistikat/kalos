@@ -286,7 +286,7 @@ class AutomaticPipeline {
     model_.desc = Description{};  // log=false, mean=false, (0,1,1)(0,1,1)
     // Stock RSA0 goes straight from the fixed airline description to the
     // final estimator. Its outlier factory list and regression design are empty.
-    if (fixed_structure) {
+    if (fixed_structure && !request_.outliers_used) {
       stage_ = "final estimation";
       estimate_final_parameters();
       stage_ = "final";
@@ -299,7 +299,7 @@ class AutomaticPipeline {
                             : default_critical_value(y_.size());
     curva_ = va0_;
     need_outliers_ = request_.outliers_used;
-    need_auto_modelling_ = true;  // autoModel != null for this kind
+    need_auto_modelling_ = !fixed_structure;
     {
       AutoDecisionRecord entry;
       entry.stage = "init";
@@ -343,8 +343,13 @@ class AutomaticPipeline {
       }
     }
 
-    // isAutoModelling() is always true for this kind: the non-auto branch
-    // (finalEstimator.estimate + build) is unreachable here.
+    if (fixed_structure) {
+      stage_ = "final estimation";
+      estimate_final_parameters();
+      stage_ = "final";
+      build_result();
+      return;
+    }
     stage_ = "estimation";
     estimate_if_needed();
     reference_ = std::make_unique<Modelling>(model_);
@@ -2137,13 +2142,8 @@ X13AutomaticFitResult fit_monthly(const X13AutomaticRequest& request, bool fixed
   return out;
 }
 
-}  // namespace
-
-X13AutomaticFitResult x13_automatic_fit(const X13AutomaticRequest& request) {
-  return fit_monthly(request, false);
-}
-
-X13AutomaticFitResult x13_estimated_rsa0(const std::vector<double>& observations, int year, int month) {
+X13AutomaticFitResult fit_stock_airline(const std::vector<double>& observations,
+                                        int year, int month, bool detect_outliers) {
   if (year < 1 || year > 9999)
     throw std::invalid_argument("estimated X-13 requires a start year between 1 and 9999");
   X13AutomaticRequest spec{};
@@ -2152,10 +2152,32 @@ X13AutomaticFitResult x13_estimated_rsa0(const std::vector<double>& observations
   spec.first_period = month;
   spec.precision = 1e-7;
   spec.tcrate = 0.7;
+  spec.outliers_used = detect_outliers;
+  if (detect_outliers) {
+    spec.aicc_log_correction = -2.;
+    spec.outlier_types = {OutlierType::Additive, OutlierType::LevelShift,
+                          OutlierType::TransitoryChange};
+    spec.outlier_max_round = 30;
+    spec.outlier_max_outliers = 30;
+  }
   spec.seasonal.assign(12, X11SeasonalRequest::msr);
   spec.sigma = X11SigmaPolicy::legacy;
   spec.forecast = -1;
   return fit_monthly(spec, true);
+}
+
+}  // namespace
+
+X13AutomaticFitResult x13_automatic_fit(const X13AutomaticRequest& request) {
+  return fit_monthly(request, false);
+}
+
+X13AutomaticFitResult x13_estimated_rsa0(const std::vector<double>& observations, int year, int month) {
+  return fit_stock_airline(observations, year, month, false);
+}
+
+X13AutomaticFitResult x13_estimated_rsa1(const std::vector<double>& observations, int year, int month) {
+  return fit_stock_airline(observations, year, month, true);
 }
 
 }  // namespace kalos

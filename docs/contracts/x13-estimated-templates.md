@@ -70,3 +70,13 @@ of 1, 8 and 15 days. A strict improvement in AICc selects an alternative.
 The shared monthly airline optimizer estimates each distinct candidate.
 The selected model-scale series, dated design and forward/reverse leap
 factors are available for the later outlier and forecast stages.
+
+## Native RSA1 entry
+
+`x13_estimated_rsa1(observations, year, month)` selects log or level with
+the stock AICc correction of −2 and scans for additive outliers, level
+shifts and transitory changes on the selected scale. Its airline orders
+stay fixed. It estimates the final model and returns the same X-11 product
+and one-year extension as RSA0. On the three reference series, all six
+moving-average coefficients, the selected transformation, the dated outlier
+and both Henderson and MSR decisions match the public JDemetra+ fits.

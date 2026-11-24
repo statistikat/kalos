@@ -4802,3 +4802,13 @@ subsequent outlier and final estimation stages.
 ### M6 automatic-X-13 dashboard references
 
 Six independently replayed decoder-equivalent automatic X-13 requests now provide public combined SI seasonality decisions on observed D8, including all four effective decomposition modes, non-log pseudo-additive data and extended 3-backcast/6-forecast domains. Two independent x86-64 JVMs emitted the identical reference SHA-256 `31a78037cafc4e7f1076a3520f4dac4aed9cb774a545778f362df03f5e9aaaaa`. [Public automatic product reference](validation/evidence/native/combined-seasonality/automatic-x13-x86_64.txt)
+
+### M5b stock RSA1 native fit
+
+The raw monthly RSA1 entry selected log on AirPassengers and the January
+1994 outlier series, and level on the seasonal input. It detected the
+January additive outlier and reproduced all six fitted moving-average
+coefficients bit-for-bit. The three public modes, both Henderson selections,
+MSR decisions and 42 dated rows of observed, extended and forecast products
+passed the same gate used for RSA0. The serial sanitizer replay passed both
+the combined stock template test and the existing fixed-coefficient fit test.
