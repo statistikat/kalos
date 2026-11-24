@@ -4905,6 +4905,24 @@ boundaries of the public Qs and AR seasonal regression tests. The expanded
 two-process capture has SHA-256
 `7503e03fa9e377efb36921c209605668c2c1611dd385f7fb5716e8806a594851`.
 
+### M6 native adjusted-series Qs and seasonal F diagnostics
+
+All 96 public statistics and probabilities matched bit-for-bit on the
+model-scale adjusted observations of 24 stock products. Eight direct
+monthly probes covered positive seasonal autocorrelation and the difference
+between an absent and an undefined F test. On 16 fits executed from raw
+observations the largest scaled discrepancy was 2.51e-13. The seasonal
+input shared by the fixed-order X-13 probes exposed a SEATS extraction
+failure on its TR3 and TRfull fits. The native preprocessing selected the
+same parameters as JDemetra+ on that input. The WK extraction remains open.
+Five adjacent Release CTests and three serial ASan/UBSan tests passed.
+
+The native helpers use the initial WK adjusted component and the observed
+D11. The browser release check on macOS also opened both the calendar and
+automatic TRAMO reports from the installed application and verified the
+original/SA/trend plot, forecast overlay, residual p-values and combined SI
+verdict. Application delivery of the separate Qs/F fields follows its R pin.
+
 ### M6 stock RSA2c public combined SI references
 
 Two pinned JVMs agreed on the public observed-D8 dashboard getter and its six test fields for each of the three raw monthly stock RSA2c X-13 products. Capture SHA-256 is `3718acbd7fad7e143eb89642e7f3a7b94d50575c4bd40b0d486caa47714a3fd3`. [Stock RSA2c references](validation/evidence/native/combined-seasonality/stock-rsa2c-x86_64.txt)

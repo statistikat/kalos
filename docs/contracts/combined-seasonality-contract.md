@@ -9,3 +9,18 @@ The all-years `diagnostics.seas-si-combined` getter reports `Present`, `Probably
 `x13_si_seasonality` reads the public D8 table over the observation interval, excluding backcasts and forecasts. Log-additive D8 is exponentiated on export. The combined test treats log-additive and multiplicative modes as multiplicative, and pseudo-additive and additive modes as additive.
 
 The two-JVM fixtures cover short and off-cycle series, tied observations, all verdicts, and public X-13 and TRAMO product getters. [Numerical and product qualification](../../tests/test_combined_seasonality.cpp)
+
+## Residual seasonality of the adjusted series
+
+`monthly_adjusted_seasonality` computes the public all-years monthly Qs
+and seasonal F tests on the model-scale adjusted observations. The fitted
+preprocessing model supplies the ordinary difference count `d + bd` and
+its mean flag. X-13 uses the observed portion of public D11, logged in
+multiplicative and log-additive modes. TRAMO-SEATS uses the stochastic
+adjusted series from the initial Wiener–Kolmogorov extraction.
+
+Qs uses positive seasonal autocorrelations at lags 12 and 24. The F test
+regresses the stationary response on a constant, one lag and eleven
+seasonal contrasts. Within the observed panel, fewer than 14 stationary
+observations give an absent F test. At exactly 14 the saturated model
+returns undefined statistics. The results expose each test independently.

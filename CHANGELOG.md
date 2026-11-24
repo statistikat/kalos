@@ -151,3 +151,5 @@
 
 Preserved the delivered Kalos numerical scope through 22b.2.
 See IMPLEMENTATION_STATUS.md for repository-specific work and qualification.
+
+- Compute the public monthly adjusted-series Qs and seasonal F diagnostics from observed X-13 D11 and initial SEATS components.
