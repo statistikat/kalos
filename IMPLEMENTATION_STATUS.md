@@ -4798,3 +4798,7 @@ working-day and Easter decisions and 8,304 estimation-scale observations,
 extended design columns and forward/reverse February factors match bit-for-bit.
 The available API supplies the retained calendar and model scale to the
 subsequent outlier and final estimation stages.
+
+### M6 automatic-X-13 dashboard references
+
+Six independently replayed decoder-equivalent automatic X-13 requests now provide public combined SI seasonality decisions on observed D8, including all four effective decomposition modes, non-log pseudo-additive data and extended 3-backcast/6-forecast domains. Two independent x86-64 JVMs emitted the identical reference SHA-256 `31a78037cafc4e7f1076a3520f4dac4aed9cb774a545778f362df03f5e9aaaaa`. [Public automatic product reference](validation/evidence/native/combined-seasonality/automatic-x13-x86_64.txt)

@@ -1,5 +1,6 @@
 """Replay fitted-model, public RSA0, and calendar references in two fresh JVMs."""
 import argparse
+import csv
 import hashlib
 import json
 import os
@@ -24,7 +25,7 @@ def main():
                         help="directory containing pinned jars (repeatable)")
     parser.add_argument("--stage", choices=["bridge", "merge", "rsa0", "rsa0-forecast-errors",
                         "rsa0-residuals", "rsa0-ljung-box", "rsa0-doornik-hansen", "rsa1", "rsa1-level-effects", "rsa1-level-tc", "rsa1-log-tc", "rsa1-residual-diagnostics", "rsa1-forecast-errors", "rsa3", "rsa3-additional", "rsa3-mean-retry", "rsa3-mean-retry-diagnostics", "rsa3-ref-retry", "rsa3-ref-retry-wk", "rsa3-ref-retry-diagnostics", "rsa3-ref-retry-forecast-errors", "rsa3-residual-diagnostics", "rsa3-forecast-errors", "rsafull", "rsafull-calendar-effect", "rsafull-calendar-wk", "rsafull-residual-diagnostics", "rsafull-forecast-errors", "rsafull-reference", "rsafull-late-calendar", "rsafull-late-calendar-effect", "rsafull-late-forecast-errors", "rsafull-late-residual-diagnostics", "rsafull-late-wk",
-                        "combined-seasonality", "combined-seasonality-fixed", "calendar-ftest", "trfull-calendar", "residual-td", "td-controller", "fast-calendar", "spectrum-cos", "seasonal-peaks", "seasonal-f", "calendar-outliers", "td-controller-outliers"], default="bridge")
+                        "combined-seasonality", "combined-seasonality-fixed", "combined-seasonality-automatic", "calendar-ftest", "trfull-calendar", "residual-td", "td-controller", "fast-calendar", "spectrum-cos", "seasonal-peaks", "seasonal-f", "calendar-outliers", "td-controller-outliers"], default="bridge")
     parser.add_argument("--output", type=Path, help="write a new capture instead of verifying the frozen file")
     args = parser.parse_args()
     reference = json.loads((EVIDENCE / "reference.json").read_text())
@@ -65,7 +66,9 @@ def main():
     if args.stage.startswith("combined-seasonality"):
         if arch not in {"x86_64", "amd64"}:
             raise SystemExit("combined seasonality uses the pinned x86-64 numerical profile")
-        output_name = "../combined-seasonality/" + ("fixed-x13" if args.stage.endswith("-fixed") else "public") + "-x86_64.txt"
+        names = {"combined-seasonality": "public", "combined-seasonality-fixed": "fixed-x13",
+                 "combined-seasonality-automatic": "automatic-x13"}
+        output_name = "../combined-seasonality/" + names[args.stage] + "-x86_64.txt"
         x13 = json.loads((EVIDENCE.parent / "x13-refusal-jvm-profiles/reference.json").read_text())
         pins.update({name: digest for name, digest in x13["jars"].items()
                      if name.startswith(("jdplus-x13-base-api-", "jdplus-x13-base-core-"))})
@@ -108,6 +111,20 @@ def main():
     if args.stage == "calendar-outliers":
         sources.append(EVIDENCE.parent / "tramo-outlier-rounds/Scratch23g.java")
     with tempfile.TemporaryDirectory() as directory:
+        if args.stage == "combined-seasonality-automatic":
+            sources.extend([HERE / "X13AutomaticProbe.java", HERE / "AutomaticCombinedSeasonalityProbe.java"])
+            probe = "AutomaticCombinedSeasonalityProbe"
+            inputs = {}
+            with (EVIDENCE.parent / "x13-automatic/inputs.csv").open(newline="") as stream:
+                for row in csv.DictReader(stream):
+                    inputs.setdefault(row["id"], []).append(row["line"])
+            arguments = []
+            for cid, mode, nb, nf in [("quick", "Undefined", 0, 0), ("ao", "Undefined", 0, 0),
+                    ("mode_logadd", "LogAdditive", 3, 6), ("mode_pseudo", "PseudoAdditive", 3, 6),
+                    ("quick", "PseudoAdditive", 0, 0), ("noout", "PseudoAdditive", 3, 6)]:
+                request = Path(directory) / f"request-{len(arguments)}.txt"
+                request.write_text("\n".join([f"{cid} {mode} {nb} {nf}", *inputs[cid]]) + "\n")
+                arguments.append(request)
         subprocess.run([args.jdk / "bin/javac", "--release", "21", "-cp", os.pathsep.join(jars),
                         "-d", directory, *sources], check=True)
         command = [java, "-Dline.separator=\n", "-XX:+UnlockDiagnosticVMOptions", "-XX:DisableIntrinsic=_dexp,_dlog",

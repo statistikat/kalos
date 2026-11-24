@@ -337,6 +337,7 @@
     "validation/evidence/native/calendar-generation/gen.out",
     "validation/evidence/native/calendar-generation/gen2.out",
     "validation/evidence/native/calendar-generation/metadata.R",
+    "validation/evidence/native/combined-seasonality/automatic-x13-x86_64.txt",
     "validation/evidence/native/combined-seasonality/fixed-x13-x86_64.txt",
     "validation/evidence/native/combined-seasonality/public-x86_64.txt",
     "validation/evidence/native/decompose-ucarima/SHA256SUMS.csv",
