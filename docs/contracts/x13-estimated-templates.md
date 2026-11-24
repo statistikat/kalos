@@ -80,3 +80,11 @@ stay fixed. It estimates the final model and returns the same X-11 product
 and one-year extension as RSA0. On the three reference series, all six
 moving-average coefficients, the selected transformation, the dated outlier
 and both Henderson and MSR decisions match the public JDemetra+ fits.
+
+The stock result includes the concentrated log likelihood, effective
+observation count, estimated parameter count, residual sum of squares and
+full model residuals. The residual calendar starts after regular and seasonal
+differencing (13 observations for an airline model). Without regressors the
+public model returns the concentrated likelihood innovations. With estimated
+regressors it removes their fitted effects from the transformed levels,
+differences the adjusted series and filters it through the fitted ARMA.

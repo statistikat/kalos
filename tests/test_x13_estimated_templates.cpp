@@ -52,7 +52,7 @@ int main() {
     std::map<std::string, const std::vector<double>*> tables;
     bool selected = false;
     std::size_t variable = 0;
-    int cases = 0, checked_rows = 0, year = 0, month = 0;
+    int cases = 0, checked_rows = 0, likelihoods = 0, residuals = 0, year = 0, month = 0;
     for (std::string line; std::getline(input, line);) {
         std::istringstream in(line);
         std::string tag;
@@ -92,9 +92,26 @@ int main() {
             std::vector<double> coefficients;
             for (const auto& v : result.variables) coefficients.push_back(v.coefficient);
             check(variable == coefficients.size(), id + " variables");
-            compare(in, coefficients, 1e-8, id + " regressors");
+            compare(in, coefficients, 0., id + " regressors");
         } else if (selected && tag == "arma") {
             compare(in, {result.coefficients[1].at(0), result.coefficients[3].at(0)}, 0.0, id + " ARIMA");
+        } else if (selected && tag == "likelihood") {
+            std::size_t effective, estimated;
+            in >> effective >> estimated;
+            const auto& stats = result.stock_likelihood.value();
+            check(effective == result.effective_observations && estimated == stats.estimated_parameters,
+                  id + " likelihood dimensions");
+            compare(in, {result.log_likelihood, stats.residual_ssq}, 0., id + " likelihood");
+            ++likelihoods;
+        } else if (selected && tag == "residuals") {
+            int start_year, start_month, n;
+            in >> start_year >> start_month >> n;
+            const auto& values = result.stock_likelihood.value().full_residuals;
+            check(n == static_cast<int>(values.size()) &&
+                  (start_year - year)*12 + start_month - month == result.d + 12*result.bd,
+                  id + " residual dates");
+            compare(in, values, 0., id + " residuals");
+            residuals += n;
         } else if (selected && tag == "selected") {
             std::string mode, filter;
             int d7, last;
@@ -105,6 +122,17 @@ int main() {
             check(((mode == "Additive" && additive) || (mode == "Multiplicative" && multiplicative)) &&
                   s.d7.length == d7 && s.final.length == last && filter.size() == 4 &&
                   s.msr.selected_filter == std::stoi(filter.substr(3)), id + " X-11 decisions");
+            char bracket;
+            check(static_cast<bool>(in >> bracket) && bracket == '[', id + " filter list");
+            for (std::size_t i = 0; i < s.d.seas_filter.size(); ++i) {
+                std::string item;
+                const char separator = i + 1 == s.d.seas_filter.size() ? ']' : ',';
+                in >> std::ws;
+                check(static_cast<bool>(std::getline(in, item, separator)) &&
+                      item == "S3X" + std::to_string(s.d.seas_filter[i]), id + " monthly filter");
+            }
+            check(s.d.seas_filter.size() == 12 && in.peek() == std::char_traits<char>::eof(),
+                  id + " filter count");
         } else if (selected && tables.count(tag)) {
             int start_year, start_month, n;
             in >> start_year >> start_month >> n;
@@ -117,6 +145,6 @@ int main() {
             ++checked_rows;
         }
     }
-    check(cases == 6 && checked_rows == 84, "incomplete stock RSA0/RSA1 reference");
+    check(cases == 6 && checked_rows == 84 && likelihoods == 6 && residuals == 594, "incomplete stock RSA0/RSA1 reference");
     std::cout << cases << " stock RSA0/RSA1 fits, " << checked_rows << " dated table rows\n";
 }

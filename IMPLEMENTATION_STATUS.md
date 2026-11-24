@@ -4812,3 +4812,12 @@ coefficients bit-for-bit. The three public modes, both Henderson selections,
 MSR decisions and 42 dated rows of observed, extended and forecast products
 passed the same gate used for RSA0. The serial sanitizer replay passed both
 the combined stock template test and the existing fixed-coefficient fit test.
+
+### M5b stock X-13 likelihood and innovations
+
+All 594 dated public residuals on the three RSA0 and three RSA1 fits
+match the two-JVM capture bit-for-bit. The effective sample sizes, parameter
+counts, unadjusted likelihoods, residual sums of squares and the estimated
+January 1994 AO coefficient also match exactly. The six fits still pass all
+84 public table rows at 1e-8 and all 72 monthly final filter decisions.
+Three serial Release and two ASan/UBSan CTests passed.
