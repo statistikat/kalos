@@ -70,7 +70,7 @@ below was read from the committed manifests (`SHA256SUMS.csv`,
 | 26 | Adjusted-series residual seasonality diagnostics (Qs / seasonal F) | `arma_diagnostics.hpp` Qs + seasonal-F helpers over fitted products | `adjusted-seasonality` | Double-JVM ("Two independent JDemetra+ processes"; short-sample extension independently replayed at its existing SHA) | `public-x86_64.txt` `7503e03fa9e3` (extended capture; first capture `92a579cd62fb` in status) | `test_adjusted_seasonality` / `test-native-adjusted-seasonality.R` / — |
 | 27 | Combined SI seasonality diagnostic | `combined_seasonality.hpp` | `combined-seasonality` (public / fixed-x13 / automatic / stock / stock-rsa2c) | Double-JVM on all five panels (status cites two independent JVMs + a capture SHA per panel) | `public-x86_64.txt` `fcad11cf3be6`; `stock-x86_64.txt` `41da1bef3242`; `fixed-x13-x86_64.txt` `d2c629a23b68` | `test_combined_seasonality`, `test_x13_automatic_oracle` / `test-native-combined-seasonality.R`, `test-native-x13-automatic.R` / `test_combined_seasonality.py` |
 | 28 | Residual trading-day dashboard tests | residual TD test (`tramo_calendar_f_test.hpp`) + public getter replay | `residual-trading-days` (+ `tramo-calendar-ftest/residual-td.txt`) | Double-JVM capture ("Two independent pinned x86 JVMs", per-product MA(1) witnesses) | `public-x86_64.txt` `e3316fdeec37` | `test_tramo_calendar_f_test` (replays `residual-td.txt`; the dashboard `public-x86_64.txt` capture is frozen, native wiring pending — see caveats) / vendored-only / — |
-| 29 | Public preprocessing diagnostics + forecast uncertainty (RSA0/1/3/full, automatic X-13) | `arma_diagnostics.hpp` (Ljung–Box, Doornik–Hansen via portable StrictMath path), `monthly_tramo_residual_ljung_box`, `tramo_tr1_forecast_errors`, `tramo_tr3_forecast_errors`, `tramo_selected_forecast_errors` | `tramo-seats-bridge` (`rsa0-ljung-box`, `rsa0-doornik-hansen`, `rsa*-residual-diagnostics`, `rsa*-forecast-errors`, `rsafull-*`), `x13-automatic-diagnostics`, `tramo-seats-bridge` diagnostics dirs | Double-JVM on every panel (nine stock X-13 fits: "Two independent pinned x86-64 JVM processes produced identical …"; RSA3/4th-pass/retry/RSAfull captures with recorded SHAs); JVM math-flag domain | `rsa0-doornik-hansen-x86_64.txt` family pinned in `SHA256SUMS.csv`; RSA3 diag `3811bf5c301e`, fast-mean-retry diag `afd4385d7096`, RSA3 forecast `a1b77b26c7d8` | `test_arma_diagnostics`, `test_tramo_seats_rsa0`, `test_tramo_seats_automatic`, `test_tramo_selected_model`, `test_x13_estimated_templates` / `test-native-tramoseats-{ljung-box,normality,residuals,forecast-errors}.R` / `test_tramoseats_fit.py` |
+| 29 | Public preprocessing diagnostics + forecast uncertainty (RSA0/1/3/full, automatic X-13) | `arma_diagnostics.hpp` (Ljung–Box, Doornik–Hansen via portable StrictMath path), `monthly_tramo_residual_ljung_box`, `x13_automatic_residual_diagnostics` (automatic-route surface, bridge-domain DH via `tramo_residual_normality`, 2026-11-24), `tramo_tr1_forecast_errors`, `tramo_tr3_forecast_errors`, `tramo_selected_forecast_errors` | `tramo-seats-bridge` (`rsa0-ljung-box`, `rsa0-doornik-hansen`, `rsa*-residual-diagnostics`, `rsa*-forecast-errors`, `rsafull-*`), `x13-automatic-diagnostics`, `tramo-seats-bridge` diagnostics dirs | Double-JVM on every panel (nine stock X-13 fits: "Two independent pinned x86-64 JVM processes produced identical …"; RSA3/4th-pass/retry/RSAfull captures with recorded SHAs); JVM math-flag domain | `rsa0-doornik-hansen-x86_64.txt` family pinned in `SHA256SUMS.csv`; RSA3 diag `3811bf5c301e`, fast-mean-retry diag `afd4385d7096`, RSA3 forecast `a1b77b26c7d8` | `test_arma_diagnostics`, `test_tramo_seats_rsa0`, `test_tramo_seats_automatic`, `test_tramo_selected_model`, `test_x13_estimated_templates`, `test_x13_automatic_diagnostics` (nine-case `x13-automatic-diagnostics` replay, bit-exact) / `test-native-tramoseats-{ljung-box,normality,residuals,forecast-errors}.R` / `test_tramoseats_fit.py` |
 | 30 | ARMA likelihood / information / residuals / interpolation / forecast kernels (state-space core) | `arma_objective.hpp`, `arma_information.hpp`, `arma_residuals.hpp`, `forecast_information.hpp`, `interpolation_information.hpp`, `prediction_moments.hpp`, `diffuse_state_space.hpp` | `fixtures/*-oracle.R` + `reference/information/2026-11-14-*` matrices; JVM goldens `reference/{arma_diagnostics,check_roots,special_functions}_golden.txt` | **Independent R reference oracles — no JVM oracle exists for these kernels** (deliberately slow dense-Gaussian / independent implementations, e.g. `arma-residual-oracle.R`); the JVM-backed pieces are the three goldens, captured twice byte-identical across processes with `_dexp/_dlog` intrinsics disabled (JVM-flag domain) | `oracle-manifest.R` sha `a2394411ca58` (fixture pin); `arma_diagnostics_golden.txt`, `check_roots_golden.txt`, `special_functions_golden.txt` (584 / 1637 / 2261 rows, all bit-exact) | `test_arma_residuals`, `test_legacy_arma_residuals`, `test_arma_objective`, `test_information`, `test_arma_information`, `test_forecast_information`, `test_forecast_arma_information`, `test_interpolation_information`, `test_interpolation_arma_information`, `test_joint_regression_information`, `test_regression_information`, `test_residual_information`, `test_prediction_moments`, `test_diffuse_state_space`, `test_state_space`, `test_regression_likelihood`, `test_arma_diagnostics`, `test_final_estimator`, `test_special_functions` / `test-native-{arma-residuals,legacy-residuals,arma-objective,information,likelihood,fixed-likelihood,forecast-arma,interpolation,interpolation-arma,joint-information,regression-information,tramo-information,tramo-legacy,prediction-moments,diffuse}.R` / `test_estimation.py` |
 
 ## Coverage summary
@@ -118,15 +118,21 @@ below was read from the committed manifests (`SHA256SUMS.csv`,
    the pinned JVM are ground truth (CI-FDLIBM entry), not host libm. ARM64
    JVM output legitimately differs (fitted coefficients) and is reproduced
    only through the flag-disabled x86-64 run.
-4. **Frozen oracles awaiting native wiring.** Two public captures are
-   double-JVM-frozen but have no test reading them yet:
-   `x13-automatic-diagnostics/public-x86_64.txt` (six decoder-equivalent
-   automatic X-13 diagnostic runs) and
+4. **Frozen oracle awaiting native wiring.** One public capture remains
+   double-JVM-frozen without a test reading it:
    `residual-trading-days/public-x86_64.txt` (48 residual TD getters). The
-   capabilities themselves are replay-backed via rows 25/28/29 panels
-   (`residual-td.txt`, bridge diagnostics, `x13-estimated-templates`
-   diagnostics); the two files are surplus public-dashboard references, not
-   gaps in capability backing.
+   capability is replay-backed via rows 25/28 panels (`residual-td.txt`,
+   bridge diagnostics); the file is a surplus public-dashboard reference, not
+   a gap in capability backing. `x13-automatic-diagnostics/public-x86_64.txt`
+   left this list on 2026-11-24: `test_x13_automatic_diagnostics` replays all
+   nine cases bit-exact through the new public automatic-route surface
+   (`x13_automatic_residual_diagnostics`). Note the measured flag-domain
+   split this wiring pinned: that capture ran the two-flag bridge profile, so
+   its Doornik–Hansen words match the `tramo_residual_normality` arm (pow on
+   the JVM intrinsic path, the bridge precedent of row 29's TRAMO panels),
+   while the byte-identical `x13-estimated-templates` stock RSA1 rows ran the
+   six-flag refusal profile and pin `portable_residual_normality`
+   (StrictMath pow); the two consumers mirror their own capture domains.
 5. **Platform evidence outside this package.** Hosted Windows/macOS CI lanes,
    the standalone Windows qualification job and all wheel/bundle deliveries
    are maintainer-side infrastructure; their artifacts (e.g. the Windows
@@ -138,7 +144,8 @@ below was read from the committed manifests (`SHA256SUMS.csv`,
 No delivered capability was found with **zero** evidence backing — every
 family above has at least an independent (analytic/R-oracle or pinned-JVM)
 reference, and the four bounded-scope items above (fast-tier root bits,
-pre-policy X-11 fixtures, flag-domain claims, two unwired frozen panels) are
+pre-policy X-11 fixtures, flag-domain claims, one unwired frozen panel since
+the 2026-11-24 automatic-diagnostics wiring) are
 the complete list of qualification weaknesses. Vendored-but-not-replayed
 corpora (rows 2–4, 21–23 in rkalos) are a packaging property of the bindings,
 not missing kalos coverage: each replays bit-exactly in the kalos suite.

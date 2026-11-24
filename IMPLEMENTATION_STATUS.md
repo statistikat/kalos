@@ -5,6 +5,34 @@ is now an independent C++17 library, without R, Rcpp, Python or Java dependencie
 Sibling bindings consume pinned generated snapshots. Persephone will require
 rkalos; Python intentionally exposes only a minimal initial surface.
 
+## M7 — automatic X-13 public residual diagnostics (item 27 cutover gap) — 2026-11-24
+
+The automatic X-13 route now publishes the public residual surface of the
+frozen double-JVM oracle `validation/evidence/native/x13-automatic-diagnostics/
+public-x86_64.txt`: every available automatic fit computes the model-generic
+final-model likelihood at fit completion and the new public accessor
+`kalos::x13_automatic_residual_diagnostics` serves the residuals /
+residuals.ser / residuals.lb / residuals.doornikhansen getters for arbitrary
+selected models. The estimated-route guard, consumer and landing_fit
+coefficient echo are untouched. The new `test_x13_automatic_diagnostics`
+replays all nine oracle cases BIT-exact - residual series (dates, counts,
+every word), ser, Ljung-Box statistic/p/df and Doornik-Hansen - the
+22.0/21.0/20.0 df annotations pinning the degrees-of-freedom mirror to the
+fitted regular+seasonal ARMA parameter count through the (0,1,1)(0,1,1),
+(1,0,1)(0,1,1) and (2,0,1)(0,1,1) landings; the three stock RSA3 blocks ride
+the decoder-equivalent RSA3 request (the golden ao spec over the bit-
+identical CSV inputs, its ao block byte-identical to the ao_Undefined_0_0
+automatic panel) and the AirPassengers fit reproduces the frozen stock
+consumer across the estimated route bit-exactly. The replay pinned a capture-
+domain split for Doornik-Hansen: this bridge-profile capture matches the
+`tramo_residual_normality` arm (pow on the JVM intrinsic path) where the
+byte-identical residual series in the six-flag `x13-estimated-templates`
+panel pins `portable_residual_normality` (air value ...a962 vs ...a97e) -
+each accessor mirrors its own capture domain, as the TRAMO bridge panels
+already did. Suite 94 → 95 CTests (Release OpenMP-2 required-OpenMP lane and
+serial ASan/UBSan lane green); the two file-level `y_ef` forecast rows stay
+with the forecast-error surface.
+
 ## M7 — Capability evidence package (item 27) — 2026-11-24
 
 The final evidence package for the default-backend cutover review is
