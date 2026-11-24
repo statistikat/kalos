@@ -98,15 +98,37 @@ WkReference read_wk_reference() {
     return wk;
 }
 
-void compare(const Reference& ref, const WkReference& wk) {
-    auto fit = kalos::refit_tramo_selected_model(ref.series, ref.year, ref.month, ref.orders, ref.log, ref.mean,
-                                                 ref.calendar, ref.outliers);
-    check(fit.status == "available" && fit.final_model_computed, "fit status");
+void compare_fit(const Reference& ref, const kalos::TramoFitResult& fit) {
+    check(fit.log == ref.log && fit.mean == ref.mean, "transformation or mean");
+    const auto& o = fit.orders;
+    const auto& r = ref.orders;
+    check(o.p == r.p && o.d == r.d && o.q == r.q && o.bp == r.bp && o.bd == r.bd && o.bq == r.bq,
+          "SARIMA orders");
+    check(fit.calendar.selection.trading_days == ref.calendar.trading_days &&
+          fit.calendar.selection.leap_year == ref.calendar.leap_year &&
+          fit.calendar.selection.easter == ref.calendar.easter, "calendar selection");
+    check(fit.variables.size() == ref.outliers.size(), "outlier count");
+    for (std::size_t i = 0; i < fit.variables.size(); ++i)
+        check(fit.variables[i].position == ref.outliers[i].first && fit.variables[i].type == ref.outliers[i].second,
+              "outlier identity");
     numbers(fit.parameters, ref.parameters, "ARIMA");
     numbers(fit.regression_coefficients, ref.coefficients, "regression coefficients");
     numbers({fit.ls_ll, fit.ls_tadj, fit.ls_all, fit.ls_ssq}, ref.likelihood, "likelihood");
     check(fit.ls_eff == ref.effective && fit.ls_npar == ref.parameter_count, "likelihood counts");
     numbers(fit.full_residuals, ref.residuals, "residuals");
+}
+
+void compare(const Reference& ref, const WkReference& wk) {
+    if (ref.finals.empty()) {
+        auto fit = kalos::estimate_tramo_trfull_reference(ref.series, ref.year, ref.month);
+        check(fit.reference_model_computed && !fit.final_model_computed, "reference status");
+        compare_fit(ref, fit);
+        return;
+    }
+    auto fit = kalos::refit_tramo_selected_model(ref.series, ref.year, ref.month, ref.orders, ref.log, ref.mean,
+                                                 ref.calendar, ref.outliers);
+    check(fit.status == "available" && fit.final_model_computed, "fit status");
+    compare_fit(ref, fit);
     const auto result = kalos::run_tramo_seats_pipeline(fit, 0, 24);
     check(result.extraction.model_changed == ref.changed, "approximation flag");
     // The higher-order WK extraction has an independent regression in progress.
@@ -127,7 +149,7 @@ void compare(const Reference& ref, const WkReference& wk) {
 }
 }
 
-int main() {
+int main(int argc, char** argv) {
     const std::vector<double> positive(48, 4.0);
     try {
         kalos::refit_tramo_selected_model(positive, 1990, 0, {}, false, false, {}, {});
@@ -139,7 +161,7 @@ int main() {
         return 1;
     } catch (const std::invalid_argument&) {}
     const auto wk = read_wk_reference();
-    std::ifstream stream(KALOS_SELECTED_CALENDAR_PANEL);
+    std::ifstream stream(argc == 2 ? argv[1] : KALOS_SELECTED_CALENDAR_PANEL);
     Reference ref;
     int cases = 0, failures = 0, rows = 0;
     std::size_t values = 0, residuals = 0;
@@ -211,5 +233,6 @@ int main() {
     replay();
     std::cout << cases << " selected RSAfull models, " << residuals << " residuals, "
               << rows << " rows, " << values << " component values\n";
+    if (argc == 2) return cases == 26 && residuals == 3934 && !failures && rows == 0 ? 0 : 1;
     return cases == 26 && residuals == 3914 && rows == 260 && values == 24360 && !failures ? 0 : 1;
 }

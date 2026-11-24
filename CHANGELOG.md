@@ -16,6 +16,8 @@
 
 - Support stationary monthly seasonal ARMA(1,1) outlier scans with regular
   AR(2) or ARMA(1,1) and an estimated mean.
+- Estimate the first reference model of stock monthly TRfull, including automatic calendar selection, outlier detection and regression retesting.
+
 - Monthly TRAMO can refit a selected calendar and outlier specification and restore its calendar effects to SEATS components and forecasts.
 
 - Refit raw monthly TR3 and RSA3 after a late seasonality restart.

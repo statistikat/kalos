@@ -327,6 +327,10 @@ struct TramoFitResult {
 // says so (the refusals are decisions, not shape errors).
 TramoFitResult tramo_fit(const TramoFitRequest& request);
 
+// Round-zero TRfull model constructed from the original observations, before
+// automatic order identification and the later model controllers.
+TramoFitResult estimate_tramo_trfull_reference(const std::vector<double>& series, int start_year, int start_month);
+
 // Estimate every coefficient of an already selected monthly model. Outlier
 // positions are zero-based on the original series. The supplied orders,
 // calendar effects and outlier identities constitute the model specification.

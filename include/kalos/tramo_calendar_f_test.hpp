@@ -66,6 +66,11 @@ struct TramoFullCalendarResult {
 TramoFullCalendarResult tramo_full_initial_calendar(const std::vector<double>& series,
     int start_year, int start_month, bool log);
 
+// When the seasonality pretest clears seasonal differencing and seasonal MA,
+// all calendar candidates inherit the resulting nonseasonal IMA(1,1) model.
+TramoFullCalendarResult tramo_full_initial_calendar(const std::vector<double>& series,
+    int start_year, int start_month, bool log, bool seasonal);
+
 // The late TradingDaysController checks the concentrated-likelihood residuals
 // against a working-days contrast on their actual right-aligned monthly domain.
 struct TramoResidualTradingDays {

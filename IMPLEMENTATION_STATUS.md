@@ -4608,3 +4608,14 @@ qualified preprocessing and 4,560 additional product values. The 19-product
 total is 12,900 values. The seventh model, `fit_ref_retry_18_2`, still has
 a WK numerical discrepancy, as does `calendar_8_log` in the selected
 calendar corpus. The Release raw, bridge and selected-calendar tests passed.
+
+### M5 raw TRfull first reference model
+
+The stock TRfull entry now chooses the transformation, initial seasonal orders,
+calendar regressors and mean, detects outliers and retests the fitted regression
+from dated observations alone. All 26 first reference descriptions stored by
+the stock JDemetra kernel match. This includes the two nonseasonal initial
+models, every outlier identity, all fitted coefficients and likelihoods, and
+all 3,934 full residuals. Two fresh Java 21 processes produced identical
+reference output. Automatic order identification and the subsequent controllers
+remain the next steps before this becomes a raw end-to-end RSAfull fit.

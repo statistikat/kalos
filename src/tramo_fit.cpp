@@ -130,9 +130,11 @@ struct OutlierScanSelection {
 };
 
 std::optional<OutlierScanSelection> run_scan(const TramoFitSpec& spec, const tramo_build_result& built,
-                                             bool log, const TramoOrders& o, bool mean, double critical_value) {
+                                             bool log, const TramoOrders& o, bool mean, double critical_value,
+                                             const std::vector<std::vector<double>>& calendar_columns = {}) {
     TramoOutlierScanRequest request{};
     request.y = built.interpolated;
+    request.calendar_regressors = calendar_columns;
     request.frequency = built.annual_frequency;
     request.mean = mean;
     request.log = log;
@@ -364,7 +366,7 @@ std::optional<FittedOutlierEffects> fit_reference(const TramoFitSpec& spec, cons
     if (spec.outliers_used) {
         const double cv = spec.critical_value == 0.0 ? tramo_critical_value(built.estimation_length)
                                                     : spec.critical_value;
-        auto selection = run_scan(spec, built, log, entry.orders, entry.mean, cv);
+        auto selection = run_scan(spec, built, log, entry.orders, entry.mean, cv, entry.calendar_columns);
         if (!selection) return std::nullopt;
         entry.variables = std::move(selection->variables);
     }
@@ -377,9 +379,30 @@ std::optional<FittedOutlierEffects> fit_reference(const TramoFitSpec& spec, cons
         test.test_mean = tramo_ami_check_mu(spec.using_auto_model, spec.mean_is_test);
         test.mean_threshold = 1.96;
         test.statistics = fitted_test_statistics(fitted);
+        const auto& calendar = entry.calendar;
+        int position = entry.mean;
+        if (calendar.trading_days != TramoTradingDays::None) {
+            test.auto_trading_days = true;
+            test.trading_days_position = position;
+            test.trading_days_dimension = calendar.trading_days == TramoTradingDays::WorkingDays ? 1 : 6;
+            position += test.trading_days_dimension;
+        }
+        if (calendar.leap_year) {
+            test.auto_length_of_period = true;
+            test.length_of_period_position = position++;
+        }
+        if (calendar.easter) {
+            test.auto_easter = true;
+            test.easter_position = position;
+        }
         const auto decision = run_tramo_regression_tests(test);
         if (!decision.estimation_cleared) return fitted;
         entry.mean = decision.mean;
+        if (decision.removed_trading_days) entry.calendar.trading_days = TramoTradingDays::None;
+        if (decision.removed_length_of_period) entry.calendar.leap_year = false;
+        if (decision.removed_easter) entry.calendar.easter = false;
+        entry.calendar_columns = tramo_stock_calendar_columns(entry.calendar,
+            {built.domain_year, built.domain_position + 1, 12, built.estimation_length});
     }
 }
 
@@ -825,6 +848,24 @@ TramoFitResult refit_tramo_selected_model(const std::vector<double>& series, int
     require(fitted.fit.returned && fitted.fit.cl_state != 0, "selected model estimation failed");
     assemble_fitted_result(result, project_fitted_record(fitted, series, log, 12), spec.delta_tc);
     result.final_model_computed = true;
+    return result;
+}
+
+TramoFitResult estimate_tramo_trfull_reference(const std::vector<double>& series, int start_year, int start_month) {
+    TramoFitResult result;
+    const auto spec = prepare_monthly_template(series, start_year, start_month, "TRfull", result);
+    const bool log = result.transformation.log_transform;
+    const bool seasonal = result.transformation.seasonal;
+    const auto initial = tramo_full_initial_calendar(series, start_year, start_month, log, seasonal);
+    TramoStockCalendar calendar{initial.comparison.selected, initial.keep_leap_year, initial.keep_easter};
+    EstimationEntry entry{{0, 1, 1, 0, seasonal ? 1 : 0, seasonal ? 1 : 0}, initial.keep_mean, {}, calendar,
+        tramo_stock_calendar_columns(calendar, {start_year, start_month, 12, result.builder.estimation_length})};
+    const auto y = differenced_response(series, log, 12, 0, 0);
+    const auto fitted = fit_reference(spec, result.builder, log, y, std::move(entry));
+    require(fitted.has_value(), "TRfull reference estimation failed");
+    assemble_fitted_result(result, project_fitted_record(*fitted, series, log, 12), spec.delta_tc);
+    result.initial_regression_checked = true;
+    result.reference_model_computed = true;
     return result;
 }
 
