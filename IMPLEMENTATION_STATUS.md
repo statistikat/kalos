@@ -5,6 +5,14 @@ is now an independent C++17 library, without R, Rcpp, Python or Java dependencie
 Sibling bindings consume pinned generated snapshots. Persephone will require
 rkalos; Python intentionally exposes only a minimal initial surface.
 
+## M5 public RSAfull calendar effects (2026-11-24)
+
+Two fresh pinned x86-64 JVM processes returned identical public `cal` and
+`cal_f(24)` rows across all 26 stock RSAfull fits. The observed series cover
+the original input domains (4,248 months); the forecast series begin the next
+month and cover 624 months. The `rsafull-calendar-effect` reference stage
+checks the domain of each getter before recording its binary64 values.
+
 ## M6 finite state QR workspace and layout (2026-11-24)
 
 The finite state filter assembles each updated or predicted loading directly

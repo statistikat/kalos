@@ -305,6 +305,18 @@ public class TramoSeatsBridgeProbe {
     static void rawAutomatic(String id, TsData series, String stage) {
         var preset = stage.startsWith("rsa1") ? TramoSeatsSpec.RSA1
             : stage.startsWith("rsafull") ? TramoSeatsSpec.RSAfull : TramoSeatsSpec.RSA3;
+        if (stage.equals("rsafull-calendar-effect")) {
+            var sa = TramoSeatsKernel.of(preset, new ModellingContext()).process(series, new ProcessingLog() {});
+            require(sa != null, id + " product");
+            var observed = sa.getData("cal", TsData.class);
+            var forecast = sa.getData("cal_f(24)", TsData.class);
+            require(observed != null && observed.getDomain().equals(series.getDomain()), id + " observed calendar");
+            require(forecast != null && forecast.length() == 24 && forecast.getStart().equals(series.getEnd()), id + " forecast calendar");
+            System.out.println("case " + id);
+            series("cal", observed);
+            series("cal_f", forecast);
+            return;
+        }
         var model = stage.equals("rsafull-reference") ? firstFullReference(series) : TramoKernel.of(preset.getTramo(), new ModellingContext())
             .process(series, new ProcessingLog() {});
         System.out.println("case " + id);
