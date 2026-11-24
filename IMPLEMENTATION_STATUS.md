@@ -4757,3 +4757,7 @@ Two pinned JVM runs preserved a requested pseudo-additive mode with non-log data
 ### Fixed X-13 pseudo-additive mode with non-log preprocessing
 
 The fixed fit now follows the JVM's `X13Kernel.updateSpec` branch that preserves explicitly requested `PseudoAdditive` before testing the log transform. Earlier captures had covered pseudo-additive on log data, and the separate hand-authored non-log assertion had assumed additive forcing. Two independently observed non-log products now agree bit-for-bit on all 2,688 values across 14 tables, including restored finals and correction tables. The 1,440 historical fixed-fit comparisons also passed. [Public reference](validation/evidence/native/x13-nonlog-pseudo/fixed-x86_64.txt)
+
+### M6 native combined SI seasonality
+
+The native diagnostic reproduced all 66 public decisions and availability states, including `None` on two RSA3 fits with an irregular component alone. All 384 stable, moving and rank statistics and probabilities matched bit-for-bit on the frozen SI inputs. On 20 end-to-end TRAMO/SEATS and four fixed X-13 products, all verdicts matched and all 144 statistics and probabilities agreed within 7.03e-15 scaled error. Release with OpenMP and serial ASan/UBSan both passed. The non-log pseudo-additive fixed fit uses the independently qualified mode correction. [Diagnostic contract](docs/contracts/combined-seasonality-contract.md) · [Public product replay](tests/test_combined_seasonality.cpp)
