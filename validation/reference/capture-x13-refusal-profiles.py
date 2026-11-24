@@ -30,6 +30,8 @@ def main():
                         help="replay the RSA2c calendar and Easter detection modules")
     panels.add_argument("--estimated-calendar-scale", action="store_true",
                         help="replay the raw RSA2c log-level decision")
+    panels.add_argument("--estimated-diagnostics", action="store_true",
+                        help="replay stock preprocessing residual and forecast diagnostics")
     args = parser.parse_args()
     ref = json.loads((EVIDENCE / "reference.json").read_text())
     java = args.jdk / "bin/java"
@@ -54,7 +56,8 @@ def main():
         if not path or digest(path) != expected:
             raise SystemExit(f"Missing pinned jar or digest mismatch: {name}")
         jars.append(str(path))
-    if args.estimated_templates or args.estimated_selection or args.estimated_calendar or args.estimated_calendar_scale:
+    if any((args.estimated_templates, args.estimated_selection, args.estimated_calendar,
+            args.estimated_calendar_scale, args.estimated_diagnostics)):
         if not x86 or not args.portable_x86:
             raise SystemExit("The fixed-structure panel uses the portable x86-64 profile")
         probe = "X13Rsa2cCalendarProbe" if args.estimated_calendar or args.estimated_calendar_scale else "X13FixedTemplateProbe"
@@ -63,6 +66,8 @@ def main():
             panel = "rsa2c-calendar"
         if args.estimated_calendar_scale:
             panel = "rsa2c-scale"
+        if args.estimated_diagnostics:
+            panel = "diagnostics"
         expected = (EVIDENCE.parent / "x13-estimated-templates" / (panel + "-x86_64.txt")).read_bytes()
         with tempfile.TemporaryDirectory() as directory:
             subprocess.run([args.jdk / "bin/javac", "--release", "21", "-cp", os.pathsep.join(jars),
@@ -73,6 +78,8 @@ def main():
                 command.append("selection")
             if args.estimated_calendar_scale:
                 command.append("scale")
+            if args.estimated_diagnostics:
+                command.append("diagnostics")
             for _ in range(2):
                 if subprocess.check_output(command) != expected:
                     raise SystemExit("Stock fixed-structure output differs from the frozen panel")

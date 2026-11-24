@@ -5,6 +5,15 @@ is now an independent C++17 library, without R, Rcpp, Python or Java dependencie
 Sibling bindings consume pinned generated snapshots. Persephone will require
 rkalos; Python intentionally exposes only a minimal initial surface.
 
+## M5b stock X-13 preprocessing diagnostic reference
+
+Two independent pinned x86-64 JVM processes produced identical `residuals.ser`,
+`residuals.lb`, `residuals.doornikhansen`, and original-scale `y_ef` values for
+all nine stock RSA0, RSA1 and RSA2c fits. The evidence contains 45 residual
+diagnostic scalars and 396 dated forecast errors at 1, 7, 12 and 24 months.
+The public forecast getter agreed with the preprocessing model's own forecast
+errors on every horizon. Replay with `--estimated-diagnostics --portable-x86`.
+
 ## M5 late-controller RSAfull public outputs (2026-11-24)
 
 The three stock fits that select working days in the late controller now

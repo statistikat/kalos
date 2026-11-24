@@ -71,6 +71,25 @@ public final class X13FixedTemplateProbe {
                           bits(selector.getGlobalMsr()));
     }
 
+    static void diagnostics(String preset, String id, jdplus.x13.base.core.x13.X13Results fit) {
+        System.out.println("case " + preset + " " + id);
+        var ser = fit.getData("residuals.ser", Double.class);
+        if (ser == null) throw new AssertionError("residuals.ser");
+        System.out.println("residuals.ser " + bits(ser));
+        for (var key : List.of("residuals.lb", "residuals.doornikhansen")) {
+            var test = fit.getData(key, jdplus.toolkit.base.api.stats.StatisticalTest.class);
+            if (test == null) throw new AssertionError(key);
+            System.out.println(key + " " + bits(test.getValue()) + " " + bits(test.getPvalue())
+                + " " + test.getDescription().trim());
+        }
+        for (int h : new int[]{1, 7, 12, 24}) {
+            var se = fit.getData("y_ef(" + h + ")", TsData.class);
+            if (se == null || !se.equals(fit.getPreprocessing().forecasts(h).getForecastsStdev()))
+                throw new AssertionError("y_ef(" + h + ")");
+            series("y_ef_" + h, se);
+        }
+    }
+
     public static void main(String[] args) throws Exception {
         Path root = Path.of(args[0]);
         for (String template : List.of("rsa0", "rsa1", "rsa2c")) {
@@ -89,6 +108,10 @@ public final class X13FixedTemplateProbe {
                 var est = model.getEstimation();
                 var stats = est.getStatistics();
                 var tables = result.getDecomposition();
+                if (args.length == 2 && args[1].equals("diagnostics")) {
+                    diagnostics(template, id, result);
+                    continue;
+                }
                 if (args.length == 2 && args[1].equals("selection")) {
                     selection(template, id, x11, tables, result.getData("y_f", TsData.class).length());
                     continue;
