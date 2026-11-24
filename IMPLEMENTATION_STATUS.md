@@ -5,6 +5,55 @@ is now an independent C++17 library, without R, Rcpp, Python or Java dependencie
 Sibling bindings consume pinned generated snapshots. Persephone will require
 rkalos; Python intentionally exposes only a minimal initial surface.
 
+## M7 — SA and irregular trading-day F-tests (item 27 cutover gap) — 2026-11-24
+
+The SA-diagnostic trading-day F-tests are now published natively: the new
+public entry `kalos::residual_trading_days_tests`
+(`include/kalos/residual_trading_days_tests.hpp`) serves the four frozen
+public scalars diagnostics.td-sa-all / td-sa-last / td-i-all / td-i-last of
+`validation/evidence/native/residual-trading-days/public-x86_64.txt` from the
+two component series and their monthly starts. The machine was re-proven
+from the pinned bytecode: `ResidualTradingDaysTests` feeds each component
+through `TradingDaysTest.maTest(data, false)`, whose `ifeq` branch at +33
+builds `new SarimaOrders(12); setD(1); setQ(1)` — the NONSEASONAL
+ARIMA(0,1,1)(0,0,0)[12] (a single difference; hence the witness `dim = n−1`
+rows, 144→143 on air), not `SarimaOrders.airline` — over the six
+GenericTradingDays TD7 contrast columns as the only design (no mean),
+`SarimaModel.builder(orders).setDefault()` fitted through
+`RegSarimaComputer.PROCESSOR` (the eps = 1e-9 singleton, not the 1e-7
+RegArimaUtility default), and `new JointTest(ll).hyperParametersCount(1)`
+`.build()`: lcholesky over a clone of `cl.unscaledCovariance()`, solveLx on
+`cl.coefficients()`, F = (ssq(b)/6)/(ssq/(dim−6−1)) with the F(6, 136) upper
+probability (air sa: statistic ...4e5d, p ...a571). The replay also pinned
+the option: every case records flast = 0 ("case <id> 0"), where td2 tests
+the whole component and the JVM publishes the ONE fit under both names, so
+the "-last" comparisons replay the same produced pair. A live witness probe
+over the pinned jars (independent JVM process) reproduced the capture's
+sa-block lines of x13_rsa0_air bit-exactly before the native port started:
+dim 143, ssq 40c2620f48c7baaf, parameter bfbc14c346798b42, the six
+coefficients and the test word pair; the irregular block matched too, but
+only under the capture's two-flag `_dexp/_dlog`-disabled profile — the same
+boundary MA(1) fit (parameter ...e4d8 at −0.99999712) shifted the ssq by
+~6e-3 in an intrinsics-enabled run, the flag-domain caveat of the package
+re-measured at this seam (the C++ mirrors the intrinsic-disabled bytecode
+semantics and replays both components bit-exact natively). The producer is
+pure consumer-side: it
+reuses the qualified reg_sarima estimation chain (the reg_sarima processor
+of `fit_calendar_likelihood`, now reachable in its nonseasonal shape through
+a seasonal flag on `detail::fit_calendar_airline`, whose returned surface
+additionally carries cl.dim()/coefficients/unscaledCovariance behind a
+collection-only diagnostics pointer — existing numbers and the
+x13_estimated_calendar bit claims untouched) and the pinned JointTest
+arithmetic already mirrored by `tramo_seasonal_f_test.cpp` (pinned
+lcholesky/solveLx/ssq plus the `f_upper_p` mirror). The new
+`test_residual_trading_days` replays all 24 cases — 192 doubles, every
+statistic and probability of every getter, bit-exact — consuming ONLY each
+component's embedded domain and observations: the per-component
+parameters/likelihood/coefficients witness rows are shape-checked (one MA
+word, dim = n−1, six coefficients) and never fed to kalos. Suite 95 → 96
+CTests (Release OpenMP-2 required-OpenMP lane and serial ASan/UBSan lane
+green).
+
 ## M7 — automatic X-13 public residual diagnostics (item 27 cutover gap) — 2026-11-24
 
 The automatic X-13 route now publishes the public residual surface of the
