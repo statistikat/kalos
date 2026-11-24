@@ -4,6 +4,8 @@
 
 - Fit the stock monthly X-13 RSA0 preset, estimating the airline model and selecting X-11 filters on the twelve-month forecast extension.
 
+- Estimate and compare the stock RSA2c working-day and Easter candidates after transformation selection.
+
 - Apply the SARIMA differencing filter in source-model order during SEATS forecasting and signal extraction.
 
 - Preserve the complex seasonal roots and their concatenation with regular AR roots in monthly SEATS extraction.

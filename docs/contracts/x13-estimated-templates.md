@@ -58,3 +58,15 @@ series and returns the fitted coefficients, X-11 selections, extended
 tables, observed final products and one year of forecasts. It uses the
 stock legacy sigma policy. Its fixed-order estimator uses the same final
 estimation routine exercised by the automatic model's final cascade.
+
+## RSA2c calendar comparison
+
+The monthly `x13_rsa2c_calendar_test` accepts dated raw observations and the
+already selected transformation. As in the stock kernel, the working-day
+test considers two models. On the log scale its alternative adjusts February
+for leap years before taking logs. On the level scale it includes a separate
+leap-year regressor. The chosen branch is the baseline for three Easter fits
+of 1, 8 and 15 days. A strict improvement in AICc selects an alternative.
+The shared monthly airline optimizer estimates each distinct candidate.
+The selected model-scale series, dated design and forward/reverse leap
+factors are available for the later outlier and forecast stages.

@@ -4787,3 +4787,14 @@ six candidate statistics, selected model scale, regressors and leap-year
 adjustments. Two fresh JVMs reproduced SHA-256
 `24844c19a300002c82c4a7711abb41c658d5a442f2663d30439d304d7f205e46`.
 [Public and module evidence](validation/evidence/native/x13-estimated-templates/rsa2c-calendar-x86_64.txt)
+
+### M5b / 28 — physical RSA2c working-day and Easter detection
+
+`x13_rsa2c_calendar_test` reproduces the stock `Remove` test for TD2 and
+`Add` test for Easter after transformation selection. Its six model records
+per fit match every candidate's log likelihood, transformation Jacobian,
+residual sum of squares, AICc and parameter counts on all 15 runs. The
+working-day and Easter decisions and 8,304 estimation-scale observations,
+extended design columns and forward/reverse February factors match bit-for-bit.
+The available API supplies the retained calendar and model scale to the
+subsequent outlier and final estimation stages.
