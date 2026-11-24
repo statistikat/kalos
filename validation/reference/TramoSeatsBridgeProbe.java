@@ -286,6 +286,22 @@ public class TramoSeatsBridgeProbe {
         }
     }
 
+    private static double[] lateTradingDaysInput(int seed) {
+        double[] values = new double[96];
+        var noise = new java.util.Random(seed);
+        double error = 0;
+        for (int i = 0; i < values.length; ++i) {
+            var month = java.time.YearMonth.of(1990, 1).plusMonths(i);
+            int weekdays = 0;
+            for (int day = 1; day <= month.lengthOfMonth(); ++day)
+                if (month.atDay(day).getDayOfWeek().getValue() <= 5) ++weekdays;
+            double contrast = weekdays - 2.5 * (month.lengthOfMonth() - weekdays);
+            error = 0.7 * error + 2 * noise.nextGaussian();
+            values[i] = 90 + 0.17*i + 5*StrictMath.cos(2*Math.PI*i/12) + error + 0.15*contrast;
+        }
+        return values;
+    }
+
     static void rawAutomatic(String id, TsData series, String stage) {
         var preset = stage.startsWith("rsa1") ? TramoSeatsSpec.RSA1
             : stage.startsWith("rsafull") ? TramoSeatsSpec.RSAfull : TramoSeatsSpec.RSA3;
@@ -410,6 +426,36 @@ public class TramoSeatsBridgeProbe {
         String stage = args.length > 1 ? args[1] : "bridge";
         if (stage.equals("rsa3-mean-retry") || stage.equals("rsa3-mean-retry-diagnostics")) {
             for (int[] pair : new int[][]{{26, 0}, {51, 5}, {66, 0}, {73, 2}}) rsa3MeanRetry(stage, pair[0], pair[1]);
+            return;
+        }
+        if (stage.equals("rsafull-late-calendar")) {
+            for (int seed : List.of(12, 14, 44)) {
+                var data = TsData.of(TsPeriod.monthly(1990, 1), DoubleSeq.of(lateTradingDaysInput(seed)));
+                var without = TramoKernel.of(TramoSpec.fromString("TRfull"), new ModellingContext());
+                var controllers = TramoKernel.class.getDeclaredField("controllers");
+                controllers.setAccessible(true);
+                require(((List<?>) controllers.get(without)).removeIf(
+                    c -> c.getClass().getSimpleName().equals("TradingDaysController")), "TD controller missing");
+                var before = without.process(data, new ProcessingLog() {});
+                var stock = TramoKernel.of(TramoSpec.fromString("TRfull"), new ModellingContext())
+                    .process(data, new ProcessingLog() {});
+                require(Arrays.stream(before.getDescription().getVariables()).noneMatch(v -> v.getName().equals("td"))
+                    && Arrays.stream(stock.getDescription().getVariables()).anyMatch(v -> v.getName().equals("td")),
+                    "late controller must select working days");
+                rawAutomatic("late_td_" + seed, data, stage);
+            }
+            return;
+        }
+        if (stage.equals("rsafull-late-wk")) {
+            var input = TsData.of(TsPeriod.monthly(1990, 1), DoubleSeq.of(lateTradingDaysInput(14)));
+            var fit = TramoSeatsKernel.of(TramoSeatsSpec.RSAfull, new ModellingContext())
+                .process(input, new ProcessingLog() {});
+            Method bridge = TramoSeatsKernel.class.getDeclaredMethod("of", RegSarimaModel.class);
+            bridge.setAccessible(true);
+            var model = (SeatsModelSpec) bridge.invoke(null, fit.getPreprocessing());
+            System.out.println("case late_td_14");
+            series("bridge", model.getSeries());
+            components("wk", fit.getDecomposition().getFinalComponents());
             return;
         }
         if (stage.equals("rsafull-calendar-wk")) {
