@@ -278,6 +278,14 @@ public class TramoSeatsBridgeProbe {
         } catch (ReflectiveOperationException error) { throw new AssertionError(error); }
     }
 
+    static void rawFull(String id, TsData series, String stage) {
+        switch (stage) {
+            case "rsafull-forecast-errors" -> forecastErrors(id, series, TramoSeatsSpec.RSAfull);
+            case "rsafull-residual-diagnostics" -> residualDiagnostics(id, series, TramoSeatsSpec.RSAfull);
+            default -> rawAutomatic(id, series, stage);
+        }
+    }
+
     static void rawAutomatic(String id, TsData series, String stage) {
         var preset = stage.startsWith("rsa1") ? TramoSeatsSpec.RSA1
             : stage.startsWith("rsafull") ? TramoSeatsSpec.RSAfull : TramoSeatsSpec.RSA3;
@@ -474,14 +482,15 @@ public class TramoSeatsBridgeProbe {
                 }
                 continue;
             }
-            if (stage.startsWith("rsa0")) rawRsa0(id, data, stage);
+            if (stage.startsWith("rsafull")) rawFull(id, data, stage);
+            else if (stage.startsWith("rsa0")) rawRsa0(id, data, stage);
             else if (raw) rawAutomatic(id, data, stage);
             else observe(bridge, id, TEMPLATES.get(id), data, args.length > 1 && args[1].equals("merge"));
         }
         if (stage.equals("rsa3-forecast-errors")) {
             for (int[] pair : new int[][]{{26, 0}, {51, 5}, {66, 0}, {73, 2}}) rsa3MeanRetry(stage, pair[0], pair[1]);
         }
-        if (stage.equals("rsafull") || stage.equals("rsafull-reference")) {
+        if (stage.startsWith("rsafull")) {
             // Reuse the exact regression-module inputs for the public end-to-end template.
             for (String line : Files.readAllLines(Path.of(args[2]))) {
                 if (!line.startsWith("input ")) continue;
@@ -489,7 +498,7 @@ public class TramoSeatsBridgeProbe {
                 double[] values = Arrays.stream(fields, 3, fields.length)
                     .mapToDouble(x -> Double.longBitsToDouble(Long.parseUnsignedLong(x, 16))).toArray();
                 String id = "calendar_" + fields[1] + (fields[2].equals("1") ? "_log" : "_level");
-                rawAutomatic(id, TsData.of(TsPeriod.monthly(1990, 1), DoubleSeq.of(values)), stage);
+                rawFull(id, TsData.of(TsPeriod.monthly(1990, 1), DoubleSeq.of(values)), stage);
             }
         }
         require(seen.equals(cases), "incomplete corpus");
