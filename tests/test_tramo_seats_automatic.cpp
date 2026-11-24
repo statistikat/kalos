@@ -120,7 +120,7 @@ void check_forecasts(const kalos::tramo_seats_automatic_result& fit, const Forec
 }
 
 void run(const std::string& preset, std::size_t expected_cases, std::size_t expected_values,
-         const std::string& prefix = "") {
+         const std::string& prefix = "", bool preprocessing_only = false) {
     static const auto rsa1_forecasts = read_forecasts("rsa1", 12);
     static const auto rsa3_forecasts = read_forecasts("rsa3", 13);
     const bool rsa3 = preset.rfind("rsa3", 0) == 0;
@@ -141,6 +141,7 @@ void run(const std::string& preset, std::size_t expected_cases, std::size_t expe
         std::string key, label;
         row >> key;
         const auto& fit = result.preprocessing;
+        if (preprocessing_only && (key == "product" || key == "merged")) continue;
         if (key == "case") {
             check(product == result.decomposition.finals.size() && variable == fit.regression_coefficients.size(), id + " extra fields");
             row >> id;
@@ -151,13 +152,14 @@ void run(const std::string& preset, std::size_t expected_cases, std::size_t expe
             row >> year >> month >> n;
             std::vector<double> observations(n);
             for (auto& v : observations) v = value(row);
-            result = preset.rfind("rsa3", 0) == 0 ? kalos::run_tramo_seats_rsa3(observations, year, month)
-                                      : kalos::run_tramo_seats_rsa1(observations, year, month);
+            if (preprocessing_only) result.preprocessing = kalos::estimate_tramo_tr3(observations, year, month);
+            else result = rsa3 ? kalos::run_tramo_seats_rsa3(observations, year, month)
+                               : kalos::run_tramo_seats_rsa1(observations, year, month);
             check(fit.final_model_computed && fit.status == "available", id + " estimation");
             if (preset.rfind("rsa3", 0) == 0)
                 check(fit.reference_model_computed && fit.first_candidate_computed && fit.initial_regression_checked,
                       id + " automatic identification");
-            check_forecasts(result, forecasts.at(prefix + id), prefix + id, worst_forecast_error, rsa3);
+            if (!preprocessing_only) check_forecasts(result, forecasts.at(prefix + id), prefix + id, worst_forecast_error, rsa3);
         } else if (key == "model") {
             bool log, mean;
             row >> label >> std::boolalpha >> log >> label >> mean >> label;
@@ -203,7 +205,7 @@ void run(const std::string& preset, std::size_t expected_cases, std::size_t expe
         std::string extra;
         check(!(row >> extra), id + " extra " + key);
     }
-    check(cases == expected_cases && nrows == 10 * expected_cases && nvalues == expected_values && product == result.decomposition.finals.size() &&
+    check(cases == expected_cases && nrows == (preprocessing_only ? 0 : 10 * expected_cases) && nvalues == expected_values && product == result.decomposition.finals.size() &&
           variable == result.preprocessing.regression_coefficients.size(), preset + " incomplete corpus");
     std::cout << preset << ": " << cases << " public fits, " << nrows << " dated rows, " << nvalues << " product values, maximum scaled public forecast error " << worst_forecast_error << "\n";
 }
@@ -214,6 +216,7 @@ int main() {
     run("rsa3", 6, 3960);
     run("rsa3-additional", 3, 1800);
     run("rsa3-mean-retry", 4, 2580);
+    run("rsa3-ref-retry", 7, 0, "", true);
     run("rsa1-level-effects", 2, 1200, "level_");
     run("rsa1-level-tc", 1, 600, "level_tc_");
     run("rsa1-log-tc", 3, 1800, "log_tc_");

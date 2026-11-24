@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Run the stock monthly TR3 reference-model retries, threshold reduction
+  and last-chance fits before the seasonal and differencing controllers.
+
 - Stabilize higher-degree SARIMA polynomials with the pinned QR root solver
   and support the stationary outlier-scan orders selected on later TR3 passes.
 

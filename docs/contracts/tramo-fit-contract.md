@@ -262,6 +262,9 @@ snapshots in `tramo-seats-bridge/rsa3-x86_64.txt` and
 `tramo-seats-bridge/rsa3-additional-x86_64.txt` cover this route.
 Four additional stock models in `rsa3-mean-retry-x86_64.txt` remove the
 fast-regression mean, retain the selected outliers and re-estimate the
-orders in pass four. A rejected first reference comparison currently raises
-a stage-specific exception. SEATS uses the same fitted pipeline, horizon
+orders in pass four. Seven models in `rsa3-ref-retry-x86_64.txt` require a lower outlier
+threshold, repeated identification, or the last-chance ARMA fit. Their
+preprocessing parameters, final design, likelihood and 909 residuals
+match the public kernel. SEATS extraction and deterministic restoration
+on these seven models have separate coverage. SEATS uses the same fitted pipeline, horizon
 semantics, and decomposition-policy checks as the raw RSA1 route.

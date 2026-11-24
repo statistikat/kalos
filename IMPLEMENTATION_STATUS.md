@@ -4557,3 +4557,23 @@ and selected outliers all match bitwise in the Release scan replay.
 The higher-degree SARIMA stabilizer now uses the pinned QR polynomial
 root solver. Its eigenvalue order fixes the two formerly divergent cubic
 warm starts. The F4 fit and monthly battery tests also passed.
+
+### M5 / 23-G — repeated reference comparisons and last-chance raw TR3 fits
+
+The physical monthly TR3 route now compares successive fitted models,
+reduces the outlier threshold after a rejected first comparison, and
+reconsiders differencing and ARMA order when the changed model has automatic
+outliers. It fits the last-chance ARMA model when the second comparison
+fails. Later scans and controller estimates receive the evolved threshold.
+The seasonality controller can also turn on seasonality after requesting a
+new default fit. The original and replay paths now share the pinned bound
+that permits differencing unless regular and seasonal differences are both
+at their maximum.
+
+Seven independent stock JVM fits exercise these branches. All selected
+parameters, regressors, likelihood fields and 909 residuals match exactly.
+The raw TR3 preprocessing corpus now spans 20 models and 2,105 residuals.
+The five combined Release tests passed, including all 13 original RSA3
+products and public preprocessing forecast-error checks. Additional
+Wiener–Kolmogorov and merger coverage for the seven retry models is tracked
+separately. Recovery from a failed model estimate remains a distinct route.
