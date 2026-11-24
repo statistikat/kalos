@@ -80,7 +80,9 @@ std::optional<kalos::CombinedSiSeasonality> run_product(const std::string& id, c
     }
     if (stock && source == "d8") {
         const auto& input = inputs.at("x13_" + id.substr(id.rfind('_') + 1));
-        const auto run = id.compare(0, 8, "x13_rsa0") == 0 ? kalos::x13_estimated_rsa0 : kalos::x13_estimated_rsa1;
+        auto run = kalos::x13_estimated_rsa0;
+        if (id.compare(0, 8, "x13_rsa1") == 0) run = kalos::x13_estimated_rsa1;
+        else if (id.compare(0, 9, "x13_rsa2c") == 0) run = kalos::x13_estimated_rsa2c;
         const auto result = run(input.values, input.year, input.month);
         return kalos::x13_si_seasonality(result.fit);
     }
@@ -119,8 +121,8 @@ int main() {
     std::vector<double> si;
     std::map<std::string, int> summaries;
     double worst = 0;
-    for (const char* path : {KALOS_COMBINED_SI_PANEL, KALOS_COMBINED_SI_FIXED, KALOS_COMBINED_STOCK}) {
-      const bool stock = std::string(path) == KALOS_COMBINED_STOCK;
+    for (const char* path : {KALOS_COMBINED_SI_PANEL, KALOS_COMBINED_SI_FIXED, KALOS_COMBINED_STOCK, KALOS_COMBINED_RSA2C}) {
+      const bool stock = std::string(path) == KALOS_COMBINED_STOCK || std::string(path) == KALOS_COMBINED_RSA2C;
       std::ifstream in(path);
       check(in.good(), path);
       for (std::string line; std::getline(in, line);) {
@@ -197,6 +199,6 @@ int main() {
       }
     }
     check(!kalos::seats_si_seasonality({},12,false) && !kalos::x13_si_seasonality({}), "absent components");
-    check(count == 101 && statistics == 594 && product_count == 59 && product_statistics == 354 && summaries.size() == 4, "incomplete public SI panel");
+    check(count == 104 && statistics == 612 && product_count == 62 && product_statistics == 372 && summaries.size() == 4, "incomplete public SI panel");
     std::cout << count << " combined SI cases, " << statistics << " numerical checks, maximum scaled difference " << worst << "; " << product_count << " end-to-end products, maximum scaled difference " << product_worst << "\n";
 }

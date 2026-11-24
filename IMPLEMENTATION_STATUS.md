@@ -4876,3 +4876,7 @@ The capture SHA-256 is `92a579cd62fb0df24c963da965970d1a00b11cd0290adb5e1a8ec10a
 ### M6 stock RSA2c public combined SI references
 
 Two pinned JVMs agreed on the public observed-D8 dashboard getter and its six test fields for each of the three raw monthly stock RSA2c X-13 products. Capture SHA-256 is `3718acbd7fad7e143eb89642e7f3a7b94d50575c4bd40b0d486caa47714a3fd3`. [Stock RSA2c references](validation/evidence/native/combined-seasonality/stock-rsa2c-x86_64.txt)
+
+### M6 combined SI on estimated stock RSA2c
+
+All three raw stock calendar-adjusted X-13 fits match their public dashboard verdicts and six numerical test fields. The fixed/WK/stock combined replay now covers 104 inputs (612 statistical fields exactly reproduced) and 62 end-to-end products (372 fields within 5.28e-14 scaled). [Native product replay](tests/test_combined_seasonality.cpp)
