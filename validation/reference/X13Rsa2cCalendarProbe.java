@@ -7,6 +7,8 @@ import java.util.List;
 import java.util.Random;
 import jdplus.sa.base.core.regarima.AutomaticTradingRegressionModule;
 import jdplus.sa.base.core.regarima.EasterDetectionModule;
+import jdplus.sa.base.core.regarima.LogLevelModule;
+import jdplus.toolkit.base.core.regsarima.regular.ILogLevelModule;
 import jdplus.toolkit.base.api.processing.ProcessingLog;
 import jdplus.toolkit.base.api.timeseries.TsData;
 import jdplus.toolkit.base.api.timeseries.TsDomain;
@@ -57,13 +59,28 @@ public final class X13Rsa2cCalendarProbe {
         }
     }
 
-    static void run(String id, TsData data) throws Exception {
+    static void run(String id, TsData data, boolean scale) throws Exception {
         var spec = X13Spec.fromString("rsa2c").getRegArima();
         var kernel = RegArimaKernel.of(spec, new ModellingContext());
         System.out.println("case " + id);
         var row = new StringBuilder("input " + data.getStart().year() + " " + (1 + data.getStart().annualPosition()));
         for (double v : data.getValues().toArray()) row.append(' ').append(bits(v));
         System.out.println(row);
+        if (scale) {
+            var field = RegArimaKernel.class.getDeclaredField("transformation");
+            field.setAccessible(true);
+            var module = (LogLevelModule) field.get(kernel);
+            field.set(kernel, (ILogLevelModule) ctx -> {
+                var result = module.process(ctx);
+                if (module.getLevel() != null) candidate("level", module.getLevel().statistics());
+                if (module.getLog() != null) candidate("log", module.getLog().statistics());
+                return result;
+            });
+            var fit = kernel.process(data, new ProcessingLog() {});
+            if (fit == null) throw new AssertionError("scale " + id);
+            System.out.println("log " + fit.getDescription().isLogTransformation());
+            return;
+        }
         // Observe the scale at entry, before outlier detection or the final estimator.
         var hook = RegArimaKernel.class.getDeclaredField("calendarTest");
         hook.setAccessible(true);
@@ -122,19 +139,26 @@ public final class X13Rsa2cCalendarProbe {
     }
 
     public static void main(String[] args) throws Exception {
+        boolean scale = args.length == 2 && args[1].equals("scale");
         for (String id : List.of("air", "ao", "seas")) {
             var lines = Files.readAllLines(Path.of(args[0], id + ".csv"));
             var date = lines.getFirst().split(",");
             double[] values = lines.stream().skip(1).mapToDouble(Double::parseDouble).toArray();
-            run(id, TsData.ofInternal(TsPeriod.monthly(Integer.parseInt(date[0]), Integer.parseInt(date[1])), values));
+            run(id, TsData.ofInternal(TsPeriod.monthly(Integer.parseInt(date[0]), Integer.parseInt(date[1])), values), scale);
         }
         for (int duration : new int[]{1, 8, 15}) {
             for (boolean td : List.of(false, true)) {
                 for (boolean growing : List.of(false, true)) {
                     run("easter_" + duration + (td ? "_td" : "_no_td") + (growing ? "_growing" : "_steady"),
-                        generated(duration, td, growing));
+                        generated(duration, td, growing), scale);
                 }
             }
+        }
+        if (scale) {
+            var base = generated(8, true, false);
+            double[] shifted = base.getValues().toArray();
+            for (int i = 0; i < shifted.length; ++i) shifted[i] -= 100;
+            run("nonpositive", TsData.ofInternal(base.getStart(), shifted), true);
         }
     }
 }

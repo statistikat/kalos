@@ -4821,3 +4821,11 @@ counts, unadjusted likelihoods, residual sums of squares and the estimated
 January 1994 AO coefficient also match exactly. The six fits still pass all
 84 public table rows at 1e-8 and all 72 monthly final filter decisions.
 Three serial Release and two ASan/UBSan CTests passed.
+
+### M5b / 28 — RSA2c log-level comparison reference
+
+The stock transformation module estimates TD2 and leap year on levels, and
+TD2 with leap-year preadjustment on logs. Two independent pinned JVMs
+reproduced its 30 likelihood records across 15 positive dated inputs and a
+nonpositive series where the log-level comparison is bypassed. Capture
+SHA-256 `f4efd70e645babdd70faa678d5979aae2da5718138e185d0bea4b574b768c380`.
