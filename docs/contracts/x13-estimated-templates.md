@@ -99,3 +99,26 @@ the names and coefficients of the calendar variables in fitted order. The
 the complete stationary residuals, residual sum of squares and model parameter
 count. X-11 returns the same fitted and one-year forecast fields as RSA0
 and RSA1, including the separate MSR and Henderson decisions.
+
+## Preprocessing diagnostic results
+
+`x13_stock_residual_diagnostics(fit)` returns the standard error from
+`residuals.ser`, the monthly 24-lag, 22-degree-of-freedom Ljung–Box result,
+and the Doornik–Hansen statistic and probability. The last uses the portable
+JVM math profile of the stock X-13 panel. Fits with at most seven residuals
+have no normality result.
+
+`x13_stock_forecast_errors(fit, months)` returns the original-series
+preprocessing standard errors from `y_ef`. A nonnegative month count starts
+immediately after the input sample. Zero returns `no_requested_predictions`;
+negative counts throw. The fitted regression covariance uses the observed
+GLS design, with the calendar columns followed by the detected outliers.
+Prediction conditions the finite airline innovation history, propagates
+uncertainty in the fitted regressors, and applies the lognormal transformation
+to logarithmic models. Stock log working-day models use their leap-adjusted
+response on the estimation scale.
+
+The nine public fits contribute 45 bit-exact residual diagnostic values and
+396 dated forecast errors at 1, 7, 12 and 24 months. The largest observed
+forecast error divided by one plus the absolute reference value is 1.24e-14;
+the regression uses the existing original-series forecast bound of 2e-8.

@@ -5,6 +5,16 @@ is now an independent C++17 library, without R, Rcpp, Python or Java dependencie
 Sibling bindings consume pinned generated snapshots. Persephone will require
 rkalos; Python intentionally exposes only a minimal initial surface.
 
+## M6 stock X-13 preprocessing diagnostics and forecast errors
+
+Monthly stock RSA0, RSA1 and RSA2c now expose residual scale, independence
+and normality diagnostics and the original-series forecast standard errors
+at nonnegative monthly horizons. Across nine independently captured fits,
+all 45 residual diagnostic values are bit-exact, and 396 dated forecast
+errors at four horizons have a worst scaled difference of 1.24e-14.
+The existing TRAMO airline covariance regressions and all 126 stock X-13
+product rows pass alongside the new diagnostic fields.
+
 ## M6 portable residual normality arithmetic
 
 The X-13 reference uses the portable JDK math profile for the one-third

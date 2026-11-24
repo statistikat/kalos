@@ -44,11 +44,78 @@ kalos::X13AutomaticFitResult fit(const std::string& preset, const std::string& i
              : preset == "rsa1" ? kalos::x13_estimated_rsa1(values, year, month)
                                  : kalos::x13_estimated_rsa2c(values, year, month);
 }
+struct DiagnosticPanel {
+    std::map<std::string, std::vector<std::string>> rows;
+    int diagnostics = 0, errors = 0;
+    double max_scaled_error = 0.;
+
+    DiagnosticPanel() {
+        std::ifstream input(KALOS_X13_DIAGNOSTIC_PANEL);
+        std::string id;
+        for (std::string line; std::getline(input, line);) {
+            if (line.compare(0, 5, "case ") == 0) id = line.substr(5);
+            else if (!line.empty()) rows[id].push_back(line);
+        }
+    }
+
+    void check_fit(const std::string& id, const kalos::X13AutomaticFitResult& fit, int year, int month) {
+        const auto stats = kalos::x13_stock_residual_diagnostics(fit);
+        const auto empty = kalos::x13_stock_forecast_errors(fit, 0);
+        check(empty.standard_errors.empty() && empty.status == "no_requested_predictions", id + " zero horizon");
+        bool rejected = false;
+        try { (void)kalos::x13_stock_forecast_errors(fit, -1); }
+        catch (const std::invalid_argument&) { rejected = true; }
+        check(rejected, id + " negative horizon");
+        for (const auto& line : rows.at(id)) {
+            std::istringstream in(line);
+            std::string tag, bits;
+            in >> tag;
+            if (tag == "residuals.ser") {
+                compare(in, {stats.standard_error}, 0., id + " standard error");
+                ++diagnostics;
+            } else if (tag == "residuals.lb" || tag == "residuals.doornikhansen") {
+                const bool lb = tag == "residuals.lb";
+                check(stats.ljung_box.built && stats.normality.has_value(), id + " residual tests");
+                std::string value, probability, distribution, with, degrees;
+                double df;
+                in >> value >> probability >> distribution >> with >> df >> degrees;
+                check(distribution == "Chi2" && degrees == "degrees" &&
+                      df == (lb ? stats.ljung_box.df : stats.normality->df) &&
+                      from_bits(value) == (lb ? stats.ljung_box.value : stats.normality->value) &&
+                      from_bits(probability) == (lb ? stats.ljung_box.p : stats.normality->p), id + " " + tag);
+                diagnostics += 2;
+            } else if (tag.compare(0, 5, "y_ef_") == 0) {
+                const int months = std::stoi(tag.substr(5));
+                int start_year, start_month, n;
+                in >> start_year >> start_month >> n;
+                const auto actual = kalos::x13_stock_forecast_errors(fit, months);
+                check(n == months && actual.standard_errors.size() == static_cast<std::size_t>(n) &&
+                      actual.status == "available" && (start_year - year) * 12 + start_month - month ==
+                      static_cast<int>(fit.fit.finalSA.size()), id + " forecast error dates");
+                for (const auto value : actual.standard_errors) {
+                    check(bool(in >> bits), id + " incomplete forecast errors");
+                    const double expected = from_bits(bits);
+                    const double scaled = std::abs(value - expected) / (1. + std::abs(expected));
+                    check(scaled <= 2e-8, id + " " + tag + " expected " + std::to_string(expected) +
+                          " got " + std::to_string(value));
+                    max_scaled_error = std::max(max_scaled_error, scaled);
+                    ++errors;
+                }
+                check(!(in >> bits), id + " unexpected forecast error");
+            } else throw std::runtime_error("unknown diagnostic record " + tag);
+        }
+    }
+};
 } // namespace
 
 int main() {
     std::ifstream input(KALOS_X13_TEMPLATE_PANEL);
     std::string id;
+    bool rejected = false;
+    try { (void)kalos::x13_stock_residual_diagnostics({}); }
+    catch (const std::invalid_argument&) { rejected = true; }
+    check(rejected, "unavailable fit");
+    DiagnosticPanel diagnostics;
     kalos::X13AutomaticFitResult result;
     std::map<std::string, const std::vector<double>*> tables;
     bool selected = false;
@@ -67,6 +134,7 @@ int main() {
             result = fit(preset, id, year, month);
             id = preset + " " + id;
             check(result.status == "available", id + " " + result.status);
+            diagnostics.check_fit(id, result, year, month);
             const auto& t = result.fit;
             const auto& s = t.selection;
             check(t.forecast == 12 && t.backcast == 0, id + " horizon");
@@ -157,5 +225,8 @@ int main() {
         }
     }
     check(cases == 9 && checked_rows == 126 && likelihoods == 9 && residuals == 891, "incomplete stock RSA0/RSA1/RSA2c reference");
+    check(diagnostics.diagnostics == 45 && diagnostics.errors == 396, "incomplete diagnostic panel");
+    std::cout << "45 exact residual statistics, 396 original-scale forecast errors, worst scaled difference "
+              << diagnostics.max_scaled_error << "\n";
     std::cout << cases << " stock RSA0/RSA1/RSA2c fits, " << checked_rows << " dated table rows\n";
 }

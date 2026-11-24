@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Return public preprocessing residual diagnostics and original-series forecast standard errors for monthly stock X-13 RSA0, RSA1 and RSA2c.
+
 - Fit stock monthly X-13 RSA2c from dated observations, including working days, leap year, Easter and outlier effects.
 
 - Fit the stock monthly X-13 RSA0 preset, estimating the airline model and selecting X-11 filters on the twelve-month forecast extension.
