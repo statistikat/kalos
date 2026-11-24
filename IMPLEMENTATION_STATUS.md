@@ -5,6 +5,25 @@ is now an independent C++17 library, without R, Rcpp, Python or Java dependencie
 Sibling bindings consume pinned generated snapshots. Persephone will require
 rkalos; Python intentionally exposes only a minimal initial surface.
 
+## M7 — Capability evidence package (item 27) — 2026-11-24
+
+The final evidence package for the default-backend cutover review is
+committed at [docs/EVIDENCE_PACKAGE.md](docs/EVIDENCE_PACKAGE.md). It indexes
+30 delivered capability families against all 57 `validation/evidence/native/`
+directories, the 12 `validation/fixtures/native/` X-11 JVM corpora and the
+`validation/reference/` goldens, recording for each family the core entry
+points, the capture provenance (23 double-JVM or triple-JVM byte-identical
+pinned-JVM captures, 6 pre-policy single pinned-JVM captures, 1
+independent-R-oracle/analytic family with no JVM oracle — the ARMA
+information kernels), a short reference digest and the consuming tests in
+kalos ctest, rkalos tinytest and pykalos. No capability lacks evidence
+backing; the package's caveats section records the bounded parity scope
+(JVM-randomized fast-tier root bits, the pre-policy X-11 fixture captures,
+the intrinsics-disabled JVM math-flag domain, and the two frozen public
+captures still awaiting native wiring). Read-only aggregation: no evidence
+file, fixture, digest or source was modified; `check-manifest.py` unchanged
+and green (207 core / 112 fixture / 410 evidence).
+
 ## M6 WK factorizer chain platform lanes
 
 The completed chain (`b4f2e1d`) was replayed through the CI Linux matrix
