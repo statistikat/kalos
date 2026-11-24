@@ -315,3 +315,16 @@ The forecast horizon is a nonnegative count of months, with
 returns `covariance_range` and an empty vector. The fitted WK series
 uncertainty remains available as a separate seasonal decomposition product.
 [Public 13-fit capture](../../validation/evidence/native/tramo-seats-bridge/rsa3-forecast-errors-x86_64.txt)
+
+### Forecast uncertainty for a selected model with calendar effects
+
+`tramo_selected_forecast_errors(fit, months)` accepts a selected monthly
+SARIMA fit, including estimated working-day or trading-day contrasts, leap
+year, Easter and registered outliers. The regression design on the full
+observation and future domain follows the fitted coefficient order. The
+projection incorporates covariance between all estimated columns and uses
+the original-series lognormal standard error for a log fit. Zero months
+returns `no_requested_predictions`. The public RSA3 entry point uses this
+same projection on the model it identified. The RSAfull evidence covers
+the 26 models refitted from their independently selected descriptions.
+[Forecast reference](../../validation/evidence/native/tramo-seats-bridge/rsafull-forecast-errors-x86_64.txt)

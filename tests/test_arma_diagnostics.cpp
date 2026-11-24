@@ -205,6 +205,7 @@ int main() {
         {"", "rsa3-x86_64.txt"}, {"", "rsa3-additional-x86_64.txt"}}, 9);
     check_public_residual_diagnostics("rsa3-mean-retry-diagnostics", {{"", "rsa3-mean-retry-x86_64.txt"}}, 4);
     check_public_residual_diagnostics("rsa3-ref-retry-diagnostics", {{"", "rsa3-ref-retry-x86_64.txt"}}, 7);
+    check_public_residual_diagnostics("rsafull-residual-diagnostics", {{"", "rsafull-x86_64.txt"}}, 26);
     const auto short_sample = kalos::monthly_tramo_residual_ljung_box(std::vector<double>(24, 1), 3);
     if (!short_sample.built || short_sample.df != 21 || !std::isnan(short_sample.value) || !std::isnan(short_sample.p))
         throw std::runtime_error("invalid short monthly TRAMO residual test");

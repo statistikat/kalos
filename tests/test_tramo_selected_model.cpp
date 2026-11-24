@@ -98,6 +98,27 @@ WkReference read_wk_reference() {
     return wk;
 }
 
+std::map<std::string, std::vector<double>> read_forecast_errors() {
+    std::ifstream input(KALOS_SELECTED_FORECAST_PANEL);
+    std::map<std::string, std::vector<double>> result;
+    std::string id;
+    for (std::string line; std::getline(input, line);) {
+        std::istringstream row(line);
+        std::string tag;
+        row >> tag;
+        if (tag == "case") row >> id;
+        if (tag == "y_ef") {
+            int year, month, length;
+            row >> year >> month >> length;
+            auto expected = read_values(row);
+            check(length == 24 && expected.size() == 24, id + " public forecast count");
+            check(result.emplace(id, std::move(expected)).second, id + " duplicate forecast case");
+        }
+    }
+    check(result.size() == 26, "incomplete public forecast reference");
+    return result;
+}
+
 void compare_fit(const Reference& ref, const kalos::TramoFitResult& fit) {
     check(fit.log == ref.log && fit.mean == ref.mean, "transformation or mean");
     const auto& o = fit.orders;
@@ -118,7 +139,7 @@ void compare_fit(const Reference& ref, const kalos::TramoFitResult& fit) {
     numbers(fit.full_residuals, ref.residuals, "residuals");
 }
 
-void compare(const Reference& ref, const WkReference& wk) {
+void compare(const Reference& ref, const WkReference& wk, const std::vector<double>& expected_errors, double& worst_error) {
     if (ref.finals.empty()) {
         auto fit = kalos::estimate_tramo_trfull_reference(ref.series, ref.year, ref.month);
         check(fit.reference_model_computed && !fit.final_model_computed, "reference status");
@@ -129,6 +150,16 @@ void compare(const Reference& ref, const WkReference& wk) {
                                                  ref.calendar, ref.outliers);
     check(fit.status == "available" && fit.final_model_computed, "fit status");
     compare_fit(ref, fit);
+    for (int horizon : {0, 1, 7, 24}) {
+        auto forecast = kalos::tramo_selected_forecast_errors(fit, horizon);
+        check(forecast.status == (horizon ? "available" : "no_requested_predictions") &&
+              forecast.standard_errors.size() == static_cast<std::size_t>(horizon), "selected model forecast status");
+        for (int h = 0; h < horizon; ++h) {
+            const double error = std::abs(forecast.standard_errors[h] - expected_errors[h]) / (1 + expected_errors[h]);
+            check(error <= 2e-8, "selected model forecast error at " + std::to_string(h + 1));
+            worst_error = std::max(worst_error, error);
+        }
+    }
     const auto result = kalos::run_tramo_seats_pipeline(fit, 0, 24);
     check(result.extraction.model_changed == ref.changed, "approximation flag");
     // The higher-order WK extraction has an independent regression in progress.
@@ -161,6 +192,8 @@ int main(int argc, char** argv) {
         return 1;
     } catch (const std::invalid_argument&) {}
     const auto wk = read_wk_reference();
+    const auto forecasts = read_forecast_errors();
+    double worst_error = 0.0;
     std::ifstream stream(argc == 2 ? argv[1] : KALOS_SELECTED_CALENDAR_PANEL);
     Reference ref;
     int cases = 0, failures = 0, rows = 0;
@@ -168,7 +201,7 @@ int main(int argc, char** argv) {
     const auto replay = [&] {
         if (ref.id.empty()) return;
         try {
-            compare(ref, wk);
+            compare(ref, wk, forecasts.at(ref.id), worst_error);
         } catch (const std::exception& error) {
             std::cerr << ref.id << ": " << error.what() << "\n";
             ++failures;
@@ -234,5 +267,6 @@ int main(int argc, char** argv) {
     std::cout << cases << " selected RSAfull models, " << residuals << " residuals, "
               << rows << " rows, " << values << " component values\n";
     if (argc == 2) return cases == 26 && residuals == 3934 && !failures && rows == 0 ? 0 : 1;
+    std::cout << "maximum scaled original-series forecast error " << worst_error << "\n";
     return cases == 26 && residuals == 3914 && rows == 260 && values == 24360 && !failures ? 0 : 1;
 }
