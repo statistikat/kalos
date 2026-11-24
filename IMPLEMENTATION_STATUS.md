@@ -5,6 +5,14 @@ is now an independent C++17 library, without R, Rcpp, Python or Java dependencie
 Sibling bindings consume pinned generated snapshots. Persephone will require
 rkalos; Python intentionally exposes only a minimal initial surface.
 
+## M5 late-controller RSAfull public outputs (2026-11-24)
+
+The three stock fits that select working days in the late controller now
+have independent public observed and forecast calendar effects, separate
+original-series and conditional SEATS forecast errors, and residual scale,
+independence and normality results. Fresh pairs of pinned x86-64 JVMs
+agreed on every captured field across all three panels.
+
 ## M5 public RSAfull calendar effects (2026-11-24)
 
 Two fresh pinned x86-64 JVM processes returned identical public `cal` and

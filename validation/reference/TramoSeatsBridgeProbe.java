@@ -440,6 +440,14 @@ public class TramoSeatsBridgeProbe {
             for (int[] pair : new int[][]{{26, 0}, {51, 5}, {66, 0}, {73, 2}}) rsa3MeanRetry(stage, pair[0], pair[1]);
             return;
         }
+        if (stage.equals("rsafull-late-calendar-effect") || stage.equals("rsafull-late-forecast-errors") ||
+                stage.equals("rsafull-late-residual-diagnostics")) {
+            for (int seed : List.of(12, 14, 44)) {
+                var data = TsData.of(TsPeriod.monthly(1990, 1), DoubleSeq.of(lateTradingDaysInput(seed)));
+                rawFull("late_td_" + seed, data, stage.replace("rsafull-late-", "rsafull-"));
+            }
+            return;
+        }
         if (stage.equals("rsafull-late-calendar")) {
             for (int seed : List.of(12, 14, 44)) {
                 var data = TsData.of(TsPeriod.monthly(1990, 1), DoubleSeq.of(lateTradingDaysInput(seed)));
