@@ -182,18 +182,11 @@ void compare(const Reference& ref, const WkReference& wk, const std::vector<doub
         }
     }
     check(result.extraction.model_changed == ref.changed, "approximation flag");
-    // The higher-order WK extraction has an independent regression in progress.
-    // Its public provider output isolates calendar restoration on that same fit.
-    auto finals = result.finals;
     if (ref.id == wk.id) {
         numbers(kalos::make_tramo_seats_model(fit).series, wk.adjusted, "WK input");
-        if (ref.id == "late_td_14") {
-            compare_components(result.extraction.final_components(), wk.components, "WK");
-        } else {
-            finals = kalos::merge_tramo_seats_components(fit, wk.components);
-        }
+        compare_components(result.extraction.final_components(), wk.components, "WK");
     }
-    compare_components(finals, ref.finals, "product");
+    compare_components(result.finals, ref.finals, "product");
 }
 }
 

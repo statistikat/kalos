@@ -4668,3 +4668,17 @@ standard errors, and its merged observations and forecasts match the paired
 JVM records bit-for-bit. Direct product coverage is 28 of the 29 stock RSAfull
 fits. The fitted input to `calendar_8_log` matches through decomposition and
 its forecasting comparison remains open.
+
+### M5 / 24-D — all 29 stock monthly RSAfull products
+
+`calendar_8_log` reaches a second-order regular autoregression with two
+regular differences and one seasonal difference. The outer SARIMA model
+multiplies its differencing filter first. A forecast model augmented for a
+mean multiplies the stationary filter first. Preserving those evaluation
+orders restores the diffuse filter initialization and the Burman forecast
+extension. All 29 raw stock fits now match the paired JVMs on 4,165
+residuals and all 26,160 final values. Both previously isolated extracts
+also match their dated WK rows, including conditional standard errors.
+The regression suite checks the native route directly throughout. All
+seven adjacent Release tests passed, including the existing fixed-model
+decomposition and forecasting suites.

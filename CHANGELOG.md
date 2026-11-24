@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Apply the SARIMA differencing filter in source-model order during SEATS forecasting and signal extraction.
+
 - Preserve the complex seasonal roots and their concatenation with regular AR roots in monthly SEATS extraction.
 
 - Retain the known roots of positive seasonal factors during SEATS decomposition.
