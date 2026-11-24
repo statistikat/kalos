@@ -5,6 +5,19 @@ is now an independent C++17 library, without R, Rcpp, Python or Java dependencie
 Sibling bindings consume pinned generated snapshots. Persephone will require
 rkalos; Python intentionally exposes only a minimal initial surface.
 
+## M6 WK factorizer chain platform lanes
+
+The completed chain (`b4f2e1d`) was replayed through the CI Linux matrix
+locally while runners were queued: Release with owned OpenMP at two threads
+under the required-OpenMP gate, Release serial, and a full Debug run with
+address and undefined-behaviour sanitizers — 94/94 CTests in each lane with
+zero sanitizer reports. The installed-provider consumer bound the pinned
+single-thread OpenBLAS 0.3.34, the export manifest listed every source and
+evidence file, and the historical migration gate verified 406 files without
+rebaselining. The two binding snapshots re-pinned onto this core: pykalos
+replays its 132-test Java-free surface (748 subtests) bit-identically, and
+the rkalos lanes re-run under the new pin separately.
+
 ## M6 SEATS WK factorizer tiers
 
 `factorize_sf` now mirrors the full installed JVM chain, EV2 -> EV1 -> fast
