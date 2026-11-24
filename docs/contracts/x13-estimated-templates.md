@@ -88,3 +88,14 @@ differencing (13 observations for an airline model). Without regressors the
 public model returns the concentrated likelihood innovations. With estimated
 regressors it removes their fitted effects from the transformed levels,
 differences the adjusted series and filters it through the fitted ARMA.
+
+## RSA2c stock product
+
+`x13_estimated_rsa2c(observations, year, month)` runs the raw scale and
+calendar comparisons, outlier detection, calendar significance retest, final
+estimation and X-11. Its `stock_calendar` contains the typed selection and
+the names and coefficients of the calendar variables in fitted order. The
+`variables` vector holds the subsequent outliers. `stock_likelihood` holds
+the complete stationary residuals, residual sum of squares and model parameter
+count. X-11 returns the same fitted and one-year forecast fields as RSA0
+and RSA1, including the separate MSR and Henderson decisions.

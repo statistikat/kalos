@@ -41,7 +41,8 @@ kalos::X13AutomaticFitResult fit(const std::string& preset, const std::string& i
     std::vector<double> values;
     for (double value; input >> value;) values.push_back(value);
     return preset == "rsa0" ? kalos::x13_estimated_rsa0(values, year, month)
-                            : kalos::x13_estimated_rsa1(values, year, month);
+             : preset == "rsa1" ? kalos::x13_estimated_rsa1(values, year, month)
+                                 : kalos::x13_estimated_rsa2c(values, year, month);
 }
 } // namespace
 
@@ -60,7 +61,7 @@ int main() {
         if (tag == "case") {
             std::string preset;
             in >> preset >> id;
-            selected = preset == "rsa0" || preset == "rsa1";
+            selected = preset == "rsa0" || preset == "rsa1" || preset == "rsa2c";
             variable = 0;
             if (!selected) continue;
             result = fit(preset, id, year, month);
@@ -84,12 +85,22 @@ int main() {
         } else if (selected && tag == "variable") {
             std::string code, date, kind, effect;
             int dimension;
-            in >> code >> date >> kind >> dimension >> effect;
-            const auto& v = result.variables.at(variable++);
-            check(v.name == code + " " + date && v.regeffect == effect && dimension == 1 &&
-                  kind == "AdditiveOutlier" && v.type == kalos::OutlierType::Additive, id + " outlier");
+            in >> code;
+            const auto count = result.stock_calendar ? result.stock_calendar->names.size() : 0;
+            if (variable < count) {
+                in >> kind >> dimension >> effect;
+                check(result.stock_calendar->names[variable] == code && dimension == 1 && effect == "CalendarEffect",
+                      id + " calendar variable");
+            } else {
+                in >> date >> kind >> dimension >> effect;
+                const auto& v = result.variables.at(variable - count);
+                check(v.name == code + " " + date && v.regeffect == effect && dimension == 1 &&
+                      kind == "AdditiveOutlier" && v.type == kalos::OutlierType::Additive, id + " outlier");
+            }
+            ++variable;
         } else if (selected && tag == "coefficients") {
             std::vector<double> coefficients;
+            if (result.stock_calendar) coefficients = result.stock_calendar->coefficients;
             for (const auto& v : result.variables) coefficients.push_back(v.coefficient);
             check(variable == coefficients.size(), id + " variables");
             compare(in, coefficients, 0., id + " regressors");
@@ -145,6 +156,6 @@ int main() {
             ++checked_rows;
         }
     }
-    check(cases == 6 && checked_rows == 84 && likelihoods == 6 && residuals == 594, "incomplete stock RSA0/RSA1 reference");
-    std::cout << cases << " stock RSA0/RSA1 fits, " << checked_rows << " dated table rows\n";
+    check(cases == 9 && checked_rows == 126 && likelihoods == 9 && residuals == 891, "incomplete stock RSA0/RSA1/RSA2c reference");
+    std::cout << cases << " stock RSA0/RSA1/RSA2c fits, " << checked_rows << " dated table rows\n";
 }

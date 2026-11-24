@@ -4842,3 +4842,16 @@ including the observed nonpositive-series bypass.
 ### M6 combined SI on native automatic X-13 products
 
 All six automatic native fits reproduced the public `diagnostics.seas-si-combined` verdict after cropping D8 to the observation domain. Their 36 stable, moving and rank statistics and probabilities were within 1.68e-13 scaled (limit 1e-12), including log-additive and non-log pseudo-additive extended products. The complete Release automatic oracle also passed its 4,637 checks across 13 historical input specifications. [Native end-to-end replay](tests/test_x13_automatic_oracle.cpp)
+
+### M5b / 28 — complete stock monthly RSA2c product
+
+`x13_estimated_rsa2c` selects levels or logs, fits the physical TD2 and
+Easter candidates, supplies the winning fit to outlier detection and retests
+the retained calendar after a changed outlier set. It estimates the resulting
+airline and all regression coefficients. The X-11 preadjustment uses the
+dated design, February model-scale adjustment and its separate reverse factors
+for the days-related effect and original-series forecasts. All three RSA2c
+fits match the public kernel's selected variable identities, 6 moving averages,
+3 sets of likelihoods, 297 full residuals and discrete X-11 decisions.
+Across all nine RSA0/RSA1/RSA2c fits, the 126 output rows pass the existing
+1e-8 relative bound and all 891 full residuals match exactly.
