@@ -401,6 +401,7 @@
     "validation/evidence/native/seats-wk-extraction/model-facts.csv",
     "validation/evidence/native/seats-wk-factorizer-tiers/README.md",
     "validation/evidence/native/seats-wk-factorizer-tiers/factorize-calls-x86_64.txt",
+    "validation/evidence/native/seats-wk-factorizer-tiers/muller-adversarial-x86_64.txt",
     "validation/evidence/native/seats-wk-factorizer-tiers/reference.json",
     "validation/evidence/native/seats-wk-factorizer-tiers/robust-stages-x86_64.txt",
     "validation/evidence/native/seats-wk-factorizer-tiers/wk-x86_64.txt",

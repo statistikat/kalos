@@ -13,6 +13,11 @@ series) through the pinned jdplus 3.9.0 TRAMO-SEATS stack:
   robust-stages    SeatsWkRobustStagesProbe   - the robust tier stage walk on
                                                the refused total error
                                                variance filter
+  muller-adversarial SeatsWkMullerAdversarialProbe - the two fuzz corpus
+                                               filters (indices 144 and 304)
+                                               that drive the robust tier's
+                                               Muller-Newton solver through
+                                               +-0.0-sensitive branches
 
 Every capture is produced twice, in two independent JVM invocations, and the
 two byte streams must be identical. The JVM math flags match the raw TRAMO-
@@ -35,6 +40,7 @@ STAGES = {
     "wk": ("SeatsWkFactorizerProbe", "wk-x86_64.txt"),
     "factorize-calls": ("SeatsWkFactorizeCallsProbe", "factorize-calls-x86_64.txt"),
     "robust-stages": ("SeatsWkRobustStagesProbe", "robust-stages-x86_64.txt"),
+    "muller-adversarial": ("SeatsWkMullerAdversarialProbe", "muller-adversarial-x86_64.txt"),
 }
 
 
@@ -77,6 +83,7 @@ def main():
             "wk": ["SeatsWkFactorizerProbe", SEAS],
             "factorize-calls": ["SeatsWkFactorizeCallsProbe", SEAS],
             "robust-stages": ["SeatsWkRobustStagesProbe", reference["tevar_filter"]],
+            "muller-adversarial": ["SeatsWkMullerAdversarialProbe"],
         }
         for stage, (probe, output_name) in STAGES.items():
             if args.stage not in {stage, "all"}:
