@@ -25,7 +25,7 @@ def main():
                         help="directory containing pinned jars (repeatable)")
     parser.add_argument("--stage", choices=["bridge", "merge", "rsa0", "rsa0-forecast-errors",
                         "rsa0-residuals", "rsa0-ljung-box", "rsa0-doornik-hansen", "rsa1", "rsa1-level-effects", "rsa1-level-tc", "rsa1-log-tc", "rsa1-residual-diagnostics", "rsa1-forecast-errors", "rsa3", "rsa3-additional", "rsa3-mean-retry", "rsa3-mean-retry-diagnostics", "rsa3-ref-retry", "rsa3-ref-retry-wk", "rsa3-ref-retry-diagnostics", "rsa3-ref-retry-forecast-errors", "rsa3-residual-diagnostics", "rsa3-forecast-errors", "rsafull", "rsafull-calendar-effect", "rsafull-calendar-wk", "rsafull-residual-diagnostics", "rsafull-forecast-errors", "rsafull-reference", "rsafull-late-calendar", "rsafull-late-calendar-effect", "rsafull-late-forecast-errors", "rsafull-late-residual-diagnostics", "rsafull-late-wk",
-                        "combined-seasonality", "combined-seasonality-fixed", "combined-seasonality-automatic", "calendar-ftest", "trfull-calendar", "residual-td", "td-controller", "fast-calendar", "spectrum-cos", "seasonal-peaks", "seasonal-f", "calendar-outliers", "td-controller-outliers"], default="bridge")
+                        "combined-seasonality", "combined-seasonality-fixed", "combined-seasonality-automatic", "combined-seasonality-stock", "calendar-ftest", "trfull-calendar", "residual-td", "td-controller", "fast-calendar", "spectrum-cos", "seasonal-peaks", "seasonal-f", "calendar-outliers", "td-controller-outliers"], default="bridge")
     parser.add_argument("--output", type=Path, help="write a new capture instead of verifying the frozen file")
     args = parser.parse_args()
     reference = json.loads((EVIDENCE / "reference.json").read_text())
@@ -67,7 +67,7 @@ def main():
         if arch not in {"x86_64", "amd64"}:
             raise SystemExit("combined seasonality uses the pinned x86-64 numerical profile")
         names = {"combined-seasonality": "public", "combined-seasonality-fixed": "fixed-x13",
-                 "combined-seasonality-automatic": "automatic-x13"}
+                 "combined-seasonality-automatic": "automatic-x13", "combined-seasonality-stock": "stock"}
         output_name = "../combined-seasonality/" + names[args.stage] + "-x86_64.txt"
         x13 = json.loads((EVIDENCE.parent / "x13-refusal-jvm-profiles/reference.json").read_text())
         pins.update({name: digest for name, digest in x13["jars"].items()
@@ -101,6 +101,9 @@ def main():
     if args.stage.startswith("combined-seasonality"):
         probe = "CombinedSeasonalityProbe"
         arguments = [EVIDENCE / "rsa3-x86_64.txt", EVIDENCE / "rsa3-ref-retry-x86_64.txt"]
+        if args.stage == "combined-seasonality-stock":
+            arguments = ["stock", EVIDENCE / "rsafull-x86_64.txt", EVIDENCE / "rsafull-late-calendar-x86_64.txt",
+                         EVIDENCE.parent / "x13-refusal-jvm-profiles"]
         if args.stage.endswith("-fixed"):
             arguments.append("fixed")
     sources = [HERE / (probe + ".java")]

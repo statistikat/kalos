@@ -95,7 +95,7 @@ public final class CombinedSeasonalityProbe {
         }
     }
 
-    static void products(Path path, boolean retries, boolean fixedOnly) throws Exception {
+    static void products(Path path, boolean retries, boolean fixedOnly, boolean full) throws Exception {
         String id = "";
         for (String line : Files.readAllLines(path)) {
             var fields = line.split(" ");
@@ -104,7 +104,9 @@ public final class CombinedSeasonalityProbe {
             var values = Arrays.stream(fields, 4, fields.length).mapToDouble(hex ->
                 Double.longBitsToDouble(Long.parseUnsignedLong(hex, 16))).toArray();
             var data = TsData.ofInternal(TsPeriod.monthly(Integer.parseInt(fields[1]), Integer.parseInt(fields[2])), values);
-            if (fixedOnly) {
+            if (full) {
+                tramo(id, data, "rsafull", TramoSeatsSpec.RSAfull);
+            } else if (fixedOnly) {
                 if (id.equals("fit_tr0_air")) fixed(id, data);
             } else if (retries) {
                 if (id.equals("fit_ref_retry_0_5") || id.equals("fit_ref_retry_0_1")) tramo(id, data, "rsa3", TramoSeatsSpec.RSA3);
@@ -144,9 +146,21 @@ public final class CombinedSeasonalityProbe {
     }
 
     public static void main(String[] args) throws Exception {
-        if (args.length == 3) { products(Path.of(args[0]), false, true); return; }
+        if (args[0].equals("stock")) {
+            products(Path.of(args[1]), false, false, true);
+            products(Path.of(args[2]), false, false, true);
+            for (String id : new String[]{"air", "ao", "seas"}) {
+                var lines = Files.readAllLines(Path.of(args[3], id + ".csv"));
+                var start = lines.remove(0).split(",");
+                var values = lines.stream().mapToDouble(Double::parseDouble).toArray();
+                var data = TsData.ofInternal(TsPeriod.monthly(Integer.parseInt(start[0]), Integer.parseInt(start[1])), values);
+                for (String preset : new String[]{"rsa0", "rsa1"}) x13(id, data, preset, null);
+            }
+            return;
+        }
+        if (args.length == 3) { products(Path.of(args[0]), false, true, false); return; }
         synthetic();
-        products(Path.of(args[0]), false, false);
-        products(Path.of(args[1]), true, false);
+        products(Path.of(args[0]), false, false, false);
+        products(Path.of(args[1]), true, false, false);
     }
 }

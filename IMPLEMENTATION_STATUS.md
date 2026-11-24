@@ -4855,3 +4855,7 @@ fits match the public kernel's selected variable identities, 6 moving averages,
 3 sets of likelihoods, 297 full residuals and discrete X-11 decisions.
 Across all nine RSA0/RSA1/RSA2c fits, the 126 output rows pass the existing
 1e-8 relative bound and all 891 full residuals match exactly.
+
+### M6 stock calendar and estimated-product dashboard references
+
+Two pinned x86-64 JVMs reproduced the public combined SI seasonality getter on all 29 raw monthly RSAfull fits and the six stock estimated X-13 RSA0/RSA1 fits. The 35 product inputs, scales, public summaries and 210 numerical fields have SHA-256 `41da1bef3242cbfd439649848c26a8de41d5fa2a021ba5d5e2aa6f98affa2005`. [Stock dashboard reference](validation/evidence/native/combined-seasonality/stock-x86_64.txt)
