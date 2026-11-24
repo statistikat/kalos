@@ -5,6 +5,14 @@ is now an independent C++17 library, without R, Rcpp, Python or Java dependencie
 Sibling bindings consume pinned generated snapshots. Persephone will require
 rkalos; Python intentionally exposes only a minimal initial surface.
 
+## M6 portable residual normality arithmetic
+
+The X-13 reference uses the portable JDK math profile for the one-third
+power in Doornik–Hansen. The native portable implementation matched
+`StrictMath.pow(x, 1.0/3.0)` bit-for-bit on 73,093 inputs including
+subnormal values, range-reduction boundaries, infinities and signed zeros.
+The existing x86 TRAMO diagnostic remains independently qualified.
+
 ## M5b stock X-13 preprocessing diagnostic reference
 
 Two independent pinned x86-64 JVM processes produced identical `residuals.ser`,

@@ -6,6 +6,7 @@
 // validation/reference/LjungBoxGolden.java); the input series are exact
 // recurrences replayed bit-identically from the embedded table.
 #include "kalos/arma_diagnostics.hpp"
+#include "kalos/detail/fdlibm.hpp"
 
 #include "jvm_arma_diagnostics.h"
 
@@ -198,6 +199,42 @@ void check_public_residual_diagnostics(const std::string& diagnostic_file,
 } // namespace
 
 int main() {
+    // Pinned StrictMath.pow(x, 1.0/3.0), including its signed-zero and
+    // infinity conventions and the two logarithm range-reduction boundaries.
+    const std::uint64_t power_cases[][2] = {
+        {0xb05c0847ffd15122ULL, 0x7ff8000000000000ULL},
+        {0x5cabbd075ccb078fULL, 0x4983388d033452c9ULL},
+        {0x7dc0bca37bd2b940ULL, 0x5489c850c3abd80cULL},
+        {0x468664b32548513cULL, 0x4221e5b26ec60722ULL},
+        {0x9df497f93d5e9b3fULL, 0x7ff8000000000000ULL},
+        {0x9b45cc158a352a5cULL, 0x7ff8000000000000ULL},
+        {0x7f01e57266c9f003ULL, 0x54f4ecf2f4dd0316ULL},
+        {0x337108bcc6dfb1c7ULL, 0x3bc49581a84258c4ULL},
+        {0x3fefffffffffffffULL, 0x3ff0000000000000ULL},
+        {0x0000000000000000ULL, 0x0000000000000000ULL},
+        {0x0000000000000001ULL, 0x299000000000003eULL},
+        {0x0000000000000002ULL, 0x299428a2f98d72d9ULL},
+        {0x0010000000000000ULL, 0x2aa428a2f98d72d5ULL},
+        {0x0010000000000001ULL, 0x2aa428a2f98d72d6ULL},
+        {0x3ff3988e00000000ULL, 0x3ff11e5d46427ea0ULL},
+        {0x3ff3988e00000001ULL, 0x3ff11e5d46427ea0ULL},
+        {0x3ffbb67a00000000ULL, 0x3ff33709757d8170ULL},
+        {0x3ffbb67a00000001ULL, 0x3ff33709757d8171ULL},
+        {0x7fefffffffffffffULL, 0x554428a2f98d7240ULL},
+        {0x7ff0000000000000ULL, 0x7ff0000000000000ULL},
+        {0x3ff0000000000001ULL, 0x3ff0000000000000ULL},
+        {0x8000000000000000ULL, 0x0000000000000000ULL},
+        {0xfff0000000000000ULL, 0x7ff0000000000000ULL},
+        {0x7ff8000000000000ULL, 0x7ff8000000000000ULL},
+    };
+    for (const auto& pair : power_cases) {
+        const auto result = kalos::detail::fdlibm_power_one_third(golden_diag::bits(pair[0]));
+        if (!same(result, pair[1])) {
+            std::fprintf(stderr, "portable power mismatch at %016llx\n", static_cast<unsigned long long>(pair[0]));
+            ++failures;
+        }
+    }
+
     check_public_residual_diagnostics("rsa1-residual-diagnostics", {
         {"", "rsa1-x86_64.txt"}, {"level_", "rsa1-level-effects-x86_64.txt"},
         {"level_tc_", "rsa1-level-tc-x86_64.txt"}, {"log_tc_", "rsa1-log-tc-x86_64.txt"}}, 12);
