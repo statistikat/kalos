@@ -55,22 +55,30 @@ public final class AdjustedSeasonalityProbe {
         }
     }
 
-    public static void main(String[] args) throws Exception {
-        shortSeries();
+    interface Observer {
+        void report(String id, Explorable product, GenericSaTests diagnostics);
+    }
+
+    static void publicProducts(String directory, Observer observer) throws Exception {
         for (String id : new String[]{"air", "ao", "seas"}) {
-            var lines = Files.readAllLines(Path.of(args[0], id + ".csv"));
+            var lines = Files.readAllLines(Path.of(directory, id + ".csv"));
             var start = lines.get(0).split(",");
             var data = TsData.ofInternal(TsPeriod.monthly(Integer.parseInt(start[0]), Integer.parseInt(start[1])),
                 lines.stream().skip(1).mapToDouble(Double::parseDouble).toArray());
             for (String name : new String[]{"rsa0", "rsa1", "rsa2c", "rsa3"}) {
                 var r = X13Kernel.of(X13Spec.fromString(name), new ModellingContext()).process(data, null);
-                report("x13_" + name + "_" + id, r, r.getDiagnostics().getGenericDiagnostics());
+                observer.report("x13_" + name + "_" + id, r, r.getDiagnostics().getGenericDiagnostics());
             }
             for (var spec : new TramoSeatsSpec[]{TramoSeatsSpec.RSA0, TramoSeatsSpec.RSA1, TramoSeatsSpec.RSA3, TramoSeatsSpec.RSAfull}) {
                 var r = TramoSeatsKernel.of(spec, new ModellingContext()).process(data, null);
-                report("tramo_" + spec.display().toLowerCase(java.util.Locale.ROOT) + "_" + id, r,
+                observer.report("tramo_" + spec.display().toLowerCase(java.util.Locale.ROOT) + "_" + id, r,
                     r.getDiagnostics().getGenericDiagnostics());
             }
         }
+    }
+
+    public static void main(String[] args) throws Exception {
+        shortSeries();
+        publicProducts(args[0], AdjustedSeasonalityProbe::report);
     }
 }

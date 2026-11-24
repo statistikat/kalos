@@ -4894,3 +4894,7 @@ Two pinned JVMs agreed on the public observed-D8 dashboard getter and its six te
 ### M6 combined SI on estimated stock RSA2c
 
 All three raw stock calendar-adjusted X-13 fits match their public dashboard verdicts and six numerical test fields. The fixed/WK/stock combined replay now covers 104 inputs (612 statistical fields exactly reproduced) and 62 end-to-end products (372 fields within 5.28e-14 scaled). [Native product replay](tests/test_combined_seasonality.cpp)
+
+### M6 residual trading-day public dashboard references
+
+Two independent pinned x86 JVMs reproduced all four residual trading-day getters for the adjusted and irregular components on 24 raw X-13 and TRAMO/SEATS products. The public default uses the full observed sample for both the all and last getters. Each of the 48 model-scale input series has an independent nonseasonal MA(1) regression witness with six monthly TD7 contrasts, including the optimized MA parameter, likelihood residual sum of squares and regression coefficients. The joint F statistic and upper probability agree bit-for-bit with the public getter. Capture SHA-256 is `e3316fdeec377a146ce3f2c33fb5d3ef8ed865713b9b30f5c47cd830a3e78117`. The earlier adjusted-seasonality capture, including the eight short samples, was independently replayed at its existing SHA. [Public residual trading-days reference](validation/evidence/native/residual-trading-days/public-x86_64.txt)

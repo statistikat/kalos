@@ -390,6 +390,7 @@
     "validation/evidence/native/regression-tests/rvt.csv",
     "validation/evidence/native/regression-tests/ucov.csv",
     "validation/evidence/native/regression-tests/vars.csv",
+    "validation/evidence/native/residual-trading-days/public-x86_64.txt",
     "validation/evidence/native/seats-airline-approximation/SHA256SUMS.csv",
     "validation/evidence/native/seats-airline-approximation/thresholds.csv",
     "validation/evidence/native/seats-wk-extraction/SHA256SUMS.csv",
