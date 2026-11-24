@@ -4630,3 +4630,14 @@ Two independent pinned JVMs captured residual scale, independence and normality,
 ### M5 forecast uncertainty and residual diagnostics on selected calendar models
 
 `tramo_selected_forecast_errors` projects the fitted monthly regression effects jointly with the SARIMA process. This includes working days, full trading-day contrasts, leap year, Easter, drift and stock outliers. All 624 original-scale forecasts errors from the 26 independently selected and refitted RSAfull models agreed within 7.78e-12 scaled error (limit 2e-8). The 26 fitted residual vectors matched the oracle, and their 130 standard errors, independence and normality statistics and probabilities matched bit-for-bit. The independence tests retained the model-specific degrees of freedom from 21 through 23. The diagnostic, selected-calendar model and automatic-model tests passed in Release and serial ASan/UBSan. Raw RSAfull automatic identification is tracked separately. [Public forecast and fitted-product replay](tests/test_tramo_selected_model.cpp)
+
+### M5 / 24-D — all twenty raw stock RSA3 products
+
+A positive seasonal factor now carries the roots computed when it is built.
+SEATS uses those roots when splitting a pure seasonal AR model. Re-solving
+the degree-12 polynomial changed the `fit_ref_retry_18_2` trend and seasonal
+components. All 20 stock RSA3 fits now match all 13,980 observed and forecast
+product values, 2,105 fitted residuals and all 480 WK forecast standard
+errors bit for bit. The 480 public original-series forecast errors match the
+qualified tolerance. Eight adjacent Release tests passed, including the
+existing quarterly and monthly fixed-model decomposition regressions.

@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Retain the known roots of positive seasonal factors during SEATS decomposition.
+
 - Restore seasonal values and forecasts when the fitted SEATS decomposition
   contains no stochastic seasonal component.
 
