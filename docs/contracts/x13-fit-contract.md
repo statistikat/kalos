@@ -31,8 +31,8 @@ results-builder stage, and the final-components triplet.
 * `x11_selection_pass` over `out` with the requested fixed seasonal filters,
   fixed Henderson length, required sigma policy, sigma cuttings, MSR
   iteration policy (inert while every request is fixed) and horizons `0/0`,
-  under the **forced** mode: non-log → additive; log → multiplicative
-  unless `log_additive`/`pseudo_additive` was requested (the pinned
+  under the **forced** mode: `pseudo_additive` is preserved. For other requests, non-log → additive and log → multiplicative
+  unless `log_additive` was requested (the pinned
   `updateSpec` rule, echoed as `mode_effective`).
 * Under `log_additive` only, the pinned `X11Kernel` results-builder stage
   (`finalResults` → `ratioBiasCorrection`, the `X11Spec` default bias):

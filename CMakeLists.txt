@@ -272,6 +272,10 @@ if(KALOS_BUILD_TESTS)
     else()
       target_compile_options(${test_name} PRIVATE -UNDEBUG)
     endif()
+    if(test_name STREQUAL "test_x13_fit")
+      target_compile_definitions(test_x13_fit PRIVATE
+        KALOS_PSEUDO_FIXED="${CMAKE_CURRENT_SOURCE_DIR}/validation/evidence/native/x13-nonlog-pseudo/fixed-x86_64.txt")
+    endif()
     if(test_name STREQUAL "test_tramo_outlier_scan")
       target_compile_definitions(${test_name} PRIVATE
         KALOS_CALENDAR_OUTLIERS_PANEL="${CMAKE_CURRENT_SOURCE_DIR}/validation/evidence/native/tramo-calendar-ftest/calendar-outliers.txt")

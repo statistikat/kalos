@@ -4753,3 +4753,7 @@ template fit remains the independent preprocessing gate.
 ### X-13 non-log pseudo-additive public product reference
 
 Two pinned JVM runs preserved a requested pseudo-additive mode with non-log data on two fixed and two automatic model specifications. They captured 14 X-11 and public final tables for each product, with the automatic cases exercising disabled and enabled outlier detection. The fixed capture SHA-256 is `d9192949b8803109b7f8b3873c2375df7281c9411db504d1bc5e64a07e28979e` and the automatic capture SHA-256 is `da18b09fa143471630a389cde13fa800553dca21abaf7cf938c49561c64d9eea`. [Reference captures](validation/evidence/native/x13-nonlog-pseudo)
+
+### Fixed X-13 pseudo-additive mode with non-log preprocessing
+
+The fixed fit now follows the JVM's `X13Kernel.updateSpec` branch that preserves explicitly requested `PseudoAdditive` before testing the log transform. Earlier captures had covered pseudo-additive on log data, and the separate hand-authored non-log assertion had assumed additive forcing. Two independently observed non-log products now agree bit-for-bit on all 2,688 values across 14 tables, including restored finals and correction tables. The 1,440 historical fixed-fit comparisons also passed. [Public reference](validation/evidence/native/x13-nonlog-pseudo/fixed-x86_64.txt)
