@@ -4619,3 +4619,7 @@ models, every outlier identity, all fitted coefficients and likelihoods, and
 all 3,934 full residuals. Two fresh Java 21 processes produced identical
 reference output. Automatic order identification and the subsequent controllers
 remain the next steps before this becomes a raw end-to-end RSAfull fit.
+
+### M5 forecast uncertainty after TR3 reference retries
+
+On seven original series requiring additional model comparison rounds, `estimate_tramo_tr3` and `tramo_tr3_forecast_errors` reproduced all 168 public original-scale errors with maximum scaled error 1.92e-14 (limit 2e-8). The zero-, one- and seven-month requests also passed. Across the three preceding panels and the seven new fits the native forecast gate now covers 480 default-horizon errors on 20 models. The automatic-fit and diagnostic tests passed in Release and serial ASan/UBSan. This qualification exercises preprocessing independently of the outstanding WK product comparisons. [Native replay](tests/test_tramo_seats_automatic.cpp)

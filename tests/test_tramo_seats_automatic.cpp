@@ -70,16 +70,19 @@ std::map<std::string, ForecastReference> read_forecasts(const std::string& prese
     return out;
 }
 
-void check_forecasts(const kalos::tramo_seats_automatic_result& fit, const ForecastReference& ref,
-                     const std::string& id, double& worst_error, bool rsa3) {
-    const auto project = rsa3 ? kalos::tramo_tr3_forecast_errors : kalos::tramo_tr1_forecast_errors;
+void check_wk_errors(const kalos::tramo_seats_automatic_result& fit, const ForecastReference& ref,
+                     const std::string& id) {
     const auto& rows = fit.decomposition.extraction.final_components();
     auto wk = std::find_if(rows.begin(), rows.end(), [](const auto& r) {
         return r.component == kalos::seats_component::series && r.information == kalos::seats_information::stdev_forecast;
     });
     check(wk != rows.end() && wk->start_year == ref.year && wk->start_month == ref.month &&
           wk->values == ref.wk_errors, id + " WK forecast domain and errors");
-    const auto& model = fit.preprocessing;
+}
+
+void check_forecasts(const kalos::TramoFitResult& model, const ForecastReference& ref,
+                     const std::string& id, double& worst_error, bool rsa3) {
+    const auto project = rsa3 ? kalos::tramo_tr3_forecast_errors : kalos::tramo_tr1_forecast_errors;
     for (int count : {0, 1, 7, 24}) {
         const auto result = project(model, count);
         check(result.status == (count ? "available" : "no_requested_predictions") &&
@@ -124,7 +127,8 @@ void run(const std::string& preset, std::size_t expected_cases, std::size_t expe
     static const auto rsa1_forecasts = read_forecasts("rsa1", 12);
     static const auto rsa3_forecasts = read_forecasts("rsa3", 13);
     const bool rsa3 = preset.rfind("rsa3", 0) == 0;
-    const auto& forecasts = rsa3 ? rsa3_forecasts : rsa1_forecasts;
+    static const auto retries = read_forecasts("rsa3-ref-retry", 7);
+    const auto& forecasts = preset == "rsa3-ref-retry" ? retries : rsa3 ? rsa3_forecasts : rsa1_forecasts;
     using C = kalos::seats_component;
     using I = kalos::seats_information;
     const std::map<std::string, C> components{{"Series", C::series}, {"Trend", C::trend}, {"Seasonal", C::seasonal},
@@ -162,8 +166,9 @@ void run(const std::string& preset, std::size_t expected_cases, std::size_t expe
             if (preset.rfind("rsa3", 0) == 0)
                 check(fit.reference_model_computed && fit.first_candidate_computed && fit.initial_regression_checked,
                       id + " automatic identification");
-            if (!preprocessing_only && preset != "rsa3-ref-retry")
-                check_forecasts(result, forecasts.at(prefix + id), prefix + id, worst_forecast_error, rsa3);
+            const auto& ref = forecasts.at(prefix + id);
+            if (!preprocessing_only) check_wk_errors(result, ref, prefix + id);
+            check_forecasts(fit, ref, prefix + id, worst_forecast_error, rsa3);
         } else if (key == "model") {
             bool log, mean;
             row >> label >> std::boolalpha >> log >> label >> mean >> label;
