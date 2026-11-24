@@ -23,7 +23,7 @@ def main():
     parser.add_argument("--jar-dir", type=Path, action="append", required=True,
                         help="directory containing pinned jars (repeatable)")
     parser.add_argument("--stage", choices=["bridge", "merge", "rsa0", "rsa0-forecast-errors",
-                        "rsa0-residuals", "rsa0-ljung-box", "rsa0-doornik-hansen", "rsa1", "rsa1-level-effects", "rsa1-level-tc", "rsa1-log-tc", "rsa1-residual-diagnostics", "rsa1-forecast-errors", "rsa3", "rsa3-additional", "rsa3-mean-retry", "rsa3-mean-retry-diagnostics", "rsa3-ref-retry", "rsa3-ref-retry-wk", "rsa3-ref-retry-diagnostics", "rsa3-ref-retry-forecast-errors", "rsa3-residual-diagnostics", "rsa3-forecast-errors", "rsafull", "rsafull-calendar-wk",
+                        "rsa0-residuals", "rsa0-ljung-box", "rsa0-doornik-hansen", "rsa1", "rsa1-level-effects", "rsa1-level-tc", "rsa1-log-tc", "rsa1-residual-diagnostics", "rsa1-forecast-errors", "rsa3", "rsa3-additional", "rsa3-mean-retry", "rsa3-mean-retry-diagnostics", "rsa3-ref-retry", "rsa3-ref-retry-wk", "rsa3-ref-retry-diagnostics", "rsa3-ref-retry-forecast-errors", "rsa3-residual-diagnostics", "rsa3-forecast-errors", "rsafull", "rsafull-calendar-wk", "rsafull-reference",
                         "calendar-ftest", "trfull-calendar", "residual-td", "td-controller", "fast-calendar", "spectrum-cos", "seasonal-peaks", "seasonal-f", "calendar-outliers", "td-controller-outliers"], default="bridge")
     parser.add_argument("--output", type=Path, help="write a new capture instead of verifying the frozen file")
     args = parser.parse_args()
@@ -76,7 +76,7 @@ def main():
     arguments = [] if args.stage in calendar_probes else [CASES, args.stage]
     if args.stage == "td-controller-outliers":
         arguments = ["outliers"]
-    if args.stage in {"rsafull", "rsafull-calendar-wk"}:
+    if args.stage in {"rsafull", "rsafull-calendar-wk", "rsafull-reference"}:
         calendar_inputs = EVIDENCE.parent / "tramo-calendar-ftest/full.txt"
         if sha256(calendar_inputs) != reference["calendar_inputs_sha256"]:
             raise SystemExit("TRfull calendar source cases digest differs")

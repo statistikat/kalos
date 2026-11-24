@@ -24,6 +24,7 @@ import jdplus.toolkit.base.api.timeseries.TsData;
 import jdplus.toolkit.base.api.timeseries.TsPeriod;
 import jdplus.toolkit.base.api.timeseries.regression.ModellingContext;
 import jdplus.toolkit.base.core.regsarima.regular.RegSarimaModel;
+import jdplus.toolkit.base.core.regsarima.regular.RegSarimaModelling;
 import jdplus.tramoseats.base.api.seats.SeatsModelSpec;
 import jdplus.tramoseats.base.api.tramo.TramoSpec;
 import jdplus.tramoseats.base.api.tramoseats.TramoSeatsSpec;
@@ -256,10 +257,31 @@ public class TramoSeatsBridgeProbe {
             .getSeries(ComponentType.Series, ComponentInformation.StdevForecast));
     }
 
+    // Read the reference description stored by the real kernel after its first iteration.
+    private static RegSarimaModel firstFullReference(TsData series) {
+        var kernel = TramoKernel.of(TramoSpec.fromString("TRfull"), new ModellingContext());
+        try {
+            var reference = TramoKernel.class.getDeclaredField("refAuto");
+            reference.setAccessible(true);
+            var first = new RegSarimaModel[1];
+            kernel.process(series, new ProcessingLog() {
+                @Override public void step(String message) {
+                    if (first[0] != null) return;
+                    try {
+                        var frame = (RegSarimaModelling) reference.get(kernel);
+                        if (frame != null) first[0] = RegSarimaModelling.copyOf(frame).build();
+                    } catch (IllegalAccessException error) { throw new AssertionError(error); }
+                }
+            });
+            require(first[0] != null, "missing first TRfull reference");
+            return first[0];
+        } catch (ReflectiveOperationException error) { throw new AssertionError(error); }
+    }
+
     static void rawAutomatic(String id, TsData series, String stage) {
         var preset = stage.startsWith("rsa1") ? TramoSeatsSpec.RSA1
-            : stage.equals("rsafull") ? TramoSeatsSpec.RSAfull : TramoSeatsSpec.RSA3;
-        var model = TramoKernel.of(preset.getTramo(), new ModellingContext())
+            : stage.startsWith("rsafull") ? TramoSeatsSpec.RSAfull : TramoSeatsSpec.RSA3;
+        var model = stage.equals("rsafull-reference") ? firstFullReference(series) : TramoKernel.of(preset.getTramo(), new ModellingContext())
             .process(series, new ProcessingLog() {});
         System.out.println("case " + id);
         series("input", series);
@@ -289,6 +311,7 @@ public class TramoSeatsBridgeProbe {
             bits(stats.getTransformationAdjustment()), bits(stats.getAdjustedLogLikelihood()), bits(stats.getSsqErr()),
             stats.getEffectiveObservationsCount(), stats.getEstimatedParametersCount());
         series("residuals", model.fullResiduals());
+        if (stage.equals("rsafull-reference")) return;
         var sa = TramoSeatsKernel.of(preset,
             new ModellingContext()).process(series, new ProcessingLog() {});
         if (sa == null) System.out.println("product absent");
@@ -458,7 +481,7 @@ public class TramoSeatsBridgeProbe {
         if (stage.equals("rsa3-forecast-errors")) {
             for (int[] pair : new int[][]{{26, 0}, {51, 5}, {66, 0}, {73, 2}}) rsa3MeanRetry(stage, pair[0], pair[1]);
         }
-        if (stage.equals("rsafull")) {
+        if (stage.equals("rsafull") || stage.equals("rsafull-reference")) {
             // Reuse the exact regression-module inputs for the public end-to-end template.
             for (String line : Files.readAllLines(Path.of(args[2]))) {
                 if (!line.startsWith("input ")) continue;
