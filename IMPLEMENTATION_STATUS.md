@@ -4989,3 +4989,26 @@ All three raw stock calendar-adjusted X-13 fits match their public dashboard ver
 ### M6 residual trading-day public dashboard references
 
 Two independent pinned x86 JVMs reproduced all four residual trading-day getters for the adjusted and irregular components on 24 raw X-13 and TRAMO/SEATS products. The public default uses the full observed sample for both the all and last getters. Each of the 48 model-scale input series has an independent nonseasonal MA(1) regression witness with six monthly TD7 contrasts, including the optimized MA parameter, likelihood residual sum of squares and regression coefficients. The joint F statistic and upper probability agree bit-for-bit with the public getter. Capture SHA-256 is `e3316fdeec377a146ce3f2c33fb5d3ef8ed865713b9b30f5c47cd830a3e78117`. The earlier adjusted-seasonality capture, including the eight short samples, was independently replayed at its existing SHA. [Public residual trading-days reference](validation/evidence/native/residual-trading-days/public-x86_64.txt)
+
+### Robust factorizer cart normalization (2026-11-24)
+
+The 512-case factorizer differential campaign against the pinned JVM found two
+filters (corpus indices 144 and 304) whose robust-tier factorization threw
+`ArrayIndexOutOfBoundsException` natively while the JVM resolved them. The
+solver inputs were proven bit-identical on both sides; the divergence was in
+the complex arithmetic mirrors. Every `api.math.Complex` arithmetic method ends
+in `Complex.cart`, whose `I/ZERO/NEG_I/ONE/NEG_ONE/NEG_TWO` singleton returns
+normalize the sign of a zero component: `cart(-2.0, -0.0)` answers `NEG_TWO`,
+`(-2.0, +0.0)`. The ported operations returned raw computed components, and the
+leaked `-0.0` imaginary part of the first `initialize()` quotient flipped the
+square-root branch of the parabola root inside the symmetric Muller-Newton
+solver, into its iteration guard. All arithmetic mirrors in the SEATS ucarima
+model and the shared engine now route their results through `c_cart`, which
+carries the singleton decision tree verbatim; the `c_inv`, `c_div` and `c_sqrt`
+comparison flavors were corrected to the bytecode `dcmpl`/`dcmpg` jump tests in
+the same pass. Both corpus cases now match the JVM bit-for-bit, the full 512-case
+re-run twice added no new divergence beyond the six JVM-randomized fast-tier
+cases (156, 233, 302, 400, 412, 430), and the full suite passes 94/94. The two
+adversarial filters are frozen from four independent JVM runs, SHA-256
+`4e3c2d4aff8e914fdbd28b4b8659b62b97bd3c393cd3573e66e1855d71f389ad`.
+[Adversarial Muller-Newton capture](validation/evidence/native/seats-wk-factorizer-tiers/muller-adversarial-x86_64.txt)
