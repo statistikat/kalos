@@ -8,14 +8,11 @@
 #include "kalos/linear_algebra.hpp"
 
 #include <algorithm>
-#include <array>
 #include <cmath>
 #include <complex>
-#include <cstddef>
 #include <exception>
 #include <stdexcept>
 #include <utility>
-#include <vector>
 
 namespace kalos {
 namespace {

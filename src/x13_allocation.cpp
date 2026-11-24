@@ -8,9 +8,7 @@
 #include "kalos/detail/fdlibm.hpp"
 #include "kalos/detail/hostlineage.hpp"
 #include <cmath>
-#include <cstddef>
 #include <stdexcept>
-#include <vector>
 namespace kalos {
 namespace {
 // The pinned DataBlock.addAY(alpha, y): alpha == 0 leaves x untouched (the

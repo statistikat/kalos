@@ -88,7 +88,10 @@ same chain as `estimate_sarima_fixed` with `design.columns = 0`,
 `d = seasonal_d = 0`, `starting_point = HannanRissanen`,
 `solver = PinnedLevenbergMarquardt`, `ml = true` (21-C: this chain has no
 starting-point policy and no unit-root restarts; the minimizer landing is
-adopted whatever the stop status). `BIC2 = ((-2 * logLikelihood) +
+adopted whatever the stop status). For the white-noise candidate the
+parameter vector is empty and the panel reads the design-free pinned
+concentrated likelihood directly. This preserves the JVM binary64 arithmetic
+also on hosts where C++ `long double` has binary64 precision. `BIC2 = ((-2 * logLikelihood) +
 k * log(n)) / n` over the cursor length `n`, with the FdLibm log (21-D.2
 ground truth; the capture JVM pins the intrinsics off) and the raw
 `logLikelihood` - verified bit-exactly against `statistics().getBIC2()` on

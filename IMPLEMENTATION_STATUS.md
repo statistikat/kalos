@@ -3611,79 +3611,66 @@ as the 26th cell;
 the manifest registration — closed here); `verify-migration.py` 406;
 evidence `SHA256SUMS.csv` replayed (corpus not re-captured).
 
-## Calendar-detection machines: 21-I.3 lands `kalos::calendar_detection` — the 23-E seam opens — 2026-11-23
+### M5 / 24-D — structured WK extraction gate (2026-11-23)
 
-`kalos::calendar_detection` (item 21-I.3, roadmap 21-I.3 LANDED under this
-unit name, wider than the planned `tramo_trading_days_controller` per the I-4
-maintainer ruling) transcribes the automatic calendar-detection layer of the
-pinned stack bit-exactly: the shared `TradingDaysRegressionComparator`
-(`bestModel` incl. the unreachable-`-1`/AIOOBE surface, the dcmpl/dcmpg
-`waldTest` p-loop + descend/j-loop with the pinned NaN polarities and the
-`DStatException`→failed surface), the TRAMO ladders `AutomaticRegressionTest`
-/ `AutomaticWaldRegressionTest` (comparator row layout, selection guards
-`best < 2 → td[best-2]` / `best < 1 → lp`, unconditional
-`addVariable("td", tdVar, calendarAMI)` — the Wald branch passes the WD
-variable — mean test, UNGUARDED easter tstat → `failed`, `canPre`),
-`AutomaticFRegressionTest` (no forced airline/mean in its OWN
-`createTestModel`; no-lp Info models with the arg2→ll1/arg3→ll6 swap; the
-three-branch walk with exact NaN polarities; per-branch SECOND update models
-WITH lp; `pftd = 1 − f_upper_p`), the sa machines
-`AutomaticTradingDaysRegressionTest` / `AutomaticTradingDaysWaldTest`
-(`[TD2c, TD2, TD3, TD3c, TD4, TD7]` order — fork-preserving vs TRAMO's
-`[TD2, TD2c, ...]`, `has_lp` always true, keep/swap/add/remove walk with
-core-equality and the early-return quirk, no mean/easter tests), and the
-ACTIVATED 23-E calendar seams: the `FastRegressionTest`/`DefaultRegressionTest`
-calendar branches (variable lookup + `isAutomaticallyIdentified`, the
-dim-1→wdTest routing that holds EVEN under `joinTest`, lp on `t0td`,
-`setPreadjustment`, `m.set(desc, null)`/`clearEstimation()`) with the
-`JointTest` join arm (`|p| < 0.05` dcmpg law — a NaN p ACCEPTS — the
-`lcholesky`/`solveLx`/`DataBlock.ssq` operand mirrors over column-major
-covariance hand-overs, public `kalos::calendar_joint_test` entry mirroring
-the jar's public class for the dim-1 form the step routing never reaches).
-**Zero new distribution kernels**: every p-value routes through the landed
-23-C.2 `detail::f_upper_p`; no t-CDF anywhere. Estimation results are
-REQUIRED REQUEST DATA hand-overs (21-G precedent); the `TradingDaysController`
-gate itself is spec wiring, pinned through the PT/PX pipeline witnesses
-instead.
+The first 24-D pipeline substep exposes the two decompositions that the
+qualified 24-C kernel computes. Its frozen gate covers every initial and
+bias-corrected component in the 36-case WK JVM corpus, including calendar,
+row presence, binary64 values, and existing error/refusal behavior. The
+TRAMO-to-SEATS bridge and deterministic-effects merge follow independently.
+[Extraction contract](docs/contracts/seats-wk-extraction-contract.md)
 
-**Corpus + replay.** `validation/reference/CalendarDetectionProbe.java`
-(public entry points only; six machines via builders, comparator rows
-re-estimated live, `JointTest`, TRfull/X13 pipeline decoders) +
-`validation/reference/capture-calendar-detection.R` (one JVM per case,
-OpenJDK-21 gate, `UnlockDiagnosticVMOptions`+`DisableIntrinsic=_dexp/_dlog`
-recipe with `StrictMath` ground-truth guard, five class-load witnesses).
-DOUBLE capture, all 50 data files byte-identical, SHA256SUMS verified; 43
-cases (4 CM comparator, 7 TA, 5 FT, 7 SA, 4 FS, 6 DS incl. two join arms,
-3 JT forms, 4 PT + 3 PX pipeline witnesses). EVERY golden double rides raw
-IEEE-754 bits: the pinned JVM's `String.format("%.17g")` proved
-NOT bit-faithful against glibc for equal doubles (formatter erratum, pinning
-§10), so the probe emits `doubleToRawLongBits` hex and only the
-threshold CONSTANTS stay decimal in `inputs.csv` (crossed via `strtod` bits).
-`tools/gen_calendar_detection_golden.py` → `tests/jvm_calendar_detection.h`
-(43 cases, 335 raw-bit pools); `tests/calendar_detection_replay.h` (shared
-ctest/sweep) rebuilds every request from the captured hand-overs, compares
-229 checks bit-for-bit INCLUDING the reconstructed jar post-state variable
-lists and the `det ATD`/`det FT` journal echoes. Fresh-decode errata vs the
-§9 dump (FTEST `createTestModel` shape, branch labels, ladder selection
-guards, `bestModel` `-1`, candidate-side `mapping()`, the sa `alltd` order,
-ctor `nsig` values, the dim-1→wdTest routing) are recorded in
-`tmp_opencode/kalos-21i-pinning.md` §10.1 ("DUMP NOT TRUST").
+**Implemented and qualified.** The fixed-model extractor exposes ordered,
+dated binary64 arrays for both phases, including the conditional standard
+deviations. Release and ASan/UBSan runs on macOS ARM64 reproduced the 36-case
+fixture with 1,208 existing checks, 1,055 structured component rows, and
+55,812 bit-exact observations. An additional one-month backcast across year
+zero checked the calendar on the structured and text results. The source
+manifest (187/112/331) and 406-file historical migration audit passed.
 
-**Gates.** Fresh ctest **80/80 in BOTH lanes** (tree 23f4-b1 1460 s; fresh tree 23f4-b2 1490 s;
-new `test_calendar_detection` #80, TIMEOUT 3600, 229 checks). ASan/UBSan
-(laneD): the calendar-detection replay plus the 23-E and F.4 neighbours green, zero sanitizer reports. All twenty-four existing verify sweeps rc=0 AT RECORDED
-COUNTS — zero drift — plus the new `verify_calendar_detection` PASS (43
-cases, 229 replay + 320 raw-corpus cross-checks: inventory/family counts,
-decimal thresholds re-parsed into bits, `res` result/mean/est tokens,
-`det ATD`, `det FT` hex maps, `jt` echoes, `tdspec` lines). Shim-invariance
-battery post-lane on the b1 tree: **27/27 ledger cells plain=0 ledger100=PASS INVARIANT** (the informational `:96` unbound-variable echo is the known cosmetic line - the declared profile) with `test_calendar_detection` as the 27th cell;
-`check-manifest.py` 189/112/383 post-commit; `verify-migration.py` 406;
-evidence `SHA256SUMS.csv` replayed (corpus not re-captured post-landing).
+The next 24-D gate is the fitted-model bridge. The pinned
+`TramoSeatsKernel.of(RegSarimaModel)` filters deterministic effects by their
+regression-effect attributes, repins the fitted coefficients, and supplies
+`ls_ssq / (ls_eff - ls_npar)` to SEATS. 23-F currently supplies witnessed
+model fits. Qualifying this handoff and the subsequent deterministic-effect
+merge requires reference input/output pairs from the combined kernel. The
+extraction result alone does not enable an end-to-end TRAMO/SEATS fit.
 
-**Gaps (honest).** The ladder machines consume comparator candidate
-hand-overs (the ladder's own re-estimations are capture-side hand-overs, as
-in 23-E); sa `update()` consumes witness booleans (present/adjusted/log/
-core-equals) as REQUEST DATA — the jar reads live description state.
-I-6/I-10 crash input classes stay envelope refusals (not emulated). The
-X-13-side `CalendarEffectsDetection` battery stays 21-I.2; the pipeline
-witnesses pin wiring, not the full kernels.
+### ARMA panel portability gate (2026-11-23)
+
+The macOS ARM64 failure in `test_arma_refinement` came from the
+`m_wn96_a` white-noise candidate. With no ARMA coefficients, its generic
+physical likelihood used host long-double arithmetic and produced BIC2
+2.6345110282485509. The captured JVM result is 2.6345110282485513.
+The panel now evaluates that candidate with the existing design-free
+pinned concentrated likelihood. All four other preferred candidates already
+matched their exact reference values.
+
+The original assertion passed against checksum-pinned and Homebrew OpenBLAS
+0.3.34. The frozen 21-E identification sweep passed 4,368 checks with one
+documented skip, and the 21-F refinement sweep passed 423 checks. All 14
+evidence-file hashes matched. The identification, refinement and WK extraction
+tests also passed in the OpenMP and ASan/UBSan builds. The full serial Release suite passed **79/79 CTests** on the pinned provider, including the X-13 automatic fit and horizon oracles.
+
+### M5 / 24-D — fitted-model bridge reference gate (2026-11-23)
+
+The gate replays five monthly fits (TR0, TR1 and TR3) from the frozen 23-F
+observations in independent pinned JVMs. It records the fitted-model inputs
+and the observed output of the real TRAMO-to-SEATS bridge, and checks bitwise
+agreement on the dated series, differencing orders, fixed SARIMA coefficients,
+mean/log flags and transmitted variance. The component merge has its own gate.
+
+**Reference gate passed.** The actual bridge from JDemetra 3.9.0 was captured
+and independently replayed on Temurin 21.0.11+10, macOS ARM64, with six
+checksum-pinned jars. The five fitted-model handoffs contain 576 dated
+observations. TR0 and TR3 on AirPassengers changed zero values, TR1 with an
+AO changed one, TR3 with an LS changed 60, and TR3 with an AO and two LS
+changed 70. Each fitted coefficient block, the mean and log flags, the
+transmitted variance, and all corrected series values passed the direct
+bridge checks. Capture SHA-256:
+`498366de6882a369198922e85b2c81fd9cccf4499a80f246147b3bcba14225f1`.
+
+The native bridge can now replay these frozen model inputs. A nonzero additive
+effect and additional regressor classes need their own witnesses before
+expanding that scope. Final-component restoration and the end-to-end TRAMO
+and TRAMO/SEATS oracles remain open. [Bridge contract and replay](docs/contracts/tramo-seats-bridge-contract.md)

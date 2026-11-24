@@ -277,9 +277,6 @@ pinned values without a maintainer ruling (the 21 precedent).
   and calendar builder fields (Default) refuse fail closed with 21-I.3 in
   the reason (corpus seam rows + load witnesses pin both sides); the
   `Automatic{,Wald}` families and `TradingDaysController` are not ported.
-  [2026-11-23: 21-I.3 LANDED — the seam targets now run in
-  `kalos::calendar_detection` (ctest #80, calendar-detection contract);
-  the 23-E refusals stay, they just name a unit that exists.]
   Quarterly rows pin the D11 refusal. Contract `tramo-regression-tests`.
 - **23-F — `tramo_final_estimation` + kernel round driver**: `FinalEstimator`
   decode (fork-candidate against `final_estimator`/`final_information`), then
@@ -373,6 +370,11 @@ pinned values without a maintainer ruling (the 21 precedent).
   `TramoSeatsKernel.of(RegSarimaModel)` bridge port, `TwoStepsDecomposition.
   merge`, and the result surface (which Stdev rows are exposed — finals merge
   drops them; extractor decision recorded).
+  **Delivered 2026-11-23:** structured, dated initial and bias-corrected WK
+  component series, including the extraction standard deviations (36-case
+  replay, 1,055 rows). Five fitted-model bridge reference pairs are frozen
+  (576 observations, TR0/TR1/TR3). The native handoff and the deterministic-
+  effects merge remain open. [Bridge reference](contracts/tramo-seats-bridge-contract.md) [Extraction gate](contracts/seats-wk-extraction-contract.md)
 - **24-E — end-to-end TRAMO/SEATS oracle + composition**:
   `tramo_seats_fit` driver = 23-F + 24-D; acceptance corpus MUST cover rsa3
   AND rsafull end to end (roadmap acceptance), the latter gated by 21-I for

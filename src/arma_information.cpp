@@ -3,13 +3,8 @@
 #include "kalos/detail/fdlibm.hpp"
 #include <algorithm>
 #include <cmath>
-#include <cstddef>
 #include <limits>
-#include <memory>
-#include <optional>
 #include <stdexcept>
-#include <utility>
-#include <vector>
 
 namespace kalos {
 ConditionalRegressionInformation conditional_regression_information(

@@ -12,7 +12,6 @@
 #include "kalos/detail/fdlibm.hpp"
 
 #include <cmath>
-#include <optional>
 
 namespace kalos::detail {
 namespace {

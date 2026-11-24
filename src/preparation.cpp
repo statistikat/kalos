@@ -2,15 +2,9 @@
 #include "kalos/preparation.hpp"
 #include <algorithm>
 #include <cmath>
-#include <cstddef>
-#include <cstdint>
 #include <limits>
-#include <optional>
 #include <stdexcept>
-#include <string>
 #include <unordered_set>
-#include <utility>
-#include <vector>
 
 namespace kalos {
 namespace {

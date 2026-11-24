@@ -13,12 +13,8 @@
 
 #include <algorithm>
 #include <cmath>
-#include <cstddef>
-#include <cstdint>
-#include <exception>
 #include <limits>
 #include <stdexcept>
-#include <utility>
 #include <vector>
 
 namespace kalos {

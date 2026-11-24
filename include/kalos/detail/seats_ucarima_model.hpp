@@ -18,21 +18,17 @@
 // lookup finds kalos::detail's engine helpers (Poly, SymF, cplx, the *_g /
 // *_l comparison shims) exactly as before.
 
+#include <exception>
 #include "kalos/detail/hostlineage.hpp"
 #include <algorithm>
 #include <charconv>
 #include <cmath>
-#include <cstddef>
 #include <cstdio>
 #include <cstring>
-#include <exception>
-#include <functional>
 #include <limits>
 #include <memory>
 #include <optional>
-#include <stdexcept>
 #include <string>
-#include <utility>
 #include <vector>
 
 #include "kalos/detail/ucarima_engine.hpp"

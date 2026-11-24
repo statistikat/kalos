@@ -5,9 +5,11 @@
 // every other case replays its status/dom/init/final fact lines EXACTLY -
 // line for line, double for double (%.17g round-trips through strtod, so the
 // captured text is the comparison itself).
+#include <array>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
+#include <sstream>
 #include <string>
 #include <vector>
 
@@ -40,6 +42,51 @@ std::vector<double> parse_values(const char* s) {
     i = static_cast<std::size_t>(end - line.c_str());
   }
   return v;
+}
+
+std::size_t component_rows = 0, component_values = 0;
+
+void check_components(const golden_swk::Case& c, const std::string& stage,
+                      const std::vector<kalos::seats_component_series>& rows) {
+  constexpr std::array<const char*, 6> types = {
+      "Series", "Trend", "Seasonal", "SeasonallyAdjusted", "Irregular", "CalendarEffect"};
+  constexpr std::array<const char*, 6> kinds = {
+      "Value", "Stdev", "Forecast", "StdevForecast", "Backcast", "StdevBackcast"};
+  std::size_t index = 0;
+  for (std::size_t j = 0; j < c.nfacts; ++j) {
+    const std::string line(c.facts[j]);
+    if (line.compare(0, stage.size() + 1, stage + " ") != 0) continue;
+    if (index == rows.size()) {
+      fail(c.id, stage + " missing component row");
+      return;
+    }
+    const auto& row = rows[index++];
+    std::istringstream in(line);
+    std::string token, type, kind;
+    std::size_t length;
+    std::int64_t year;
+    int position;
+    if (!(in >> token >> type >> kind >> token >> length >> token >> year >> position >> token)
+        || token != "vals"
+        || type != types.at(static_cast<std::size_t>(row.component))
+        || kind != kinds.at(static_cast<std::size_t>(row.information))
+        || row.start_year != year || row.start_month != position + 1
+        || row.values.size() != length) {
+      fail(c.id, stage + " component key, domain or length differs: " + type + " " + kind);
+      return;
+    }
+    std::string payload;
+    std::getline(in, payload);
+    const auto expected = parse_values(payload.c_str());
+    if (expected.size() != length ||
+        (length && std::memcmp(expected.data(), row.values.data(), length * sizeof(double)))) {
+      fail(c.id, stage + " component values differ: " + type + " " + kind);
+      return;
+    }
+    ++component_rows;
+    component_values += length;
+  }
+  if (index != rows.size()) fail(c.id, stage + " has unexpected component rows");
 }
 
 }  // namespace
@@ -108,15 +155,32 @@ int main(int argc, char** argv) {
       continue;
     }
 
-    std::vector<std::string> got;
+    kalos::seats_extract_wk_result result;
     try {
-      got = kalos::seats_extract_wk(req).facts();
+      result = kalos::seats_extract_wk(req);
     } catch (const std::invalid_argument& e) {
       fail(c.id, std::string("unexpected refusal: ") + e.what());
       continue;
     } catch (const std::exception& e) {
       fail(c.id, std::string("escaped exception: ") + e.what());
       continue;
+    }
+    const auto& got = result.facts();
+    check_components(c, "init", result.initial_components());
+    check_components(c, "final", result.final_components());
+    if (std::string(c.id) == "x_bc1") {
+      // An actual January start and a one-month backcast straddle year zero.
+      req.start_year = 0;
+      req.start_month = 1;
+      req.backcast_count = 1;
+      const auto shifted = kalos::seats_extract_wk(req);
+      if (shifted.fact("dom backcast") != "n 1 start -1 11")
+        fail(c.id, "backcast domain before year zero");
+      for (const auto& row : shifted.final_components()) {
+        if (row.information == kalos::seats_information::backcast &&
+            (row.start_year != -1 || row.start_month != 12))
+          fail(c.id, "backcast component before year zero");
+      }
     }
     if (got.size() != c.nfacts) {
       fail(c.id, "fact count: got " + std::to_string(got.size()) + ", want " +
@@ -154,6 +218,8 @@ int main(int argc, char** argv) {
   }
   std::printf("test_seats_extract_wk: %zu checks, %zu failures, %zu cases\n",
               g_checks, g_failures, n);
+  std::printf("structured components: %zu JVM rows, %zu binary64 values\n",
+              component_rows, component_values);
   for (std::size_t i = 0; i < g_problems.size() && i < 40; ++i)
     std::printf("  %s\n", g_problems[i].c_str());
   return g_failures == 0 ? 0 : 1;

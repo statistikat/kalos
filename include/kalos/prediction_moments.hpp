@@ -4,7 +4,6 @@
 #include "transforms.hpp"
 #include <optional>
 #include <string>
-#include <vector>
 
 namespace kalos {
 struct PredictionMoments {

@@ -2,10 +2,7 @@
 #include "kalos/parallel.hpp"
 #include <algorithm>
 #include <cmath>
-#include <cstddef>
-#include <cstdint>
 #include <stdexcept>
-#include <vector>
 namespace kalos {
 namespace {
 struct PhasePlan {

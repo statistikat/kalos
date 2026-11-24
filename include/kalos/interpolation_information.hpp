@@ -3,8 +3,6 @@
 #include "arma_residuals.hpp"
 #include "prediction_arma_information.hpp"
 #include <optional>
-#include <string>
-#include <vector>
 
 namespace kalos {
 struct InterpolationInformation {

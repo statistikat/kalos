@@ -1,12 +1,10 @@
 #include "kalos/prediction_moments.hpp"
 #include "kalos/parallel.hpp"
 #include <cmath>
-#include <cstddef>
 #include <exception>
 #include <limits>
 #include <stdexcept>
 #include <utility>
-#include <vector>
 
 namespace kalos {
 namespace {

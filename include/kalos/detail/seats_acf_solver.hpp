@@ -59,13 +59,10 @@
 //    golden-verified), so the computers' `w.size() == p + 1' and the q > 0
 //    symmetric branch's `buf.length == n + 1 > n -> return buf' hold.
 
-#include <algorithm>
 #include <cmath>
-#include <cstddef>
 #include <optional>
 #include <stdexcept>
 #include <string>
-#include <utility>
 #include <vector>
 
 #include "kalos/detail/seats_linear_filters.hpp"

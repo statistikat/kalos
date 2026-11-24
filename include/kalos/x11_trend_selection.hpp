@@ -1,7 +1,6 @@
 #ifndef KALOS_X11_TREND_SELECTION_HPP
 #define KALOS_X11_TREND_SELECTION_HPP
 #include "x11_filters.hpp"
-#include <cstddef>
 #include <limits>
 namespace kalos {
 enum class X11ChangeMode { additive, relative };

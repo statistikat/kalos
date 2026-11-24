@@ -2,15 +2,11 @@
 #include "kalos/parallel.hpp"
 
 #include <algorithm>
-#include <array>
 #include <cmath>
-#include <cstddef>
 #include <exception>
 #include <limits>
-#include <optional>
 #include <stdexcept>
 #include <utility>
-#include <vector>
 
 namespace kalos {
 

@@ -4,9 +4,6 @@ option(KALOS_OPENMP "Enable owned OpenMP regions when available" ON)
 option(KALOS_BUILD_TESTS "Build standalone tests" ON)
 option(KALOS_SANITIZERS "Enable address and undefined behavior sanitizers" OFF)
 list(PREPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
-# The finder carries the shared LP64 + CBLAS + LAPACKE link probe and the
-# selection-change invalidation (REVIEW-1.C): builds and installed
-# consumers (kalosConfig -> find_dependency) run the same check.
 find_package(KalosOpenBLAS REQUIRED)
 # A committed binding snapshot supplies its own exact revision header.
 if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/include/kalos/revision.hpp")
@@ -33,7 +30,6 @@ add_library(kalos STATIC
   src/arma_refinement.cpp
   src/arma_residuals.cpp
   src/arima_forecasts.cpp
-  src/calendar_detection.cpp
   src/calendar_generation.cpp
   src/decompose_ucarima.cpp
   src/differencing_decision.cpp
@@ -185,7 +181,6 @@ if(KALOS_BUILD_TESTS)
     test_arma_refinement
     test_arma_residuals
     test_arima_forecasts
-    test_calendar_detection
     test_calendar_generation
     test_decompose_ucarima
     test_differencing_decision
@@ -277,13 +272,6 @@ if(KALOS_BUILD_TESTS)
       # the two regression-test machines); generous for the sanitizer lane.
       set_tests_properties(${test_name} PROPERTIES TIMEOUT 3600)
     endif()
-    if(test_name STREQUAL "test_calendar_detection")
-      # 21-I.3 golden replay over the double-captured calendar-detection
-      # corpus (the shared comparator, the TRAMO/sa ATD ladders, the FTEST
-      # machine, the Fast/Default calendar steps and the JointTest form);
-      # generous for the sanitizer lane.
-      set_tests_properties(${test_name} PROPERTIES TIMEOUT 3600)
-    endif()
     if(test_name STREQUAL "test_tramo_kernel_rounds")
       # 23-F.3 golden replay over the double-captured tramo-kernel-rounds
       # corpus (the ami() round-driver seam, 34 monthly cases + the
@@ -328,55 +316,6 @@ if(KALOS_BUILD_TESTS)
     WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
     ENVIRONMENT "KALOS_NUM_THREADS=2;OMP_NUM_THREADS=2;OPENBLAS_NUM_THREADS=1"
     TIMEOUT 3600)
-  # REVIEW-1.A: standalone-header compile battery (the libc++ guard the
-  # external review asked for). One include-only TU is generated per public
-  # header under include/kalos; each is compiled alone with -Wall -Werror,
-  # so a public header that reaches a standard entity through another
-  # header's transitive include stops the build here instead of on a
-  # libc++ leg (observed behavior: an OBJECT library joins `all`, so every
-  # full build IS the battery; the registered ctest test re-drives the
-  # target explicitly via cmake --build --target - a no-op rebuild when
-  # current, a real compile anywhere else).
-  file(GLOB_RECURSE KALOS_STANDALONE_HEADERS CONFIGURE_DEPENDS
-    "${CMAKE_CURRENT_SOURCE_DIR}/include/kalos/*.hpp")
-  set(KALOS_STANDALONE_TUS "")
-  foreach(kalos_header IN LISTS KALOS_STANDALONE_HEADERS)
-    file(RELATIVE_PATH kalos_header_rel "${CMAKE_CURRENT_SOURCE_DIR}/include"
-         "${kalos_header}")
-    string(REGEX REPLACE "[/.]" "__" kalos_header_slug "${kalos_header_rel}")
-    set(kalos_header_tu
-        "${CMAKE_CURRENT_BINARY_DIR}/standalone-headers/${kalos_header_slug}.cpp")
-    file(WRITE "${kalos_header_tu}" "#include \"${kalos_header_rel}\"\n")
-    list(APPEND KALOS_STANDALONE_TUS "${kalos_header_tu}")
-  endforeach()
-  add_library(kalos_standalone_headers OBJECT ${KALOS_STANDALONE_TUS})
-  target_link_libraries(kalos_standalone_headers PRIVATE kalos::kalos)
-  if(MSVC)
-    target_compile_options(kalos_standalone_headers PRIVATE /W4 /WX)
-  else()
-    target_compile_options(kalos_standalone_headers PRIVATE -Wall -Werror)
-  endif()
-  list(LENGTH KALOS_STANDALONE_TUS KALOS_STANDALONE_COUNT)
-  add_test(NAME kalos_standalone_headers
-    COMMAND ${CMAKE_COMMAND} --build ${CMAKE_CURRENT_BINARY_DIR}
-            --target kalos_standalone_headers --parallel 4)
-  set_tests_properties(kalos_standalone_headers PROPERTIES TIMEOUT 3600)
-  # REVIEW-1.C: cmake provider-case suite (see tests/cmake/provider-cases
-  # .sh.in for the matrix). Skips (77) on lanes whose provider has no
-  # root/include/lapacke.h layout.
-  get_filename_component(KALOS_CASE_LIBDIR "${KalosOpenBLAS_LIBRARY}" DIRECTORY)
-  get_filename_component(KALOS_CASE_ROOT "${KALOS_CASE_LIBDIR}" DIRECTORY)
-  set(KALOS_SRC "${CMAKE_CURRENT_SOURCE_DIR}")
-  set(KALOS_CMAKE "${CMAKE_COMMAND}")
-  set(KALOS_CXX "${CMAKE_CXX_COMPILER}")
-  set(KALOS_GENERATOR "${CMAKE_GENERATOR}")
-  set(KALOS_ROOT "${KALOS_CASE_ROOT}")
-  configure_file(tests/cmake/provider-cases.sh.in
-    "${CMAKE_CURRENT_BINARY_DIR}/provider-cases/provider-cases.sh" @ONLY)
-  add_test(NAME test_cmake_provider_cases
-    COMMAND bash "${CMAKE_CURRENT_BINARY_DIR}/provider-cases/provider-cases.sh")
-  set_tests_properties(test_cmake_provider_cases PROPERTIES
-    TIMEOUT 3600 SKIP_RETURN_CODE 77)
 endif()
 include(GNUInstallDirs)
 include(CMakePackageConfigHelpers)

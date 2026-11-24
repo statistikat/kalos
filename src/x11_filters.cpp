@@ -1,9 +1,6 @@
 #include "kalos/x11_filters.hpp"
 #include <cmath>
-#include <cstddef>
-#include <cstdint>
 #include <stdexcept>
-#include <vector>
 namespace kalos {
 X11FilterDefinition x11_filter_definition(X11FilterKind kind,int frequency,int length,
     const Interrupt& interrupt) {

@@ -2,8 +2,6 @@
 #define KALOS_PREDICTION_ARMA_INFORMATION_HPP
 #include "arma_information.hpp"
 #include <optional>
-#include <string>
-#include <vector>
 namespace kalos {
 struct PredictionArmaInformation {
     std::string status="conditional_unavailable",message;

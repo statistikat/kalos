@@ -2,11 +2,7 @@
 #define KALOS_FORECAST_INFORMATION_HPP
 #include "arma_residuals.hpp"
 #include "prediction_arma_information.hpp"
-#include <cstddef>
-#include <memory>
 #include <optional>
-#include <string>
-#include <vector>
 
 namespace kalos {
 struct ForecastInformation {

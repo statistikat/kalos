@@ -146,24 +146,6 @@ ALL-ZERO column — see the contract's machine list). Raw/contrast bit-identity
 and every machine correction are recorded in
 `docs/contracts/calendar-generation-contract.md`.
 
-**21-I.3 LANDED 2026-11-23** as `kalos::calendar_detection`
-(`include/kalos/calendar_detection.hpp`, ctest #80
-`test_calendar_detection`) — landed under this unit name instead of the
-planned `tramo_trading_days_controller` and WIDER than planned per the I-4
-maintainer ruling: the shared `TradingDaysRegressionComparator` layer, the
-TRAMO AIC/BIC + Wald + FTEST machines, the sa `AutomaticTradingDays{,Wald}Test`
-machines and the activated 23-E `FastRegressionTest`/`DefaultRegressionTest`
-calendar seams (incl. the `JointTest` join arm) all transcribe bit-exactly
-over a double-captured 43-case corpus (all golden doubles ride raw IEEE-754
-bits — the pinned JVM's `%.17g` formatter proved non-faithful; zero new
-distribution kernels, every p-value runs through the landed 23-C.2
-`f_upper_p`). The `TradingDaysController` gate itself needed no port: its
-method dispatch is spec wiring, pinned instead through the PT/PX pipeline
-witnesses. Fresh-decode errata vs the §9 dump (incl. the dim-1 → wdTest
-routing under `joinTest`) are in `tmp_opencode/kalos-21i-pinning.md` §10.1
-and `docs/contracts/calendar-detection-contract.md`. The I-6/I-10 crash
-input classes stay refusals per the register.
-
 Non-goals: holiday-corrected TD / stock days / TDuser columns (no detection
 module exists; keep the 23-A refusals), `DayClustering.toString()` (jar bug,
 throws — never port), user-variable *detection* (does not exist), quarterly

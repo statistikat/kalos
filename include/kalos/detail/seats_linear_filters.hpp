@@ -64,14 +64,11 @@
 #include <algorithm>
 #include <climits>
 #include <cmath>
-#include <cstddef>
 #include <functional>
 #include <limits>
 #include <memory>
 #include <optional>
 #include <stdexcept>
-#include <string>
-#include <utility>
 #include <vector>
 
 #include "kalos/detail/seats_ucarima_model.hpp"

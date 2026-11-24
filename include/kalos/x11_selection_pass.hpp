@@ -20,8 +20,6 @@
 #include "x11_d_pass.hpp"
 #include "x11_msr_selection.hpp"
 #include "x11_seasonal_plan.hpp"
-#include <cstddef>
-#include <limits>
 #include <string>
 #include <vector>
 namespace kalos {

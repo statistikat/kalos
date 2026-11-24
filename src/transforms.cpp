@@ -4,9 +4,7 @@
 #include "kalos/parallel.hpp"
 
 #include <cmath>
-#include <cstddef>
 #include <stdexcept>
-#include <vector>
 
 namespace kalos {
 namespace {

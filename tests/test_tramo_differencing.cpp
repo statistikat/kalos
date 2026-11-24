@@ -9,6 +9,7 @@
 // %.17g for bit pattern for bit pattern. The battery-stage lines of the
 // corpus are inert here; they are the pinned landing facts of the 23-C.2
 // battery-replay unit (docs/contracts/tramo-differencing-decision-contract.md).
+#include <cstdlib>
 #include "kalos/tramo_differencing_decision.hpp"
 
 #include "jvm_tramo_differencing.h"

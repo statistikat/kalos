@@ -1,11 +1,8 @@
 #include "kalos/x11_seasonal_endpoints.hpp"
 #include <algorithm>
 #include <cmath>
-#include <cstddef>
-#include <cstdint>
 #include <stdexcept>
 #include <string>
-#include <vector>
 namespace kalos {
 namespace {
 void validate_length(int length) {

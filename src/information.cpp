@@ -3,11 +3,8 @@
 #include <algorithm>
 #include <array>
 #include <cmath>
-#include <cstddef>
 #include <limits>
 #include <stdexcept>
-#include <utility>
-#include <vector>
 
 namespace kalos {
 void InformationControl::validate() const {

@@ -3,13 +3,7 @@
 
 #include "optimizer.hpp"
 #include "linear_algebra.hpp"
-#include <cstddef>
-#include <functional>
-#include <map>
-#include <memory>
 #include <optional>
-#include <string>
-#include <vector>
 
 namespace kalos {
 

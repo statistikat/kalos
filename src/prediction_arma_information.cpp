@@ -1,10 +1,8 @@
 #include "kalos/prediction_arma_information.hpp"
 #include "kalos/parallel.hpp"
 #include <cmath>
-#include <cstddef>
 #include <stdexcept>
 #include <utility>
-#include <vector>
 namespace kalos {
 namespace {
 double finite_prediction(long double value) {

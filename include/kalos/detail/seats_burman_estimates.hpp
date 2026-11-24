@@ -41,10 +41,8 @@
 #pragma once
 
 #include <cmath>
-#include <cstddef>
 #include <optional>
 #include <string>
-#include <utility>
 #include <vector>
 
 #include "seats_exact_forecasts.hpp"

@@ -16,14 +16,8 @@
 // this kind is a distinct request/result pair behind its own entry point
 // and x13_fit.hpp/cpp carry no change.
 //
-// Delivered scope (contract envelope): frequency 12; arbitrary integer
-// X-11 backcast/forecast horizons per 21-H.4 - month counts, a negative
-// value meaning |h| annual frequencies, normalized in int64 at the entry
-// and bounded there by the contract's 2^24-month extended-series cap (the
-// REVIEW-1.B entry guard refuses beyond it, before the status matrix and
-// before any allocation; see the horizon-extension and entry-horizon-bound
-// appendices of the contract), the four decomposition modes through the
-// pinned forcing, a complete finite
+// Delivered scope (contract envelope): frequency 12, checked backcast and forecast horizons (21-H.4), the
+// four decomposition modes through the pinned forcing, a complete finite
 // input, outlier span = the full estimation domain, transform.function =
 // Auto (the decoder builds the LogLevelModule only in that case).
 // Calendar/easter-detection/automatic-TD/user-variable detection are
@@ -54,7 +48,6 @@
 #include "x11_selection_pass.hpp"
 #include "x13_fit.hpp"
 #include <array>
-#include <cstddef>
 #include <limits>
 #include <map>
 #include <optional>
@@ -80,8 +73,7 @@ enum class X13FitSpecKind { fixed_spec, automatic_spec };
 // (mean_test_initial 1.96 / mean_test_final 1.0) and the FinalEstimator
 // tsig (builder default 1.0). The X-11 block mirrors the decoder X11Spec
 // (filters Msr allowed, Henderson 0 = automatic, REQUIRED sigma policy,
-// sigma cuttings; the backcast/forecast pair below carries the 21-H.4
-// horizon semantics with the entry bound).
+// sigma cuttings and horizons in months or negative annual counts).
 struct X13AutomaticRequest {
     std::vector<double> input; // complete, finite, monthly
     int frequency=12;
@@ -129,10 +121,7 @@ struct X13AutomaticRequest {
     // The X-11 spec horizons (item 21-H.4): month counts, a negative value
     // meaning |h| annual frequencies, exactly as the pinned process reads
     // them; the initialStep extension route then drives a1b/a1a, the
-    // extended out calendar and the split finals. Normalized to months at
-    // the entry (int64) and bounded there: |months| and the extended
-    // length must each stay within 2^24 months (REVIEW-1.B entry guard,
-    // pinned refusal statuses in the contract matrix).
+    // extended out calendar and the split finals.
     int backcast=0, forecast=0;
 };
 // ---- decision-record vocabulary (the H.2 diff surface) ----

@@ -2,12 +2,10 @@
 #include "kalos/parallel.hpp"
 #include <algorithm>
 #include <cmath>
-#include <cstddef>
 #include <exception>
 #include <limits>
 #include <stdexcept>
 #include <utility>
-#include <vector>
 
 namespace kalos {
 namespace {

@@ -19,16 +19,10 @@
 
 #include "mlj_engine.hpp"
 
-#include <algorithm>
-#include <array>
 #include <cmath>
-#include <cstddef>
-#include <exception>
 #include <limits>
 #include <stdexcept>
-#include <string>
 #include <utility>
-#include <vector>
 
 namespace kalos {
 namespace {

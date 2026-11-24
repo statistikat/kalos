@@ -9,6 +9,7 @@
 // shortest round-trip decimals; both renderings reparse to the same bits -
 // 23-B discipline). Used by tests/test_tramo_arma.cpp (generated golden) and
 // tools/verify_tramo_arma_selection.cpp (evidence corpus).
+#include <cstdlib>
 #include "kalos/tramo_arma_selection.hpp"
 
 #include <cmath>

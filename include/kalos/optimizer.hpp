@@ -3,11 +3,9 @@
 
 #include "numerics.hpp"
 
-#include <functional>
 #include <map>
 #include <memory>
 #include <string>
-#include <vector>
 
 namespace kalos {
 

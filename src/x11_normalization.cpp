@@ -1,11 +1,8 @@
 #include "kalos/x11_normalization.hpp"
 #include "kalos/parallel.hpp"
 #include <cmath>
-#include <cstddef>
-#include <cstdint>
 #include <limits>
 #include <stdexcept>
-#include <vector>
 namespace kalos {
 X11SeasonalNormalization x11_seasonal_normalize(const MaskedSeries& series,
     int frequency,int first_period,const std::vector<int>& filters,

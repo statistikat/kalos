@@ -2,7 +2,6 @@
 
 #include "tramo_scan_machine.hpp"
 
-#include <cmath>
 #include <stdexcept>
 
 namespace kalos {

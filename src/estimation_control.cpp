@@ -7,18 +7,13 @@
 #include "kalos/hannan_rissanen.hpp"
 
 #include <algorithm>
-#include <array>
 #include <cmath>
-#include <cstddef>
 #include <cstdint>
 #include <exception>
 #include <limits>
 #include <memory>
-#include <optional>
 #include <stdexcept>
-#include <string>
 #include <utility>
-#include <vector>
 
 namespace kalos {
 namespace {

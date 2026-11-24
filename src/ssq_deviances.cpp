@@ -21,14 +21,9 @@
 
 #include "kalos/detail/fdlibm.hpp"
 
-#include <algorithm>
 #include <cmath>
-#include <cstddef>
 #include <cstdint>
 #include <limits>
-#include <optional>
-#include <utility>
-#include <vector>
 
 namespace kalos::detail {
 namespace {

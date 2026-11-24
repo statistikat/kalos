@@ -5,11 +5,9 @@
 #include <algorithm>
 #include <cmath>
 #include <cstddef>
-#include <optional>
 #include <stdexcept>
 #include <string>
 #include <utility>
-#include <vector>
 
 namespace kalos {
 

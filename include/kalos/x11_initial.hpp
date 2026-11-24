@@ -2,10 +2,6 @@
 #define KALOS_X11_INITIAL_HPP
 #include "x11_seasonal_processing.hpp"
 #include "x11_normalization.hpp"
-
-#include <cstddef>
-#include <vector>
-
 namespace kalos {
 struct X11InitialAdditive {
     // B1 on the supplied span; all remaining tables on the central cropped

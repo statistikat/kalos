@@ -1,13 +1,9 @@
 #include "kalos/arma_identification.hpp"
 
 #include <algorithm>
-#include <array>
 #include <cmath>
-#include <cstddef>
 #include <limits>
 #include <stdexcept>
-#include <utility>
-#include <vector>
 
 namespace kalos {
 ArmaIdentification arma_identification(const ArmaParameterMap& map,

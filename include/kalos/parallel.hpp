@@ -4,7 +4,6 @@
 #include "numerics.hpp"
 
 #include <algorithm>
-#include <cstddef>
 #include <cstdlib>
 #include <exception>
 #include <stdexcept>

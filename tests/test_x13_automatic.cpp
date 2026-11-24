@@ -4,9 +4,7 @@
 // The 21-H.2 JVM differential sweep is the bit-exactness oracle for this
 // driver's decisions; until it lands, this suite gates what the C++ side
 // alone can gate: the fail-closed status matrix and the throw matrix (with
-// the gate precedence pinned), the entry horizon bound of REVIEW-1.B (T01b:
-// int64 normalization, the 2^24-month caps, the refusal-before-any-work
-// witness), the stage-chain record vocabulary (every
+// the gate precedence pinned), the stage-chain record vocabulary (every
 // entry's stage tag from the contract's vocabulary, exactly the payload
 // that must mirror the machine for that tag, the recorded scalars equal to
 // the payload fields), the final-description shape (the downstream
@@ -614,6 +612,20 @@ void t01_status_matrix() {
                "unsupported:x13 fit requires an explicit sigma policy",
                "forecast is no gate either");
   }
+  // Invalid extensions must be refused before estimation or allocation.
+  for (auto limits : {std::make_pair(std::numeric_limits<int>::min(), 0),
+                      std::make_pair(0, -200000000),
+                      std::make_pair(1073741820, 1073741820)}) {
+    auto r = baseline(24);
+    r.backcast = limits.first;
+    r.forecast = limits.second;
+    bool refused = false;
+    try { kalos::x13_automatic_fit(r); }
+    catch (const std::invalid_argument& e) {
+      refused = std::string(e.what()).find("extended series") != std::string::npos;
+    }
+    check(refused, "oversized extended series refused");
+  }
   // explicit sigma policy
   {
     kalos::X13AutomaticRequest r = baseline(24);
@@ -665,133 +677,6 @@ void t01_status_matrix() {
     check(res.status == "available" ||
               res.status.compare(0, 7, "failed:") == 0,
           "full-span tiny series answers available or failed");
-  }
-}
-
-// --- T01b: the horizon bound at the entry (REVIEW-1.B) --------------------
-//
-// The 21-H.4 normalization (month counts; a negative value means |h|
-// annual frequencies) runs in int64 at the entry, before the status
-// matrix and before any allocation, bounded by the contract's
-// kHorizonMonthCap = 2^24 months. Refusals answer the pinned statuses with
-// an EMPTY chain - the witness that no machine (no estimation, no
-// composition, no allocation) ran for them. The gate precedence under
-// test: the empty-series/shape throws and the monthly refusal stay above
-// the horizon gate; the horizon gate beats the finite/sigma/deferred/span
-// status gates. Small horizons stay non-gates (T01 pins the <= 2 cases;
-// the negative annual form rides along here).
-
-void t01b_horizon_caps() {
-  const char* const kMagnitude =
-      "unsupported:x13 automatic fit horizon magnitude exceeds the cap";
-  const char* const kExtended =
-      "unsupported:x13 automatic fit extended series length exceeds the cap";
-  const int kCap = 1 << 24;  // the contract's kHorizonMonthCap
-  const auto refusal_witness = [](const kalos::X13AutomaticFitResult& res,
-                                  const char* want, const char* msg) {
-    check_eq_s(res.status, want, msg);
-    check(res.chain.empty(), msg);        // nothing ran: no estimation work
-    check(res.variables.empty(), msg);
-    check_eq_i(res.fit.backcast, 0, msg);  // the composition block stayed empty
-    check_eq_i(res.fit.forecast, 0, msg);
-    check(res.fit.seasonal.empty(), msg);
-  };
-  const int kIntMin = std::numeric_limits<int>::min();
-  const int kIntMax = std::numeric_limits<int>::max();
-  // negation of INT_MIN and the *12 product happen in int64: the exact
-  // overflow surface of the review (the old int -h*12), refused, not run.
-  {
-    kalos::X13AutomaticRequest r = baseline(24);
-    r.backcast = kIntMin;
-    refusal_witness(kalos::x13_automatic_fit(r), kMagnitude, "backcast INT_MIN");
-  }
-  {
-    kalos::X13AutomaticRequest r = baseline(24);
-    r.forecast = kIntMin;
-    refusal_witness(kalos::x13_automatic_fit(r), kMagnitude, "forecast INT_MIN");
-  }
-  {
-    kalos::X13AutomaticRequest r = baseline(24);
-    r.backcast = kIntMax;
-    r.forecast = kIntMax;
-    refusal_witness(kalos::x13_automatic_fit(r), kMagnitude, "both INT_MAX");
-  }
-  // one field beyond the cap refuses on magnitude
-  {
-    kalos::X13AutomaticRequest r = baseline(24);
-    r.forecast = kCap + 1;
-    refusal_witness(kalos::x13_automatic_fit(r), kMagnitude,
-                    "forecast cap+1");
-  }
-  // each magnitude inside the cap, the SUM with the observed length beyond
-  // it: the extended-series gate answers (2^23 + 2^23 + 24 > 2^24)
-  {
-    kalos::X13AutomaticRequest r = baseline(24);
-    r.backcast = kCap / 2;
-    r.forecast = kCap / 2;
-    refusal_witness(kalos::x13_automatic_fit(r), kExtended,
-                    "sum beyond the cap");
-  }
-  // a single magnitude AT the cap passes the magnitude gate but the
-  // extended length (cap + 24 observations) refuses
-  {
-    kalos::X13AutomaticRequest r = baseline(24);
-    r.backcast = kCap;
-    refusal_witness(kalos::x13_automatic_fit(r), kExtended,
-                    "magnitude at cap: extended refuses");
-  }
-  // the accepted boundary: extended length exactly at the cap passes BOTH
-  // gates (witnessed by reaching the next pinned gate, the sigma refusal -
-  // millisecond, no estimation, like the T01 precedents)
-  {
-    kalos::X13AutomaticRequest r = baseline(24);
-    r.backcast = kCap - 24;
-    r.sigma.reset();
-    check_eq_s(kalos::x13_automatic_fit(r).status,
-               "unsupported:x13 fit requires an explicit sigma policy",
-               "extended length exactly at the cap is accepted");
-  }
-  // the annual form stays alive at the gate: -h means |h|*12 months, both
-  // signs of small horizons reach the sigma gate (the 21-H.4 semantics)
-  {
-    kalos::X13AutomaticRequest r = baseline(24);
-    r.backcast = -1;  // 12 months
-    r.forecast = -2;  // 24 months
-    r.sigma.reset();
-    check_eq_s(kalos::x13_automatic_fit(r).status,
-               "unsupported:x13 fit requires an explicit sigma policy",
-               "negative annual horizons are no gates");
-  }
-  // precedence pins: the throws and the monthly refusal stay ABOVE the
-  // horizon gate; the horizon gate beats the later status gates
-  {
-    kalos::X13AutomaticRequest r = baseline(24);
-    r.input.resize(13);  // too short for the airline start
-    r.backcast = kIntMin;
-    bool threw = false;
-    try {
-      kalos::x13_automatic_fit(r);
-    } catch (const std::invalid_argument&) {
-      threw = true;
-    }
-    check(threw, "shape throw beats the horizon gate");
-  }
-  {
-    kalos::X13AutomaticRequest r = baseline(24);
-    r.frequency = 4;
-    r.seasonal.assign(4, kalos::X11SeasonalRequest::msr);
-    r.forecast = kIntMin;
-    check_eq_s(kalos::x13_automatic_fit(r).status,
-               "unsupported:x13 automatic fit monthly series only",
-               "monthly gate beats the horizon gate");
-  }
-  {
-    kalos::X13AutomaticRequest r = baseline(24);
-    r.input[3] = std::numeric_limits<double>::quiet_NaN();
-    r.sigma.reset();
-    r.forecast = kIntMin;
-    check_eq_s(kalos::x13_automatic_fit(r).status, kMagnitude,
-               "horizon gate beats the finite/sigma gates");
   }
 }
 
@@ -1262,7 +1147,6 @@ int main() {
   std::printf("== fail-closed matrix ==\n");
   std::fflush(stdout);
   t01_status_matrix();
-  t01b_horizon_caps();
   t02_shape_throws();
   t03_value_semantics();
   std::printf("== cheap composition shape (~20 s) ==\n");

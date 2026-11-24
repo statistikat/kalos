@@ -2,10 +2,7 @@
 #define KALOS_ARMA_RESIDUALS_HPP
 #include "arma_objective.hpp"
 #include "transforms.hpp"
-#include <cstddef>
 #include <memory>
-#include <string>
-#include <vector>
 
 namespace kalos {
 enum class ResidualScale { ML, ResidualDF };

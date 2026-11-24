@@ -53,7 +53,6 @@ test_tramo_outlier_scan test_tramo_seats_model test_tramo_transform_decision
 test_tramo_regression_tests
 test_tramo_kernel_rounds
 test_tramo_fit
-test_calendar_detection
 test_x11_log_additive test_x13_allocation test_x11_musgrave
 test_preparation test_outlier_scoring test_diffuse_state_space test_x13_fit
 "

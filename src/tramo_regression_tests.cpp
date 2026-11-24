@@ -18,10 +18,7 @@
 #include "kalos/tramo_regression_tests.hpp"
 
 #include <cmath>
-#include <cstddef>
 #include <limits>
-#include <stdexcept>
-#include <vector>
 
 #include "kalos/arma_diagnostics.hpp"
 #include "kalos/detail/fdlibm.hpp"
@@ -374,10 +371,8 @@ TramoTAcceptance tramo_t_accepts(const TramoTestStatistics& statistics,
 TramoRegressionTestDecision run_tramo_regression_tests(
     const TramoRegressionTestRequest& request) {
     // Fail-closed boundary: every request that would drive a calendar kernel
-    // belongs to item 21-I.3 (docs/calendar-roadmap.md I-4 ruling), landed
-    // as run_tramo_fast_calendar_step / run_tramo_default_calendar_step in
-    // kalos/calendar_detection.hpp; the reasons name the owning item so
-    // callers can route them with their slot/lookup hand-overs.
+    // belongs to item 21-I.3 (docs/calendar-roadmap.md I-4 ruling); the
+    // reasons name the owning item so callers can route them.
     if (request.kind == TramoRegressionTestKind::fast) {
         if (request.auto_trading_days)
             throw std::invalid_argument(

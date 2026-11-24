@@ -16,6 +16,7 @@
 // it fires only where the likelihood is unbounded, and the pinned landing
 // point there is process-dependent (see the capture script note). See
 // docs/contracts/estimation-control-contract.md.
+#include <cstdlib>
 #include "kalos/estimation_control.hpp"
 
 #include <algorithm>
