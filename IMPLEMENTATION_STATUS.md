@@ -13,6 +13,13 @@ original-series and conditional SEATS forecast errors, and residual scale,
 independence and normality results. Fresh pairs of pinned x86-64 JVMs
 agreed on every captured field across all three panels.
 
+Release and ASan/UBSan each passed six standalone tests. All 29 fits
+match the 696 conditional SEATS forecast errors, 145 residual diagnostic
+values and 5,232 original-scale calendar values bit-for-bit. All 696
+original-series forecast errors pass the `2e-8 * (1 + abs(reference))`
+budget. The largest scaled error is 7.78e-12 on the original 26 fits
+and 1.74e-14 on the three late-controller fits.
+
 ## M5 public RSAfull calendar effects (2026-11-24)
 
 Two fresh pinned x86-64 JVM processes returned identical public `cal` and

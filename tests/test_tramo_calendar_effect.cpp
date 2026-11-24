@@ -21,8 +21,8 @@ struct CalendarModel {
     int year = 0, month = 0, size = 0;
 };
 
-std::map<std::string, CalendarModel> read_models() {
-    std::ifstream input(std::string(KALOS_CALENDAR_EFFECT_DIR) + "/rsafull-x86_64.txt");
+std::map<std::string, CalendarModel> read_models(const std::string& file) {
+    std::ifstream input(std::string(KALOS_CALENDAR_EFFECT_DIR) + "/" + file);
     std::map<std::string, CalendarModel> models;
     std::string id;
     for (std::string line; std::getline(input, line);) {
@@ -49,11 +49,9 @@ std::map<std::string, CalendarModel> read_models() {
     }
     return models;
 }
-} // namespace
-
-int main() {
-    const auto models = read_models();
-    std::ifstream input(std::string(KALOS_CALENDAR_EFFECT_DIR) + "/rsafull-calendar-effect-x86_64.txt");
+void check_panel(const std::string& model_file, const std::string& effect_file, int expected_cases, int expected_observed) {
+    const auto models = read_models(model_file);
+    std::ifstream input(std::string(KALOS_CALENDAR_EFFECT_DIR) + "/" + effect_file);
     int cases = 0, observed = 0, forecasts = 0;
     std::string id;
     for (std::string line; std::getline(input, line);) {
@@ -81,6 +79,14 @@ int main() {
         std::string extra;
         require(!(fields >> extra), id + " extra values");
     }
-    require(models.size() == 26 && cases == 26 && observed == 4248 && forecasts == 624, "incomplete calendar panel");
+    require(models.size() == static_cast<std::size_t>(expected_cases) && cases == expected_cases &&
+            observed == expected_observed && forecasts == 24 * cases, "incomplete calendar panel");
     std::cout << cases << " RSAfull calendars, " << observed << " observed and " << forecasts << " forecast values exact\n";
+}
+
+} // namespace
+
+int main() {
+    check_panel("rsafull-x86_64.txt", "rsafull-calendar-effect-x86_64.txt", 26, 4248);
+    check_panel("rsafull-late-calendar-x86_64.txt", "rsafull-late-calendar-effect-x86_64.txt", 3, 288);
 }

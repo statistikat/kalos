@@ -98,24 +98,31 @@ WkReference read_wk_reference(const char* path) {
     return wk;
 }
 
-std::map<std::string, std::vector<double>> read_forecast_errors() {
-    std::ifstream input(KALOS_SELECTED_FORECAST_PANEL);
-    std::map<std::string, std::vector<double>> result;
+struct ForecastErrors {
+    std::vector<double> original;
+    std::vector<double> conditional;
+};
+
+std::map<std::string, ForecastErrors> read_forecast_errors(const char* path, std::size_t count) {
+    std::ifstream input(path);
+    std::map<std::string, ForecastErrors> result;
     std::string id;
     for (std::string line; std::getline(input, line);) {
         std::istringstream row(line);
         std::string tag;
         row >> tag;
         if (tag == "case") row >> id;
-        if (tag == "y_ef") {
+        if (tag == "y_ef" || tag == "wk_series_stdev_forecast") {
             int year, month, length;
             row >> year >> month >> length;
             auto expected = read_values(row);
             check(length == 24 && expected.size() == 24, id + " public forecast count");
-            check(result.emplace(id, std::move(expected)).second, id + " duplicate forecast case");
+            auto& values = tag == "y_ef" ? result[id].original : result[id].conditional;
+            check(values.empty(), id + " duplicate forecast field");
+            values = std::move(expected);
         }
     }
-    check(result.size() == 26, "incomplete public forecast reference");
+    check(result.size() == count, "incomplete public forecast reference");
     return result;
 }
 
@@ -152,7 +159,7 @@ void compare_components(const std::vector<kalos::seats_component_series>& actual
     }
 }
 
-void compare(const Reference& ref, const WkReference& wk, const std::vector<double>& expected_errors, double& worst_error, bool automatic) {
+void compare(const Reference& ref, const WkReference& wk, const ForecastErrors& expected_errors, double& worst_error, bool automatic) {
     if (ref.finals.empty()) {
         auto fit = kalos::estimate_tramo_trfull_reference(ref.series, ref.year, ref.month);
         check(fit.reference_model_computed && !fit.final_model_computed, "reference status");
@@ -171,12 +178,19 @@ void compare(const Reference& ref, const WkReference& wk, const std::vector<doub
     const auto& result = run.decomposition;
     check(fit.status == "available" && fit.final_model_computed, "fit status");
     compare_fit(ref, fit);
-    if (!expected_errors.empty()) for (int horizon : {0, 1, 7, 24}) {
+    check(expected_errors.original.size() == 24 && expected_errors.conditional.size() == 24, "missing forecast oracle");
+    const auto& final_components = result.extraction.final_components();
+    auto wk_forecast = std::find_if(final_components.begin(), final_components.end(), [](const auto& component) {
+        return component.component == seats_component::series && component.information == seats_information::stdev_forecast;
+    });
+    check(wk_forecast != final_components.end(), "missing conditional WK forecast error");
+    numbers(wk_forecast->values, expected_errors.conditional, "conditional WK forecast errors");
+    for (int horizon : {0, 1, 7, 24}) {
         auto forecast = kalos::tramo_selected_forecast_errors(fit, horizon);
         check(forecast.status == (horizon ? "available" : "no_requested_predictions") &&
               forecast.standard_errors.size() == static_cast<std::size_t>(horizon), "selected model forecast status");
         for (int h = 0; h < horizon; ++h) {
-            const double error = std::abs(forecast.standard_errors[h] - expected_errors[h]) / (1 + expected_errors[h]);
+            const double error = std::abs(forecast.standard_errors[h] - expected_errors.original[h]) / (1 + expected_errors.original[h]);
             check(error <= 2e-8, "selected model forecast error at " + std::to_string(h + 1));
             worst_error = std::max(worst_error, error);
         }
@@ -202,7 +216,8 @@ int main(int argc, char** argv) {
         return 1;
     } catch (const std::invalid_argument&) {}
     const auto wk = read_wk_reference(argc == 3 ? KALOS_LATE_WK_PANEL : KALOS_SELECTED_WK_PANEL);
-    const auto forecasts = read_forecast_errors();
+    const auto forecasts = argc == 3 ? read_forecast_errors(KALOS_LATE_FORECAST_PANEL, 3) :
+                                      read_forecast_errors(KALOS_SELECTED_FORECAST_PANEL, 26);
     double worst_error = 0.0;
     const bool automatic = argc >= 2 && std::string(argv[1]) == "automatic";
     const char* panel = argc == 3 ? argv[2] : (argc == 2 && !automatic ? argv[1] : KALOS_SELECTED_CALENDAR_PANEL);
@@ -213,7 +228,7 @@ int main(int argc, char** argv) {
     const auto replay = [&] {
         if (ref.id.empty()) return;
         try {
-            compare(ref, wk, argc == 3 ? std::vector<double>{} : forecasts.at(ref.id), worst_error, automatic);
+            compare(ref, wk, forecasts.at(ref.id), worst_error, automatic);
         } catch (const std::exception& error) {
             std::cerr << ref.id << ": " << error.what() << "\n";
             ++failures;
@@ -278,8 +293,8 @@ int main(int argc, char** argv) {
     replay();
     std::cout << cases << (automatic ? " automatic RSAfull models, " : " selected RSAfull models, ") << residuals << " residuals, "
               << rows << " rows, " << values << " component values\n";
+    std::cout << "maximum scaled original-series forecast error " << worst_error << "\n";
     if (argc == 3 && automatic) return cases == 3 && residuals == 251 && rows == 30 && values == 1800 && !failures ? 0 : 1;
     if (argc == 2 && !automatic) return cases == 26 && residuals == 3934 && !failures && rows == 0 ? 0 : 1;
-    std::cout << "maximum scaled original-series forecast error " << worst_error << "\n";
     return cases == 26 && residuals == 3914 && rows == 260 && values == 24360 && !failures ? 0 : 1;
 }
