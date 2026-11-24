@@ -4577,3 +4577,20 @@ The five combined Release tests passed, including all 13 original RSA3
 products and public preprocessing forecast-error checks. Additional
 Wiener–Kolmogorov and merger coverage for the seven retry models is tracked
 separately. Recovery from a failed model estimate remains a distinct route.
+### M5 selected TRfull calendar fits and SEATS restoration
+
+The selected-model refit estimates all coefficients from the original dated
+observations. Its inputs specify the transformation, ARIMA orders, mean,
+TD2 or TD7 contrasts, leap year, six-day Easter and dated AO, LS or TC
+variables. Calendar coefficients precede the outliers in the fitted design.
+Their effects are generated on the full extraction domain, including forecasts.
+
+All 26 stock RSAfull reference descriptions reproduce the public ARIMA and
+regression coefficients, likelihoods and all 3,914 fitted residuals exactly.
+Twenty-five produce exact end-to-end decomposition values. For the remaining
+log model, calendar_8_log, the 180 inputs to Wiener–Kolmogorov extraction
+match exactly, but the native higher-order extraction differs numerically.
+A separate two-JVM capture supplies its intermediate WK components and
+verifies all ten restored rows independently. Across both checks all
+260 restored rows and 24,360 observed and forecast values match JDemetra.
+The raw RSAfull route still requires automatic selection of these descriptions.

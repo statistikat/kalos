@@ -13,6 +13,7 @@
 
 - Support stationary monthly seasonal ARMA(1,1) outlier scans with regular
   AR(2) or ARMA(1,1) and an estimated mean.
+- Monthly TRAMO can refit a selected calendar and outlier specification and restore its calendar effects to SEATS components and forecasts.
 
 - Refit raw monthly TR3 and RSA3 after a late seasonality restart.
 

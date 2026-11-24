@@ -160,6 +160,34 @@ TramoCalendarFTestResult compare_calendar_models(const std::vector<double>& seri
 }
 } // namespace
 
+std::vector<std::vector<double>> tramo_stock_calendar_columns(const TramoStockCalendar& selection,
+    const calendar_domain& domain) {
+    Columns columns;
+    switch (selection.trading_days) {
+    case TramoTradingDays::None: break;
+    case TramoTradingDays::WorkingDays: columns = trading_days_contrast(day_clustering::td2, domain); break;
+    case TramoTradingDays::TradingDays: columns = trading_days_contrast(day_clustering::td7, domain); break;
+    default: throw std::invalid_argument("unknown TRAMO trading-days selection");
+    }
+    if (selection.leap_year) columns.push_back(length_of_period_column(calendar_lop::leap_year, domain));
+    if (selection.easter) columns.push_back(easter_column(6, easter_correction::simple, 0, domain));
+    return columns;
+}
+
+std::vector<double> tramo_stock_calendar_effect(const TramoFittedCalendar& fit, const calendar_domain& domain) {
+    const auto columns = tramo_stock_calendar_columns(fit.selection, domain);
+    if (columns.size() != fit.coefficients.size() || domain.length < 0)
+        throw std::invalid_argument("TRAMO calendar coefficient count or domain is invalid");
+    std::vector<double> effect(domain.length, 0.0);
+    for (std::size_t j = 0; j < columns.size(); ++j) {
+        const double coefficient = fit.coefficients[j];
+        if (!std::isfinite(coefficient)) throw std::invalid_argument("non-finite calendar coefficient");
+        for (std::size_t i = 0; i < effect.size(); ++i)
+            effect[i] += coefficient * columns[j][i];
+    }
+    return effect;
+}
+
 TramoCalendarFTestResult tramo_calendar_f_test(const std::vector<double>& series,
     int start_year, int start_month, bool mean, double significance, double precision) {
     return compare_calendar_models(series, start_year, start_month, mean, significance, precision, nullptr);

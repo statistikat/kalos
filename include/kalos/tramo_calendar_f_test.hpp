@@ -22,6 +22,23 @@ struct TramoCalendarFCandidate {
 
 enum class TramoTradingDays { None, WorkingDays, TradingDays };
 
+struct TramoStockCalendar {
+    TramoTradingDays trading_days = TramoTradingDays::None;
+    bool leap_year = false;
+    bool easter = false;
+};
+
+struct TramoFittedCalendar {
+    TramoStockCalendar selection;
+    std::vector<double> coefficients; // TD contrasts, leap year, then Easter
+};
+
+struct calendar_domain;
+std::vector<std::vector<double>> tramo_stock_calendar_columns(const TramoStockCalendar& selection,
+    const calendar_domain& domain);
+
+std::vector<double> tramo_stock_calendar_effect(const TramoFittedCalendar& fit, const calendar_domain& domain);
+
 struct TramoCalendarFTestResult {
     double base_ssq;
     TramoCalendarFCandidate working_days;
