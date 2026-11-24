@@ -67,7 +67,8 @@ def main():
         if arch not in {"x86_64", "amd64"}:
             raise SystemExit("combined seasonality uses the pinned x86-64 numerical profile")
         names = {"combined-seasonality": "public", "combined-seasonality-fixed": "fixed-x13",
-                 "combined-seasonality-automatic": "automatic-x13", "combined-seasonality-stock": "stock", "combined-seasonality-rsa2c": "rsa2c"}
+                 "combined-seasonality-automatic": "automatic-x13", "combined-seasonality-stock": "stock",
+                 "combined-seasonality-rsa2c": "stock-rsa2c"}
         output_name = ("../adjusted-seasonality/public-x86_64.txt" if args.stage == "adjusted-seasonality" else
                        "../combined-seasonality/" + names[args.stage] + "-x86_64.txt")
         x13 = json.loads((EVIDENCE.parent / "x13-refusal-jvm-profiles/reference.json").read_text())
