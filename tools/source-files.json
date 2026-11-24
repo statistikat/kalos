@@ -41,6 +41,7 @@
     "include/kalos/detail/ssq_levmar.hpp",
     "include/kalos/detail/ucarima_engine.hpp",
     "include/kalos/detail/x11_pinned.hpp",
+    "include/kalos/detail/x13_effective_mode.hpp",
     "include/kalos/differencing_decision.hpp",
     "include/kalos/diffuse_state_space.hpp",
     "include/kalos/estimation_control.hpp",

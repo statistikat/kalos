@@ -9896,15 +9896,7 @@ void run_case(const PinnedFitCase& c) {
     assert(fit.backcast==0&&fit.forecast==0);
     assert(fit.seasonal.size()==static_cast<std::size_t>(c.frequency));
     // The pinned mode forcing: the captured effective mode is echoed.
-    const std::string forced = !c.log ? "Additive"
-        : (std::string(c.mode_requested)=="LogAdditive"||std::string(c.mode_requested)=="PseudoAdditive"
-            ? c.mode_requested : "Multiplicative");
-    const kalos::X11DecompositionMode expected =
-        forced=="Additive" ? kalos::X11DecompositionMode::additive
-        : forced=="Multiplicative" ? kalos::X11DecompositionMode::multiplicative
-        : forced=="LogAdditive" ? kalos::X11DecompositionMode::log_additive
-        : kalos::X11DecompositionMode::pseudo_additive;
-    assert(fit.mode_effective==expected&&fit.mode_effective==c.mode);
+    assert(fit.mode_effective==c.mode);
     // The stored preadjustment against the capture: bit-exact, except the
     // exp'd log-model buckets and out (the backTransform transcendental
     // boundary: under a log model out = inv/backTransform(v26, true)

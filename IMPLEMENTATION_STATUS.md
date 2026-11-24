@@ -4771,3 +4771,7 @@ All six fitted parameters match the nine-case panel's RSA0 subset bit for bit.
 The three fits also match the public mode, D7/final Henderson lengths, MSR
 filter, absence of regressors and domains of all 42 tested table rows.
 The numerical table gate uses 1e-8 relative to max(1, abs(reference)).
+
+### Automatic X-13 non-log pseudo-additive mode
+
+Automatic X-13 now shares the fixed route's qualified `X13Kernel.updateSpec` mode rule. On two raw non-log fits with outlier detection disabled and enabled, all 2,688 values across 14 public pseudo-additive tables matched bit-for-bit. All 4,637 historical automatic oracle comparisons, the 143 automatic surface checks and the fixed-fit suite passed alongside these new products in Release with OpenMP. [Public automatic reference](validation/evidence/native/x13-nonlog-pseudo/automatic-x86_64.txt)

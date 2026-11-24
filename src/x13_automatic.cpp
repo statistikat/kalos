@@ -35,6 +35,7 @@
 // mean-free base (the JVM Griffies mean is inexpressible there, recorded per
 // entry with the "mean on: excluded from the ODM base (delta)" note).
 
+#include "kalos/detail/x13_effective_mode.hpp"
 #include "kalos/x13_automatic.hpp"
 
 #include "kalos/detail/fdlibm.hpp"
@@ -187,14 +188,6 @@ const char* component_name(X13Component effect) {
   }
 }
 
-// The pinned X13Kernel.updateSpec forcing (verbatim copy of the x13_fit.cpp
-// file-local stage; the fixed path keeps its own byte-identical copy).
-X11DecompositionMode forceMode(bool log, X11DecompositionMode mode) {
-    if(!log) return X11DecompositionMode::additive;
-    if(mode==X11DecompositionMode::log_additive
-        ||mode==X11DecompositionMode::pseudo_additive) return mode;
-    return X11DecompositionMode::multiplicative;
-}
 
 // The pinned X11Kernel results-builder stage (verbatim x13_fit.cpp copy).
 void logAdditiveResults(const std::vector<double>& step10,
@@ -1882,7 +1875,7 @@ class AutomaticPipeline {
     fit_result.upper_sigma = request_.upper_sigma;
     fit_result.msr_policy = request_.msr_policy;
     fit_result.mode_requested = request_.mode;
-    fit_result.mode_effective = forceMode(out.log, request_.mode);
+    fit_result.mode_effective = detail::x13_effective_mode(out.log, request_.mode);
     // The pinned process semantics (item 21-H.4): the spec horizons are
     // month counts; a negative value means |h| annual frequencies.
     const int nb = backcast_;

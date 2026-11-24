@@ -736,3 +736,5 @@ all-outputs-1-ulp (the qualified provider reproduces the goldens exactly,
 
 
 Automatic requests normalize negative horizon counts to years of twelve months before estimation. An extended series exceeding the signed integer index range or vector length limit raises `std::invalid_argument`.
+
+The fixed and automatic entry points use the same `X13Kernel.updateSpec` mode rule. An explicit pseudo-additive request survives the log/level decision. Without this request, level fits use additive, and log fits use log-additive if requested and multiplicative otherwise. Two raw non-log automatic fits, with outlier detection disabled and enabled, match the public pseudo-additive X-11 and restored final tables. [Public non-log products](../../validation/evidence/native/x13-nonlog-pseudo/automatic-x86_64.txt)
