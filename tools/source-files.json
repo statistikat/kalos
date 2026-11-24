@@ -341,6 +341,7 @@
     "validation/evidence/native/combined-seasonality/automatic-x13-x86_64.txt",
     "validation/evidence/native/combined-seasonality/fixed-x13-x86_64.txt",
     "validation/evidence/native/combined-seasonality/public-x86_64.txt",
+    "validation/evidence/native/combined-seasonality/stock-rsa2c-x86_64.txt",
     "validation/evidence/native/combined-seasonality/stock-x86_64.txt",
     "validation/evidence/native/decompose-ucarima/SHA256SUMS.csv",
     "validation/evidence/native/decompose-ucarima/cases.csv",

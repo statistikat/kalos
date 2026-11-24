@@ -145,17 +145,25 @@ public final class CombinedSeasonalityProbe {
         }
     }
 
+    static void stockX13(Path directory, String... presets) throws Exception {
+        for (String id : new String[]{"air", "ao", "seas"}) {
+            var lines = Files.readAllLines(directory.resolve(id + ".csv"));
+            var start = lines.remove(0).split(",");
+            var values = lines.stream().mapToDouble(Double::parseDouble).toArray();
+            var data = TsData.ofInternal(TsPeriod.monthly(Integer.parseInt(start[0]), Integer.parseInt(start[1])), values);
+            for (String preset : presets) x13(id, data, preset, null);
+        }
+    }
+
     public static void main(String[] args) throws Exception {
+        if (args[0].equals("stock-rsa2c")) {
+            stockX13(Path.of(args[1]), "rsa2c");
+            return;
+        }
         if (args[0].equals("stock")) {
             products(Path.of(args[1]), false, false, true);
             products(Path.of(args[2]), false, false, true);
-            for (String id : new String[]{"air", "ao", "seas"}) {
-                var lines = Files.readAllLines(Path.of(args[3], id + ".csv"));
-                var start = lines.remove(0).split(",");
-                var values = lines.stream().mapToDouble(Double::parseDouble).toArray();
-                var data = TsData.ofInternal(TsPeriod.monthly(Integer.parseInt(start[0]), Integer.parseInt(start[1])), values);
-                for (String preset : new String[]{"rsa0", "rsa1"}) x13(id, data, preset, null);
-            }
+            stockX13(Path.of(args[3]), "rsa0", "rsa1");
             return;
         }
         if (args.length == 3) { products(Path.of(args[0]), false, true, false); return; }
