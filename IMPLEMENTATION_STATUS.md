@@ -13,6 +13,12 @@ the original input domains (4,248 months); the forecast series begin the next
 month and cover 624 months. The `rsafull-calendar-effect` reference stage
 checks the domain of each getter before recording its binary64 values.
 
+`tramo_stock_calendar_effect_original_scale(fit.calendar, domain, fit.log)`
+applies the estimated trading-days, leap-year and Easter regressors on the
+requested domain and exponentiates the combined effect for log fits.
+Release and ASan/UBSan reproduce all 4,872 values bit-for-bit. The component
+merger now calls this same operation; both selected-fit regression tests pass.
+
 ## M6 finite state QR workspace and layout (2026-11-24)
 
 The finite state filter assembles each updated or predicted loading directly

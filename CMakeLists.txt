@@ -230,6 +230,7 @@ if(KALOS_BUILD_TESTS)
     test_tramo_model_builder
     test_tramo_outlier_scan
     test_tramo_calendar_f_test
+    test_tramo_calendar_effect
     test_tramo_regression_tests
     test_tramo_seats_bridge
     test_tramo_seats_rsa0
@@ -310,6 +311,10 @@ if(KALOS_BUILD_TESTS)
         KALOS_RSA0_FACTS="${CMAKE_CURRENT_SOURCE_DIR}/validation/evidence/native/tramo-seats-bridge/rsa0-x86_64.txt"
         KALOS_RSA0_ERRORS="${CMAKE_CURRENT_SOURCE_DIR}/validation/evidence/native/tramo-seats-bridge/rsa0-forecast-errors-x86_64.txt"
         KALOS_RSA0_RESIDUALS="${CMAKE_CURRENT_SOURCE_DIR}/validation/evidence/native/tramo-seats-bridge/rsa0-residuals-x86_64.txt")
+    endif()
+    if(test_name STREQUAL "test_tramo_calendar_effect")
+      target_compile_definitions(${test_name} PRIVATE
+        KALOS_CALENDAR_EFFECT_DIR="${CMAKE_CURRENT_SOURCE_DIR}/validation/evidence/native/tramo-seats-bridge")
     endif()
     if(test_name STREQUAL "test_tramo_calendar_f_test")
       target_compile_definitions(${test_name} PRIVATE
