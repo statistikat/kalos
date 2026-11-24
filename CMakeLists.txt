@@ -264,6 +264,7 @@ if(KALOS_BUILD_TESTS)
     test_x11_sigma
     test_x11_trend_selection
     test_x13_allocation
+    test_x13_estimated_templates
     test_x13_automatic
     test_x13_fit)
     add_executable(${test_name} tests/${test_name}.cpp)
@@ -347,6 +348,11 @@ if(KALOS_BUILD_TESTS)
         KALOS_BRIDGE_FACTS="${CMAKE_CURRENT_SOURCE_DIR}/validation/evidence/native/tramo-seats-bridge/bridge.txt"
         KALOS_MERGE_FACTS="${CMAKE_CURRENT_SOURCE_DIR}/validation/evidence/native/tramo-seats-bridge/merge.txt"
         KALOS_MERGE_X64="${CMAKE_CURRENT_SOURCE_DIR}/validation/evidence/native/tramo-seats-bridge/merge-x86_64.txt")
+    endif()
+    if(test_name STREQUAL "test_x13_estimated_templates")
+      target_compile_definitions(${test_name} PRIVATE
+        KALOS_X13_TEMPLATE_INPUTS="${CMAKE_CURRENT_SOURCE_DIR}/validation/evidence/native/x13-refusal-jvm-profiles"
+        KALOS_X13_TEMPLATE_PANEL="${CMAKE_CURRENT_SOURCE_DIR}/validation/evidence/native/x13-estimated-templates/templates-x86_64.txt")
     endif()
     add_test(NAME ${test_name} COMMAND ${test_name})
     set_tests_properties(${test_name} PROPERTIES ENVIRONMENT

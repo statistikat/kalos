@@ -4761,3 +4761,13 @@ The fixed fit now follows the JVM's `X13Kernel.updateSpec` branch that preserves
 ### M6 native combined SI seasonality
 
 The native diagnostic reproduced all 66 public decisions and availability states, including `None` on two RSA3 fits with an irregular component alone. All 384 stable, moving and rank statistics and probabilities matched bit-for-bit on the frozen SI inputs. On 20 end-to-end TRAMO/SEATS and four fixed X-13 products, all verdicts matched and all 144 statistics and probabilities agreed within 7.03e-15 scaled error. Release with OpenMP and serial ASan/UBSan both passed. The non-log pseudo-additive fixed fit uses the independently qualified mode correction. [Diagnostic contract](docs/contracts/combined-seasonality-contract.md) · [Public product replay](tests/test_combined_seasonality.cpp)
+
+### M5b stock RSA0 native fit
+
+The monthly RSA0 entry estimates the two airline moving-average parameters
+from the observed series on the level scale. It runs the existing X-11
+selection and final component restoration on a one-year forecast extension.
+All six fitted parameters match the nine-case panel's RSA0 subset bit for bit.
+The three fits also match the public mode, D7/final Henderson lengths, MSR
+filter, absence of regressors and domains of all 42 tested table rows.
+The numerical table gate uses 1e-8 relative to max(1, abs(reference)).

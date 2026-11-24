@@ -50,3 +50,11 @@ Henderson choices and nine MSR decisions after the public X-13 fit.
 The capture digest is `ecf3db42c189abaccc71742db4d393533a3e39fc04832a2080933fc660a33261`.
 The native regression starts with each public extended B1. It requires bitwise
 agreement on those decisions and all 7,812 B7, C7, D7 and D10–D13 values.
+
+## Native RSA0 entry
+
+`x13_estimated_rsa0(observations, year, month)` accepts a complete monthly
+series and returns the fitted coefficients, X-11 selections, extended
+tables, observed final products and one year of forecasts. It uses the
+stock legacy sigma policy. Its fixed-order estimator uses the same final
+estimation routine exercised by the automatic model's final cascade.
