@@ -4829,3 +4829,12 @@ TD2 with leap-year preadjustment on logs. Two independent pinned JVMs
 reproduced its 30 likelihood records across 15 positive dated inputs and a
 nonpositive series where the log-level comparison is bypassed. Capture
 SHA-256 `f4efd70e645babdd70faa678d5979aae2da5718138e185d0bea4b574b768c380`.
+
+### M5b / 28 — raw RSA2c scale decision
+
+`x13_rsa2c_scale` fits the two stock designs with the multi-start RegSarima
+computer on the differenced design. The subsequent calendar comparison uses
+the separate RegArimaUtility GLS processor. Across 15 positive samples
+each branch's likelihood, SSQ, transformation correction, parameter counts
+and AICc match the pinned public kernel bit-for-bit. All 16 decisions match,
+including the observed nonpositive-series bypass.

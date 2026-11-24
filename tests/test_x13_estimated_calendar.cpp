@@ -48,6 +48,25 @@ struct Reference {
     X13Rsa2cCalendar selected;
     bool log = false;
 };
+void compare_candidate(const X13Rsa2cCalendarCandidate& actual, const X13Rsa2cCalendarCandidate& expected,
+                       const std::string& label) {
+    require(actual.nobs == expected.nobs && actual.parameters == expected.parameters, label + " degrees");
+    compare(actual.transformation_adjustment, expected.transformation_adjustment, label + " adjustment");
+    compare(actual.log_likelihood, expected.log_likelihood, label + " likelihood");
+    compare(actual.ssq, expected.ssq, label + " SSQ");
+    compare(actual.aicc, expected.aicc, label + " AICc");
+}
+
+std::size_t replay_scale(const Reference& ref) {
+    const auto r = x13_rsa2c_scale(ref.observed, ref.year, ref.month);
+    require(r.log == ref.log && r.compared == !ref.fits.empty(), "log-level decision");
+    if (!r.compared) return 0;
+    require(ref.fits.size() == 2, "log-level candidate count");
+    compare_candidate(r.level, ref.fits[0], "level");
+    compare_candidate(r.logarithm, ref.fits[1], "log");
+    return 2;
+}
+
 std::size_t replay(const Reference& ref) {
     const auto r = x13_rsa2c_calendar_test(ref.observed, ref.year, ref.month, ref.log);
     require(ref.fits.size() == 6, "candidate count");
@@ -55,11 +74,7 @@ std::size_t replay(const Reference& ref) {
         const auto& actual = i < 2 ? r.trading_days[i] : r.easter[i - 2];
         const auto& expected = ref.fits[i];
         const auto label = "candidate " + std::to_string(i);
-        require(actual.nobs == expected.nobs && actual.parameters == expected.parameters, label + " degrees");
-        compare(actual.transformation_adjustment, expected.transformation_adjustment, label + " adjustment");
-        compare(actual.log_likelihood, expected.log_likelihood, label + " likelihood");
-        compare(actual.ssq, expected.ssq, label + " SSQ");
-        compare(actual.aicc, expected.aicc, label + " AICc");
+        compare_candidate(actual, expected, label);
     }
     require(r.selected.working_days == ref.selected.working_days && r.selected.easter_duration == ref.selected.easter_duration,
             "selected model");
@@ -81,10 +96,12 @@ std::size_t replay(const Reference& ref) {
 }
 } // namespace
 
-int main() {
+int main(int argc, char** argv) {
     Reference ref;
     try {
-        std::ifstream input(KALOS_ESTIMATED_CALENDAR_PANEL);
+        const bool scale = argc == 2;
+        const auto check = scale ? replay_scale : replay;
+        std::ifstream input(scale ? argv[1] : KALOS_ESTIMATED_CALENDAR_PANEL);
         require(bool(input), "missing calendar panel");
         int cases = 0;
         std::size_t cells = 0;
@@ -93,7 +110,7 @@ int main() {
             std::string tag, name;
             in >> tag >> std::boolalpha;
             if (tag == "case") {
-                if (!ref.id.empty()) { cells += replay(ref); ++cases; }
+                if (!ref.id.empty()) { cells += check(ref); ++cases; }
                 ref = {};
                 in >> ref.id;
             } else if (tag == "input") {
@@ -115,7 +132,12 @@ int main() {
             else if (tag == "restore") ref.restore = values(in);
             else throw std::runtime_error("unknown record " + tag);
         }
-        cells += replay(ref); ++cases;
+        cells += check(ref); ++cases;
+        if (scale) {
+            require(cases == 16 && cells == 30, "scale case or candidate count");
+            std::cout << "16 raw scale decisions and 30 physical log-level likelihoods matched\n";
+            return 0;
+        }
         require(cases == 15 && cells == 8304, "case or value count");
         for (bool invalid_log : {false, true}) {
             try {
