@@ -4658,3 +4658,13 @@ is exact and an independent pair of JVMs supplies the intermediate extraction
 for the exact calendar-restoration check. The test suite covers 290 merged
 rows and 26,160 observations and forecasts across the direct and isolated
 checks. Both native higher-order extractions remain open.
+
+### M5 / 24-D — mixed regular and seasonal AR extraction
+
+The late trading-day model `late_td_14` combines regular AR(1) and seasonal
+AR(1). SEATS now preserves the seasonal factor's complex roots and joins them
+with the regular roots in model order. Its native WK outputs, including
+standard errors, and its merged observations and forecasts match the paired
+JVM records bit-for-bit. Direct product coverage is 28 of the 29 stock RSAfull
+fits. The fitted input to `calendar_8_log` matches through decomposition and
+its forecasting comparison remains open.

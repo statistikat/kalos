@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Preserve the complex seasonal roots and their concatenation with regular AR roots in monthly SEATS extraction.
+
 - Retain the known roots of positive seasonal factors during SEATS decomposition.
 
 - Fit stock monthly TRfull and RSAfull from dated observations, including automatic SARIMA, outlier and calendar selection and the late working-day regression test.

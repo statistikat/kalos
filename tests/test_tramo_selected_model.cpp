@@ -139,6 +139,19 @@ void compare_fit(const Reference& ref, const kalos::TramoFitResult& fit) {
     numbers(fit.full_residuals, ref.residuals, "residuals");
 }
 
+void compare_components(const std::vector<kalos::seats_component_series>& actual,
+                        const std::vector<kalos::seats_component_series>& expected,
+                        const std::string& label) {
+    check(actual.size() == expected.size(), label + " size");
+    for (std::size_t i = 0; i < actual.size(); ++i) {
+        const auto& r = actual[i];
+        const auto& e = expected[i];
+        check(r.component == e.component && r.information == e.information && r.start_year == e.start_year &&
+              r.start_month == e.start_month, label + " domain");
+        numbers(r.values, e.values, label + " row " + std::to_string(i));
+    }
+}
+
 void compare(const Reference& ref, const WkReference& wk, const std::vector<double>& expected_errors, double& worst_error, bool automatic) {
     if (ref.finals.empty()) {
         auto fit = kalos::estimate_tramo_trfull_reference(ref.series, ref.year, ref.month);
@@ -174,16 +187,13 @@ void compare(const Reference& ref, const WkReference& wk, const std::vector<doub
     auto finals = result.finals;
     if (ref.id == wk.id) {
         numbers(kalos::make_tramo_seats_model(fit).series, wk.adjusted, "WK input");
-        finals = kalos::merge_tramo_seats_components(fit, wk.components);
+        if (ref.id == "late_td_14") {
+            compare_components(result.extraction.final_components(), wk.components, "WK");
+        } else {
+            finals = kalos::merge_tramo_seats_components(fit, wk.components);
+        }
     }
-    check(finals.size() == ref.finals.size(), "product size");
-    for (std::size_t i = 0; i < finals.size(); ++i) {
-        const auto& r = finals[i];
-        const auto& e = ref.finals[i];
-        check(r.component == e.component && r.information == e.information && r.start_year == e.start_year &&
-              r.start_month == e.start_month, "product domain");
-        numbers(r.values, e.values, "product row " + std::to_string(i));
-    }
+    compare_components(finals, ref.finals, "product");
 }
 }
 
