@@ -5,6 +5,20 @@ is now an independent C++17 library, without R, Rcpp, Python or Java dependencie
 Sibling bindings consume pinned generated snapshots. Persephone will require
 rkalos; Python intentionally exposes only a minimal initial surface.
 
+## M6 SEATS WK factorizer tier reference
+
+The refused `seas.csv` profile blocks SEATS WK extraction on one symmetric
+filter, the total error variance of the Burman variance estimates, which the
+mirrored factorizer chain resolves at no tier. Two independent pinned x86-64
+JVMs now freeze the JVM contract: the twelve `factorize()` calls of the RSA3
+run with all four tier results, the robust stage walk on the refused filter
+(scaling `3f01dca02266dac2`, resolved on robust alone), and the full RSA3 and
+RSAfull component surface of the extraction the mirror must reproduce. The
+ledger shows every other filter of the run resolving at EV2, so the missing
+mirror capability is the fast and robust decomposer tiers. Reproduce with
+`capture-seats-wk-factorizer-tiers.py`; the native replay lands with the
+ported tiers.
+
 ## M6 automatic X-13 preprocessing reference
 
 Two independent pinned x86-64 JVMs reproduced the fitted model, regression
