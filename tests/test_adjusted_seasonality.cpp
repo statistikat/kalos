@@ -111,6 +111,10 @@ int main() {
             }
         }
     }
-    if (cases != 32 || tests != 64 || products != 16) throw std::runtime_error("incomplete adjusted seasonality reference");
+    // The two seas WK fits (tramo_rsa3_seas, tramo_rsafull_seas) became
+    // end-to-end products with the fast/robust factorizer tiers; the frozen
+    // panel always carried their diagnostics (validation/evidence/native/
+    // adjusted-seasonality/public-x86_64.txt).
+    if (cases != 32 || tests != 64 || products != 18) throw std::runtime_error("incomplete adjusted seasonality reference");
     std::cout << cases << " reference cases, " << tests << " tests, maximum scaled error " << worst << "; " << products << " end-to-end fits, worst " << product_worst << "\n";
 }

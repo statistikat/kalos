@@ -5,6 +5,25 @@ is now an independent C++17 library, without R, Rcpp, Python or Java dependencie
 Sibling bindings consume pinned generated snapshots. Persephone will require
 rkalos; Python intentionally exposes only a minimal initial surface.
 
+## M6 SEATS WK factorizer tiers
+
+`factorize_sf` now mirrors the full installed JVM chain, EV2 -> EV1 -> fast
+-> robust (`SymmetricFrequencyResponseDecomposer`, m_freq 12, and
+`RobustSymmetricFrequencyResponseDecomposer`, m_freq 0, with the
+`SymmetricMullerNewtonSolver` root tier; `UnitRootsSolver` gained the
+start-degree parameter). The refused `seas.csv` profile is the first pinned
+chain member that resolves on robust: the total error variance filter of the
+Burman variance estimates reproduces the frozen stage walk bit-exactly
+(scaling `3f01dca02266dac2`, 14-coefficient factor) and the WK extraction now
+matches the frozen oracle row-for-row, 29+29 rows across RSA3 and RSAfull
+where the mirror previously raised `ArimaException`. Corpus tier parity holds
+over all 127 distinct replayed filters (120 EV2, 2 EV1, 5 JVM-NONE nulls
+preserved; the JVM's single fast-tier filter belongs to an upstream-refused
+case), `verify_decompose_ucarima` 81/81 and `verify_seats_wk_extraction`
+132/132 are unchanged, and the adjusted-seasonality panel now reproduces 18
+end-to-end fits (was 16) with the two seas fits bit-exact on all reference
+fields and worst scaled fitted error 2.5e-13 against the pinned 1e-8 cap.
+
 ## M6 SEATS WK factorizer tier reference
 
 The refused `seas.csv` profile blocks SEATS WK extraction on one symmetric
