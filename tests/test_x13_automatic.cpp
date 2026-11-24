@@ -500,10 +500,10 @@ void check_composition(const kalos::X13AutomaticFitResult& r, std::size_t n,
         msg.c_str());
   msg = std::string(case_name) + ": pinned mode forcing";
   kalos::X11DecompositionMode want = kalos::X11DecompositionMode::additive;
-  if (r.log) {
-    want = r.fit.mode_requested == kalos::X11DecompositionMode::log_additive ||
-                   r.fit.mode_requested ==
-                       kalos::X11DecompositionMode::pseudo_additive
+  if (r.fit.mode_requested == kalos::X11DecompositionMode::pseudo_additive) {
+    want = r.fit.mode_requested;
+  } else if (r.log) {
+    want = r.fit.mode_requested == kalos::X11DecompositionMode::log_additive
                ? r.fit.mode_requested
                : kalos::X11DecompositionMode::multiplicative;
   }

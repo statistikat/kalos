@@ -12,16 +12,25 @@
 // candidate construction is asserted against the captured candidate stream
 // and every Changed transfer against the post-step panel. What the replay
 // cannot see fails closed - the negative probes at the bottom pin that.
+#include "kalos/arma_diagnostics.hpp"
+#include "kalos/detail/fdlibm.hpp"
+#include "kalos/tramo_regression_tests.hpp"
 #include "kalos/detail/special_functions.hpp"
 #include "kalos/tramo_differencing_battery.hpp"
+#include "kalos/tramo_regression_tests.hpp"
 
 #include "jvm_tramo_battery.h"
 
+#include <algorithm>
 #include <cmath>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
+#include <cstdint>
+#include <fstream>
 #include <map>
+#include <fstream>
+#include <sstream>
 #include <stdexcept>
 #include <string>
 #include <vector>
@@ -43,6 +52,7 @@ using kalos::detail::f_upper_p;
 
 int failures = 0;
 long stat_states = 0, stat_ftests = 0, stat_scores = 0, stat_peaks = 0, stat_over = 0;
+long stat_refitted_f = 0;
 long stat_cands = 0, stat_steps = 0, stat_panels = 0, stat_frozen = 0;
 
 void fail(const std::string& cid, const std::string& what) {
@@ -120,6 +130,7 @@ struct StepExp {
 struct Parsed {
     std::string id;
     BatteryCase bc;
+    std::map<std::string, std::vector<double>> linearized;
     std::map<std::string, int> over;        // tag -> code (>= 0); absent on error
     std::map<std::string, int> resl_score;  // tag -> captured ladder score
     std::map<std::string, int> has_resl;    // tag -> JVM hasSeasonalPeaks
@@ -280,6 +291,9 @@ Parsed parse_case(const kalos::test::TbCase& tc) {
                 s->bphi1 = bphi.empty() ? 0.0 : bphi[0];
                 s->btheta1 = btheta.empty() ? 0.0 : btheta[0];
             }
+        } else if (key == "lin" && st >= 0) {
+            auto& values = p.linearized[tag];
+            for (std::size_t i = 3; i < t.size(); ++i) values.push_back(tok(t[i]));
         } else if (key == "resid") {
             if (st < 0) {
                 continue;
@@ -379,6 +393,11 @@ const char* result_name(BatteryDecision::Result r) {
 
 void replay(const kalos::test::TbCase& tc) {
     Parsed p = parse_case(tc);
+    std::vector<double> series(tc.series_len);
+    std::memcpy(series.data(), tc.series_bits, tc.series_len * sizeof(double));
+    if (tc.log_input)
+        for (auto& value : series) value = kalos::detail::fdlibm_log(value);
+
     if (p.bc.candidates.empty()) {
         fail(p.id, "no candidates parsed");
         return;
@@ -464,6 +483,48 @@ void replay(const kalos::test::TbCase& tc) {
         stat_cands += static_cast<long>(want.size());
     }
 
+    if (freq == 12) {
+        std::size_t next = 1;
+        auto estimator = [&](const kalos::TramoOrders& o, bool mean) -> std::optional<BatteryState> {
+            if (next == p.bc.candidates.size()) throw std::runtime_error("extra monthly candidate");
+            const auto& candidate = p.bc.candidates.at(next++);
+            if (o.p != candidate.p || o.d != candidate.d || o.q != candidate.q || o.bp != candidate.bp ||
+                o.bd != candidate.bd || o.bq != candidate.bq || mean != candidate.mean)
+                fail(p.id, "live controller requested a different candidate");
+            if (!candidate.ok) return std::nullopt;
+            for (int i = 0; i < 6; ++i) {
+                const auto& state = *state_at(p.bc, i);
+                if (panel_eq(candidate.mstat, state.mstat) && state.mean == mean &&
+                    state.p == o.p && state.d == o.d && state.q == o.q && state.bp == o.bp &&
+                    state.bd == o.bd && state.bq == o.bq) return state;
+            }
+            BatteryState rejected;
+            rejected.p = o.p; rejected.d = o.d; rejected.q = o.q;
+            rejected.bp = o.bp; rejected.bd = o.bd; rejected.bq = o.bq;
+            rejected.mean = mean;
+            rejected.mstat = candidate.mstat;
+            return rejected;
+        };
+        const auto live = kalos::tramo_monthly_controllers(p.bc.after_entry, p.bc.seasonal, p.bc.ost, estimator);
+        if (live.seasonality != d.seas1 || live.restart != (d.seas1 == BatteryDecision::Result::Changed) ||
+            live.seasonal != d.snaps.front().seasonal || live.seasonality_score != d.snaps.front().ost)
+            fail(p.id, "live initial seasonality controller differs");
+        int selected = -1;
+        const auto transferred = [&](BatteryDecision::Result step, int slot) {
+            if (step == BatteryDecision::Result::Changed && slot >= 1) selected = slot - 1;
+        };
+        transferred(d.seas1, d.cand_pass1);
+        if (!live.restart) {
+            transferred(d.ru1, d.cand_ru1);
+            transferred(d.su1, d.cand_su1);
+            transferred(d.ru2, d.cand_ru2);
+            transferred(d.su2, d.cand_su2);
+        }
+        if (live.selected_candidate != selected) fail(p.id, "live selected candidate differs");
+        if (!live.restart && (live.regular1 != d.ru1 || live.seasonal1 != d.su1 || live.regular2 != d.ru2 ||
+            live.seasonal2 != d.su2 || next != p.bc.candidates.size()))
+            fail(p.id, "live in-order controller transfers differ");
+    }
     // --- per-state ports ------------------------------------------------------
     for (int k = 0; k < 6; ++k) {
         const std::string tag = p.id + kSuffix[k];
@@ -472,6 +533,41 @@ void replay(const kalos::test::TbCase& tc) {
         if (st->resid.empty() && st->mstat.nobs == 0) {
             fail(p.id, "unparsed state " + tag);
             continue;
+        }
+        if (freq == 12) {
+            const auto compare = [&](const std::vector<double>& values, kalos::TramoSeasonalTestInput input,
+                                     const BatteryTests& expected) {
+                const auto actual = kalos::tramo_monthly_seasonal_tests(values, input);
+                if (!bits_eq(actual.qs_v, expected.qs_v) || !bits_eq(actual.qs_p, expected.qs_p) ||
+                    !bits_eq(actual.np_v, expected.np_v) || !bits_eq(actual.np_p, expected.np_p) ||
+                    actual.qs_null != expected.qs_null || actual.np_null != expected.np_null ||
+                    actual.differenced_length != expected.differenced_length || actual.ar_null != expected.ar_null ||
+                    actual.tukey_null != expected.tukey_null || !std::equal(actual.peaks.begin(), actual.peaks.end(),
+                        expected.peaks.begin(), expected.peaks.end(), [](const auto& a, const auto& b) {
+                            return a.ar == b.ar && a.tukey == b.tukey;
+                        }) || battery_ladder_score(actual, freq) != battery_ladder_score(expected, freq))
+                    fail(p.id, "computed monthly seasonality panel differs in " + tag);
+            };
+            compare(st->resid, kalos::TramoSeasonalTestInput::residuals, st->resl);
+            compare(p.linearized.at(tag), kalos::TramoSeasonalTestInput::linearized, st->ctlst);
+        }
+        const auto tests = kalos::tramo_comparator_residual_tests(st->resid);
+        if (!bits_eq(tests.absolute_skewness, st->mstat.skew_abs) ||
+            !bits_eq(tests.skewness_p, st->mstat.skew_p) ||
+            !bits_eq(tests.stable_mean_p, st->mstat.stable_mean_p) ||
+            !bits_eq(tests.stable_variance_p, st->mstat.stable_var_p)) {
+            fail(p.id, "computed comparator residual tests differ in " + tag);
+        }
+        if (freq == 12 && st->nvar == 0) {
+            ++stat_refitted_f;
+            const auto fitted = kalos::tramo_seasonal_f_test(series, 1990, 1,
+                {st->p, st->d, st->q, st->bp, st->bd, st->bq});
+            if (fitted.present != st->ftest.present || !bits_eq(fitted.value, st->ftest.value)
+                || !bits_eq(fitted.pvalue, st->ftest.pvalue) || fitted.df1 != st->ftest.df1 || fitted.df2 != st->ftest.df2) {
+                std::fprintf(stderr, "%s %d %d %d seasonal F %.17g vs %.17g, df %.0f vs %.0f\n", tag.c_str(),
+                    st->p, st->d, st->q, fitted.value, st->ftest.value, fitted.df2, st->ftest.df2);
+                fail(p.id, "fitted seasonal F in " + tag);
+            }
         }
         if (st->ftest.present) {
             const double p_native = f_upper_p(st->ftest.value, st->ftest.df1, st->ftest.df2);
@@ -649,6 +745,90 @@ void negative_probes() {
     }
 }
 
+void check_monthly_spectra() {
+    std::ifstream input(KALOS_SEASONAL_PEAKS);
+    std::size_t n;
+    int seed;
+    std::string expected_ar, expected_tukey;
+    int count = 0;
+    while (input >> n >> seed >> expected_ar >> expected_tukey) {
+        std::uint32_t state = seed + 1;
+        std::vector<double> x(n);
+        for (std::size_t i = 0; i < n; ++i) {
+            state = 1664525u * state + 1013904223u;
+            const int month = (i + seed) % 12;
+            const int seasonal = (7 * month + month * month) % 17 - 8;
+            x[i] = (static_cast<int>(state >> 16) - 32768) / 4096.0 + seasonal * (seed % 4) / 2.0;
+        }
+        std::string actual;
+        for (auto peak : kalos::tramo_monthly_tukey_peaks(x))
+            actual += peak == PeakTukey::T ? '2' : peak == PeakTukey::t ? '1' : '0';
+        if ((actual.empty() ? "-" : actual) != expected_tukey)
+            fail("Tukey spectrum", "length " + std::to_string(n) + ", seed " + std::to_string(seed));
+        actual.clear();
+        for (auto peak : kalos::tramo_monthly_ar_peaks(x))
+            actual += peak == PeakAr::A ? '2' : peak == PeakAr::a ? '1' : '0';
+        if ((actual.empty() ? "-" : actual) != expected_ar)
+            fail("AR spectrum", "length " + std::to_string(n) + ", seed " + std::to_string(seed));
+        ++count;
+    }
+    if (count != 168) fail("monthly spectrum", "incomplete classifier corpus");
+}
+
+void replay_seasonal_f_regressors() {
+    std::ifstream panel(KALOS_SEASONAL_F_PANEL);
+    int id = 0, year = 0, month = 0, cases = 0;
+    kalos::TramoOrders orders;
+    std::vector<double> series;
+    std::vector<std::vector<double>> regressors;
+    for (std::string line; std::getline(panel, line);) {
+        std::istringstream row(line);
+        std::string kind;
+        row >> kind;
+        if (kind == "case") {
+            row >> id >> year >> month >> orders.p >> orders.d >> orders.q;
+            orders.bp = orders.bd = orders.bq = 1;
+            regressors.clear();
+            series.clear();
+        } else if (kind == "series" || kind == "column") {
+            std::vector<double> values;
+            std::uint64_t value;
+            while (row >> std::hex >> value) {
+                double v;
+                std::memcpy(&v, &value, sizeof(v));
+                values.push_back(v);
+            }
+            if (kind == "series") series = std::move(values);
+            else regressors.push_back(std::move(values));
+        } else if (kind == "test") {
+            const auto f = kalos::tramo_seasonal_f_test(series, year, month, orders, regressors);
+            std::uint64_t value = 0, probability = 0;
+            double df1 = 0, df2 = 0;
+            row >> std::hex >> value >> probability >> std::dec >> df1 >> df2;
+            if (!row || !f.present || bits(f.value) != value || bits(f.pvalue) != probability ||
+                f.df1 != df1 || f.df2 != df2) {
+                std::fprintf(stderr, "case %d seasonal F got %016llx, expected %016llx\n", id,
+                    static_cast<unsigned long long>(bits(f.value)), static_cast<unsigned long long>(value));
+                fail("seasonal F", "regressor case " + std::to_string(id));
+            }
+            ++cases;
+        } else fail("seasonal F", "invalid reference record");
+    }
+    if (cases != 12 || stat_refitted_f != 72) fail("seasonal F", "missing reference fits");
+    kalos::TramoOrders stationary{};
+    if (kalos::tramo_seasonal_f_test(std::vector<double>(12, 3.0), 2001, 1, stationary).present)
+        fail("seasonal F", "too few residual degrees of freedom");
+    if (kalos::tramo_seasonal_f_test(series, year, month, stationary,
+            {std::vector<double>(series.size(), 0.0)}).present)
+        fail("seasonal F", "singular regression design");
+    try {
+        kalos::tramo_seasonal_f_test(series, year, month, stationary, {{1.0}});
+        fail("seasonal F", "accepted a regressor of the wrong length");
+    } catch (const std::invalid_argument&) {}
+
+    std::printf("seasonal F refits: %ld battery states and %d dated regressor cases\n", stat_refitted_f, cases);
+}
+
 } // namespace
 
 int main() {
@@ -659,6 +839,8 @@ int main() {
         replay(cases[i]);
         total_facts += static_cast<long>(cases[i].facts_len);
     }
+    check_monthly_spectra();
+    replay_seasonal_f_regressors();
     negative_probes();
     std::printf("tramo-differencing-battery: %zu cases, %ld fact lines, %ld states, %ld "
                 "F p-values, %ld ladder scores, %ld peak gates, %ld over-codes, %ld decision "

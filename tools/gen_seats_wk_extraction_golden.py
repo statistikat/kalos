@@ -13,17 +13,9 @@ the three SeatsResults domains (dom actual|backcast|forecast) and the init /
 final decomposition rows in the fixed (ComponentType x ComponentInformation)
 enumeration.
 
-Tier map (the unit's envelope, pinned in
-docs/contracts/seats-wk-extraction-contract.md): the six refusal cases (the
-quarterly series D11, the two KalmanSmoother cases D1, the innovation
-variance 0 ConcentratedLikelihood path, and the two D6 approximation cases
-classical airline + fixMa crash) carry a pinned refusal reason and NO facts
-- their JVM context rows (which ran the unported DefaultModelApproximator /
-Kalman machinery) are never replayed. All other 30 cases replay their
-status/dom/init/final lines verbatim: 28 status ok runs, the mode-None
-SeatsException status row (x_stab_none) and the two mid-run EcoException
-prediction-error aborts (x_ar3, x_stat_ar3), which end in a status error row
-with no dom/init/final follow-up.
+The four refused requests cover quarterly frequency, Kalman smoothing and
+zero innovation variance. The other 32 cases retain their captured outcomes,
+including a successful monthly airline retry and the degenerate fixMa error.
 
 Out of scope and NOT emitted (see the contract): the case/toolkit/v.*/model/
 tpl blocks (24-A scope), the d/cmp/r seam blocks (24-B), the k.* kernel
@@ -48,8 +40,7 @@ REASON_VAR0 = ("seats_extract_wk: innovation variance 0 selects the JVM "
 REASON_NOISY = ("seats_extract_wk: Noisy approximation mode is outside the "
                 "D6 envelope")
 REASON_APPROX = ("seats_extract_wk: approximation_required decision is "
-                 "outside the D6 envelope (the DefaultModelApproximator "
-                 "retry loop is not ported)")
+                 "outside the qualified monthly retry envelope")
 
 
 def cstr(s):
@@ -68,7 +59,7 @@ def cstr(s):
     return "".join(out)
 
 
-def refusal_reason(c, var):
+def refusal_reason(c, var, mean, orders):
     """The unit's check order (seats_extract_wk): frequency, method,
     variance, Noisy mode, approximation_required."""
     if int(c["freq"]) != 12:
@@ -79,7 +70,10 @@ def refusal_reason(c, var):
         return REASON_VAR0
     if c["mode"] == "Noisy":
         return REASON_NOISY
-    if c["ddecompose"] == "null" and c["mode"] != "None":
+    p, d, q, bp, bd, _ = orders
+    airline = (p, d, bp, bd) == (0, 1, 0, 1) and q <= 1
+    seasonal_refit = orders == (2, 1, 0, 1, 1, 0) and not mean
+    if c["ddecompose"] == "null" and c["mode"] != "None" and not (airline or seasonal_refit):
         # mode None + null decomposition is the kernel's SeatsException
         # status row (mirrored), not a refusal.
         return REASON_APPROX
@@ -93,7 +87,7 @@ def main(corpus_dir, dst):
             cases[r["id"]] = r
             order.append(r["id"])
     req, values = {i: [] for i in order}, {}
-    var = {}
+    var, mean = {}, {}
     with open(os.path.join(corpus_dir, "inputs.csv")) as f:
         for r in csv.DictReader(f):
             ln = r["line"]
@@ -101,15 +95,19 @@ def main(corpus_dir, dst):
                 req[r["id"]].append(ln)
                 if ln.startswith("req log "):
                     var[r["id"]] = float(ln.split()[6])
+                    mean[r["id"]] = bool(int(ln.split()[4]))
             elif ln.startswith("values "):
                 values[r["id"]] = ln[len("values "):]
+    orders = {}
     facts = {i: [] for i in order}
     with open(os.path.join(corpus_dir, "model-facts.csv")) as f:
         for r in csv.DictReader(f):
+            if r["key"] == "v.orders":
+                orders[r["id"]] = tuple(map(int, r["value"].split()))
             if r["key"] in FACT_KEYS:
                 facts[r["id"]].append(r["key"] + " " + r["value"])
 
-    reason = {cid: refusal_reason(cases[cid], var[cid]) for cid in order}
+    reason = {cid: refusal_reason(cases[cid], var[cid], mean[cid], orders[cid]) for cid in order}
     for cid in order:
         if len(req[cid]) != 7:
             sys.exit("case %s: expected 7 req lines, found %d"
@@ -126,9 +124,9 @@ def main(corpus_dir, dst):
     out.append("// Item 24-C.1 seats-wk-extraction golden: the double-captured JVM corpus")
     out.append("// (validation/evidence/native/seats-wk-extraction) as request echo plus the")
     out.append("// extraction fact grammar (status, the three SeatsResults domains, the init")
-    out.append("// and final decomposition rows). The six envelope refusals (frequency 4, the")
-    out.append("// two KalmanSmoother cases, innovation variance 0, classical airline and the")
-    out.append("// fixMa crash - D1/D11/D6/CL-path) carry a pinned reason and no facts.")
+    out.append("// and final decomposition rows). The four envelope refusals (frequency 4, the")
+    out.append("// two KalmanSmoother cases, and innovation variance 0)")
+    out.append("// carry a pinned reason and no facts.")
     out.append("#ifndef KALOS_TESTS_JVM_SEATS_WK_EXTRACTION_H")
     out.append("#define KALOS_TESTS_JVM_SEATS_WK_EXTRACTION_H")
     out.append("")
@@ -146,6 +144,17 @@ def main(corpus_dir, dst):
     out.append("    const char* const* req;")
     out.append("    std::size_t nfacts;")
     out.append("    const char* const* facts;")
+    out.append("};")
+    out.append("")
+
+    limits = os.path.join(os.path.dirname(os.path.abspath(corpus_dir)),
+                          "seats-airline-approximation", "thresholds.csv")
+    out.append("struct AirlineBoundary { double theta, btheta, first, last; };")
+    out.append("inline constexpr AirlineBoundary kAirlineBoundaries[] = {")
+    with open(limits) as f:
+        for row in csv.DictReader(f):
+            out.append("    {%s, %s, %s, %s}," % (row["theta"], row["replacement_btheta"],
+                                                  row["first_adjusted"], row["last_adjusted"]))
     out.append("};")
     out.append("")
 

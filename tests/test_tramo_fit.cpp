@@ -18,6 +18,7 @@
 
 #include "jvm_tramo_fit.h"
 
+#include <algorithm>
 #include <cstdint>
 #include <cstring>
 #include <iostream>
@@ -64,7 +65,42 @@ long long run_case(const FitExpect& e, std::size_t& live_total,
         std::cout << e.id << ": refused " << r.refusal_note << "\n";
         return 0;
     }
+    std::size_t regenerated = 0;
+    for (auto& input : rq.seam_inputs) {
+        if ((input.entry_outliers.empty() || !input.entry_variables.empty()) && !input.ols_residuals.empty()) {
+            regenerated += input.ols_residuals.size();
+            input.ols_residuals.clear();
+            input.nobs = 0;
+        }
+    }
+    {
+        auto independent = rq;
+        independent.final = {};
+        independent.verify_final_record = false;
+        const auto replay = tramo_fit(independent);
+        CHECK(replay.final_model_computed && !replay.covariance.matches_capture);
+        CHECK(replay.covariance.covariance_upper == rq.final.captured_covariance_upper);
+        CHECK(replay.full_residuals == rq.final.full_residuals && to_bits(replay.ls_ll) == to_bits(rq.final.ls_ll));
+        CHECK(replay.status == r.status && replay.seams_live == r.seams_live &&
+              replay.seams_fact == r.seams_fact && replay.parameters == r.parameters);
+        if (regenerated) std::cout << e.id << ": regenerated " << regenerated << " ARMA input observations\n";
+    }
+    if (std::string(e.id) == "fit_gs2") {
+        const auto restarted = estimate_tramo_tr3(rq.series, rq.start_year, rq.start_month);
+        CHECK(restarted.final_model_computed && restarted.parameters == r.parameters &&
+              restarted.full_residuals == r.full_residuals && restarted.regression_coefficients == r.regression_coefficients);
+    }
     CHECK(r.status == "available");
+    CHECK(r.final_model_computed);
+    CHECK(r.initial_regression_checked == !rq.kernel.seams.empty());
+    const auto count = [&](TramoKernelSeamKind kind) {
+        return static_cast<std::size_t>(std::count_if(rq.kernel.seams.begin(), rq.kernel.seams.end(),
+            [kind](const auto& seam) { return kind == seam.kind; }));
+    };
+    CHECK(r.first_candidate_computed == (count(TramoKernelSeamKind::pass2_gate) != 0));
+    CHECK(r.reference_model_computed == (count(TramoKernelSeamKind::round0) != 0));
+    CHECK(r.statistics_checked == count(TramoKernelSeamKind::round0) + count(TramoKernelSeamKind::pass2_gate));
+    CHECK(r.regression_tests_checked == count(TramoKernelSeamKind::regression_test));
     CHECK(r.transform_matches_capture);
     if (e.verdict[0] != '-') {
         CHECK(r.transformation.seasonality.verdict == e.verdict);
@@ -88,6 +124,12 @@ long long run_case(const FitExpect& e, std::size_t& live_total,
     for (std::size_t i = 0; i < r.parameters.size(); ++i)
         CHECK(to_bits(r.parameters[i]) == to_bits(rq.final.parameters[i]));
     CHECK(r.variables.size() == rq.final.variables.size());
+    for (const auto& var : r.variables) {
+        const auto date = var.name.find('(') + 1;
+        const int year = std::stoi(var.name.substr(date, 4));
+        const int month = std::stoi(var.name.substr(date + 5, 2));
+        CHECK(var.position == (year - rq.start_year) * 12 + month - rq.start_month);
+    }
     CHECK(r.cl_dim == rq.final.dim);
     CHECK(r.cl_nx == rq.final.nx);
     CHECK(r.cl_nmissing == rq.final.nmissing);
@@ -95,6 +137,11 @@ long long run_case(const FitExpect& e, std::size_t& live_total,
     CHECK(to_bits(r.log_determinant) == to_bits(rq.final.log_determinant));
     CHECK(to_bits(r.ls_ll) == to_bits(rq.final.ls_ll));
     CHECK(to_bits(r.ls_aic) == to_bits(rq.final.ls_aic));
+    CHECK(r.ls_obs == rq.final.ls_obs && r.ls_eff == rq.final.ls_eff && r.ls_npar == rq.final.ls_npar);
+    CHECK(to_bits(r.ls_tadj) == to_bits(rq.final.ls_tadj) && to_bits(r.ls_all) == to_bits(rq.final.ls_all));
+    CHECK(to_bits(r.ls_ssq) == to_bits(rq.final.ls_ssq) && to_bits(r.ls_aicc) == to_bits(rq.final.ls_aicc));
+    CHECK(to_bits(r.ls_bic) == to_bits(rq.final.ls_bic) && to_bits(r.ls_bic2) == to_bits(rq.final.ls_bic2));
+    CHECK(to_bits(r.ls_bicc) == to_bits(rq.final.ls_bicc) && to_bits(r.ls_hq) == to_bits(rq.final.ls_hq));
     CHECK(r.full_residuals.size() == rq.final.full_residuals.size());
     for (std::size_t i = 0; i < r.full_residuals.size(); ++i)
         CHECK(to_bits(r.full_residuals[i]) ==
@@ -127,6 +174,13 @@ long long run_case(const FitExpect& e, std::size_t& live_total,
         CHECK(r.covariance.covariance.empty());
         CHECK(rq.final.captured_covariance_upper.empty());
     }
+    if (std::string(e.id) == "fit_s30ml") {
+        std::size_t live_scans = 0;
+        for (const auto& check : r.seam_checks)
+            if (check.unit == "tramo_outlier_rounds" && check.tier == "live")
+                ++live_scans;
+        CHECK(live_scans == 2);
+    }
     live_total += r.seams_live;
     fact_total += r.seams_fact;
     d9_total += r.covariance.covariance_upper.size();
@@ -134,7 +188,9 @@ long long run_case(const FitExpect& e, std::size_t& live_total,
               << " orders " << orders_word(r.orders) << " cov "
               << r.covariance.covariance_upper.size() << "/"
               << e.d9_entries << " live " << r.seams_live << " fact "
-              << r.seams_fact << "\n";
+              << r.seams_fact << " stats " << r.statistics_checked << " regressions "
+              << r.regression_tests_checked << " reference " << r.reference_model_computed
+              << " first-candidate " << r.first_candidate_computed << "\n";
     return r.covariance.covariance_upper.size();
 }
 
@@ -167,6 +223,19 @@ int main() {
         rq2.spec.auto_method = tramo_auto_method::bic;  // td flags stay off
         const TramoFitResult r2 = tramo_fit(rq2);
         CHECK(r2.status == "refused:i10-automethod");
+        TramoFitRequest corrupt;
+        build_fit("fit_tr3_air", corrupt);
+        for (auto& input : corrupt.seam_inputs) {
+            if (input.ols_residuals.empty()) continue;
+            input.ols_residuals.front() += 1.0;
+            bool refused = false;
+            try { (void)tramo_fit(corrupt); }
+            catch (const std::invalid_argument& ex) {
+                refused = std::string(ex.what()).find("native ARMA residuals") != std::string::npos;
+            }
+            CHECK(refused);
+            break;
+        }
         std::cout << "synthetic: d6 and i10 refusals pinned\n";
     } catch (const std::exception& ex) {
         std::cout << "FAIL synthetic: " << ex.what() << "\n";

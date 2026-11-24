@@ -27,7 +27,17 @@ target_link_libraries(consumer PRIVATE kalos::kalos)
 """)
     (source / "main.cpp").write_text("""#include <kalos/detail/seats_ucarima_model.hpp>
 #include <kalos/detail/lapack.hpp>
-int main() { return kalos::lapack::provider_version() ? 0 : 1; }
+#include <kalos/decompose_ucarima.hpp>
+#include <kalos/seats_extract_wk.hpp>
+int main() {
+  kalos::tramo_seats_model_request req;
+  req.series.assign(96, 1.0);
+  req.innovation_variance = 2.0;
+  req.mode = kalos::seats_approx_mode::none;
+  return kalos::lapack::provider_version()
+      && kalos::decompose_ucarima(req).fact("d.decompose") == "ok"
+      && kalos::seats_extract_wk(req).fact("status") == "ok" ? 0 : 1;
+}
 """)
     tree = work / "build"
     configure = ["cmake", "-S", source, "-B", tree, f"-DCMAKE_PREFIX_PATH={install}"]

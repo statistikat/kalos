@@ -63,6 +63,10 @@ Measured census over the 34-row golden: **27 live / 54 fact**; the test
 asserts the per-case counts against the golden, so the census can never
 silently drift.
 
+Fitted outlier positions are zero-based on the original estimation domain.
+The 24-D handoff uses this date when creating each deterministic-effect
+column. Differenced full residuals can start later and have a separate domain.
+
 ## D9 — the regression-block covariance
 
 `RegSarimaModel.coefficientsCovariance` is `ConcentratedLikelihood
@@ -146,3 +150,141 @@ per-case live/fact tiers, the d6/i10 synthetic refusals) in both lanes; the
 sweep `tools/verify_tramo_fit` re-drives the golden surface off the raw
 capture. ASan/UBSan clean. Shim-invariance battery 26/26 with
 `test_tramo_fit` as the 26th cell.
+
+### 23-G ARMA input preparation
+
+When an ARMA module entry has no registered regressors beyond an optional
+mean, the fit reconstructs the selected response and differences, solves
+the mean on the differenced domain, and passes those residuals to the
+selector. The OLS vector and observation count can be omitted in those
+entries. When supplied they must match in length and binary64 bits.
+
+With dated AO/LS variables in `entry_variables` the selector reconstructs
+the differenced outlier design and solves the full OLS problem. An existing
+request with only the labels and a residual witness continues to use that
+witness. Typed variables must follow the recorded order and cover the entry
+design. The admitted panel now needs no supplied ARMA residual vectors.
+
+### 23-G outlier module cross-check
+
+The fit also runs the multi-round scan at integrated, complete monthly
+entries with no pre-existing regressors beyond the mean, no remaining
+outliers on entry, and the full estimation interval. Both default and
+explicit maximum-likelihood estimation are qualified. Factory columns map back to their AO/LS/TC/SO types in encounter
+order. Both the processing outcome and each dated selection must agree with
+the recorded module state. The native detector uses the captured critical
+value and the 1e−5 intermediate tolerance of TramoKernel.AmiOptions.
+The 40 successful comparisons include changed, unchanged and failed module
+outcomes. Post-scan coefficients continue to arrive through the fitting
+seams. The 67 live / 14 recorded census supersedes the earlier 23-F census.
+
+### 23-G final estimation from observations
+
+The overload of `tramo_final_estimator_run` accepts finite monthly
+model-scale observations and an optional mean. The fit uses it at the 16
+final estimation calls immediately after a scan leaves an empty outlier
+design. Options come from the model at entry, the kernel pass and the
+resolved specification, including EstimateSpec's precision and unit-root
+threshold. Return status, changed-parameter count, all six returned orders
+and every fitted ARMA coefficient agree exactly with the JVM. The 29 other
+final-estimator calls retain their captured results. These calls extend
+the fit census to 83 live and 43 recorded across the four modules.
+
+The multi-column extension differences each raw regression column along
+with the response. The HR start uses the pinned pivoted OLS solve and
+subtracts each fitted column in model order. The fit preserves detector
+order for the scan comparison, then stably sorts the selected automatic
+outliers by date as ModelDescription does before final estimation. The
+first estimation, ARMA hand-over and post-mean-test retry also supply the
+model and mean at entry. All 45 final-estimation calls in the admitted
+panel reproduce the return, changed-parameter count, orders, dated outlier
+order and fitted ARMA coefficient bits. The census is 112 live / 14
+recorded. Initial, intermediate and final public fitted-record assembly
+are separate parts of the automatic path.
+
+The differencing selector consumes the model-scale response after
+subtracting the fitted automatic-outlier effects. The estimate's variable
+names, orders and mean must match the module entry. A refit or model
+restoration invalidates the cached effects. All 20 selectors agree with
+the public path, including the five-variable model after the seasonality
+controller and the short-series HR failure. On an unchanged airline
+fallback the returned description preserves its entering orders.
+
+The last stationary scan is covered by the monthly regular AR(1)/AR(2)
+scanner with a mean and complete input. The LS column is zero-ended, and
+its nonzero constant correction enters the scan weights and the initial
+sum of squares for a stationary model. Six dedicated public-module and
+internal round traces cover AO, LS, TC and unchanged outcomes. Across the
+34 fit cases all 126 differencing, ARMA, scan and final-estimation module
+checks now run numerically. The recorded loop and final-model data are
+still part of the separate fit request.
+
+The integrated replay computes every round-0 and pass-2 statistics row
+from the preceding fitted likelihood. The final reporting QR operates in
+fixed design order. Its residual tail supplies `cl.e()`; a design-free
+fit uses unscaled Kalman innovations. The optimizer uses its own pivoted
+QR for derivatives. All 39 round rows and 46 fast mean-test decisions in
+the admitted corpus agree bit-for-bit, including each post-test t-vector
+and the empty vector after the mean test clears an estimation. The
+standalone round-replay input still carries these values for comparison.
+
+The final model can be computed without a reference record by setting
+`TramoFitRequest::verify_final_record = false`. The native estimator must
+have a fitted state. The result then exposes the projected coefficients,
+residuals, likelihood and model-selection criteria and scaled regression
+covariance. `covariance.matches_capture` is false and its captured triangle
+is empty on that route. With the default verification option, every final
+field and the complete covariance triangle are checked against the oracle.
+Both paths run over all 24 admitted cases. The round sequence is still a
+separate input to this replay interface.
+
+### Raw monthly TR1 preprocessing
+
+`estimate_tramo_tr1(series, start_year, start_month)` registers the stock
+TR1 mean and airline orders and selects the transformation and automatic
+outliers from the original values. Both TR1 scans receive identical input
+after clearing automatic outliers, use the same threshold, and leave the
+fixed mean and orders in place. The final estimator's non-AMI branch
+returns directly on either pass. The final regression coefficients are
+in design order, with the mean first. The six public oracles cover both
+model scales, zero to three automatic variables, and all 570 residuals.
+The supported input is complete monthly data spanning at least two years.
+
+### Raw monthly TR3
+
+`estimate_tramo_tr3(series, year, month)` and
+`run_tramo_seats_rsa3(series, year, month, backcasts, forecasts)` use
+the stock monthly preset with no processing trace as input. The initial
+route covers a passed reference comparison, a retained fast regression
+test, and a completed controller sweep. A seasonality restart repeats identification
+with the new seasonal state and reruns the late controllers. Nine public
+snapshots in `tramo-seats-bridge/rsa3-x86_64.txt` and
+`tramo-seats-bridge/rsa3-additional-x86_64.txt` cover this route.
+Four additional stock models in `rsa3-mean-retry-x86_64.txt` remove the
+fast-regression mean, retain the selected outliers and re-estimate the
+orders in pass four. Seven models in `rsa3-ref-retry-x86_64.txt` require a lower outlier
+threshold, repeated identification, or the last-chance ARMA fit. Their
+preprocessing parameters, final design, likelihood and 909 residuals
+match the public kernel. SEATS extraction and deterministic restoration
+on these seven models have separate coverage. SEATS uses the same fitted pipeline, horizon
+semantics, and decomposition-policy checks as the raw RSA1 route.
+
+### Raw monthly TRfull
+
+`estimate_tramo_trfull(series, start_year, start_month)` accepts a complete
+monthly series. It selects the transformation, mean, SARIMA orders, trading
+days, leap year, six-day Easter and automatic outliers from those observations.
+`run_tramo_seats_rsafull` takes the same inputs plus backcast and forecast
+counts, with defaults of zero backcasts and two years of forecasts.
+
+Differencing identification corrects only automatic outlier effects. ARMA
+identification includes the fitted calendar design. Outlier scans and all
+refits preserve the calendar selection until the relevant regression test
+changes it. The late trading-day controller tests the current likelihood
+residuals and compares the refitted working-day model with the incumbent.
+Three public reference cases acquire working days only at this step.
+
+The 26 original stock fits and three late-controller fits match all fitted
+orders, variables, estimates, likelihoods and 4,165 residuals. Two higher-order
+WK discrepancies are tracked independently. The native preprocessing and
+calendar restoration checks remain exact for both.

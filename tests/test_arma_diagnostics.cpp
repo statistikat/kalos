@@ -6,13 +6,18 @@
 // validation/reference/LjungBoxGolden.java); the input series are exact
 // recurrences replayed bit-identically from the embedded table.
 #include "kalos/arma_diagnostics.hpp"
+#include "kalos/detail/fdlibm.hpp"
 
 #include "jvm_arma_diagnostics.h"
 
 #include <cmath>
 #include <cstdio>
 #include <cstring>
+#include <fstream>
+#include <map>
+#include <sstream>
 #include <stdexcept>
+#include <string>
 #include <vector>
 
 namespace {
@@ -69,9 +74,198 @@ void check(const golden_diag::Row& r, const char* what, double got) {
     }
 }
 
+template <class Check>
+void check_rsa0_residual_test(const std::string& file, const std::string& key, Check check) {
+    const std::string directory = KALOS_TRAMO_DIAGNOSTIC_DIR;
+    std::ifstream residual_file(directory + "/rsa0-residuals-x86_64.txt");
+    std::ifstream public_tests(directory + "/" + file);
+    if (!residual_file || !public_tests) throw std::runtime_error("missing RSA0 diagnostic reference");
+    std::map<std::string, std::vector<double>> residuals;
+    std::string line, id;
+    while (std::getline(residual_file, line)) {
+        std::istringstream row(line);
+        std::string kind;
+        row >> kind;
+        if (kind == "case") row >> id;
+        if (kind != "residuals.tsres") continue;
+        int year, month, n;
+        row >> year >> month >> n;
+        auto& values = residuals[id];
+        std::uint64_t bits;
+        while (row >> std::hex >> bits) values.push_back(golden_diag::bits(bits));
+        if (values.size() != static_cast<std::size_t>(n)) throw std::runtime_error("invalid residual count");
+    }
+    int cases = 0, edges = 0;
+    while (std::getline(public_tests, line)) {
+        std::istringstream row(line);
+        std::string kind;
+        row >> kind;
+        if (kind == "case") {
+            row >> id;
+            continue;
+        }
+        auto values = residuals.at(id);
+        std::uint64_t statistic, pvalue;
+        if (kind == "short") {
+            std::size_t observations, count;
+            if (!(row >> observations >> count >> std::hex >> statistic >> pvalue))
+                throw std::runtime_error("invalid short RSA0 diagnostic row");
+            values.clear();
+            std::uint64_t bits;
+            while (row >> std::hex >> bits) values.push_back(golden_diag::bits(bits));
+            if (values.size() != count || count + 13 != observations)
+                throw std::runtime_error("invalid short RSA0 residual count");
+            ++edges;
+        } else if (kind == key) {
+            if (!(row >> std::hex >> statistic >> pvalue)) throw std::runtime_error("invalid JVM statistic");
+            ++cases;
+        } else {
+            throw std::runtime_error("unrecognized RSA0 diagnostic reference row");
+        }
+        if (!check(values, statistic, pvalue)) {
+            std::printf("FAIL public %s: %s (%zu residuals)\n", key.c_str(), id.c_str(), values.size());
+            ++failures;
+        }
+    }
+    if (cases != 6 || edges != 3) throw std::runtime_error("incomplete RSA0 diagnostic reference");
+}
+
+void check_public_residual_diagnostics(const std::string& diagnostic_file,
+        const std::vector<std::pair<std::string, std::string>>& references, std::size_t expected_cases) {
+    const std::string directory = KALOS_TRAMO_DIAGNOSTIC_DIR;
+    struct Input {
+        double ssq = 0;
+        int effective = 0, estimated = 0, arma_parameters = 0;
+        std::vector<double> residuals;
+    };
+    std::map<std::string, Input> inputs;
+    std::string id, line, key;
+    for (const auto& [prefix, name] : references) {
+        std::ifstream file(directory + "/" + name);
+        if (!file) throw std::runtime_error("missing fitted diagnostic reference");
+        while (std::getline(file, line)) {
+            std::istringstream row(line);
+            row >> key;
+            if (key == "case") { row >> id; id = prefix + id; }
+            if (key == "parameters") {
+                std::string coefficient;
+                while (row >> coefficient) ++inputs[id].arma_parameters;
+            } else if (key == "likelihood") {
+                std::string ignored;
+                std::uint64_t ssq;
+                auto& fit = inputs[id];
+                row >> ignored >> ignored >> ignored >> std::hex >> ssq >> std::dec >> fit.effective >> fit.estimated;
+                fit.ssq = golden_diag::bits(ssq);
+            } else if (key == "residuals") {
+                int year, month, count;
+                row >> year >> month >> count;
+                auto& fit = inputs.at(id);
+                std::uint64_t bits;
+                while (row >> std::hex >> bits) fit.residuals.push_back(golden_diag::bits(bits));
+                if (count != fit.effective || fit.residuals.size() != static_cast<std::size_t>(count))
+                    throw std::runtime_error("invalid public residual count");
+            }
+        }
+    }
+    std::ifstream tests(directory + "/" + diagnostic_file + "-x86_64.txt");
+    std::size_t checks = 0;
+    while (std::getline(tests, line)) {
+        std::istringstream row(line);
+        row >> key;
+        if (key == "case") { row >> id; continue; }
+        const auto& fit = inputs.at(id);
+        std::uint64_t statistic, pvalue;
+        row >> std::hex >> statistic;
+        if (key == "residuals.ser") {
+            if (!same(kalos::tramo_residual_standard_error(fit.ssq, fit.effective, fit.estimated), statistic)) ++failures;
+        } else {
+            std::string chi, with;
+            double df;
+            row >> pvalue >> chi >> with >> df;
+            if (!row || chi != "Chi2" || with != "with") throw std::runtime_error("invalid diagnostic distribution");
+            if (key == "residuals.lb") {
+                const auto test = kalos::monthly_tramo_residual_ljung_box(fit.residuals, fit.arma_parameters);
+                if (!test.built || test.df != df || !same(test.value, statistic) || !same(test.p, pvalue)) ++failures;
+            } else if (key == "residuals.doornikhansen") {
+                const auto test = kalos::tramo_residual_normality(fit.residuals);
+                if (!test || test->df != df || !same(test->value, statistic) || !same(test->p, pvalue)) ++failures;
+            } else throw std::runtime_error("unrecognized public diagnostic");
+        }
+        ++checks;
+    }
+    if (inputs.size() != expected_cases || checks != 3 * expected_cases) throw std::runtime_error("incomplete diagnostic evidence");
+}
+
 } // namespace
 
 int main() {
+    // Pinned StrictMath.pow(x, 1.0/3.0), including its signed-zero and
+    // infinity conventions and the two logarithm range-reduction boundaries.
+    const std::uint64_t power_cases[][2] = {
+        {0xb05c0847ffd15122ULL, 0x7ff8000000000000ULL},
+        {0x5cabbd075ccb078fULL, 0x4983388d033452c9ULL},
+        {0x7dc0bca37bd2b940ULL, 0x5489c850c3abd80cULL},
+        {0x468664b32548513cULL, 0x4221e5b26ec60722ULL},
+        {0x9df497f93d5e9b3fULL, 0x7ff8000000000000ULL},
+        {0x9b45cc158a352a5cULL, 0x7ff8000000000000ULL},
+        {0x7f01e57266c9f003ULL, 0x54f4ecf2f4dd0316ULL},
+        {0x337108bcc6dfb1c7ULL, 0x3bc49581a84258c4ULL},
+        {0x3fefffffffffffffULL, 0x3ff0000000000000ULL},
+        {0x0000000000000000ULL, 0x0000000000000000ULL},
+        {0x0000000000000001ULL, 0x299000000000003eULL},
+        {0x0000000000000002ULL, 0x299428a2f98d72d9ULL},
+        {0x0010000000000000ULL, 0x2aa428a2f98d72d5ULL},
+        {0x0010000000000001ULL, 0x2aa428a2f98d72d6ULL},
+        {0x3ff3988e00000000ULL, 0x3ff11e5d46427ea0ULL},
+        {0x3ff3988e00000001ULL, 0x3ff11e5d46427ea0ULL},
+        {0x3ffbb67a00000000ULL, 0x3ff33709757d8170ULL},
+        {0x3ffbb67a00000001ULL, 0x3ff33709757d8171ULL},
+        {0x7fefffffffffffffULL, 0x554428a2f98d7240ULL},
+        {0x7ff0000000000000ULL, 0x7ff0000000000000ULL},
+        {0x3ff0000000000001ULL, 0x3ff0000000000000ULL},
+        {0x8000000000000000ULL, 0x0000000000000000ULL},
+        {0xfff0000000000000ULL, 0x7ff0000000000000ULL},
+        {0x7ff8000000000000ULL, 0x7ff8000000000000ULL},
+    };
+    for (const auto& pair : power_cases) {
+        const auto result = kalos::detail::fdlibm_power_one_third(golden_diag::bits(pair[0]));
+        if (!same(result, pair[1])) {
+            std::fprintf(stderr, "portable power mismatch at %016llx\n", static_cast<unsigned long long>(pair[0]));
+            ++failures;
+        }
+    }
+
+    check_public_residual_diagnostics("rsa1-residual-diagnostics", {
+        {"", "rsa1-x86_64.txt"}, {"level_", "rsa1-level-effects-x86_64.txt"},
+        {"level_tc_", "rsa1-level-tc-x86_64.txt"}, {"log_tc_", "rsa1-log-tc-x86_64.txt"}}, 12);
+    check_public_residual_diagnostics("rsa3-residual-diagnostics", {
+        {"", "rsa3-x86_64.txt"}, {"", "rsa3-additional-x86_64.txt"}}, 9);
+    check_public_residual_diagnostics("rsa3-mean-retry-diagnostics", {{"", "rsa3-mean-retry-x86_64.txt"}}, 4);
+    check_public_residual_diagnostics("rsa3-ref-retry-diagnostics", {{"", "rsa3-ref-retry-x86_64.txt"}}, 7);
+    check_public_residual_diagnostics("rsafull-residual-diagnostics", {{"", "rsafull-x86_64.txt"}}, 26);
+    check_public_residual_diagnostics("rsafull-late-residual-diagnostics", {{"", "rsafull-late-calendar-x86_64.txt"}}, 3);
+    const auto short_sample = kalos::monthly_tramo_residual_ljung_box(std::vector<double>(24, 1), 3);
+    if (!short_sample.built || short_sample.df != 21 || !std::isnan(short_sample.value) || !std::isnan(short_sample.p))
+        throw std::runtime_error("invalid short monthly TRAMO residual test");
+    for (const int count : {-1, 24}) {
+        try {
+            (void)kalos::monthly_tramo_residual_ljung_box(std::vector<double>(25, 1), count);
+            throw std::runtime_error("invalid fitted ARMA count accepted");
+        } catch (const std::invalid_argument&) {}
+    }
+    check_rsa0_residual_test("rsa0-ljung-box-x86_64.txt", "residuals.lb",
+        [](const auto& values, auto statistic, auto pvalue) {
+            const auto test = kalos::rsa0_residual_ljung_box(values);
+            return test.built && test.df == 22 && same(test.value, statistic) && same(test.p, pvalue);
+        });
+    check_rsa0_residual_test("rsa0-doornik-hansen-x86_64.txt", "residuals.doornikhansen",
+        [](const auto& values, auto statistic, auto pvalue) {
+            const auto test = kalos::rsa0_residual_normality(values);
+            return test && test->df == 2 && same(test->value, statistic) && same(test->p, pvalue);
+        });
+    if (kalos::rsa0_residual_normality(std::vector<double>(7))) ++failures;
+    const auto constant = kalos::rsa0_residual_normality(std::vector<double>(8, 1.0));
+    if (!constant || !std::isnan(constant->value) || !std::isnan(constant->p)) ++failures;
     const auto series = load_series();
     std::size_t count = 0;
     const golden_diag::Row* rows = golden_diag::table(count);

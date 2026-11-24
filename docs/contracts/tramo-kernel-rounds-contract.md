@@ -49,7 +49,7 @@ The bytecode decode lives in `tmp_opencode/kalos-m5-pinning.md` SECTIONS 25,
 * change accumulator: the differencing result is an ASSIGNMENT
   (`changed = res == Changed`), the arma site OVERWRITES it with
   `!(spec.equals(orders0) && mean == mean0)`, the scan result ORs in
-  (`changed |= res == Changed`). The pass-1 rewrite of the difference order
+  (`changed |= res == Changed`). The pass-1 change in differencing polynomial degree (d + period × bd)
   additionally removes the outlier regressors and invalidates the
   estimation (`diffdrop` fact; 19 corpus rows).
 * the scan site first clears the outlier regressors whenever the model

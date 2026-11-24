@@ -128,6 +128,13 @@ def seam_outs(t):
     return parse_names(t[oi + 1:end])
 
 
+def outlier_coordinate(name, start_year, start_month):
+    code, label = name.split()
+    date = label.strip("()")
+    position = (int(date[:4]) - start_year) * 12 + int(date[5:7]) - start_month
+    return OUTLIER_KIND[code], position
+
+
 def emit_trivial_case(out, case, kv, fbk):
     """The fully-specified, outlier-free templates (fit_tr0_air, fit_fsnone)
     take the ami() estimation branch: no round steps, no prestage or seam
@@ -235,8 +242,10 @@ def main():
         for l in fl:
             if l.startswith("fitresid "):
                 t = l.split()
+                if len(t) < 8 or t[6] != "n" or len(t[8:]) != int(t[7]):
+                    fail(cid + ": invalid fitresid length: " + l)
                 resid[int(t[1])] = (int(t[3]), int(t[5]),
-                                    [bits(x) for x in t[7:]])
+                                    [bits(x) for x in t[8:]])
 
         rf = {}
         for l in fl:
@@ -264,7 +273,6 @@ def main():
         cov_bits = [bits(x) for x in cov_t[2:]] if cov_t else []
         sk = rline("stats obs")
         fres = rline("fres")
-        fy, fm = int(fres[2][0:4]), int(fres[2][5:7])
         fres_bits = [bits(x) for x in fres[3:]]
 
         nx, dim, kfree = int(ck[4]), int(ck[2]), int(ck[-1])
@@ -291,11 +299,24 @@ def main():
             if kind == "arma":
                 n_live += 1 if idx in resid else 0
                 n_fact += 0 if idx in resid else 1
-            elif kind == "diff" and not seam_outs(t) and not ml and \
-                    round_ == 1:
+            elif kind == "scan" and not seam_outs(t):
+                # The sole stationary entry is a complete monthly AR(2)
+                # with a mean and AO/LS/TC factories, covered by the
+                # separate six-case stationary full-trace qualification.
+                n_live += 1
+            elif kind == "diff":
                 n_live += 1
             else:
                 n_fact += 1
+        if any(e[0] == 5 for e in case["events"][0]):
+            module_steps = kr.record_walk(case)[-1]
+            for i, step in enumerate(module_steps):
+                if step["kind"] == "estmodel":
+                    # The admitted capture carries each estimator entry through
+                    # its initial model, ARMA selection, scan or mean-test retry.
+                    live = i > 0 and module_steps[i-1]["kind"] in ("estimate", "scan", "arma", "regtest")
+                    n_live += int(live)
+                    n_fact += int(not live)
         d9 = nx * (nx + 1) // 2
 
         # ---- the kernel request (kr machinery; trivial ami branch
@@ -343,8 +364,10 @@ def main():
         a("  rq.spec.accept_airline = %s;"
           % ("true" if kv("accept") == "1" else "false"))
         a("  rq.spec.precision = B(0x%016xULL);" % g17(kv("tol")))
-        a("  rq.spec.intermediate_precision = B(0x%016xULL);"
-          % g17(kv("tol")))
+        a("  rq.spec.final_unit_root_threshold = B(0x%016xULL);" % g17(kv("ubp")))
+        # TramoKernel.AmiOptions.builder() fixes the intermediate tolerance
+        # at 1e-5. readAmiOptions applies EstimateSpec.tol to final precision.
+        a("  rq.spec.intermediate_precision = B(0x%016xULL);" % g17("1.0e-5"))
         a("  rq.spec.mean_is_test = %s;"
           % ("true" if kv("meanTest") == "1" else "false"))
         a("  rq.spec.mean_used = %s;"
@@ -382,13 +405,19 @@ def main():
             spc, rnobs, res_bits = resid.get(idx, (-1, 0, []))
             if kind == "arma" and idx not in resid:
                 fail(cid + ": arma seam %d without fitresid" % idx)
+            variables = []
+            if kind == "arma" and all(name.startswith(("AO ", "LS ")) for name in outs):
+                for name in outs:
+                    outlier_kind, pos = outlier_coordinate(name, y0, m0)
+                    variables.append('{"%s", TramoOutlierKind::%s, %d, 0.0, {}}' % (name, outlier_kind, pos))
             a("      {%d, {%s, %s, %s, %s, %s, %s}, %s, {%s}, %d, %d, %d,"
-              " {%s}, %d, %d}," % (
+              " {%s}, %d, %d%s}," % (
                   idx, p, d, q, bp, bd, bq, "true" if mean0 else "false",
                   ", ".join('"%s"' % x for x in outs),
                   ps, rd, entry_nobs,
                   ", ".join("B(0x%016xULL)" % x for x in res_bits),
-                  rnobs if kind == "arma" else 0, spc))
+                  rnobs if kind == "arma" else 0, spc,
+                  ", {" + ", ".join(variables) + "}" if variables else ""))
         a("  };")
 
         # ---- final record ----------------------------------------------------
@@ -400,10 +429,9 @@ def main():
           % ", ".join('"%s"' % x for x in names))
         a("  rq.final.variables = {")
         for i, nm in enumerate(names):
-            typ, rest = nm.split()[0], nm.split()[1].strip("()")
-            pos = (int(rest[0:4]) - fy) * 12 + (int(rest[5:7]) - fm)
+            outlier_kind, pos = outlier_coordinate(nm, y0, m0)
             a('      {"%s", TramoOutlierKind::%s, %d, B(0x%016xULL), {}},'
-              % (nm, OUTLIER_KIND[typ], pos,
+              % (nm, outlier_kind, pos,
                  coef_bits[(1 if mean_flag else 0) + i]))
         a("  };")
         a("  rq.final.parameters = %s;" % bitvec(pars_bits))

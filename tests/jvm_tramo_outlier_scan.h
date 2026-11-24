@@ -16,7 +16,6 @@ struct Case {
     int divergent; // 1: multi-round removes the round-0 pick (D3 evidence)
     const char* status;  // captured ProcessingResult name
     const char* outliers; // captured first-entry grammar "[p, t],..."
-    const char* seam_throw; // non-empty: the pinned seam fails closed
     std::size_t nlines;
     const char* const* lines;
     std::size_t nreq;
@@ -2997,32 +2996,32 @@ inline const char* k_evt_sc_pexctl[] = {
 
 inline const Case* table(std::size_t& count) {
     static const Case kCases[] = {
-        {"sc_noout", 0, "Unchanged", "", "", 1, k_line_sc_noout, 1, k_req_sc_noout, 96, k_val_sc_noout, 6, k_fact_sc_noout, 3, k_evt_sc_noout},
-        {"sc_ao", 0, "Changed", "[48, 0]", "", 1, k_line_sc_ao, 1, k_req_sc_ao, 96, k_val_sc_ao, 6, k_fact_sc_ao, 3, k_evt_sc_ao},
-        {"sc_ls", 0, "Changed", "[60, 1]", "", 1, k_line_sc_ls, 1, k_req_sc_ls, 96, k_val_sc_ls, 6, k_fact_sc_ls, 3, k_evt_sc_ls},
-        {"sc_multi", 0, "Changed", "[48, 2],[30, 0],[70, 1],[49, 1]", "", 1, k_line_sc_multi, 1, k_req_sc_multi, 96, k_val_sc_multi, 6, k_fact_sc_multi, 3, k_evt_sc_multi},
-        {"sc_so", 1, "Unchanged", "", "", 1, k_line_sc_so, 1, k_req_sc_so, 96, k_val_sc_so, 6, k_fact_sc_so, 3, k_evt_sc_so},
-        {"sc_aoonly", 0, "Changed", "[48, 0]", "", 1, k_line_sc_aoonly, 1, k_req_sc_aoonly, 96, k_val_sc_aoonly, 6, k_fact_sc_aoonly, 3, k_evt_sc_aoonly},
-        {"sc_tc05", 0, "Changed", "[48, 1],[30, 0],[70, 1]", "", 1, k_line_sc_tc05, 1, k_req_sc_tc05, 96, k_val_sc_tc05, 6, k_fact_sc_tc05, 3, k_evt_sc_tc05},
-        {"sc_tc09", 0, "Changed", "[48, 2],[30, 0],[70, 1],[72, 2]", "", 1, k_line_sc_tc09, 1, k_req_sc_tc09, 96, k_val_sc_tc09, 6, k_fact_sc_tc09, 3, k_evt_sc_tc09},
-        {"sc_span", 0, "Changed", "[48, 0]", "", 1, k_line_sc_span, 1, k_req_sc_span, 96, k_val_sc_span, 6, k_fact_sc_span, 3, k_evt_sc_span},
-        {"sc_spanout", 1, "Unchanged", "", "", 1, k_line_sc_spanout, 1, k_req_sc_spanout, 96, k_val_sc_spanout, 6, k_fact_sc_spanout, 3, k_evt_sc_spanout},
-        {"sc_excl", 0, "Changed", "[48, 1],[70, 1]", "", 1, k_line_sc_excl, 1, k_req_sc_excl, 96, k_val_sc_excl, 7, k_fact_sc_excl, 3, k_evt_sc_excl},
-        {"sc_ml", 0, "Changed", "[48, 0]", "", 1, k_line_sc_ml, 1, k_req_sc_ml, 96, k_val_sc_ml, 6, k_fact_sc_ml, 3, k_evt_sc_ml},
-        {"sc_missing", 0, "Unchanged", "", "", 1, k_line_sc_missing, 1, k_req_sc_missing, 96, k_val_sc_missing, 6, k_fact_sc_missing, 3, k_evt_sc_missing},
-        {"sc_cv4", 0, "Changed", "[48, 2],[30, 0],[70, 1],[49, 1]", "", 1, k_line_sc_cv4, 1, k_req_sc_cv4, 96, k_val_sc_cv4, 6, k_fact_sc_cv4, 3, k_evt_sc_cv4},
-        {"sc_maxout2", 0, "Changed", "[48, 2],[30, 0],[70, 1],[49, 1]", "", 1, k_line_sc_maxout2, 1, k_req_sc_maxout2, 96, k_val_sc_maxout2, 6, k_fact_sc_maxout2, 3, k_evt_sc_maxout2},
-        {"sc_gs2", 0, "Changed", "[60, 0],[79, 1],[90, 1]", "", 1, k_line_sc_gs2, 1, k_req_sc_gs2, 96, k_val_sc_gs2, 6, k_fact_sc_gs2, 3, k_evt_sc_gs2},
-        {"sc_prec8", 0, "Changed", "[48, 0]", "", 1, k_line_sc_prec8, 1, k_req_sc_prec8, 96, k_val_sc_prec8, 6, k_fact_sc_prec8, 3, k_evt_sc_prec8},
-        {"sc_shortfail", 0, "Failed", "", "", 1, k_line_sc_shortfail, 1, k_req_sc_shortfail, 20, k_val_sc_shortfail, 6, k_fact_sc_shortfail, 2, k_evt_sc_shortfail},
-        {"sc_s30", 0, "Failed", "", "", 1, k_line_sc_s30, 1, k_req_sc_s30, 30, k_val_sc_s30, 6, k_fact_sc_s30, 2, k_evt_sc_s30},
-        {"sc_s30ml", 0, "Failed", "", "", 1, k_line_sc_s30ml, 1, k_req_sc_s30ml, 30, k_val_sc_s30ml, 6, k_fact_sc_s30ml, 2, k_evt_sc_s30ml},
-        {"sc_spanfull", 0, "Changed", "[48, 0]", "", 1, k_line_sc_spanfull, 1, k_req_sc_spanfull, 96, k_val_sc_spanfull, 6, k_fact_sc_spanfull, 3, k_evt_sc_spanfull},
-        {"sc_spannone", 0, "Unchanged", "", "", 1, k_line_sc_spannone, 1, k_req_sc_spannone, 96, k_val_sc_spannone, 6, k_fact_sc_spannone, 3, k_evt_sc_spannone},
-        {"sc_pexao48", 0, "Unchanged", "", "", 1, k_line_sc_pexao48, 1, k_req_sc_pexao48, 96, k_val_sc_pexao48, 7, k_fact_sc_pexao48, 3, k_evt_sc_pexao48},
-        {"sc_pexao47", 0, "Changed", "[48, 0]", "scan_tramo_outliers: warm re-estimation with non-constant designs is outside the qualified seam", 1, k_line_sc_pexao47, 1, k_req_sc_pexao47, 96, k_val_sc_pexao47, 7, k_fact_sc_pexao47, 3, k_evt_sc_pexao47},
-        {"sc_pextc48", 0, "Changed", "[30, 0],[70, 1],[49, 1]", "", 1, k_line_sc_pextc48, 1, k_req_sc_pextc48, 96, k_val_sc_pextc48, 7, k_fact_sc_pextc48, 3, k_evt_sc_pextc48},
-        {"sc_pexctl", 0, "Changed", "[48, 2],[30, 0],[70, 1],[49, 1]", "", 1, k_line_sc_pexctl, 1, k_req_sc_pexctl, 96, k_val_sc_pexctl, 7, k_fact_sc_pexctl, 3, k_evt_sc_pexctl},
+        {"sc_noout", 0, "Unchanged", "", 1, k_line_sc_noout, 1, k_req_sc_noout, 96, k_val_sc_noout, 6, k_fact_sc_noout, 3, k_evt_sc_noout},
+        {"sc_ao", 0, "Changed", "[48, 0]", 1, k_line_sc_ao, 1, k_req_sc_ao, 96, k_val_sc_ao, 6, k_fact_sc_ao, 3, k_evt_sc_ao},
+        {"sc_ls", 0, "Changed", "[60, 1]", 1, k_line_sc_ls, 1, k_req_sc_ls, 96, k_val_sc_ls, 6, k_fact_sc_ls, 3, k_evt_sc_ls},
+        {"sc_multi", 0, "Changed", "[48, 2],[30, 0],[70, 1],[49, 1]", 1, k_line_sc_multi, 1, k_req_sc_multi, 96, k_val_sc_multi, 6, k_fact_sc_multi, 3, k_evt_sc_multi},
+        {"sc_so", 1, "Unchanged", "", 1, k_line_sc_so, 1, k_req_sc_so, 96, k_val_sc_so, 6, k_fact_sc_so, 3, k_evt_sc_so},
+        {"sc_aoonly", 0, "Changed", "[48, 0]", 1, k_line_sc_aoonly, 1, k_req_sc_aoonly, 96, k_val_sc_aoonly, 6, k_fact_sc_aoonly, 3, k_evt_sc_aoonly},
+        {"sc_tc05", 0, "Changed", "[48, 1],[30, 0],[70, 1]", 1, k_line_sc_tc05, 1, k_req_sc_tc05, 96, k_val_sc_tc05, 6, k_fact_sc_tc05, 3, k_evt_sc_tc05},
+        {"sc_tc09", 0, "Changed", "[48, 2],[30, 0],[70, 1],[72, 2]", 1, k_line_sc_tc09, 1, k_req_sc_tc09, 96, k_val_sc_tc09, 6, k_fact_sc_tc09, 3, k_evt_sc_tc09},
+        {"sc_span", 0, "Changed", "[48, 0]", 1, k_line_sc_span, 1, k_req_sc_span, 96, k_val_sc_span, 6, k_fact_sc_span, 3, k_evt_sc_span},
+        {"sc_spanout", 1, "Unchanged", "", 1, k_line_sc_spanout, 1, k_req_sc_spanout, 96, k_val_sc_spanout, 6, k_fact_sc_spanout, 3, k_evt_sc_spanout},
+        {"sc_excl", 0, "Changed", "[48, 1],[70, 1]", 1, k_line_sc_excl, 1, k_req_sc_excl, 96, k_val_sc_excl, 7, k_fact_sc_excl, 3, k_evt_sc_excl},
+        {"sc_ml", 0, "Changed", "[48, 0]", 1, k_line_sc_ml, 1, k_req_sc_ml, 96, k_val_sc_ml, 6, k_fact_sc_ml, 3, k_evt_sc_ml},
+        {"sc_missing", 0, "Unchanged", "", 1, k_line_sc_missing, 1, k_req_sc_missing, 96, k_val_sc_missing, 6, k_fact_sc_missing, 3, k_evt_sc_missing},
+        {"sc_cv4", 0, "Changed", "[48, 2],[30, 0],[70, 1],[49, 1]", 1, k_line_sc_cv4, 1, k_req_sc_cv4, 96, k_val_sc_cv4, 6, k_fact_sc_cv4, 3, k_evt_sc_cv4},
+        {"sc_maxout2", 0, "Changed", "[48, 2],[30, 0],[70, 1],[49, 1]", 1, k_line_sc_maxout2, 1, k_req_sc_maxout2, 96, k_val_sc_maxout2, 6, k_fact_sc_maxout2, 3, k_evt_sc_maxout2},
+        {"sc_gs2", 0, "Changed", "[60, 0],[79, 1],[90, 1]", 1, k_line_sc_gs2, 1, k_req_sc_gs2, 96, k_val_sc_gs2, 6, k_fact_sc_gs2, 3, k_evt_sc_gs2},
+        {"sc_prec8", 0, "Changed", "[48, 0]", 1, k_line_sc_prec8, 1, k_req_sc_prec8, 96, k_val_sc_prec8, 6, k_fact_sc_prec8, 3, k_evt_sc_prec8},
+        {"sc_shortfail", 0, "Failed", "", 1, k_line_sc_shortfail, 1, k_req_sc_shortfail, 20, k_val_sc_shortfail, 6, k_fact_sc_shortfail, 2, k_evt_sc_shortfail},
+        {"sc_s30", 0, "Failed", "", 1, k_line_sc_s30, 1, k_req_sc_s30, 30, k_val_sc_s30, 6, k_fact_sc_s30, 2, k_evt_sc_s30},
+        {"sc_s30ml", 0, "Failed", "", 1, k_line_sc_s30ml, 1, k_req_sc_s30ml, 30, k_val_sc_s30ml, 6, k_fact_sc_s30ml, 2, k_evt_sc_s30ml},
+        {"sc_spanfull", 0, "Changed", "[48, 0]", 1, k_line_sc_spanfull, 1, k_req_sc_spanfull, 96, k_val_sc_spanfull, 6, k_fact_sc_spanfull, 3, k_evt_sc_spanfull},
+        {"sc_spannone", 0, "Unchanged", "", 1, k_line_sc_spannone, 1, k_req_sc_spannone, 96, k_val_sc_spannone, 6, k_fact_sc_spannone, 3, k_evt_sc_spannone},
+        {"sc_pexao48", 0, "Unchanged", "", 1, k_line_sc_pexao48, 1, k_req_sc_pexao48, 96, k_val_sc_pexao48, 7, k_fact_sc_pexao48, 3, k_evt_sc_pexao48},
+        {"sc_pexao47", 0, "Changed", "[48, 0]", 1, k_line_sc_pexao47, 1, k_req_sc_pexao47, 96, k_val_sc_pexao47, 7, k_fact_sc_pexao47, 3, k_evt_sc_pexao47},
+        {"sc_pextc48", 0, "Changed", "[30, 0],[70, 1],[49, 1]", 1, k_line_sc_pextc48, 1, k_req_sc_pextc48, 96, k_val_sc_pextc48, 7, k_fact_sc_pextc48, 3, k_evt_sc_pextc48},
+        {"sc_pexctl", 0, "Changed", "[48, 2],[30, 0],[70, 1],[49, 1]", 1, k_line_sc_pexctl, 1, k_req_sc_pexctl, 96, k_val_sc_pexctl, 7, k_fact_sc_pexctl, 3, k_evt_sc_pexctl},
     };
     count = sizeof(kCases) / sizeof(kCases[0]);
     return kCases;

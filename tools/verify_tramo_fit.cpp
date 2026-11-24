@@ -22,6 +22,7 @@ using namespace kalos;
 #include <cstring>
 #include <fstream>
 #include <iostream>
+#include <map>
 #include <sstream>
 #include <string>
 #include <vector>
@@ -61,6 +62,7 @@ struct Block {
     int fitseam = 0, fitseam_diff = 0, fitseam_arma = 0;
     int post_diff = 0, post_arma = 0, post_scontroller = 0;
     int rsnap = 0, fitresid = 0;
+    std::map<std::size_t, std::vector<std::uint64_t>> residual_bits;
     long long fituc_bits = -1;
     long long fitcl_nx = -1;
     std::string verdict = "-";
@@ -112,6 +114,11 @@ std::vector<Block> read_blocks(const std::vector<std::string>& ids) {
             ++b.rsnap;
         } else if (t[0] == "fitresid") {
             ++b.fitresid;
+            if (t.size() < 8 || t[6] != "n" || std::stoul(t[7]) != t.size() - 8)
+                throw std::runtime_error("malformed fitresid length");
+            auto& bits = b.residual_bits[std::stoul(t[1])];
+            for (std::size_t i = 8; i < t.size(); ++i)
+                bits.push_back(std::stoull(t[i], nullptr, 16));
         } else if (t[0] == "fituc") {
             b.fituc_bits = static_cast<long long>(t.size() - 1);
         } else if (t[0] == "fitcl" && t.size() > 4) {
@@ -142,9 +149,14 @@ void qualify(const FitExpect& e, const Block& b,
     }
     (void)scan;
     int resid = 0;
-    for (const TramoFitSeamInputs& in : rq.seam_inputs)
-        if (!in.ols_residuals.empty())
-            ++resid;
+    for (const TramoFitSeamInputs& in : rq.seam_inputs) {
+        if (in.ols_residuals.empty()) continue;
+        ++resid;
+        const auto& bits = b.residual_bits.at(in.seam);
+        SW_CHECK(bits.size() == in.ols_residuals.size() &&
+                 std::memcmp(bits.data(), in.ols_residuals.data(), bits.size() * sizeof(double)) == 0,
+                 id + ": raw fitresid length and bits at seam " + std::to_string(in.seam));
+    }
     SW_CHECK(b.fitseam == static_cast<int>(rq.seam_inputs.size()),
              id + ": fitseam census vs seam_inputs");
     SW_CHECK(b.fitseam_diff == diff, id + ": fitseam diff census");

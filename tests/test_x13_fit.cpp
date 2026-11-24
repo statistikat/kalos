@@ -25,6 +25,7 @@
 // then run once per executable. Contract:
 // docs/contracts/x13-fit-contract.md.
 #include "kalos/x13_fit.hpp"
+#include "x13_nonlog_pseudo.hpp"
 #include "kalos/parallel.hpp"
 #include <algorithm>
 #include <cassert>
@@ -9895,15 +9896,7 @@ void run_case(const PinnedFitCase& c) {
     assert(fit.backcast==0&&fit.forecast==0);
     assert(fit.seasonal.size()==static_cast<std::size_t>(c.frequency));
     // The pinned mode forcing: the captured effective mode is echoed.
-    const std::string forced = !c.log ? "Additive"
-        : (std::string(c.mode_requested)=="LogAdditive"||std::string(c.mode_requested)=="PseudoAdditive"
-            ? c.mode_requested : "Multiplicative");
-    const kalos::X11DecompositionMode expected =
-        forced=="Additive" ? kalos::X11DecompositionMode::additive
-        : forced=="Multiplicative" ? kalos::X11DecompositionMode::multiplicative
-        : forced=="LogAdditive" ? kalos::X11DecompositionMode::log_additive
-        : kalos::X11DecompositionMode::pseudo_additive;
-    assert(fit.mode_effective==expected&&fit.mode_effective==c.mode);
+    assert(fit.mode_effective==c.mode);
     // The stored preadjustment against the capture: bit-exact, except the
     // exp'd log-model buckets and out (the backTransform transcendental
     // boundary: under a log model out = inv/backTransform(v26, true)
@@ -10002,14 +9995,13 @@ void boundaries() {
     { kalos::X13FitRequest r=base; r.input[7]=std::nan(""); invalid([&]{kalos::x13_fit(r);}); }
     { kalos::X13FitRequest r=base; r.log=true; r.input[7]=-1.; invalid([&]{kalos::x13_fit(r);}); }
     // An empty deterministic model still fits: all-zero buckets, additive
-    // d18 and the pinned forcing of a pseudo-additive request over a
-    // non-log model (additive, per updateSpec).
+    // d18 and the requested pseudo-additive mode on a non-log model.
     { kalos::X13FitRequest r=base;
       r.mode=kalos::X11DecompositionMode::pseudo_additive;
       const kalos::X13FitResult fit=kalos::x13_fit(r);
       assert(fit.status=="available");
       assert(fit.mode_requested==kalos::X11DecompositionMode::pseudo_additive);
-      assert(fit.mode_effective==kalos::X11DecompositionMode::additive);
+      assert(fit.mode_effective==kalos::X11DecompositionMode::pseudo_additive);
       assert(same(fit.finals.d18,std::vector<double>(96,0.)));
       assert(same(fit.finalSA,fit.finals.d11final));
       // A log model keeps log_additive and forces anything else.
@@ -10028,6 +10020,15 @@ void boundaries() {
 }
 } // namespace
 int main() {
+    for (const auto& ref : nonlog_pseudo::cases(KALOS_PSEUDO_FIXED)) {
+        kalos::X13FitRequest r;
+        r.input = ref.rows.at("input");
+        r.mode = kalos::X11DecompositionMode::pseudo_additive;
+        r.seasonal.assign(12, kalos::X11SeasonalRequest::s3x5);
+        r.trend_length = 13;
+        r.sigma = kalos::X11SigmaPolicy::legacy;
+        nonlog_pseudo::check(ref, kalos::x13_fit(r), 1e-12);
+    }
 
     for (const char* t : {"2","1","8"}) {
         threads(t);

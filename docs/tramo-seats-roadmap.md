@@ -342,7 +342,9 @@ pinned values without a maintainer ruling (the 21 precedent).
   assembly stays 24-D.
 - **23-G — end-to-end TRAMO oracle** against the double-captured
   `TramoKernel.process` corpus (mirrors 21-H.2/H.3: probe observer, decision-
-  bit qualification, measured tiers, sweep).
+  bit qualification, measured tiers, sweep). The fully specified TR0 branch
+  now estimates directly from complete monthly observations. Six public-kernel
+  cases matched all reported fit fields and all respective RSA0 final rows.
 
 ## Item-24 decision units and slices
 
@@ -373,8 +375,11 @@ pinned values without a maintainer ruling (the 21 precedent).
   **Delivered 2026-11-23:** structured, dated initial and bias-corrected WK
   component series, including the extraction standard deviations (36-case
   replay, 1,055 rows). Five fitted-model bridge reference pairs are frozen
-  (576 observations, TR0/TR1/TR3). The native handoff and the deterministic-
-  effects merge remain open. [Bridge reference](contracts/tramo-seats-bridge-contract.md) [Extraction gate](contracts/seats-wk-extraction-contract.md)
+  (576 observations, TR0/TR1/TR3). The native fitted-model handoff reproduces all
+  five at identical fitted inputs. The native deterministic-effects merge now
+  reproduces all 65 rows / 4,005 values under both JVM profiles. The fitted
+  WK pipeline reproduces the x86-64 reference for four decomposable cases
+  and preserves D6 refusal for the mixed case. [Bridge reference](contracts/tramo-seats-bridge-contract.md) [Extraction gate](contracts/seats-wk-extraction-contract.md)
 - **24-E — end-to-end TRAMO/SEATS oracle + composition**:
   `tramo_seats_fit` driver = 23-F + 24-D; acceptance corpus MUST cover rsa3
   AND rsafull end to end (roadmap acceptance), the latter gated by 21-I for

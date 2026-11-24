@@ -567,6 +567,10 @@ public final class X13AutomaticProbe {
     return c;
   }
 
+  static X13Spec specification(String[] lines) {
+    return buildSpec(parse(lines));
+  }
+
   private static X13Spec buildSpec(Case c) {
     TransformSpec tr = TransformSpec.builder()
         .function(TransformationType.Auto)

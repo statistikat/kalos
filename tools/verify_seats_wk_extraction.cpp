@@ -10,11 +10,8 @@
 // domains, the init and final decomposition rows) line for line - key,
 // order and %.17g payload bit-exact.
 //
-// Sections: (1) the 30 non-refused cases, byte-identical fact replay plus a
-// determinism double-run; (2) the refusal matrix, the 6 envelope requests
-// (frequency 4, the two KalmanSmoother cases, innovation variance 0, the
-// classical airline and the fixMa crash) failing closed with the EXACT
-// pinned std::invalid_argument reason and every replay case never throwing;
+// Sections: (1) replay the 32 admitted requests twice, comparing all facts;
+// (2) match the four frequency, Kalman-method and zero-variance refusals;
 // (3) a cross-case audit tying the fact grammar to the cases.csv metadata
 // (the tier classification reproducing from the captured columns, "status
 // ok" <=> three dom rows plus init/final rows, a status error <=> no
@@ -77,8 +74,8 @@ const char* kReasonVar0 =
     "seats_extract_wk: innovation variance 0 selects the JVM "
     "ConcentratedLikelihood variance path (outside the ported domain)";
 const char* kReasonApprox =
-    "seats_extract_wk: approximation_required decision is outside the D6 "
-    "envelope (the DefaultModelApproximator retry loop is not ported)";
+    "seats_extract_wk: approximation_required decision is outside the "
+    "qualified monthly retry envelope";
 
 std::string cfmt(const char* fmt, int v) {
   char buf[256];
@@ -93,6 +90,8 @@ bool is_fact_key(const std::string& key) {
 struct CaseRec {
   std::string id, start, mode, method, status, ddecompose;
   int freq = 12;
+  bool monthly_airline = false;
+  bool seasonal_refit_orders = false;
   std::string refusal_reason;  // "" = replay tier
   std::vector<std::string> req;
   std::string values;
@@ -198,6 +197,13 @@ int main(int argc, char** argv) {
       if (line.empty()) continue;
       const std::vector<std::string> t = fields(line);
       if (t.size() != 3 || !cases.count(t[0])) continue;
+      if (t[1] == "v.orders") {
+        int p, d, q, bp, bd, bq;
+        std::istringstream values(t[2]);
+        if (!(values >> p >> d >> q >> bp >> bd >> bq)) return 2;
+        cases[t[0]].seasonal_refit_orders = p == 2 && d == 1 && q == 0 && bp == 1 && bd == 1 && bq == 0;
+        cases[t[0]].monthly_airline = p == 0 && d == 1 && q <= 1 && bp == 0 && bd == 1;
+      }
       if (is_fact_key(t[1])) cases[t[0]].facts.push_back(t[1] + " " + t[2]);
     }
   }
@@ -207,9 +213,13 @@ int main(int argc, char** argv) {
   for (const std::string& id : order) {
     CaseRec& c = cases[id];
     double var = 0.0;
+    bool mean = true;
     for (const std::string& ln : c.req) {
       const std::vector<std::string> tk = replay_tsm::tokens(ln);
-      if (tk.size() == 7 && tk[1] == "log") var = std::atof(tk[6].c_str());
+      if (tk.size() == 7 && tk[1] == "log") {
+        var = std::atof(tk[6].c_str());
+        mean = tk[4] == "1";
+      }
     }
     if (c.freq != 12)
       c.refusal_reason = cfmt(kReasonFreq, c.freq);
@@ -217,7 +227,8 @@ int main(int argc, char** argv) {
       c.refusal_reason = kReasonKalman;
     else if (var == 0.0)
       c.refusal_reason = kReasonVar0;
-    else if (c.ddecompose == "null" && c.mode != "None")
+    else if (c.ddecompose == "null" && c.mode != "None" &&
+             !c.monthly_airline && !(c.seasonal_refit_orders && !mean))
       c.refusal_reason = kReasonApprox;
     if (c.refusal_reason.empty() && c.facts.empty())
       fail(id, "replay tier without fact rows");

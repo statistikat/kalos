@@ -23,10 +23,14 @@
 #include "kalos/seats_extract_wk.hpp"
 
 #include <cmath>
+#include <cstdint>
+#include <limits>
 #include <optional>
 #include <string>
 #include <vector>
 
+#include "kalos/estimation_control.hpp"
+#include "kalos/detail/ssq_deviances.hpp"
 #include "kalos/detail/fdlibm.hpp"
 #include "kalos/detail/seats_burman_estimates.hpp"
 #include "kalos/detail/seats_exact_forecasts.hpp"
@@ -619,7 +623,57 @@ Dec correct_logs(const BiasContext& cx) {
 // ---------------------------------------------------------------------------
 // The extraction driver.
 // ---------------------------------------------------------------------------
-int extrap(int n, int period) { return n < 0 ? -period * n : n; }
+int extrap(int n, int period) {
+  const auto months = n < 0 ? -static_cast<std::int64_t>(n) * period : n;
+  if (months < 0 || months > std::numeric_limits<int>::max())
+    throw std::invalid_argument("seats_extract_wk: horizon exceeds the monthly index range");
+  return static_cast<int>(months);
+}
+
+// DefaultModelApproximator.app_seas changes the seasonal orders, then
+// DefaultModelEstimator fits the transformed SEATS input, which already
+// excludes deterministic effects. Its variance uses the fit before cutoff.
+tramo_seats_model_request refit_seasonal_ma(const tramo_seats_model_request& request,
+                                           const tramo_seats_model_result& dec) {
+  SarimaEstimationRequest fit{};
+  fit.period = dec.period;
+  fit.d = dec.orders_d;
+  fit.seasonal_d = dec.orders_bd;
+  fit.series.values = request.series;
+  if (request.log)
+    for (auto& value : fit.series.values) value = detail::fdlibm_log(value);
+  fit.series.missing.resize(fit.series.values.size());
+  fit.blocks[0].initial.resize(dec.phi.size());
+  fit.blocks[0].fixed.resize(dec.phi.size());
+  fit.blocks[3].initial.resize(1);
+  fit.blocks[3].fixed.resize(1);
+  fit.control = EstimationControl{1e-7, 1e-4, true, false, true, true,
+      EstimationStartingPoint::HannanRissanen, EstimationSolver::PinnedLevenbergMarquardt};
+  const auto estimated = estimate_sarima_fixed(fit);
+  if (!std::isfinite(estimated.log_likelihood))
+    throw std::invalid_argument("seats_extract_wk: seasonal MA refit failed");
+
+  auto replacement = request;
+  replacement.d = fit.d;
+  replacement.bd = fit.seasonal_d;
+  replacement.theta.clear();
+  replacement.phi = estimated.coefficients[0];
+  for (auto& coefficient : replacement.phi) coefficient = -coefficient;
+  replacement.bphi.clear();
+  replacement.btheta = estimated.coefficients[3];
+  auto parameters = replacement.phi;
+  parameters.insert(parameters.end(), replacement.btheta.begin(), replacement.btheta.end());
+  const auto differenced = detail::pinned_backfilter_apply(
+      detail::pinned_differencing_polynomial(fit.period, fit.d, fit.seasonal_d), fit.series.values);
+  const auto likelihood = detail::pinned_deviances_evaluate(differenced, replacement.phi.size(),
+      0, 0, 1, fit.period, {}, parameters);
+  // LikelihoodStatistics counts the fitted SARIMA parameters and the innovation variance.
+  const int df = static_cast<int>(differenced.size()) - static_cast<int>(parameters.size()) - 1;
+  if (!likelihood || df <= 0)
+    throw std::invalid_argument("seats_extract_wk: unavailable seasonal MA refit variance");
+  replacement.innovation_variance = likelihood->ssq_err / df;
+  return replacement;
+}
 
 seats_extract_wk_result run_extraction(const tramo_seats_model_request& request,
                                        const tramo_seats_model_result& dec) {
@@ -633,6 +687,13 @@ seats_extract_wk_result run_extraction(const tramo_seats_model_request& request,
   m1.bphi = dec.bphi;
   m1.theta = dec.theta;
   m1.btheta = dec.btheta;
+  if (dec.approximation_required) {
+    // DefaultModelApproximator.app_011011 retains the ordinary MA and replaces
+    // the seasonal MA. Each subsequent retry selects this same model.
+    const double negated_theta = m1.theta.empty() ? 0.0 : -m1.theta.front();
+    if (negated_theta == 0.0) m1.theta.clear();
+    m1.btheta = {negated_theta > 0.36 && negated_theta < 0.7 ? -0.2 : -0.1};
+  }
   detail::EngineFacts ef;
   try {
     ef = detail::decompose(m1, request.rmod, request.epsphi, request.smod,
@@ -668,7 +729,7 @@ seats_extract_wk_result run_extraction(const tramo_seats_model_request& request,
       d = std::nullopt;
     }
   }
-  if (!d) {  // unreachable inside the envelope (both null branches refused)
+  if (!d) {
     return seats_extract_wk_result({"status error:jdplus.tramoseats.base.api.seats."
                                     "SeatsException:Invalid decomposition"});
   }
@@ -773,11 +834,21 @@ seats_extract_wk_result seats_extract_wk(
     throw std::invalid_argument(
         "seats_extract_wk: Noisy approximation mode is outside the D6 "
         "envelope");
-  if (dec.approximation_required)
+  const bool monthly_airline = dec.period == 12 && dec.orders_d == 1 && dec.orders_bd == 1 &&
+      dec.phi.empty() && dec.bphi.empty() && dec.theta.size() <= 1;
+  if (dec.approximation_required && dec.orders_d == 1 && dec.orders_bd == 1 &&
+      dec.orders_p == 2 && dec.orders_q == 0 && dec.orders_bp == 1 && dec.orders_bq == 0 &&
+      !request.mean_correction) {
+    // Validate the new fit with the original xl. The seasonal AR is removed,
+    // so the replacement cannot re-enter this branch.
+    auto result = seats_extract_wk(refit_seasonal_ma(request, dec));
+    result.model_changed = result.fact("status") == "ok";
+    return result;
+  }
+  if (dec.approximation_required && !monthly_airline)
     throw std::invalid_argument(
         "seats_extract_wk: approximation_required decision is outside the "
-        "D6 envelope (the DefaultModelApproximator retry loop is not "
-        "ported)");
+        "qualified monthly retry envelope");
 
   std::vector<std::string> facts;
   if (dec.seats_exception) {
@@ -789,7 +860,9 @@ seats_extract_wk_result seats_extract_wk(
     return seats_extract_wk_result(std::move(facts));
   }
   try {
-    return run_extraction(request, dec);
+    auto result = run_extraction(request, dec);
+    result.model_changed = result.fact("status") == "ok" && (dec.model_changed || dec.approximation_required);
+    return result;
   } catch (const std::invalid_argument&) {
     throw;  // envelope violation, never swallowed
   } catch (...) {

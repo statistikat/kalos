@@ -366,8 +366,16 @@ void check_case(const Case& c) {
     assert(actual.size() == pinned.size());
     double worst = 0.0;
     for (std::size_t i = 0; i < pinned.size(); ++i) {
-        worst = std::max(worst, abs_diff(actual[i], pinned[i]));
-        assert(abs_diff(actual[i], pinned[i]) < 2e-3);
+        const double difference = abs_diff(actual[i], pinned[i]);
+        worst = std::max(worst, difference);
+        if (!(difference < 2e-3)) {
+            std::fprintf(stderr,
+                "%s (%s start), coefficient %zu: got %.17g, expected %.17g, "
+                "absolute difference %.17g, log likelihood %.17g (expected %.17g)\n",
+                c.id, c.start, i, actual[i], pinned[i], difference,
+                result.log_likelihood, c.log_likelihood);
+        }
+        assert(difference < 2e-3);
     }
     assert(abs_diff(result.log_likelihood, c.log_likelihood) < 5e-4);
     std::printf("  %s: ok (worst coeff %.3g, ll delta %.3g, urp gates %d accepted %d)\n",

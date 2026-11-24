@@ -115,3 +115,58 @@ jobs:
           cmake -S . -B build-san -G Ninja -DCMAKE_BUILD_TYPE=Debug -DOpenBLAS_ROOT="${{ runner.temp }}/openblas" -DKALOS_OPENMP=OFF -DKALOS_SANITIZERS=ON
           cmake --build build-san --parallel 2
           ctest --test-dir build-san --output-on-failure
+  windows:
+    name: Windows standalone (UCRT64)
+    runs-on: windows-2022
+    defaults:
+      run:
+        shell: msys2 {0}
+    steps:
+      - uses: actions/checkout@v5
+      - uses: msys2/setup-msys2@v2
+        with:
+          msystem: UCRT64
+          update: true
+          install: >-
+            make
+            perl
+            python
+            mingw-w64-ucrt-x86_64-gcc
+            mingw-w64-ucrt-x86_64-gcc-fortran
+            mingw-w64-ucrt-x86_64-cmake
+            mingw-w64-ucrt-x86_64-ninja
+            mingw-w64-ucrt-x86_64-python
+      - name: Verify the export manifest and historical evidence
+        run: |
+          python tools/check-manifest.py
+          python tools/verify-migration.py
+      - name: Cache pinned Windows provider
+        id: provider
+        uses: actions/cache@v4
+        with:
+          path: .ci-openblas
+          key: kalos-openblas-ucrt64-v1-${{ hashFiles('dependencies/openblas.lock.json', 'tools/build-openblas.py') }}
+      - name: Build pinned LP64 OpenBLAS for Windows
+        if: steps.provider.outputs.cache-hit != 'true'
+        run: /usr/bin/python tools/build-openblas.py --prefix "$PWD/.ci-openblas" --jobs 2
+      - name: Build and test the native Windows library and installed consumer
+        env:
+          CMAKE_GENERATOR: Ninja
+          OPENBLAS_NUM_THREADS: 1
+          KALOS_REQUIRE_OPENMP: 1
+        run: |
+          set -euo pipefail
+          export PATH="$PWD/.ci-openblas/bin:$PWD/.ci-openblas/lib:$PATH"
+          provider_root=$(cygpath -m "$PWD/.ci-openblas")
+          cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_COMPILER=g++ \
+            -DOpenBLAS_ROOT="$provider_root" -DKALOS_OPENMP=ON
+          cmake --build build --parallel 2
+          ctest --test-dir build --output-on-failure --output-junit windows-junit.xml
+          /ucrt64/bin/python tests/check_installed_provider.py build "$provider_root"
+      - name: Upload Windows CTest report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ctest-windows-ucrt64
+          path: build/windows-junit.xml
+          if-no-files-found: warn

@@ -15,7 +15,6 @@ the manouts final set.
 Regeneration (from the repository root):
 
     python3 tools/gen_tramo_outlier_rounds_golden.py \
-        validation/evidence/native/tramo-outlier-rounds/mr-witness.out \
         > tests/jvm_tramo_outlier_rounds.h
 
 Cases whose block carries the `make null` marker (comatip rejection) expect
@@ -373,10 +372,14 @@ struct Case {
 
 
 def main():
-    path = sys.argv[1] if len(sys.argv) > 1 else (
-        "validation/evidence/native/tramo-outlier-rounds/mr-witness.out")
-    with open(path) as handle:
-        lines = handle.readlines()
+    paths = sys.argv[1:] or [
+        "validation/evidence/native/tramo-outlier-rounds/mr-witness.out",
+        "validation/evidence/native/tramo-outlier-rounds/stationary-witness.out",
+    ]
+    lines = []
+    for path in paths:
+        with open(path) as handle:
+            lines.extend(handle.readlines())
     blocks, cur = [], None
     for ln in lines:
         if ln.startswith("case "):

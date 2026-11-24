@@ -5,6 +5,116 @@ is now an independent C++17 library, without R, Rcpp, Python or Java dependencie
 Sibling bindings consume pinned generated snapshots. Persephone will require
 rkalos; Python intentionally exposes only a minimal initial surface.
 
+## M6 automatic X-13 preprocessing reference
+
+Two independent pinned x86-64 JVMs reproduced the fitted model, regression
+coefficients, full dated residuals, likelihood statistics, five public residual
+test values and `y_ef` at four monthly horizons. Three stock RSA3 inputs and
+six decoder-equivalent automatic runs cover level/log, selected mixed SARIMA
+orders, estimated means, outliers and all four decomposition modes. Reproduce
+the panel with `--stage x13-automatic-diagnostics`.
+
+## M6 stock X-13 preprocessing diagnostics and forecast errors
+
+Monthly stock RSA0, RSA1 and RSA2c now expose residual scale, independence
+and normality diagnostics and the original-series forecast standard errors
+at nonnegative monthly horizons. Across nine independently captured fits,
+all 45 residual diagnostic values are bit-exact, and 396 dated forecast
+errors at four horizons have a worst scaled difference of 1.24e-14.
+The existing TRAMO airline covariance regressions and all 126 stock X-13
+product rows pass alongside the new diagnostic fields.
+
+## M6 portable residual normality arithmetic
+
+The X-13 reference uses the portable JDK math profile for the one-third
+power in Doornik–Hansen. The native portable implementation matched
+`StrictMath.pow(x, 1.0/3.0)` bit-for-bit on 73,093 inputs including
+subnormal values, range-reduction boundaries, infinities and signed zeros.
+The existing x86 TRAMO diagnostic remains independently qualified.
+
+## M5b stock X-13 preprocessing diagnostic reference
+
+Two independent pinned x86-64 JVM processes produced identical `residuals.ser`,
+`residuals.lb`, `residuals.doornikhansen`, and original-scale `y_ef` values for
+all nine stock RSA0, RSA1 and RSA2c fits. The evidence contains 45 residual
+diagnostic scalars and 396 dated forecast errors at 1, 7, 12 and 24 months.
+The public forecast getter agreed with the preprocessing model's own forecast
+errors on every horizon. Replay with `--estimated-diagnostics --portable-x86`.
+
+## M5 late-controller RSAfull public outputs (2026-11-24)
+
+The three stock fits that select working days in the late controller now
+have independent public observed and forecast calendar effects, separate
+original-series and conditional SEATS forecast errors, and residual scale,
+independence and normality results. Fresh pairs of pinned x86-64 JVMs
+agreed on every captured field across all three panels.
+
+Release and ASan/UBSan each passed six standalone tests. All 29 fits
+match the 696 conditional SEATS forecast errors, 145 residual diagnostic
+values and 5,232 original-scale calendar values bit-for-bit. All 696
+original-series forecast errors pass the `2e-8 * (1 + abs(reference))`
+budget. The largest scaled error is 7.78e-12 on the original 26 fits
+and 1.74e-14 on the three late-controller fits.
+
+## M5 public RSAfull calendar effects (2026-11-24)
+
+Two fresh pinned x86-64 JVM processes returned identical public `cal` and
+`cal_f(24)` rows across all 26 stock RSAfull fits. The observed series cover
+the original input domains (4,248 months); the forecast series begin the next
+month and cover 624 months. The `rsafull-calendar-effect` reference stage
+checks the domain of each getter before recording its binary64 values.
+
+`tramo_stock_calendar_effect_original_scale(fit.calendar, domain, fit.log)`
+applies the estimated trading-days, leap-year and Easter regressors on the
+requested domain and exponentiates the combined effect for log fits.
+Release and ASan/UBSan reproduce all 4,872 values bit-for-bit. The component
+merger now calls this same operation; both selected-fit regression tests pass.
+
+## M6 finite state QR workspace and layout (2026-11-24)
+
+The finite state filter assembles each updated or predicted loading directly
+in the transposed layout consumed by LAPACK DGEQRF. Each filter reuses its
+own input and workspace buffers. Changes in disturbance dimension query the
+provider for the new shape. A cancellation test exercises each checkpoint,
+retries the prediction, and changes the QR shape for the next update.
+
+An interleaved Apple M2 comparison used the historical eight monthly
+fixed-order cases, Clang 23.1.5, one Kalos thread and the pinned single-thread
+OpenBLAS 0.3.34. The mean of four case medians after a warmup and five
+measured rounds fell from 731.5 to 627.4 ms of CPU per airline fit and from
+414.9 to 348.7 ms per mixed-factor fit. Both builds returned identical
+coefficients, evaluation counts and log likelihoods on every fit. All 32,256
+saved gain, finite/diffuse variance, innovation and prediction values were
+also identical. Timing reflects this shared host and provider.
+
+All 83 Release CTests, four two-thread OpenMP tests, four serial ASan/UBSan
+tests, the installed-provider consumer and the export manifest check passed.
+
+## M6 monthly fixed-order state prediction (2026-11-23)
+
+The finite state predictor now collects each transition row's nonzero columns
+and traverses them in the original ascending order. It retains long-double
+accumulation, the finite-value checks and the same QR compression and provider.
+An added 32-state regression checks a fully populated transition and a row
+of signed zeros against the independent covariance product.
+
+The paired Apple M2 experiment used the original eight monthly fixed-order
+cases, Clang 23.1.5, pinned single-thread OpenBLAS 0.3.34 and one Kalos thread.
+It alternated the original and optimized predictors inside one executable.
+After a warmup, each case used the median of three CPU-time samples per
+predictor. All eight fits converged with identical retained coefficients
+and log likelihoods. The mean of the four case medians fell from 1,976 to
+896 ms for airline and from 1,111 to 489 ms for mixed factors. The direct
+baseline comparison also preserved all 14,016 gains and every prediction,
+innovation and innovation variance across the corresponding level series.
+
+All 82 release CTests passed, including both X-13 oracles. The targeted
+four-test OpenMP run passed with two threads. Serial ASan/UBSan passed
+the diffuse, regression likelihood, physical objective and estimation-control
+tests. The standalone provider consumer and source manifest checks passed.
+The Python benchmark documents the separate JDemetra+ baseline and the
+remaining fixed-order performance gap.
+
 ## Repository split delivery
 
 1. **Completed — freeze/history.** Original commit `8450d6e`, 713-file baseline,
@@ -3674,3 +3784,1162 @@ The native bridge can now replay these frozen model inputs. A nonzero additive
 effect and additional regressor classes need their own witnesses before
 expanding that scope. Final-component restoration and the end-to-end TRAMO
 and TRAMO/SEATS oracles remain open. [Bridge contract and replay](docs/contracts/tramo-seats-bridge-contract.md)
+
+### 24-D prerequisite — fitted outlier coordinates
+
+Bridge replay exposed an error in the 23-F fixture generator. It used the
+first date of the differenced residuals when translating a fitted outlier's
+date into an observation index. The January 1994 AO in `fit_tr1_ao` therefore
+appeared at index 35 in the 1990-start series, while its JVM contribution
+is at index 48. The correction uses the input estimation calendar for all
+45 affected fixture records. The header regenerated identically from the
+two original captures. Its 34-case replay passed, including date-to-index
+checks for the returned variables, 74 D9 entries and the 27/54 seam counts.
+
+### M5 / 24-D — native fitted-model bridge
+
+`make_tramo_seats_model` consumes an available 23-F result, validates its
+calendar/design envelope, and returns the fixed-model request used by 24-C.
+The installed interface preserves fitted orders, flags and four coefficient
+blocks. With identical fitted input values, five bridge replays match the
+JVM variance and every one of the 576 adjusted observations bit-for-bit.
+The test calls the real 23-F assembly for every case and independently checks
+its decisions and calendars before comparing the bridge arithmetic at the
+frozen fitted inputs. Unsupported regressor classes, missing observations,
+subdomains and length-of-period corrections refuse explicitly. OpenMP and
+ASan/UBSan each passed the three affected tests. The manifest (189/112/334)
+and historical migration audit (406 files) passed.
+
+### M5 / 24-D — deterministic-effects merge contract
+
+The pinned JVM produced six extraction/merge pairs on the five frozen bridge
+models. The gate covers 65 merged rows (4,005 binary64 values) over the
+observed, forecast and backcast domains, plus the exclusion of extraction
+standard deviations. The mixed AO/LS cases require SEATS model approximation;
+their captured WK input permits isolated merge testing within the approved
+D6 policy. Two fresh JVMs matched the capture, SHA-256
+`ca671ddd71d9689ef0a2d5ab786bd7f5f098d580579b1b33186a88fb60d48054`.
+[Merge contract](docs/contracts/tramo-seats-bridge-contract.md)
+
+### Cross-binding integration — combined SEATS linkage
+
+The R shared-library integration exposed 18 externally linked function
+definitions in the shared UCARIMA detail header. Both the decomposition and
+WK translation units defined those symbols. The header definitions are now
+inline. The installed-consumer regression links and runs both public
+operations in one executable, alongside the provider check. That regression
+and both decomposition/WK corpus tests passed on macOS ARM64.
+
+**24-D reference profile.** A second Temurin 21.0.11 JVM (x86-64) reproduced
+the exact fitted bridge capture and independently double-produced the paired
+merge capture with SHA-256
+`292da22739c949e4a73ba2398e456c842bf52af85521b66f47a8679dca5a756f`.
+The fixed-input JVM comparison identifies architecture-specific WK arithmetic
+in TR3 AirPassengers and LS. The x86 profile is the existing Kalos math
+target. Both exact captures remain available for testing component restoration.
+
+### M4 refusal reference portability
+
+The complete nine historical RSA0/RSA1/RSA2c reference demand records
+reproduced on Temurin 21.0.11 x86-64. On the native ARM64 JVM, eight
+records differed only in fitted coefficients. A second x86-64 run with
+six math intrinsics disabled reproduced all nine ARM64 records byte for
+byte. A replay checks the complete record hashes as well as three named
+coefficient fields using the pinned jars and source series. These tests
+qualify the M4 refusal evidence. Native template execution belongs to M5b.
+[Capture and replay](validation/evidence/native/x13-refusal-jvm-profiles/README.md)
+
+### 24-D prerequisite — checked SEATS horizons
+
+Negative SEATS horizon counts represent years. The extractor converts them
+in 64-bit arithmetic and validates the complete Burman domain, including
+filter padding, before building forecast arrays. Both extreme signed
+integer requests refuse deterministically. The normal WK corpus and the
+overflow cases passed, including the ASan/UBSan build.
+
+### M5 / 24-D — native deterministic-effects merge and fitted WK pipeline
+
+The pipeline accepts an available fitted TRAMO result, builds the SEATS
+request, runs WK extraction and restores fitted AO/LS effects. Across six
+horizon/model cases, the standalone merger reproduces all 65 product rows
+and 4,005 binary64 values on both JVM profiles. Four decomposable fitted
+inputs reproduce all corresponding bias-corrected WK and product rows
+against the pinned x86-64 JVM. The mixed fit requires SEATS approximation
+and refuses under D6 on both tested horizons. The regression also covers
+duplicate, missing and misdated WK rows and a zero-horizon fit. The focused
+tests passed in serial, OpenMP and ASan/UBSan builds.
+
+These comparisons use identical fitted inputs. An ordinary series-to-fit
+route without 23-F witness injection still needs the 23-G estimator and
+round-driver oracle. The 24-E end-to-end gate requires rsa3 and rsafull;
+21-I remains the dependency for TRfull's calendar tests.
+[Public API and contract](docs/contracts/tramo-seats-bridge-contract.md)
+
+### M5 / 23-G and 24-E — public TR0/RSA0 reference panel
+
+Six original monthly series drove the public TR0 and RSA0 JVM kernels
+directly. The reference captures the two fitted MA coefficients, mean
+coefficient, log likelihood, residual SSQ, effective and estimated parameter
+counts and every final component. All six public fits were decomposable.
+Two fresh x86-64 Temurin 21.0.11 processes produced the same 60 dated
+final rows. Replay uses the existing pinned 3.9.0 classpath and the new
+`--stage rsa0` option. Capture SHA-256
+`a9eb8b11f7b062db2578de650bbe5a8ef323a28138cc7d47c97e3b4d280c4669`.
+[Public kernel capture](validation/evidence/native/tramo-seats-bridge/rsa0-x86_64.txt)
+
+### M5 / 23-G and 24-E — ordinary monthly TR0 fit and RSA0 components
+
+`estimate_tramo_tr0` runs the 23-A monthly builder, Hannan–Rissanen
+initialization, pinned Levenberg–Marquardt fit and the fitted likelihood.
+`run_tramo_seats_rsa0` adds the 24-D extraction and product merge. The two
+entry points take the original dated series. The raw-input oracle matches
+both MA coefficients, mean coefficient, log likelihood, residual SSQ, both
+degree counts, 60 final component rows and all 3,960 binary64 values on six
+series against the public TR0/RSA0 JVM kernels. The focused serial and
+OpenMP tests passed. Ordinary automatic RSA3 still needs its 23-G round
+seams, and RSAfull needs the 21-I calendar tests.
+[Usage and qualification](docs/contracts/tramo-seats-bridge-contract.md)
+
+### 23-G prerequisite — exact ARMA selection inputs
+
+The 23-F fixture generator had decoded the decimal length after `fitresid n`
+as a leading binary64 observation. Both original JVM captures regenerate the
+same corrected header. The raw sweep now compares the length and binary64
+bits of all 30 ARMA residual records in the 34-case golden (2,991 values);
+the separate constant-series crash witness has no golden. All 614 sweep
+checks pass. The selected models, measured 27 live / 54 recorded seams,
+10 refusals and 74 D9 covariance entries agree with the original decisions.
+
+### M5 / 23-G — native ARMA input residuals for the mean-only design
+
+The automatic TRAMO ARMA selector now derives its input from the original
+series, the kernel's entry differencing orders and its mean flag when the
+design contains no other regressors. The fitting path applies the selected
+log transformation and exact BackFilter orientation, and uses the pinned
+OLS solve for the optional mean. Supplied residuals are checked bit for bit.
+Re-running 16 cases without the former 1,443 input residual values reproduced
+the same fitted decisions and seam census. Corrupting a supplied witness is
+detected. The 34-case fit regression and 614-check raw sweep passed.
+
+### M5/M6 — RSA0 preprocessing forecast-error reference
+
+The public RSA0 `y_ef(24)` accessor reproduced the fitted preprocessing
+model's `forecasts(24).getForecastsStdev()` on all six raw series. The
+paired reference includes both that series and the WK Series/StdevForecast
+output. These are separate quantities. The unqualified public `y_ef` key
+defaults to 12 months. The explicit 24-month key covers the default SEATS
+horizon. Two fresh x86-64 Temurin JVMs matched every byte.
+[Paired forecast errors](validation/evidence/native/tramo-seats-bridge/rsa0-forecast-errors-x86_64.txt)
+
+### M5/M6 — RSA0 public original-series forecast standard errors
+
+`tramo_tr0_forecast_errors(fit, months)` exposes the preprocessing model's
+`y_ef` on demand. The projection uses the existing forecast covariance with
+separate JVM scales for the process and the estimated mean. All 144 public
+values from six monthly series met the established forecast tolerance,
+with maximum absolute error 2.42e−13. The 144 paired WK conditional errors
+remain bit-exact. The regression checks zero and one-month requests as well
+as the default 24-month horizon.
+[Forecast error contract](docs/contracts/tramo-seats-bridge-contract.md)
+
+### M5 / 23-G — ARMA handoff with AO and LS design columns
+
+ARMA module entries can now supply ordered, typed AO/LS positions. The fit
+rebuilds each raw factory column, differences it on the same calendar as the
+response, solves the full pivoted OLS regression and forms the residuals
+in column order. Replaying all admitted cases without any ARMA residual
+arrays reproduces every selection: 18 cases, 1,704 residual values. That
+includes the mixed AO/LS and pass-three controller cases. Both reference
+captures regenerate the same golden. The remaining automatic fit dependencies
+include outlier scan/estimation stages and the final estimator.
+
+### M6 — standalone Windows qualification job
+
+The hosted matrix now includes a native Windows Server 2022 / UCRT64 job.
+It builds the locked LP64 OpenBLAS from source, requires a working
+provider/OpenMP pairing, runs the full standalone CTest suite, and exercises
+the installed consumer with provider reconfiguration and refusal checks.
+The job publishes the Windows JUnit report. Windows qualification awaits
+the hosted result.
+
+### M5 / 23-G — live automatic outlier detection in the fit
+
+The TRAMO fit now re-runs the multi-round outlier detector on the observed
+entry series, selected log channel, monthly orders, model mean, original
+factory mix and critical value. The native outcomes and ordered dated
+outlier selections agree at all 38 qualified scan entries. Two explicit
+maximum-likelihood scans and one stationary scan retain witnessed results.
+The measured fit census is now 65 live module checks and 16 witnessed
+entries. This covers detector decisions; the post-scan fitted parameters
+and subsequent model-estimation stages have separate gates.
+
+The pinned AmiOptions builder uses 1e−5 for intermediate precision.
+EstimateSpec's 1e−7 tolerance applies to final estimation. TRAMO's 23-F
+spec generator previously copied the final tolerance into both fields.
+Both preserved captures regenerate the corrected golden. The 34-case
+fit suite, RSA0/RSA3 handoff regressions and fixed X-13 fit tests passed.
+
+### M5 / 23-G — empty regression designs in warm scans
+
+A warm SARIMA optimizer with no mean or outlier columns now starts with
+zero regression columns. A default-constructed design previously left its
+column count uninitialized. This accounts for the spurious 32-column limit
+seen on the short maximum-likelihood series and the instrumented multi-
+outlier runs. All 40 integrated entries now reproduce the JVM outcome and
+ordered outlier names, including both explicit maximum-likelihood scans.
+The stationary scan remains witnessed. The census is 67 live / 14 recorded.
+
+### M5 / 23-G — final estimation on actual observations
+
+The final estimator accepts monthly observations on the selected model
+scale. It shares the HR start, likelihood, LM optimizer and exact-derivative
+decisions with the previously qualified generated-series path. All 16
+immediate scan-to-estimation calls with an empty outlier design reproduce
+the JVM return, changed-parameter count, orders and fitted coefficient
+bits. These include two AirPassengers TR3 passes, the short maximum-
+likelihood case and a stationary AR(2) fit. Of 45 final estimation calls,
+29 still require an entry design or predecessor state. Counting this
+fourth module brings the fit census to 83 live and 43 recorded checks.
+The complete raw RSA3 round driver and public product oracle remain open.
+
+### M5 / 24-D — monthly airline approximation in SEATS
+
+The legacy WK extractor now retries a failed decomposition for monthly
+(0,1,q)(0,1,Q) models with q at most one. It follows the JVM's strict
+ordinary-MA thresholds and preserves the pre-retry variance and original model.
+The classical airline fixture now returns its full component series. The
+degenerate fixed-MA fixture reproduces the public JVM matrix exception.
+
+Eight double-captured JVM cases cover both thresholds and their neighbours,
+an interior value and an absent ordinary MA. The extraction regression and
+ASan/UBSan replay passed 1,267 checks, including 1,095 component rows and
+58,020 binary64 values. The independent raw CSV sweep passed 132 checks on
+36 requests. The extraction, bridge and public RSA0 CTest targets passed 3/3.
+Higher-order models that require an estimator, including the mixed AO/LS
+fitted bridge, still need a separate approximation port and qualification.
+
+### M5 / 24-D — fitted mixed AO/LS model through SEATS
+
+The public JVM changes the mixed model from (2,1,0)(1,1,0) to (2,1,0)(0,1,1).
+Kalos now estimates that replacement from the effect-adjusted series using the
+SEATS toolkit's Hannan–Rissanen initialization and 1e−7 convergence precision.
+Two independent JVM runs confirmed the three fitted parameters and the revised
+innovation variance. All five fitted bridge cases now reproduce the complete
+x86-64 reference WK and merged components, including both mixed-case horizons
+(0/24 and 3/6 backcasts/forecasts). The six runs compare 65 merged rows and
+4,005 values and preserve conditional uncertainty through the refit.
+
+Release extraction, fitted bridge and RSA0 tests passed 3/3. The fitted bridge
+also passed ASan/UBSan; the independent raw extraction sweep passed 132/132.
+Other approximation families, autonomous TR3/Full fitting and the wider
+end-to-end qualification remain open.
+
+### M5 / 21-I.3 — monthly airline TRAMO F-test comparison
+
+Kalos now fits the base, working-day (TD2) and trading-day (TD7) alternatives
+from the original monthly estimation series and its dates, with an optional
+mean. The 14 public JDemetra calls reproduce the residual sums of squares,
+both degrees of freedom, both mean squares, lower-tail probabilities and final
+choice bit for bit. Cases cover no selection, one and six contrasts, a tie at
+one and both exact significance cutoffs with their adjacent binary64 values.
+Two independent x86-64 Java runs produced byte-identical evidence. Release
+calendar generation, F-test, regression and TRAMO fit tests passed 4/4. The
+14 comparisons also passed ASan/UBSan. The full TRfull route still needs
+LP/Easter decisions, the later controller and automatic-model assembly.
+
+### M5 / 21-I.3 — initial stock TRfull calendar regression
+
+From unadjusted monthly observations the native initial TRfull module now
+fits the base, working-day and trading-day candidates with the template's
+six-day Easter regressor. When it selects trading days it refits with the
+leap-year column. The public result includes the mean, leap-year and Easter
+t statistics, the retained variables and the JDemetra module's change status.
+
+Twenty level/log runs across ten calendar and trend patterns matched the
+actual stock 3.9.0 module for every candidate SSQ, probability, t statistic,
+selection and processing status. Its measured precision is 1e−5. The two
+independent JVM captures are identical. The earlier 14 configurable
+comparison cases still pass. Release calendar, regression and automatic-fit
+tests passed 4/4. The 34 calendar comparisons passed ASan/UBSan. The late
+trading-day controller, subsequent
+rounds on fitted descriptions and the end-to-end TRfull gate remain open.
+
+### Windows evidence checkout
+
+A fresh Windows-style checkout converted a locked R fixture to CRLF and failed
+the historical migration check. Git now preserves the stored bytes of the
+exported core, validation fixtures and research evidence. With automatic CRLF
+conversion enabled, all 195 core entries, 112 fixtures and 358 evidence files
+at the RSA1 checkpoint matched their Git blobs. The historical validation
+also passed for all 406 entries. Windows CI runs both the export manifest and
+historical validation before building the provider.
+
+### M5 / 21-I.3 — Fast regression calendar retesting
+
+The Fast module now retests automatically identified working-day or trading-day
+contrasts, length of period and Easter at their actual coefficient positions.
+A significant leap-year regressor can retain a working-day effect that fails its
+own test. The optional mean is retested against the same original likelihood.
+Two pinned JVMs agreed on 130 threshold decisions over twelve model fits,
+including equal and adjacent t thresholds, TD2 and TD7, and an LP without TD.
+All 130 native decisions matched the retained variables, mean, processing
+status and estimation invalidation. The original three Fast calendar cases
+now execute numerically. The replay passed 972 checks, five Release tests and
+three sanitizer tests. The Default regression module’s calendar construction
+and tests remain open.
+[Fast regression calendar reference](validation/evidence/native/tramo-calendar-ftest/fast-calendar.txt)
+
+### M5 / 24-E — stock RSAfull public reference
+
+Two fresh pinned JVMs produced identical stock TRfull preprocessing and RSAfull
+products for the six raw public inputs and all 20 calendar-effect inputs. The
+26 fitted models include a six-column trading-day design, leap year, Easter,
+mean and AO/LS/TC effects. All 26 produced decompositions. One required a
+SEATS model change. The 260 output rows contain 24,360 observed and forecast
+values. This captures the reference for the outstanding raw RSAfull driver.
+[Public RSAfull reference](validation/evidence/native/tramo-seats-bridge/rsafull-x86_64.txt)
+
+### M5 / 21-I.4 — trading-day candidate estimation and model selection
+
+The late controller now runs from dated monthly airline observations with an
+optional mean and outlier detection disabled. It fits and compares a TD2
+candidate, repeats the fit if the mean fails its significance test, and returns
+the selected model with its parameters, estimated regressors and residuals.
+At the 0.01 threshold and a threshold of 1.0, 32 cases reproduced all 71
+fit records from two independent JDemetra runs, including 6,784 distinct
+residual vector entries. Nineteen cases selected the candidate and thirteen
+retained the incumbent. Six Release and four sanitizer tests passed. The
+stock TRfull driver with automatic outlier detection remains open.
+[Reference evidence](validation/evidence/native/tramo-calendar-ftest/td-controller.txt)
+
+### M5 / 21-I.4 — model comparison diagnostics
+
+Monthly candidate fits can now build the complete JDemetra comparison panel
+from the likelihood and its compact residuals. The calculation includes
+absolute skewness, the normal skewness test, the pooled two-sample t test and
+the upper-tail variance ratio. Four previously captured quantities matched
+exactly on each of 90 states from the differencing battery. Eight monthly
+likelihood cases also matched all six raw statistics and probabilities,
+including a seven-residual fit and degenerate inputs. An undefined Ljung–Box
+test yields no comparison panel. The regression replay passed 808 checks.
+Six Release and four sanitizer tests passed. Integration into the late
+trading-day candidate refit is in progress.
+
+### M5 / 21-I.4 — residual trading-day test
+
+The late TRfull controller can now decide from concentrated-likelihood residuals
+whether to refit with working days. The test aligns the TD2 contrast to the
+end of the monthly estimation domain and uses the existing pivoted QR solver.
+Across eight fitted descriptions, the F statistic, upper-tail probability and
+all 32 decisions matched JDemetra exactly, including thresholds equal to the
+observed probability and one representable value to either side. A zero
+residual vector correctly skipped the test. Six related Release tests passed.
+The calendar test also passed with AddressSanitizer and UndefinedBehaviorSanitizer,
+including the existing 14 F-test and 20 stock initial-calendar cases. Candidate
+re-estimation and the final model comparison remain open.
+[Reference cases](validation/evidence/native/tramo-calendar-ftest/residual-td.txt)
+
+### M5 / 24-E — public RSA0 preprocessing residual oracle
+
+The six public RSA0 cases now record the dated `residuals.tsres` series and
+scalar `residuals.ser`. The product's residual series also equals the
+independent public TR0 fit's full residuals for every case. Two fresh
+pinned x86-64 Temurin 21.0.11 processes reproduce all 570 monthly residuals
+and six standard errors byte-for-byte. The capture SHA-256 is
+`1b7aac78629c1be7eefa45325af04d925ef104a422bc6213f5b4c4fd511b7283`.
+
+### M5 / 24-E — native RSA0 preprocessing residuals
+
+The raw TR0 result carries the public residual series, its starting
+month and its scalar standard error. All 570 values, six start dates and
+six standard errors match both reference runs exactly. The public scalar
+uses the effective sample less three fitted coefficients. Release and
+ASan/UBSan RSA0 tests pass with the existing 3,960 component values,
+fitted coefficients and preprocessing forecast errors still covered.
+
+### M5 / 23-G — final estimator with detected outlier regressors
+
+All 45 final-estimator calls in the admitted panel now run on the observed
+series and dated regression design. The native HR start uses the reference
+pivoted OLS operation for multi-column regression. A stable date sort on
+the actual scan selections supplies the design used by ModelDescription,
+including six AO columns in the stacked case and mixed AO/LS columns.
+The current model also feeds the initial call, post-ARMA call and mean-test
+retry. Return status, changed-parameter count, orders, sorted outliers and
+all fitted ARMA coefficients match exactly. The 34-case census is 112 live
+and 14 recorded checks, with all 74 D9 covariance entries passing.
+Automatic round-loop assembly and the final public RSA3 model still need
+independent gates.
+
+### M6 — monthly RSA0 forecast uncertainty performance
+
+The native forecast-error projection now uses the 13-lag airline state and
+computes the requested variances directly. It consumes constant state
+storage plus the returned horizon. All 144 public JVM forecast errors
+pass at maximum absolute error 2.63e−13 and scaled error 9.47e−15. A
+separate test checks the general covariance algorithm for 117 more values,
+including opposite-sign and zero coefficients and horizons beyond three
+seasonal cycles. Release and ASan/UBSan RSA0 tests pass. In same-process
+diagnostic timings on this ARM64 host, the 24-month projection itself took
+approximately 0.03 ms on AirPassengers. The package-level benchmark is
+tracked separately.
+
+### M6 — public RSA0 residual Ljung–Box test
+
+The public `residuals.lb` accessor uses a zero-mean autocorrelation
+function, 24 monthly lags and two fitted MA parameters. The existing
+model-controller diagnostic centers its input. Its statistic and
+probability differ on all six reference series.
+
+`rsa0_residual_ljung_box` reuses the core autocorrelation and chi-square
+machinery. It reproduced all six public statistics and p-values bit for
+bit with 22 degrees of freedom. Public fits from 36, 37 and 38 monthly
+observations also reproduced the undefined/undefined/finite outcomes
+across the 24-lag boundary. Two fresh pinned x86-64 JVM runs produced
+the same capture. Release CTest passed these nine cases and the 1,637
+existing diagnostic rows.
+[Contract](docs/contracts/tramo-seats-bridge-contract.md) ·
+[Public oracle](validation/evidence/native/tramo-seats-bridge/rsa0-ljung-box-x86_64.txt)
+
+### M5 / 23-G — native outlier-adjusted differencing decisions
+
+All 20 differencing decisions now run on the actual series and, where
+applicable, the preceding fitted outlier effects. The module uses the
+kernel's 1e−5 intermediate precision. For the 30-observation case the
+pinned raw HR solve raises an index error on its wide matrix. The JVM's
+outer module handler emits a selection-failed remark and leaves the
+already-airline orders intact. The native failure path now preserves
+those orders. The 34-case suite reports 125 live and one recorded check,
+the stationary AR(2) scan. Physical round assembly and export of the
+public automatic fit record remain separate.
+
+### M5 / 23-G — stationary scans and complete four-module census
+
+Monthly stationary regular AR(1) and AR(2) scans with a mean now use
+the zero-ended LS design and its frequency-zero constant correction.
+Six fresh cases replay every captured round, coefficient and detector
+decision against the public module and the independently driven private
+machine. The two captures from separate pinned x86-64 JVMs are identical.
+The final previously recorded AR(2) scan in the fit now runs directly:
+all 126 module checks are live. The automatic loop still receives its
+round events and final fitted-model record in the existing replay API.
+
+### M5 / 23-G — fitted likelihood for round decisions
+
+All 39 reference and pass-2 model-statistics rows and all 46 fast regression
+tests in the 24 admitted cases now run from the live estimation. The native
+QR residuals, Ljung–Box statistic and p-value, standard error, BIC, counts
+and post-test t-statistics match the frozen JVM bits. The mean-removal
+retry and reference-model restoration are included. The optimizer retains
+column pivoting for its point and derivatives. The final likelihood fixes
+the columns in description order, as the pinned `RegSarimaComputer.optimize`
+does after optimization. The round stream, controllers and final public
+record still require independent assembly for a raw automatic fit.
+
+### M5 / 23-G and 24-D — raw RSA1 and RSA3 public reference outputs
+
+Two fresh pinned x86-64 JVMs agree on six monthly inputs for each preset.
+The public TR1/TR3 runs record the selected transform, mean, orders,
+parameters, ordered regression names and coefficients, likelihood and dated
+residuals. The public RSA1/RSA3 runs record component and forecast values
+and the approximation decision. All twelve return decompositions. Only
+the mixed-outlier RSA3 case changes its fitted SEATS model. The corpus
+sets the target for the native raw presets, which are still in progress.
+
+### Public RSA0 residual normality reference (2026-11-23)
+
+The public RSA0 kernel now has a frozen reference for
+`residuals.doornikhansen`, including the six fitted series and three
+short AirPassengers spans with 23, 24 and 25 residuals. Two fresh pinned
+x86-64 JVMs produced identical statistics, upper-tail probabilities and
+the chi-squared distribution with two degrees of freedom.
+[Public capture](validation/evidence/native/tramo-seats-bridge/rsa0-doornik-hansen-x86_64.txt)
+
+
+### RSA0 residual normality calculation (2026-11-23)
+
+`rsa0_residual_normality()` computes the Doornik–Hansen test from
+the fitted residual vector. All nine public statistics and chi-squared
+upper-tail probabilities matched the paired JVM capture bit-for-bit,
+including two zero probabilities. The diagnostic test also retains the
+public Ljung–Box and automatic controller regression comparisons.
+[Public diagnostic contract](docs/contracts/tramo-seats-bridge-contract.md)
+
+### M5 / 23-G — build the final automatic-model record
+
+Every one of the 24 admitted monthly F4 cases now completes with the
+reference final record removed. This includes the two fixed-airline cases
+that skip the automatic loop. The live estimator reproduces every order,
+regression coefficient and unscaled covariance, the 74 scaled covariance
+entries, 2,267 public full residuals, the log transformation adjustment
+and all six information criteria. Tests first compare the reference
+record bit-for-bit and then omit it completely. The replay request still
+supplies the automatic round sequence and module entry descriptions.
+
+### M5 / 23-G — public TR1 preprocessing from raw observations
+
+`estimate_tramo_tr1` requires only the original complete monthly data
+and start. It registers the TR1 template, selects log or level, computes
+the detection threshold, fits dated outliers and returns the final model.
+For this fixed-order template the detector inputs repeat across passes.
+Six independent public TR1 oracle cases match exactly, including the two
+transformation outcomes, every SARIMA and regression coefficient, the
+ordered AO/LS variables, raw and adjusted likelihoods and 570 full
+residuals. This qualifies preprocessing. Public component and forecast
+comparisons are owned by the independent RSA1 pipeline gate.
+
+### M5 / 24-D — x86-64 spectrum cosine
+
+One of 1,082 distinct cosine inputs in the stock RSA1 log level-shift fit
+differed from the pinned x86-64 HotSpot result by one ULP. It occurred
+inside the Newton search for the minimum of the component spectrum. The
+fitted model and the complete SEATS input already matched. A compensated
+pi/32 reduction now reproduces the JVM frequency response on every host.
+Two independent JVMs agree on the 36,614-input fingerprint and the three
+adjacent binary64 values at the observed frequency. All earlier standalone
+SEATS validation, UCARIMA, extraction and fitted pipeline cases pass at
+their existing precision.
+
+### M5 / 24-D — raw RSA1 public product
+
+`run_tramo_seats_rsa1` takes the original dated observations. All six
+public RSA1 reference fits reproduce the fitted model, 570 residuals,
+60 final dated series and every one of 3,960 component and forecast values
+bit-for-bit. The stock two-year forecast was used throughout. The fitted
+pipeline additionally tests zero and custom horizons. The structured
+extraction now reports its model-change flag, including both mixed-outlier
+approximation runs from the fitted pipeline. The existing bridge restrictions
+on supported deterministic and approximation shapes still apply.
+
+### M5 / 23-G — initial no-calendar regression test
+
+The initial regression test now constructs its model after the live
+seasonality and transform decision, fits at the kernel's intermediate
+precision, and evaluates the default mean threshold. All 22 admitted
+F4 cases that enter the round loop reproduce the original processing
+result and mean flag, including the retained mean and the nonseasonal
+downgrade. The two fully specified cases continue to bypass this stage.
+
+### M5 / 23-G — independent initial reference model
+
+The first round now builds the outlier design from dated observations and
+the configured threshold, runs the stock final estimator, and repeats
+estimation when the fast mean test clears a coefficient. Every admitted
+round-zero reference in the F4 corpus reproduces the selected orders,
+mean, dated outliers, parameters, compact residuals, BIC, standard error
+and Ljung–Box statistic and probability. Later automatic passes and their
+controller decisions still consume witnesses in this entry point.
+
+### M5 / 23-G — first automatic candidate from observations
+
+All 21 initial reference models and all 18 first auto-model candidates in
+the admitted F4 corpus are now computed from the data. The first candidate
+uses the fitted outlier-corrected response for differencing, the new
+differenced OLS design for ARMA selection, then a fresh outlier search
+and fit. Its orders, mean, dated outliers, parameters and likelihood
+diagnostics agree with the original JDemetra+ rounds. A separate regression
+covers exchanging monthly (d, bd) = (1, 1) for (2, 0), which clears outliers
+because the differencing polynomial degree changes from 13 to 2. The
+reference comparison, subsequent controller sweep and restart decisions
+are the remaining stages on this route.
+
+### M5 / 24-D — additive AO and LS restoration
+
+The fitted bridge and raw RSA1 product accept complete monthly level fits
+with AO and LS effects. Two independent public JVM runs agreed on two
+shifted historical series. Native replay matches every fitted parameter,
+regression coefficient, likelihood, all 166 residuals and 1,200 observed
+and forecast product values. The existing six RSA1 product fits and the
+fitted bridge replay also passed. [Contract and capture](docs/contracts/tramo-seats-bridge-contract.md)
+
+### M5 / 23-G — first automatic reference comparison
+
+For all 18 first candidates, the pass-2 model comparison now uses the two
+independently fitted models. It reproduces the accepted/reverted state,
+chosen orders and mean, number of outliers, next pass/round, threshold
+and detection flags. The seasonal AR shape rule reads seasonal AR before
+regular MA in the public JDemetra+ parameter vector. An explicit reversion
+test separates these two coefficients and checks the restored model.
+The late seasonality and differencing controllers remain the next
+dependency for raw RSA3.
+
+
+### M5 / 24-D — additive transitory-change restoration
+
+The fitted bridge and raw RSA1 preserve each fitted TC's stock monthly
+decay on the observed and forecast domains. On the shifted `fit_multi`
+series, the two-TC model matched the public x86-64 JVM in two separate
+captures. Native replay reproduced all eight outliers, the mean,
+coefficients, likelihood, 83 residuals and 600 public product values.
+The bridge also tests refusals for log-scale TC, alternate decay and
+seasonal outliers. [Contract and capture](docs/contracts/tramo-seats-bridge-contract.md)
+
+
+### M5 / 24-D — multiplicative transitory-change restoration
+
+The bridge now restores stock TC effects on logarithmic fits, including
+combinations with AO and LS. Two fresh JVM runs agreed on the three
+positive-series inputs. Native replay matched all three models, 249
+residuals and 1,800 observed and forecast values bit-for-bit. The initial
+six RSA1 fits, all three additive outlier fits and the fixed-model bridge
+also passed. [Contract and capture](docs/contracts/tramo-seats-bridge-contract.md)
+
+### M5 / 23-G — seasonal tests on fitted monthly data
+
+The seasonal controller now has a shared Qs and Friedman calculation for
+its two different inputs. Seventy-two fitted states reproduce the JVM's
+statistic and probability on both the centered, first-differenced
+linearized series and the uncentered concentrated-likelihood residuals.
+All 576 binary64 values match the original battery observations. The
+spectral peak tests and the seasonal regression F test are still needed
+to run the full controller from observations.
+
+
+### Public RSA1 residual diagnostic evidence (2026-11-24)
+
+Two fresh x86-64 JVMs agreed on the public RSA1 residual standard
+error, Ljung–Box and Doornik–Hansen results for six original inputs
+and two shifted series with additive outliers. The probability
+distributions have 22 and two degrees of freedom respectively.
+[Eight-case reference](validation/evidence/native/tramo-seats-bridge/rsa1-residual-diagnostics-x86_64.txt)
+
+
+### Public RSA1 residual normality, independence and standard error (2026-11-24)
+
+All eight raw models reproduce the five public binary64 diagnostic values
+exactly: residual standard error, Ljung–Box statistic and probability,
+and Doornik–Hansen statistic and probability. The monthly airline
+independence test has 24 lags and two fitted MA parameters. The standard
+error uses the fitted residual sum of squares and the effective count
+minus the number of estimated parameters excluding variance. Three
+Release CTests passed for diagnostics and both complete raw products.
+[Projection contract](docs/contracts/tramo-seats-bridge-contract.md)
+
+### M5 / 23-G — monthly Tukey spectral peaks
+
+The native Tukey-window spectrum now classifies all six monthly harmonics
+and reproduces the JVM's short-series refusal. Both window lengths and all
+three significance levels passed on the original controller states and a
+new paired-JVM panel of 168 inputs, including the 79/80 and 119/120
+boundaries. The shared panel also freezes the autoregressive spectral
+classifications for the next controller step.
+
+### Transitory-change residual diagnostics (2026-11-24)
+
+The public RSA1 residual diagnostic capture now includes one level and
+three log fits with stock monthly transitory changes. Two fresh x86-64
+JVMs agreed byte-for-byte. All 60 standard errors, statistics and
+probabilities match the reference bit-for-bit across 12 models. The
+release diagnostics, raw RSA0 and raw automatic SEATS CTests passed.
+[Public diagnostic evidence](validation/evidence/native/tramo-seats-bridge/rsa1-residual-diagnostics-x86_64.txt)
+
+### M5 / 23-G — complete monthly seasonality panel
+
+The autoregressive peak test fits thirty ordered lags by unpivoted QR
+and classifies the six seasonal frequencies on the trading-day-adjusted
+grid. The paired JVM panel agrees on all 168 AR and Tukey outcomes
+including both availability cutoffs. On the original battery corpus,
+both full panels for every one of the 72 monthly states match the JVM:
+Qs/Friedman statistics and probabilities, differencing length, available
+peak tests, six harmonic classifications when available, and the final
+ladder score. The seasonal regression F test and candidate refits are
+the next dependencies for the integrated controller.
+
+
+### M5 / 24-D — raw RSA1 forecast-error reference
+
+Two fresh pinned JVMs agreed on the public `y_ef(24)`, its raw-scale
+forecast location and standard error, and the independent WK series
+forecast standard error on 12 monthly RSA1 fits. These include an
+unchanged level series, detected AO and LS, and stock TC on both scales.
+The reference records 1,152 numerical values across the four fields.
+Reproduce it with `capture-tramo-seats-bridge.py --stage rsa1-forecast-errors`.
+
+### M5 / 23-G — controller state transfers
+
+The monthly controller sweep now requests candidate estimates on demand
+and uses each accepted fit as the next controller's input. Across twelve
+original monthly battery runs the candidate orders, mean, transfer index,
+seasonality score, early restart and remaining four controller decisions
+match the original traces. The integration test supplies captured candidate
+fits at this boundary. The raw TR3 caller must supply them from observations.
+
+### M5 monthly seasonal F refit
+
+The monthly seasonality controller can obtain its F test from observations,
+dates, regular ARIMA orders and the original regression columns. The refit
+forces a mean, removes seasonal ARIMA terms, and tests the eleven monthly
+contrasts jointly. The GLS optimizer uses JDemetra's unit-circle mapping,
+including its quadratic root inversion and normalization.
+
+All 72 existing monthly controller states with no external regressors match
+the frozen statistic, probability and both degrees of freedom exactly. A
+second panel covers all twelve start months, regular AR orders 0–2, regular
+MA orders 0–1, level and differenced models, and combinations of trading days,
+additive outliers and level shifts. All 48 fields match the two-JVM capture.
+The tests also cover a singular design and insufficient residual degrees of
+freedom. The stock raw RSA3 and RSAfull orchestration is still in progress.
+
+### M5 / 23-G and 24-D — monthly raw TR3 and RSA3
+
+The first accepted raw TR3 path now runs from observations through
+transformation, initial mean testing, differencing and ARMA selection,
+outlier scanning, final estimation, the reference comparison and all five
+late controllers. The fitted bridge and decomposition consume that result.
+Six public RSA3 runs reproduce every model, 573 fitted residuals, all 60
+dated component/forecast series and all 3,960 product values bit-for-bit.
+The mixed-outlier input also reproduces the SEATS approximation flag.
+
+The integration currently reports a specific failure if the reference
+comparison rejects the first candidate, the late fast mean test clears the
+estimate, or the seasonality controller requests an identification restart.
+The original 96-observation restart case explicitly exercises that boundary.
+The stock monthly route requires complete observations spanning two years.
+
+### M5 / 23-G — raw RSA3 restart and outlier reference
+
+The public stock RSA3 oracle now includes the 96-month model whose
+late controller switches seasonality and restarts identification, plus
+two additional multiple-outlier series. Two independently launched
+JVMs agree on all three public products, including the 251 residuals
+and 1,800 observed/forecast component values.
+
+### M5 / 24-D — public monthly RSA1 forecast standard errors
+
+`tramo_tr1_forecast_errors` calculates original-series prediction errors
+from the fitted TR1 model, including drift and outlier uncertainty and
+lognormal conversion. It shares the conditional 13-innovation covariance
+with the RSA0 projection. All 288 public default-horizon errors agreed
+with the pinned JVM within 3.34e−14 scaled. The accompanying 288 WK
+standard errors matched their original fitted-decomposition references.
+Zero, one and seven months, invalid horizons and out-of-range covariance
+were checked. The raw RSA1, raw RSA0 and fixed-model bridge suites passed
+in Release and serial ASan/UBSan builds. [Contract and capture](docs/contracts/tramo-seats-bridge-contract.md)
+
+### M5 / 23-G and 24-D — raw TR3 seasonality restart
+
+The raw monthly identification route repeats differencing, ARMA selection,
+outlier detection, estimation and the controller sweep when the seasonality
+controller requests a restart. The second sweep observes the stored seasonality
+reference. The public `fit_gs2` case exercises this path from 96 observations.
+Together with the new multiple-outlier cases, all nine public RSA3 models match
+the independent JVM captures for fitted parameters, regression coefficients,
+824 residuals and 5,760 observed and forecast values, bit for bit. The
+F4 fit and automatic pipeline Release tests passed. The remaining raw TR3
+gates are retry after a rejected reference comparison and re-estimation after
+the fast regression test removes the mean.
+### M5 outlier detection conditional on calendar regressors
+
+The first scan and the full monthly outlier detector now carry ordered
+calendar columns through differencing, regression, warm ARIMA estimation
+and outlier verification. Sixteen independent JDemetra fits cover TD2, TD7,
+leap year, Easter, AO, LS and TC on both model scales. All sixteen first
+candidates matched in position, type, signed t statistic and coefficient.
+Five fits retained fifteen outliers in total. The other eleven retained none.
+The original prespecified AO warm-refit case also reproduces its observed
+first selection. The full stock TRfull controller integration remains open.
+
+### M5 / 23-G — stock fast-regression fourth-pass evidence
+
+Four deterministic monthly series enter passes 0, 1 and 4 in the pinned
+public TR3 kernel. The capture checks the actual processing log before
+recording the four fitted models and RSA3 products. The series exercise
+three different final orders and a retained level shift. Two fresh x86-64
+JVMs reproduced the fitted models, 372 residuals and 2,580 component and
+forecast values.
+### M5 late trading-day model comparison with automatic outliers
+
+The monthly airline controller now fits the original description with AO, LS
+and TC detection, repeats detection after introducing a working-days contrast,
+and repeats it again when a candidate loses its mean. The comparison uses the
+selected outlier count and fitted regression order for each candidate.
+
+Two independent JVM runs produced 32 decisions and 71 fitted descriptions.
+Kalos selected working days in 19 cases and retained the original model in 13.
+All model parameters, regression coefficients, statistics, outlier positions
+and types, and 6,720 distinct residual values match the reference. This covers
+the airline controller. The stock TRfull route also needs calendar columns in
+the automatic order search, final estimation and SEATS product assembly.
+
+### M5 / 23-F — stationary outlier scans before a fast-mean retry
+
+Three public RSA3 first automatic candidates use a stationary seasonal
+ARMA(1,1) paired with regular AR(2) or ARMA(1,1), with a mean. Their
+complete detector traces were captured twice with the original multi-round
+detector probe. The Release scan replay matched all three traces alongside
+the existing cases, including first-pick scores and the retained level shift.
+
+### M5 / 23-G and 24-D — stock fourth-pass mean re-estimation
+
+The raw monthly fit now retains the selected outlier variables and refits
+the model without the discarded mean in pass four before running the late
+controllers. All four public retry cases match bitwise, including 372 fitted
+residuals, the retained level-shift coefficient, and all 2,580 dated product
+values. Across all 13 stock RSA3 cases this brings coverage to 1,196 fitted
+residuals and 8,340 product values. The Release outlier-scan and raw pipeline
+tests passed. Retry after a rejected reference comparison remains open.
+### M5 public raw RSA3 residual diagnostic references
+
+Two independent pinned x86-64 JVMs produced identical residual scale, Ljung–Box and Doornik–Hansen statistics for the six original and three additional raw RSA3 fits. The nine Ljung–Box tests have 21, 22 or 23 degrees of freedom according to the selected ARMA order. The frozen capture SHA-256 is `3811bf5c301e7e0dfe08827fa6e11beac6e3d0754399d4cd0ac759a2e4fb3716`. [Reference](validation/evidence/native/tramo-seats-bridge/rsa3-residual-diagnostics-x86_64.txt)
+
+### M5 selected-model RSA3 residual diagnostics
+
+`monthly_tramo_residual_ljung_box` uses the fitted ARMA parameter count for the public 24-lag independence statistic. Across nine original and restart fits the native scale, independence statistic/probability and normality statistic/probability matched all 45 JVM numerical values bit-for-bit, with the expected reference degrees of freedom. The existing 12 RSA1 and six RSA0 fixtures still pass. The three Release gates cover diagnostics, RSA0 and raw automatic fitting. The diagnostic replay also passed under serial ASan/UBSan with the short-domain and out-of-range parameter tests. [Contract](docs/contracts/tramo-seats-bridge-contract.md)
+
+### M5 / 23-G — stock reference rejection and last-chance model evidence
+
+Seven monthly inputs with residual correlation beyond the regular ARMA lags
+trigger the lower detection threshold in stock TR3. The public processing
+log checks all passes, including second-round acceptance, the last-chance
+model, mean retesting and the seasonal restart. Two independent JVM runs
+match on all seven fitted models, 909 residuals and 5,640 product values.
+### M5 RSA3 residual diagnostics after the fast mean retry
+
+Four public RSA3 fits requiring a fourth pass after removal of the mean produced identical diagnostic captures in two independent pinned JVMs (SHA-256 `afd4385d7096652c2e142f3cd4377140183b0513ac701d887569d3e2a9532f8d`). All 20 scales, statistics and probabilities matched bit-for-bit in both Release and serial ASan/UBSan. Together with the previous nine fits this covers 13 automatically selected models and 65 numerical values. [Fast-mean diagnostic capture](validation/evidence/native/tramo-seats-bridge/rsa3-mean-retry-diagnostics-x86_64.txt)
+
+### M5 / 24-D — unrecombined extractions after an automatic round retry
+
+The seven reference-retry models now also have independent JVM records
+of the final WK rows before deterministic effects are restored. The paired
+snapshots preserve missing component kinds and the distinction between a
+SEATS parameter cutoff and a changed model. This supplies the extraction
+and merger boundaries for the public stock results.
+### M5 public RSA3 forecast-error reference
+
+Two independent pinned x86-64 JVMs produced the same forecasts and uncertainties for the six original RSA3 fits, three additional restart or multiple-outlier fits, and four fast-mean fourth passes. Each fit has 24 raw forecasts and their errors, the public original-series errors and the separate final WK errors. The 13-case capture SHA-256 is `a1b77b26c7d8d9f7ad98f08f067bd20d21db94d3cbe341661bf82e455157eb2a`. [JVM evidence](validation/evidence/native/tramo-seats-bridge/rsa3-forecast-errors-x86_64.txt)
+
+### M5 selected-order RSA3 public forecast uncertainty
+
+The fitted monthly TR3 companion-state projection now returns original-series forecast errors at caller-supplied horizons. On 13 public fits all 312 original-scale forecast errors were within 1.56e-14 scaled error (qualification limit 2e-8). All 312 separate WK errors and all 8,340 merged observed and forecast values remained bit-exact. Tests also cover 0, 1 and 7 months, negative and overflowing horizons, an invalid fitted design and typed covariance failure. The three diagnostic, RSA0 and automatic-product gates passed in Release and serial ASan/UBSan. [Forecast projection and replay](tests/test_tramo_seats_automatic.cpp)
+
+### M5 / 23-F — stationary scans on lower thresholds and last-chance models
+
+Thirteen additional stationary scan traces cover the stock MA(1), white
+noise, seasonal AR(1), and the two ARMA(3,1) last-chance designs with
+a mean. Two x86-64 JVMs reproduced every trace. The initial and reduced
+thresholds, subsequent optimization, forward and backward scan statistics
+and selected outliers all match bitwise in the Release scan replay.
+The higher-degree SARIMA stabilizer now uses the pinned QR polynomial
+root solver. Its eigenvalue order fixes the two formerly divergent cubic
+warm starts. The F4 fit and monthly battery tests also passed.
+
+### M5 / 23-G — repeated reference comparisons and last-chance raw TR3 fits
+
+The physical monthly TR3 route now compares successive fitted models,
+reduces the outlier threshold after a rejected first comparison, and
+reconsiders differencing and ARMA order when the changed model has automatic
+outliers. It fits the last-chance ARMA model when the second comparison
+fails. Later scans and controller estimates receive the evolved threshold.
+The seasonality controller can also turn on seasonality after requesting a
+new default fit. The original and replay paths now share the pinned bound
+that permits differencing unless regular and seasonal differences are both
+at their maximum.
+
+Seven independent stock JVM fits exercise these branches. All selected
+parameters, regressors, likelihood fields and 909 residuals match exactly.
+The raw TR3 preprocessing corpus now spans 20 models and 2,105 residuals.
+The five combined Release tests passed, including all 13 original RSA3
+products and public preprocessing forecast-error checks. Additional
+Wiener–Kolmogorov and merger coverage for the seven retry models is tracked
+separately. Recovery from a failed model estimate remains a distinct route.
+### M5 selected TRfull calendar fits and SEATS restoration
+
+The selected-model refit estimates all coefficients from the original dated
+observations. Its inputs specify the transformation, ARIMA orders, mean,
+TD2 or TD7 contrasts, leap year, six-day Easter and dated AO, LS or TC
+variables. Calendar coefficients precede the outliers in the fitted design.
+Their effects are generated on the full extraction domain, including forecasts.
+
+All 26 stock RSAfull reference descriptions reproduce the public ARIMA and
+regression coefficients, likelihoods and all 3,914 fitted residuals exactly.
+Twenty-five produce exact end-to-end decomposition values. For the remaining
+log model, calendar_8_log, the 180 inputs to Wiener–Kolmogorov extraction
+match exactly, but the native higher-order extraction differs numerically.
+A separate two-JVM capture supplies its intermediate WK components and
+verifies all ten restored rows independently. Across both checks all
+260 restored rows and 24,360 observed and forecast values match JDemetra.
+The raw RSAfull route still requires automatic selection of these descriptions.
+### M5 public RSA3 reference-retry diagnostics and forecast evidence
+
+Independent pinned JVMs reproduced all seven public second-round or last-chance fits and independently captured their residual scales and tests, original-series forecasts and standard errors and separate WK forecast errors. The diagnostics digest is `e853ff667423e746d281986994b7af44ad59c4763a69a47786069d672a351959` and the forecast digest is `85962cf385ff57e33849904fec2b31545e45e137652199b89a999203712bd6ee`. The unchanged raw product stage also replayed twice. Native diagnostics are checked against the captured residuals and selected model parameters. End-to-end forecast comparison depends on the raw fit checkpoint. [Residual reference](validation/evidence/native/tramo-seats-bridge/rsa3-ref-retry-diagnostics-x86_64.txt) · [Forecast reference](validation/evidence/native/tramo-seats-bridge/rsa3-ref-retry-forecast-errors-x86_64.txt)
+
+### M5 / 24-D — restore an absent stochastic seasonal component
+
+The SEATS merger restores the deterministic seasonal effect over the
+original and forecast domains when the WK model has no seasonal component.
+Two stock RSA3 reference-retry models exercise this case. Six of the seven
+new raw pipelines now match every JVM component, including the previously
+qualified preprocessing and 4,560 additional product values. The 19-product
+total is 12,900 values. The seventh model, `fit_ref_retry_18_2`, still has
+a WK numerical discrepancy, as does `calendar_8_log` in the selected
+calendar corpus. The Release raw, bridge and selected-calendar tests passed.
+
+### M5 raw TRfull first reference model
+
+The stock TRfull entry now chooses the transformation, initial seasonal orders,
+calendar regressors and mean, detects outliers and retests the fitted regression
+from dated observations alone. All 26 first reference descriptions stored by
+the stock JDemetra kernel match. This includes the two nonseasonal initial
+models, every outlier identity, all fitted coefficients and likelihoods, and
+all 3,934 full residuals. Two fresh Java 21 processes produced identical
+reference output. Automatic order identification and the subsequent controllers
+remain the next steps before this becomes a raw end-to-end RSAfull fit.
+
+### M5 forecast uncertainty after TR3 reference retries
+
+On seven original series requiring additional model comparison rounds, `estimate_tramo_tr3` and `tramo_tr3_forecast_errors` reproduced all 168 public original-scale errors with maximum scaled error 1.92e-14 (limit 2e-8). The zero-, one- and seven-month requests also passed. Across the three preceding panels and the seven new fits the native forecast gate now covers 480 default-horizon errors on 20 models. The automatic-fit and diagnostic tests passed in Release and serial ASan/UBSan. This qualification exercises preprocessing independently of the outstanding WK product comparisons. [Native replay](tests/test_tramo_seats_automatic.cpp)
+### M5 public stock RSAfull diagnostic and forecast references
+
+Two independent pinned JVMs captured residual scale, independence and normality, and separate raw, original-series and WK forecast quantities for each of the 26 stock RSAfull inputs. The original-series panel contains 624 forecast standard errors. The diagnostics SHA-256 is `0dce2063b45b3eeec82b9074908d880e6f15cd6b59e4a6d9f248314461082e7d` and the forecast SHA-256 is `05572c8d097ed419ab9979208931f865afb7c91c51737d4e497d0fd56ae8485d`. [Residual references](validation/evidence/native/tramo-seats-bridge/rsafull-residual-diagnostics-x86_64.txt) · [Forecast references](validation/evidence/native/tramo-seats-bridge/rsafull-forecast-errors-x86_64.txt)
+
+### M5 forecast uncertainty and residual diagnostics on selected calendar models
+
+`tramo_selected_forecast_errors` projects the fitted monthly regression effects jointly with the SARIMA process. This includes working days, full trading-day contrasts, leap year, Easter, drift and stock outliers. All 624 original-scale forecasts errors from the 26 independently selected and refitted RSAfull models agreed within 7.78e-12 scaled error (limit 2e-8). The 26 fitted residual vectors matched the oracle, and their 130 standard errors, independence and normality statistics and probabilities matched bit-for-bit. The independence tests retained the model-specific degrees of freedom from 21 through 23. The diagnostic, selected-calendar model and automatic-model tests passed in Release and serial ASan/UBSan. Raw RSAfull automatic identification is tracked separately. [Public forecast and fitted-product replay](tests/test_tramo_selected_model.cpp)
+
+### M5 / 24-D — all twenty raw stock RSA3 products
+
+A positive seasonal factor now carries the roots computed when it is built.
+SEATS uses those roots when splitting a pure seasonal AR model. Re-solving
+the degree-12 polynomial changed the `fit_ref_retry_18_2` trend and seasonal
+components. All 20 stock RSA3 fits now match all 13,980 observed and forecast
+product values, 2,105 fitted residuals and all 480 WK forecast standard
+errors bit for bit. The 480 public original-series forecast errors match the
+qualified tolerance. Eight adjacent Release tests passed, including the
+existing quarterly and monthly fixed-model decomposition regressions.
+
+### M5 stock TRfull automatic selection and RSAfull products
+
+Both `estimate_tramo_trfull` and `run_tramo_seats_rsafull` now operate on
+dated observations alone. All 26 original models and three additional models
+with late trading-day selection match the public JDemetra preprocessing.
+The three additional cases reproduce the late choice only with the stock
+trading-day controller enabled. Across the 29 cases all 4,165 full residuals,
+orders, mean and transformation decisions, calendar and outlier identities,
+regression and SARIMA estimates, and likelihoods are exact.
+
+Twenty-seven decompositions reproduce every public observation and forecast
+directly. For `calendar_8_log` and `late_td_14`, the input to WK extraction
+is exact and an independent pair of JVMs supplies the intermediate extraction
+for the exact calendar-restoration check. The test suite covers 290 merged
+rows and 26,160 observations and forecasts across the direct and isolated
+checks. Both native higher-order extractions remain open.
+
+### M5 / 24-D — mixed regular and seasonal AR extraction
+
+The late trading-day model `late_td_14` combines regular AR(1) and seasonal
+AR(1). SEATS now preserves the seasonal factor's complex roots and joins them
+with the regular roots in model order. Its native WK outputs, including
+standard errors, and its merged observations and forecasts match the paired
+JVM records bit-for-bit. Direct product coverage is 28 of the 29 stock RSAfull
+fits. The fitted input to `calendar_8_log` matches through decomposition and
+its forecasting comparison remains open.
+
+### M5 / 24-D — all 29 stock monthly RSAfull products
+
+`calendar_8_log` reaches a second-order regular autoregression with two
+regular differences and one seasonal difference. The outer SARIMA model
+multiplies its differencing filter first. A forecast model augmented for a
+mean multiplies the stationary filter first. Preserving those evaluation
+orders restores the diffuse filter initialization and the Burman forecast
+extension. All 29 raw stock fits now match the paired JVMs on 4,165
+residuals and all 26,160 final values. Both previously isolated extracts
+also match their dated WK rows, including conditional standard errors.
+The regression suite checks the native route directly throughout. All
+seven adjacent Release tests passed, including the existing fixed-model
+decomposition and forecasting suites.
+
+### M6 public combined SI seasonality reference
+
+Two independent pinned JVMs reproduced the all-years dashboard getter `diagnostics.seas-si-combined` on 34 X-13 and TRAMO/SEATS products and the underlying test at 28 quarterly/monthly boundary inputs. The capture records all three verdicts, the short-series unavailable result, and the stable, moving and rank statistics and probabilities. It includes extended-domain log-additive and pseudo-additive X-13 fits. In two monthly TR3 fits the WK seasonal component is absent and the public diagnostic returns `None` on the irregular alone. Capture SHA-256 is `fcad11cf3be66d16ade151c8695796d863dfb29eebac153e64f8d80adbb606cb`. [Public evidence](validation/evidence/native/combined-seasonality/public-x86_64.txt)
+
+Four public fixed-model X-13 fits provide independent D8 and dashboard references on the same raw AirPassengers observations. They exercise additive, multiplicative, log-additive and pseudo-additive decomposition with a 13-term trend, fixed 3×5 seasonal filters and zero extension. Two JVM captures produced SHA-256 `d2c629a23b6862c1f3e34ef3f2b1103f884f6ff0cf978c08508eff99c015f851`. [Four-mode fixed-fit reference](validation/evidence/native/combined-seasonality/fixed-x13-x86_64.txt)
+
+### M5b fixed-structure X-13 reference panel
+
+The opening item 28 probe captures nine stock JDemetra fits for RSA0, RSA1
+and RSA2c on the historical air, additive-outlier and seasonal inputs. The
+complete reference includes both fitted moving-average coefficients, all
+regression variables, the effective log and X-11 modes, MSR and Henderson
+choices, original-scale forecasts, intermediate X-11 tables and final
+components. A checksum-verified Temurin 21.0.11 replay passed in two fresh
+processes. The decision ledger and native qualification gates are in
+[the item 28 contract](docs/contracts/x13-estimated-templates.md).
+
+### M5b / 28 — automatic Henderson and MSR decisions from stock fits
+
+The public stock X-13 runs supply their preadjusted B1 series to a fresh X-11
+kernel. The probe verifies matching B7, C7, D7, D10 and D12 tables against
+the end-to-end run before recording each stage's computed I/C ratio and
+Henderson length. Its independent run of the MSR selector also has to agree
+with the kernel's filter and iteration count. The nine fits supply 36 trend
+decisions and nine seasonal decisions across additive and multiplicative
+modes. [Frozen decisions](validation/evidence/native/x13-estimated-templates/selection-x86_64.txt)
+
+### M5b / 28 — native X-11 selection on all nine fitted-template inputs
+
+Using the dated public B1 series and its full 12-month forecast extension,
+`x11_selection_pass` reproduced all 36 selected Henderson lengths and I/C
+ratios, all nine MSR filters, attempt counts (one, two or four), default
+flags and final MSR ratios. The resolved 12-phase plans and every B7, C7,
+D7, D10, D11, D12 and D13 observation/forecast value (7,812 total) matched
+bit-for-bit. The existing rules cover these decisions without a new selector.
+The four adjacent Release CTests passed. Producing B1 from a raw fixed-
+template fit remains the independent preprocessing gate.
+
+### X-13 non-log pseudo-additive public product reference
+
+Two pinned JVM runs preserved a requested pseudo-additive mode with non-log data on two fixed and two automatic model specifications. They captured 14 X-11 and public final tables for each product, with the automatic cases exercising disabled and enabled outlier detection. The fixed capture SHA-256 is `d9192949b8803109b7f8b3873c2375df7281c9411db504d1bc5e64a07e28979e` and the automatic capture SHA-256 is `da18b09fa143471630a389cde13fa800553dca21abaf7cf938c49561c64d9eea`. [Reference captures](validation/evidence/native/x13-nonlog-pseudo)
+
+### Fixed X-13 pseudo-additive mode with non-log preprocessing
+
+The fixed fit now follows the JVM's `X13Kernel.updateSpec` branch that preserves explicitly requested `PseudoAdditive` before testing the log transform. Earlier captures had covered pseudo-additive on log data, and the separate hand-authored non-log assertion had assumed additive forcing. Two independently observed non-log products now agree bit-for-bit on all 2,688 values across 14 tables, including restored finals and correction tables. The 1,440 historical fixed-fit comparisons also passed. [Public reference](validation/evidence/native/x13-nonlog-pseudo/fixed-x86_64.txt)
+
+### M6 native combined SI seasonality
+
+The native diagnostic reproduced all 66 public decisions and availability states, including `None` on two RSA3 fits with an irregular component alone. All 384 stable, moving and rank statistics and probabilities matched bit-for-bit on the frozen SI inputs. On 20 end-to-end TRAMO/SEATS and four fixed X-13 products, all verdicts matched and all 144 statistics and probabilities agreed within 7.03e-15 scaled error. Release with OpenMP and serial ASan/UBSan both passed. The non-log pseudo-additive fixed fit uses the independently qualified mode correction. [Diagnostic contract](docs/contracts/combined-seasonality-contract.md) · [Public product replay](tests/test_combined_seasonality.cpp)
+
+### M5b stock RSA0 native fit
+
+The monthly RSA0 entry estimates the two airline moving-average parameters
+from the observed series on the level scale. It runs the existing X-11
+selection and final component restoration on a one-year forecast extension.
+All six fitted parameters match the nine-case panel's RSA0 subset bit for bit.
+The three fits also match the public mode, D7/final Henderson lengths, MSR
+filter, absence of regressors and domains of all 42 tested table rows.
+The numerical table gate uses 1e-8 relative to max(1, abs(reference)).
+
+### Automatic X-13 non-log pseudo-additive mode
+
+Automatic X-13 now shares the fixed route's qualified `X13Kernel.updateSpec` mode rule. On two raw non-log fits with outlier detection disabled and enabled, all 2,688 values across 14 public pseudo-additive tables matched bit-for-bit. All 4,637 historical automatic oracle comparisons, the 143 automatic surface checks and the fixed-fit suite passed alongside these new products in Release with OpenMP. [Public automatic reference](validation/evidence/native/x13-nonlog-pseudo/automatic-x86_64.txt)
+
+### M5b / 28 — stock RSA2c working-day and Easter reference
+
+The actual RSA2c kernel tests the TD2 working-day/length-of-period model
+against its absence, then compares Easter durations 1, 8 and 15 to the chosen
+model without Easter. Fifteen runs include all three original stock inputs
+and twelve deterministic inputs crossing each duration with working days
+present/absent and level/log transformations. The observer records the actual
+six candidate statistics, selected model scale, regressors and leap-year
+adjustments. Two fresh JVMs reproduced SHA-256
+`24844c19a300002c82c4a7711abb41c658d5a442f2663d30439d304d7f205e46`.
+[Public and module evidence](validation/evidence/native/x13-estimated-templates/rsa2c-calendar-x86_64.txt)
+
+### M5b / 28 — physical RSA2c working-day and Easter detection
+
+`x13_rsa2c_calendar_test` reproduces the stock `Remove` test for TD2 and
+`Add` test for Easter after transformation selection. Its six model records
+per fit match every candidate's log likelihood, transformation Jacobian,
+residual sum of squares, AICc and parameter counts on all 15 runs. The
+working-day and Easter decisions and 8,304 estimation-scale observations,
+extended design columns and forward/reverse February factors match bit-for-bit.
+The available API supplies the retained calendar and model scale to the
+subsequent outlier and final estimation stages.
+
+### M6 automatic-X-13 dashboard references
+
+Six independently replayed decoder-equivalent automatic X-13 requests now provide public combined SI seasonality decisions on observed D8, including all four effective decomposition modes, non-log pseudo-additive data and extended 3-backcast/6-forecast domains. Two independent x86-64 JVMs emitted the identical reference SHA-256 `31a78037cafc4e7f1076a3520f4dac4aed9cb774a545778f362df03f5e9aaaaa`. [Public automatic product reference](validation/evidence/native/combined-seasonality/automatic-x13-x86_64.txt)
+
+### M5b stock RSA1 native fit
+
+The raw monthly RSA1 entry selected log on AirPassengers and the January
+1994 outlier series, and level on the seasonal input. It detected the
+January additive outlier and reproduced all six fitted moving-average
+coefficients bit-for-bit. The three public modes, both Henderson selections,
+MSR decisions and 42 dated rows of observed, extended and forecast products
+passed the same gate used for RSA0. The serial sanitizer replay passed both
+the combined stock template test and the existing fixed-coefficient fit test.
+
+### M5b stock X-13 likelihood and innovations
+
+All 594 dated public residuals on the three RSA0 and three RSA1 fits
+match the two-JVM capture bit-for-bit. The effective sample sizes, parameter
+counts, unadjusted likelihoods, residual sums of squares and the estimated
+January 1994 AO coefficient also match exactly. The six fits still pass all
+84 public table rows at 1e-8 and all 72 monthly final filter decisions.
+Three serial Release and two ASan/UBSan CTests passed.
+
+### M5b / 28 — RSA2c log-level comparison reference
+
+The stock transformation module estimates TD2 and leap year on levels, and
+TD2 with leap-year preadjustment on logs. Two independent pinned JVMs
+reproduced its 30 likelihood records across 15 positive dated inputs and a
+nonpositive series where the log-level comparison is bypassed. Capture
+SHA-256 `f4efd70e645babdd70faa678d5979aae2da5718138e185d0bea4b574b768c380`.
+
+### M5b / 28 — raw RSA2c scale decision
+
+`x13_rsa2c_scale` fits the two stock designs with the multi-start RegSarima
+computer on the differenced design. The subsequent calendar comparison uses
+the separate RegArimaUtility GLS processor. Across 15 positive samples
+each branch's likelihood, SSQ, transformation correction, parameter counts
+and AICc match the pinned public kernel bit-for-bit. All 16 decisions match,
+including the observed nonpositive-series bypass.
+
+### M6 combined SI on native automatic X-13 products
+
+All six automatic native fits reproduced the public `diagnostics.seas-si-combined` verdict after cropping D8 to the observation domain. Their 36 stable, moving and rank statistics and probabilities were within 1.68e-13 scaled (limit 1e-12), including log-additive and non-log pseudo-additive extended products. The complete Release automatic oracle also passed its 4,637 checks across 13 historical input specifications. [Native end-to-end replay](tests/test_x13_automatic_oracle.cpp)
+
+### M5b / 28 — complete stock monthly RSA2c product
+
+`x13_estimated_rsa2c` selects levels or logs, fits the physical TD2 and
+Easter candidates, supplies the winning fit to outlier detection and retests
+the retained calendar after a changed outlier set. It estimates the resulting
+airline and all regression coefficients. The X-11 preadjustment uses the
+dated design, February model-scale adjustment and its separate reverse factors
+for the days-related effect and original-series forecasts. All three RSA2c
+fits match the public kernel's selected variable identities, 6 moving averages,
+3 sets of likelihoods, 297 full residuals and discrete X-11 decisions.
+Across all nine RSA0/RSA1/RSA2c fits, the 126 output rows pass the existing
+1e-8 relative bound and all 891 full residuals match exactly.
+
+### M6 stock calendar and estimated-product dashboard references
+
+Two pinned x86-64 JVMs reproduced the public combined SI seasonality getter on all 29 raw monthly RSAfull fits and the six stock estimated X-13 RSA0/RSA1 fits. The 35 product inputs, scales, public summaries and 210 numerical fields have SHA-256 `41da1bef3242cbfd439649848c26a8de41d5fa2a021ba5d5e2aa6f98affa2005`. [Stock dashboard reference](validation/evidence/native/combined-seasonality/stock-x86_64.txt)
+
+### M6 combined SI on raw RSAfull and estimated RSA0/RSA1 X-13
+
+The 29 raw RSAfull and six estimated stock X-13 fits reproduced every public dashboard verdict. The combined fixed/WK/stock replay now covers 101 SI inputs, all 594 numerical fields exact on the frozen input, and 59 fully native fits whose 354 numerical fields differ by at most 5.28e-14 scaled. The upstream 35-case stock panel contains 34 `Present` and one `ProbablyNone` verdict. [End-to-end dashboard replay](tests/test_combined_seasonality.cpp)
+
+### M6 adjusted-series residual seasonality reference
+
+Two independent JDemetra+ processes reproduced the public adjusted-series
+Qs and seasonal regression F test on 24 fitted products (four X-13 and
+four TRAMO-SEATS templates on three monthly inputs). The evidence includes
+the actual diagnostic series, the differenced and optionally centered values,
+the fitted differencing order and all 96 public statistics and probabilities.
+The capture SHA-256 is `92a579cd62fb0df24c963da965970d1a00b11cd0290adb5e1a8ec10adae152a0`.
+
+Eight additional monthly series isolate finite-sample and seasonal-lag
+boundaries of the public Qs and AR seasonal regression tests. The expanded
+two-process capture has SHA-256
+`7503e03fa9e377efb36921c209605668c2c1611dd385f7fb5716e8806a594851`.
+
+### M6 native adjusted-series Qs and seasonal F diagnostics
+
+All 96 public statistics and probabilities matched bit-for-bit on the
+model-scale adjusted observations of 24 stock products. Eight direct
+monthly probes covered positive seasonal autocorrelation and the difference
+between an absent and an undefined F test. On 16 fits executed from raw
+observations the largest scaled discrepancy was 2.51e-13. The seasonal
+input shared by the fixed-order X-13 probes exposed a SEATS extraction
+failure on its TR3 and TRfull fits. The native preprocessing selected the
+same parameters as JDemetra+ on that input. The WK extraction remains open.
+Five adjacent Release CTests and three serial ASan/UBSan tests passed.
+
+The native helpers use the initial WK adjusted component and the observed
+D11. The browser release check on macOS also opened both the calendar and
+automatic TRAMO reports from the installed application and verified the
+original/SA/trend plot, forecast overlay, residual p-values and combined SI
+verdict. Application delivery of the separate Qs/F fields follows its R pin.
+
+### M6 stock RSA2c public combined SI references
+
+Two pinned JVMs agreed on the public observed-D8 dashboard getter and its six test fields for each of the three raw monthly stock RSA2c X-13 products. Capture SHA-256 is `3718acbd7fad7e143eb89642e7f3a7b94d50575c4bd40b0d486caa47714a3fd3`. [Stock RSA2c references](validation/evidence/native/combined-seasonality/stock-rsa2c-x86_64.txt)
+
+### M6 combined SI on estimated stock RSA2c
+
+All three raw stock calendar-adjusted X-13 fits match their public dashboard verdicts and six numerical test fields. The fixed/WK/stock combined replay now covers 104 inputs (612 statistical fields exactly reproduced) and 62 end-to-end products (372 fields within 5.28e-14 scaled). [Native product replay](tests/test_combined_seasonality.cpp)
+
+### M6 residual trading-day public dashboard references
+
+Two independent pinned x86 JVMs reproduced all four residual trading-day getters for the adjusted and irregular components on 24 raw X-13 and TRAMO/SEATS products. The public default uses the full observed sample for both the all and last getters. Each of the 48 model-scale input series has an independent nonseasonal MA(1) regression witness with six monthly TD7 contrasts, including the optimized MA parameter, likelihood residual sum of squares and regression coefficients. The joint F statistic and upper probability agree bit-for-bit with the public getter. Capture SHA-256 is `e3316fdeec377a146ce3f2c33fb5d3ef8ed865713b9b30f5c47cd830a3e78117`. The earlier adjusted-seasonality capture, including the eight short samples, was independently replayed at its existing SHA. [Public residual trading-days reference](validation/evidence/native/residual-trading-days/public-x86_64.txt)

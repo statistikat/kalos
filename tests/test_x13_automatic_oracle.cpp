@@ -42,6 +42,8 @@
 #include <vector>
 
 #include "kalos/x13_automatic.hpp"
+#include "x13_nonlog_pseudo.hpp"
+#include "x13_combined_seasonality.hpp"
 
 #include "jvm_x13_automatic.h"
 
@@ -497,12 +499,28 @@ int main(int argc, char** argv) {
   std::size_t count = 0;
   const golden_x13auto::Case* cases = golden_x13auto::table(count);
   int ran = 0;
+  const auto si = automatic_si::read(KALOS_AUTOMATIC_SI);
+  const auto pseudo = nonlog_pseudo::cases(KALOS_PSEUDO_AUTO);
   for (std::size_t i = 0; i < count; ++i) {
     if (!only.empty() &&
         std::find(only.begin(), only.end(), std::string(cases[i].id)) == only.end())
       continue;
     ++ran;
     run_case(cases[i]);
+    for (const auto& ref : si) {
+      if (ref.id == cases[i].id) {
+        const double worst = automatic_si::check(ref, mirror_request(cases[i]));
+        std::printf("automatic SI %s %s %d %d maximum scaled difference %.6g\n",
+                    ref.id.c_str(), ref.mode.c_str(), ref.backcast, ref.forecast, worst);
+      }
+    }
+    for (const auto& ref : pseudo) {
+      if (ref.id != cases[i].id) continue;
+      auto request = mirror_request(cases[i]);
+      if (request.input != ref.rows.at("input")) throw std::runtime_error("pseudo-additive input mismatch");
+      request.mode = kalos::X11DecompositionMode::pseudo_additive;
+      nonlog_pseudo::check(ref, kalos::x13_automatic_fit(request).fit, kTableBand);
+    }
   }
   if (ran == 0) {
     std::printf("no golden case matched the filter\n");

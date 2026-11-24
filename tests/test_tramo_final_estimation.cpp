@@ -361,6 +361,39 @@ void fork_edges() {
     cr.btheta[0] = std::numeric_limits<double>::quiet_NaN();
     CHECK(tramo_check_common_roots(cr).unchanged); // NaN never cancels
 
+    // Public observations determine the response length and the estimated mean.
+    TramoFinalEstimatorRunRequest raw_options;
+    const auto raw = tramo_final_estimator_run(raw_options, {1.0, 2.0, 3.0});
+    CHECK(raw.returned && raw.cl_state == 2 && raw.cl_dim == 3);
+    CHECK(raw.cl_coefs.size() == 1 && std::abs(raw.cl_coefs[0] - 2.0) < 1e-14);
+    CHECK(std::abs(raw.cl_ssq - 2.0) < 1e-14);
+    for (const std::vector<double>& input : {std::vector<double>{}, std::vector<double>{1.0},
+             std::vector<double>{1.0, std::numeric_limits<double>::quiet_NaN()}}) {
+        raw_options.n = 2;
+        bool rejected = false;
+        try {
+            tramo_final_estimator_run(raw_options, input);
+        } catch (const std::invalid_argument&) {
+            rejected = true;
+        }
+        CHECK(rejected);
+    }
+
+    {
+        TramoFinalEstimatorRunRequest no_mean;
+        no_mean.mean = false;
+        const auto simple_regression = tramo_final_estimator_run(no_mean, {1., 3., 5.}, {{1., 2., 3.}});
+        CHECK(simple_regression.returned && simple_regression.cl_coefs.size() == 1);
+        CHECK(std::abs(simple_regression.cl_coefs[0] - 22.0 / 14.0) < 1e-14);
+        bool rejected = false;
+        try {
+            tramo_final_estimator_run(no_mean, {1., 3., 5.}, {{1., 2.}});
+        } catch (const std::invalid_argument&) {
+            rejected = true;
+        }
+        CHECK(rejected);
+    }
+
     // Static-input validation fails explicitly.
     bool threw = false;
     try {

@@ -8,9 +8,7 @@
 // count, resolved bounds) are checked on every case. The two divergent cases
 // (so, spanout) carry the multi-round removal of the round-0 pick (register
 // D3 evidence): the replay there pins the request echoes and the round-0
-// selection itself. The pexao47 case pins the documented fail-closed throw
-// of the warm re-estimation seam (non-constant design, D3 decision-brief
-// evidence).
+// selection itself. The pexao47 case now includes the prespecified AO in warm estimation.
 //
 // Item 23-F F.2 extends this unit with the faithful multi-round machine: the
 // replay of tests/jvm_tramo_outlier_rounds.h drives kalos::
@@ -27,7 +25,10 @@
 #include "jvm_tramo_outlier_scan.h"
 #include "tramo_outlier_scan_replay.h"
 
+#include <algorithm>
 #include <cmath>
+#include <fstream>
+#include <limits>
 #include <cstdint>
 #include <cstdio>
 #include <cstring>
@@ -81,22 +82,6 @@ void replay_case(const golden_tos::Case& c) {
     auto ps = tosr::parse_scan(tosr::split(lines[0]), to_values(c.values, c.nvalues));
     if (ps.cv_is_calc) {
         ps.req.cv = tosr::cv_from_facts(to_lines(c.facts, c.nfacts));
-    }
-
-    if (c.seam_throw != nullptr && c.seam_throw[0] != '\0') {
-        // Documented fail-closed construction (warm re-estimation over a
-        // non-constant design): the seam throws, it never approximates.
-        bool thrown = false;
-        std::string message;
-        try {
-            kalos::scan_tramo_outliers(ps.req);
-        } catch (const std::exception& e) {
-            thrown = true;
-            message = e.what();
-        }
-        CHECK(thrown);
-        CHECK(message.rfind(c.seam_throw, 0) == 0);
-        return;
     }
 
     const auto d = kalos::scan_tramo_outliers(ps.req);
@@ -378,6 +363,85 @@ std::vector<double> series(int n, double base) {
     return y;
 }
 
+void replay_calendar_outliers() {
+    std::ifstream panel(KALOS_CALENDAR_OUTLIERS_PANEL);
+    CHECK(panel.is_open());
+    TramoOutlierScanRequest request{};
+    kalos::TramoOutlierRoundsResult rounds;
+    int cases = 0;
+    for (std::string line; std::getline(panel, line);) {
+        std::istringstream row(line);
+        std::string tag;
+        row >> tag;
+        if (tag == "case") {
+            int id;
+            request = base_request({});
+            row >> id >> request.mean >> request.log >> request.maximum_likelihood;
+            CHECK(row && id == cases);
+            request.p = 0;
+            request.so = false;
+            request.cv = 3.5;
+            request.max_round = 30;
+            request.max_outliers = 50;
+        } else if (tag == "input" || tag == "column") {
+            std::vector<double> values;
+            std::uint64_t raw;
+            while (row >> std::hex >> raw) {
+                double v;
+                std::memcpy(&v, &raw, sizeof(v));
+                values.push_back(v);
+            }
+            if (tag == "input") {
+                request.y = std::move(values);
+                request.upper_bound = static_cast<int>(request.y.size());
+            } else {
+                request.calendar_regressors.push_back(std::move(values));
+            }
+        } else if (tag == "scan") {
+            int pos, kind;
+            std::uint64_t t, coefficient;
+            row >> pos >> kind >> std::hex >> t >> coefficient;
+            CHECK(row);
+            const auto first = kalos::scan_tramo_outliers(request);
+            rounds = kalos::tramo_outlier_rounds(request);
+            const auto scan = std::find_if(rounds.trace.begin(), rounds.trace.end(),
+                [](const auto& event) { return event.has_sod; });
+            CHECK(scan != rounds.trace.end());
+            CHECK(scan->sod.pick_position == pos && scan->sod.pick_type == kind);
+            if (bits_of(scan->sod.max_t) != t || bits_of(scan->sod.coefficient) != coefficient)
+                throw std::runtime_error("calendar scan numerical mismatch in case " + std::to_string(cases));
+            if (std::abs(scan->sod.max_t) >= request.cv) {
+                CHECK(first.status == TramoOutlierScanDecision::Status::Selected);
+                CHECK(first.position == pos && first.type == kind);
+                CHECK(bits_of(first.max_t) == t && bits_of(first.coefficient) == coefficient);
+            } else CHECK(first.status == TramoOutlierScanDecision::Status::Unchanged);
+        } else if (tag == "outliers") {
+            std::string status;
+            row >> status;
+            std::vector<std::array<int, 2>> expected;
+            int pos, kind;
+            while (row >> pos >> kind) expected.push_back({pos,kind});
+            CHECK(status == (expected.empty() ? "Unchanged" : "Changed"));
+            CHECK(rounds.status == kalos::TramoOutlierRoundsResult::Status::Ok);
+            CHECK(rounds.outliers == expected);
+            ++cases;
+        } else CHECK(false);
+    }
+    CHECK(cases == 16);
+    for (const auto& bad : {std::vector<double>(1, 0.0),
+             std::vector<double>(request.y.size(), std::numeric_limits<double>::quiet_NaN())}) {
+        request.calendar_regressors = {bad};
+        try {
+            kalos::scan_tramo_outliers(request);
+            CHECK(false);
+        } catch (const std::invalid_argument&) {}
+        try {
+            kalos::tramo_outlier_rounds(request);
+            CHECK(false);
+        } catch (const std::invalid_argument&) {}
+    }
+}
+
 void test_envelope_throws() {
     auto r = base_request(series(96, 50.0));
 
@@ -455,6 +519,7 @@ void test_empty_factories_unchanged() {
 
 int main() {
     try {
+        replay_calendar_outliers();
         test_envelope_throws();
         test_short_series_failed();
         test_collapsed_bounds_unchanged();

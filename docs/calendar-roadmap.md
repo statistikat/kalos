@@ -58,8 +58,8 @@ machine, driven by `TramoKernel` + `TradingDaysController` + the AMI's
 - `AutomaticFRegressionTest` emits the raw decision oracle
   `$Info{nhp, ss0, ss1, ss6, ssmc1, ssmc6, pftd1, pftd6, dof0, dof1, dof6}`
   with `ssmc1=ss1/(dof1−nhp)`, `F1=(ss0−ss1)/ssmc1`, `F6=(ss0−ss6)/
-  (ssmc6·6.0)`, `pftd = F(Fx, dof−nhp, Lower)` (guard F≤0 → p=0), keep-TD iff
-  `pftd > 1 − fpvalue`. `nhp` = `ArimaSpec.freeParametersCount()` of the base
+  (ssmc6·6.0)`, `pftd = F(Fx, dof−nhp, Lower)` (guard F≤0 → p=0), select six contrasts when `pftd6 > pftd1` and `pftd6 > 1 − fpvalue`;
+  otherwise select one contrast when `pftd1 >= 1 − fpvalue`. `nhp` = `ArimaSpec.freeParametersCount()` of the base
   test model (measured 2).
 - Live discrimination confirmed on the probe corpus: TD-effect series →
   pftd1=pftd6=1.0 → td kept (`td` dim=1 + `lp` in the final model); clean
@@ -167,6 +167,63 @@ Easter/TD beyond pinning the one measured quarterly row (D11 precedent).
 | I-10 | TRAMO auto-methods AIC/BIC/WALD on strong-TD inputs: pinned jar NPEs in `RegularUnderDifferencingTest2.process` (post-ATD, AMI family — same class as the I-6 TR5 crash; reproduced byte-identical in two JVMs, 21-I.3 decode §9.6) | 21-I.3 | recommend per I-6 precedent: do NOT emulate the crash; fail-closed on the input class with pinned reason — pending maintainer confirmation 2026-11-23 |
 
 Decode errata (2026-11-23, 21-I.3 probe, full record in `tmp_opencode/kalos-21i-pinning.md` §9): X-13 `autoPvalue1/2` spec defaults are **0.01/0.1** (earlier working notes said 0.9/0.001 — wrong; jar evidence in §9); TRAMO Wald `pconstraint` is hardcoded 0.1; TRAMO auto-methods override `estimationPrecision` to the builder default 0.001 (AmiOptions.intermediatePrecision); TRfull `lptype` is `LeapYear`; the TRAMO/X-13 alltd candidate lists differ in ORDER (sa puts TD2c first) — fork-preserving per I-3.
+
+## Monthly TRAMO F-test candidate comparison
+
+`tramo_calendar_f_test` estimates the base model and both calendar alternatives
+for monthly observations on the model's estimation scale. Each candidate uses
+an airline SARIMA with two free MA coefficients, with or without a mean. The
+entry point accepts the first observation's year and month, a significance
+level and estimation precision. It returns the three residual sums of squares,
+the two candidates' degrees of freedom, mean squares and lower-tail probabilities,
+and the selected trading-day grouping. The six-contrast test is strict at the
+threshold; the one-contrast test includes equality and wins a tie between two
+significant candidates.
+
+The reference runs the public `AutomaticFRegressionTest` module on four dated
+series and reads both its likelihoods and its output model. Its 14 calls include
+both mean settings, two exact cutoffs with neighbouring probabilities, a tie
+at probability one, and all three selection outcomes. Reproduce the reference
+with `validation/reference/capture-tramo-seats-bridge.py --stage calendar-ftest`
+and the pinned x86-64 Java 21.0.11 and 3.9.0 jar directories.
+[Calendar F-test evidence](../validation/evidence/native/tramo-calendar-ftest/panel.txt)
+
+The stock `tramo_full_initial_calendar` entry also performs the selected
+model's leap-year, Easter and mean tests. It starts with the unadjusted
+monthly airline description and its mean, optionally log-transforms the
+observations, and uses the template's estimated Easter column (six days,
+end position zero, simple centering). The selected TD model includes the
+leap-year column in the final refit. With no trading days, the base
+model supplies the mean and Easter tests. The thresholds are 1.96 for
+the mean, 2.0 for leap year and 2.2 for Easter. The module's processing
+status also matches the reference when adding trading days alone.
+
+The stock F-test processor from 3.9.0 uses 1e−5 precision. The separate
+configurable comparison above was qualified at 1e−3. The 20 level/log
+stock-template cases reproduce the candidate likelihoods, probabilities,
+selected-model t statistics, retained variables and processing status.
+The `trfull-calendar` capture stage replays the locked template factory
+and its real regression module on two JVMs.
+[Stock TRfull calendar evidence](../validation/evidence/native/tramo-calendar-ftest/full.txt)
+
+The late `TradingDaysController` tests the fitted model's residuals for remaining
+working-day effects. `tramo_residual_trading_days` aligns those residuals to the
+end of the estimation domain and fits the single TD2 contrast by OLS without an
+intercept. It returns the F statistic, upper-tail probability and decision to
+refit. A probability exactly at the threshold leaves the current fit in place.
+The 32 reference tests include both sides of that boundary across eight fitted
+descriptions and four calendar starts. A zero residual vector produces no test.
+[Residual trading-day decisions](../validation/evidence/native/tramo-calendar-ftest/residual-td.txt)
+
+For a monthly airline with optional mean and outlier detection disabled,
+`tramo_airline_trading_days_controller` also fits the starting model, fits the
+TD2 candidate after a positive residual test, retests the mean at 1.96 and uses
+the default model comparator to retain or reject the candidate. The 32 cases
+exercise skipped refits, rejected candidates, accepted candidates and a second
+refit after dropping the mean. The 272-month cases also exercise overlapping
+samples in the residual stability tests. Inputs with existing regressors and
+automatic outlier detection, and end-to-end stock TRfull, remain open.
+[Candidate fits and selected models](../validation/evidence/native/tramo-calendar-ftest/td-controller.txt)
 
 ## What this unblocks (downstream map)
 

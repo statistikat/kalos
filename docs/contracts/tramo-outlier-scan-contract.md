@@ -103,12 +103,7 @@ rendering of the same bits — bit-level comparison is the only sound gate).
   pinned recipe always interpolates).
 - pre-registered SO: `std::invalid_argument` (the SO prespec fill loop is
   outside the transcribed surface).
-- warm re-estimation with a non-constant design (non-invertible HR landing
-  stabilized off the unit circle combined with a prespec/missing design):
-  `std::runtime_error` — the qualified Levenberg-Marquardt seam is
-  design-free/constant-column only and the multi-column GLS-profiled
-  objective is its own future slice. Corpus case `sc_pexao47` pins the
-  throw; the JVM lands its (bit-dumped) landing + `drv.coeff` pair.
+- calendar columns with missing values or a length different from the estimation span raise `std::invalid_argument`.
 
 ## Implementation-actual deltas at landing (23-B)
 
@@ -173,3 +168,13 @@ the multi-round pass3 divergences replay as the 3-iterate `kr_gs2` /
 historical fixtures are untouched; the flip witness lives exclusively in
 `tests/test_tramo_kernel_rounds.cpp` and the `verify_tramo_kernel_rounds`
 sweep.
+
+## Calendar-conditioned scans
+
+The optional calendar design enters both the first scan and every subsequent
+refit. Supply the columns on the original monthly domain in estimation order
+before any prespecified outliers. The response transformation applies only to
+the observations. A 16-case reference panel covers TD2 and TD7, leap year,
+Easter, level and log fits, and maximum-likelihood re-estimation. It records
+the first candidate's position, type, signed statistic and coefficient, and
+the public module's final sequence of outliers.
