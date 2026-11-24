@@ -87,11 +87,20 @@ std::vector<Row> merge(const std::vector<double>& original, const std::vector<Tr
                 require(!row || row->values.empty(), "nonempty WK component outside its series domain");
                 continue;
             }
-            require(row && row->values.size() == lengths[s], "incomplete WK domain");
             const int month = static_cast<int>((starts[s] % 12 + 12) % 12) + 1;
-            require(row->start_month == month && row->start_year == (starts[s] - (month - 1)) / 12,
-                    "misaligned WK component");
-            output.push_back(*row);
+            const auto year = (starts[s] - (month - 1)) / 12;
+            if (row) {
+                require(row->values.size() == lengths[s], "incomplete WK domain");
+                require(row->start_month == month && row->start_year == year, "misaligned WK component");
+                output.push_back(*row);
+            } else {
+                // TwoStepsDecomposition combines the deterministic seasonal effect
+                // with an absent stochastic component using the operation's identity.
+                require(components[t] == Component::seasonal && !rows[t][0] && !rows[t][1] && !rows[t][2],
+                        "incomplete WK domain");
+                output.push_back({components[t], kinds[s], year, month,
+                                  std::vector<double>(lengths[s], model.log ? 1.0 : 0.0)});
+            }
             auto& values = output.back().values;
             if (components[t] == Component::series && kinds[s] == Info::value) {
                 values = original;

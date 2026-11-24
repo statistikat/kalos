@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Restore seasonal values and forecasts when the fitted SEATS decomposition
+  contains no stochastic seasonal component.
+
 - Run the stock monthly TR3 reference-model retries, threshold reduction
   and last-chance fits before the seasonal and differencing controllers.
 
