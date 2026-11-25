@@ -98,14 +98,16 @@ The implemented reference interface uses `backend_default_spec()`,
 explicit `backend = "rjd3"` or `backend = "native"`, records that choice in
 each object/result and preserves existing children's choices. Native fitting
 still reports unsupported capability. Complete per-option native validation
-and execution will be added with each numerical slice. Switch the default only
-at item 27.
+and execution will be added with each numerical slice. Item 27 switched the
+default to native on 2026-11-25.
 
 The session setting `options(persephone.backend = "native")` is implemented;
 an explicit constructor argument takes precedence. Resolution happens at object
-construction, and changing the option does not change existing objects. An unset
-option retains the transitional rjd3 default. This will support native-only
-example/test qualification once the required native fits exist.
+construction, and changing the option does not change existing objects. An
+unset option now selects the native default (item 27; Persephone3 `8ec3036`,
+decision evidence `397cfe8`); explicit `backend = "rjd3"` remains fully
+supported and rjd3 reference tests pin it at construction. This supports
+native-only example/test qualification.
 
 Use versioned, owned plain-R data for the interface:
 
@@ -665,6 +667,11 @@ and reviewed; required settings cannot fall back to Java. Publish the evidence
 and remaining unsupported optional features before changing the default.
 
 ### 27. Switch the default and remove mandatory Java/rjd3 dependencies
+
+**Executed:** default flipped to native on 2026-11-25 in Persephone3 `8ec3036`
+after decision `397cfe8`; the pre-switch decision package is at the workspace
+root as `M7_CUTOVER_DECISION.md`. Residual sub-items (dependency-graph removal
+beyond Suggests, the final item 15 pass) are tracked below and remain open.
 
 **Depends on:** 26 and the complete mandatory feature matrix. Final release
 validation in 15 follows this change against the resulting artifact.
