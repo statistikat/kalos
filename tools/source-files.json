@@ -210,7 +210,17 @@
     "src/x13_fit.cpp",
     "tools/gen_hostlineage_tables.py",
     "tools/hostlineage-glibc-sha256.json",
-    "tools/verify_hostlineage.cpp"
+    "tools/verify_hostlineage.cpp",
+    "vendor/slicot/MANIFEST.json",
+    "vendor/slicot/MB01RD.f",
+    "vendor/slicot/SB03MD.f",
+    "vendor/slicot/SB03MV.f",
+    "vendor/slicot/SB03MW.f",
+    "vendor/slicot/SB03MX.f",
+    "vendor/slicot/SB03MY.f",
+    "vendor/slicot/SB04PX.f",
+    "vendor/slicot/UPSTREAM.md",
+    "vendor/slicot/select.f"
   ],
   "fixtures": [
     "validation/fixtures/backend/SHA256SUMS.csv",
