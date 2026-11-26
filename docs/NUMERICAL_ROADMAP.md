@@ -744,6 +744,46 @@ tiers with no tolerance relaxation. Any template that cannot be qualified
 keeps its evidence-backed refusal; the M4 clause "rsa0–rsa3 fully supported"
 is met literally or remains documented as refused.
 
+### 29. Steady-state path inside the exact diffuse likelihood (opened 2026-11-26, maintainer-authorized)
+
+**Depends on:** 20 for the fixed-order estimation kernel, 22 for the X-11
+pipeline, and the M10-D LM eligibility widening (fewer evaluations first —
+cost per evaluation is only worth structural work once evaluation counts match
+the reference). **Owner:** numerical engineer, with independent X-11/TRAMO
+review. Open with its own live-JVM probe/ledger slice in the style of
+[`tramo-seats-roadmap.md`](tramo-seats-roadmap.md) before any unit ships.
+
+- Motivation (M9 measurements, dossier
+  `tmp_opencode/m9-perf/gapanalysis/GAP-ANALYSIS-2026-11-25.md`): the
+  reference concentrates the seasonal ML likelihood on a stationary
+  differenced representation (~130 µs/evaluation) while kalos runs the exact
+  time-varying diffuse filter (~10.8 ms/evaluation) — the ~83×
+  cost-per-evaluation factor of the decomposed 64× gap. Stack attribution:
+  diffuse filter ≈71% of an airline fit, stationary initialization ≈28%,
+  optimizer 1%.
+- Deliver an exactness-preserving steady-state / differenced-stationary
+  evaluation path for the stationary regime inside the diffuse filter. The
+  exact time-varying filter remains the reference and the fallback for the
+  nonstationary and near-boundary regimes; this item does not adopt an
+  approximate filter and does not touch the information/uncertainty contract.
+- The probe slice must freeze oracle corpora spanning stationary,
+  near-unit-root and rank-deficient regimes (capture domains explicit per
+  house policy), with bit-exact decisions and banded values per the numerical
+  acceptance policy.
+- Contract datum to resolve in the probe slice: M9-G showed fit quality is
+  basin-dependent (a synthetic near-unit-root shape reaches a better
+  likelihood under a different start). The item must state explicitly that
+  the steady-state path does not degrade destinations on any pinned corpus
+  and enumerate any shape where the two paths differ beyond qualification
+  budgets — such shapes keep the exact path.
+
+**Acceptance:** per-evaluation cost reduced by the factor the probe slice
+sets (reference magnitude ~10×), seasonal-ML wall-clock improvement measured
+on the fixed-order workloads, all pinned budgets held without movement, full
+suite plus sanitizer and cancellation coverage green, and no corpus decision
+flip. Otherwise the exact path stands and the item closes as a documented
+not-adopted.
+
 ### Numerical acceptance policy
 
 Use four independent validation layers, with failures attributed to the first
