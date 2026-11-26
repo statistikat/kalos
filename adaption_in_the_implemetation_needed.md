@@ -1,6 +1,44 @@
 # Kalos implementation changes needed
 
 Reviewed 2026-11-23 on macOS ARM64, based on `ce7da0d`.
+Refreshed 2026-11-27 from Linux qualification lanes; current main `d1db8ae`. All five
+review items below remain fixed and certified through every subsequent re-pin; the
+historical verification section is retained as recorded.
+
+## Status refresh (2026-11-27)
+
+Since the review: the numbered roadmap program (items 15–28 plus item 29) closed, and the
+M9–M12 speed program landed three core slices, each qualified against the unchanged
+JVM-pinned budgets: **M10-D** pinned-LM fixed-block eligibility (airline 2.4–3.4×),
+**M11** vendored SLICOT SB03MD stationary init behind the m ≥ 8 gate (init ÷12 at m=14;
+fit matrix −17.7%), and **M12** the certified post-pivot diffuse-filter path (2.2–2.7×
+per evaluation, per-step slope 3.67×, route observable via `post_pivot_*` fields).
+Matched reference state: RSA0 pipeline 2.3–3.1× ahead of JDemetra+ (bit-exact), flagship
+seasonal-ML evaluation 8.5× behind JVM against a measured contract floor of ≈5.5–6.1×.
+Current suite state: ctest 97/97 in Release-OpenMP, serial, and sanitizer lanes; manifest
+219 core / 112 fixtures / 472 evidence; migration audit 406 files. All external-library
+candidates carry dispositions in [EXTERNAL_LIBRARY_EVALUATION.md](EXTERNAL_LIBRARY_EVALUATION.md).
+
+## Remaining items (2026-11-27)
+
+1. **Item 30** (roadmap): k = 0 stationary factorization routing — the worst JVM ratio in
+   the frozen corpus (66.7× at m=14); probe-first per its own text.
+2. **Arithmetic-contract follow-ups** named in the M12 ledger (per-step QR cost,
+   accumulation precision) — the only route below the ≈5.5–6.1× contract floor; not yet
+   opened as roadmap items.
+3. **Stale-likelihood leak**: `initial_unavailable` estimation results return the
+   process's last-computed log-likelihood instead of a missing value (pristine
+   reproducible; reproducer `drivers/llrepro.cpp` in the M9-H lane scratch). Small fix +
+   pinning test, independent of performance work.
+4. **Ledger notes awaiting decision** (M7): D8-panel pseudo-additive zero-composition
+   publication (pre-existing, pinned, fail-soft-handled) and RSA2c estimated-route TD
+   capture drift (no parity claim made).
+5. **Platform qualification** (evaluation protocol step 6): hosted Linux/macOS/Windows
+   matrices with a Fortran-capable toolchain for the vendored SLICOT closure; MSVC
+   platforms run the qualified `KALOS_WITH_SLICOT=OFF` QR-mode build until the COFF mixed
+   ABI is qualified.
+6. **Information contract**: TRAMO covariance and joint regression uncertainty remain
+   outside the supported surface.
 
 ## P1 — Fix the standalone build on libc++
 
