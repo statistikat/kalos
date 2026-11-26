@@ -14,7 +14,10 @@ solver ships as a vendored, license-pinned minimal closure behind an m ≥ 8 siz
 (M11 in [implementation status](IMPLEMENTATION_STATUS.md)), with the pivoted-QR route
 retained below the gate and as the documented `KALOS_WITH_SLICOT=OFF` build. The
 optimizer candidates were rejected on measured grounds; the evaluation also located a
-larger internal lever (LM eligibility widening) outside this document's scope.
+larger internal lever (LM eligibility widening) outside this document's scope. Each
+candidate section below now carries its dated disposition; the protocol steps at the
+end were executed per candidate, with the platform-qualification step (step 6) open
+on macOS/Windows as a recorded hosted-CI obligation of the SLICOT adoption.
 
 Related documents: [implementation status](IMPLEMENTATION_STATUS.md),
 [repository split plan](KALOS_REPOSITORY_SPLIT_PLAN.md), and
@@ -131,6 +134,18 @@ including the initialization cost. Keep the current deterministic start as a
 control. Retain the [MPL notice](https://github.com/RhysU/ar/blob/master/LICENSE)
 and record the exact selected source revision if adopted.
 
+**Disposition (2026-11-26): subsumed, not adopted.** The capability targets
+evaluation count, which the core's own qualified Hannan–Rissanen starts and the
+landed LM eligibility route (M10-D, decision record
+`tmp_opencode/m9-perf/lmext/LMBLOCK-QUALIFICATION-2026-11-25.md`: airline
+86→11 evaluations, 2.4–3.4×) already deliver without new third-party code; the
+measured effect of internal starts alone was 1.29–1.68× (decision record
+`tmp_opencode/m9-perf/evals/STARTS-QUALIFICATION-2026-11-25.md`). RhysU/ar was
+therefore not microbenchmarked against the internal start. Open residue
+recorded there as *option B* (explicit client opt-in for the HR start, with
+widened qualification) is not implemented; it remains available as a small
+slice.
+
 ### dlib and LBFGS++: compare optimizers without changing the model
 
 Run optimizer comparisons against the same prepared concentrated objective,
@@ -158,6 +173,17 @@ flag, retain rejection and evaluation counts, and preserve cancellation and
 bounded execution. Optimizer inverse-Hessian approximations remain optimization
 aids and are not substituted for the separate information/uncertainty contract.
 
+**Disposition (2026-11-26): rejected on measured grounds; no head-to-head
+comparison was run.** The 300-sample stack attribution (decision record
+`tmp_opencode/m9-perf/SLICOT-scoping-2026-11-25.md`, table in §4) puts the
+optimizer loop itself at ≈1% of fit time, so the document's own step-2 profiling
+gate disposes of both before any comparison: even a zero-cost optimizer bounds
+below the timing-variability floor of step 7, and BOBYQA's derivative-free
+character would *raise* evaluation counts on the dominant likelihood cost. The
+doc's small-parameter-count caveat for LBFGS++ is thus confirmed by
+measurement, and its trigger condition ("if profiling makes a gradient-based
+replacement attractive") does not fire.
+
 ### CTSA and StatsForecast: broader implementations
 
 CTSA's [initialization source](https://github.com/rafat/ctsa/blob/master/src/initest.c)
@@ -178,6 +204,12 @@ are coupled to pybind11/Eigen, while its
 [Python ARIMA module](https://github.com/Nixtla/statsforecast/blob/main/python/statsforecast/arima.py)
 still invokes SciPy optimization. Treat reuse as an extraction/qualification
 project, not a drop-in C++17 fitting dependency.
+
+**Disposition (2026-11-26): not pursued.** The one capability of interest here
+(Yule-Walker/Burg/Hannan–Rissanen initialization) already exists internally,
+qualified and pinned (see the RhysU/ar disposition above), so extraction would
+import the license and error-path findings recorded above for no measured gain;
+both projects remain comparative references only, per their source review.
 
 ## Common benchmark and acceptance procedure
 
