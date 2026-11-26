@@ -784,6 +784,31 @@ suite plus sanitizer and cancellation coverage green, and no corpus decision
 flip. Otherwise the exact path stands and the item closes as a documented
 not-adopted.
 
+### 30. Factorization routing for the k = 0 stationary path (opened 2026-11-26, maintainer-authorized)
+
+**Depends on:** nothing outside the current core; independent of 29 (the
+stationary regime has no diffuse history block, so the D4 certificate does
+not reach it — see the probe dossier's scope note). **Owner:** numerical
+engineer. Open with a probe/microbenchmark slice setting the target before
+any routing change ships, in the style of item 29's probe.
+
+- Motivation (item 29 probe, `docs/item29-diffuse-filter-probe-2026-11-26.md`
+  §3): with k = 0 the filter routes to the dense `sandwich`/`joseph`
+  fallback with heap churn at 112 µs/step at m = 14 — roughly twice the
+  per-step cost of the m = 27 QR path and the worst JVM ratio in the frozen
+  corpus (`syn-stat-sarma11`: 27.0 ms vs 0.41 ms, 66.7×). It dominates the
+  stationary regime and mis-frames any steady-state gain measured there.
+- Deliverable: correct factorization routing for the k = 0 path so the
+  stationary regime pays the representation it has (no dense fallback where
+  the sparse/QR route applies), or a documented reason the fallback is
+  load-bearing. The frozen corpus already pins witnesses
+  (`validation/evidence/native/diffuse-steady-state-probe/`).
+
+**Acceptance:** stationary-regime per-step cost at or below the QR-path
+class on the frozen shapes, decisions bit-identical, all pinned budgets held,
+full suite plus sanitizer and cancellation lanes green; otherwise the
+current routing stands and the item closes as a documented not-adopted.
+
 ### Numerical acceptance policy
 
 Use four independent validation layers, with failures attributed to the first
