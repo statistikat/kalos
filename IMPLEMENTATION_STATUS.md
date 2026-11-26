@@ -5,6 +5,128 @@ is now an independent C++17 library, without R, Rcpp, Python or Java dependencie
 Sibling bindings consume pinned generated snapshots. Persephone will require
 rkalos; Python intentionally exposes only a minimal initial surface.
 
+## M10 — Fixed coefficients on the pinned sum-of-squares solver (21-D.2 eligibility widening) — 2026-11-26
+
+The pinned sum-of-squares Levenberg-Marquardt route of
+`estimate_sarima_fixed` (`EstimationSolver::PinnedLevenbergMarquardt`) is no
+longer restricted to fully free coefficient blocks: a request whose ARMA
+blocks carry per-entry `fixed` flags now runs the SAME qualified pinned
+machine over a reduced free-coordinate seam instead of meeting the pinned
+eligibility rejection. This lands the option-D lever of the M9 performance
+track, qualified in `tmp_opencode/m9-perf/lmext/LMBLOCK-QUALIFICATION-2026-11-25.md`
+(M9-H, 2026-11-25) behind the `KALOS_EXPERIMENT_LMBLOCK` flag; the product
+slice drops the flag — the widened eligibility IS the behavior, clients still
+opt into the solver explicitly and nothing else about solver selection
+changes.
+
+The seam is the transcription of the mapping the pinned JVM itself builds
+whenever parameters are fixed (`RegSarimaModel` → `RegArmaProcessor.compute`
+over `RegArmaSsqFunction` → `SarimaFixedMapping`): `getDim` counts only the
+free entries, every coordinate the minimizer touches is spliced into the
+pinned fixed clone (`fullParameters`), the epsilon delegates through
+`fullIndex`, `checkBoundaries` runs the qualified `FilterUtility.checkRoots`
+per block at limit 1, and `validate` stabilizes each `SarimaOrders` block
+through the private `stabilize(..., 0.99)` (fully free) or `fstabilize`
+(blocks carrying fixed entries), whose pinned `FunctionException` escape maps
+onto the existing `SsqParamValidation::Invalid` damping tail. Landed as
+`detail::SsqFixedSeam` (`include/kalos/detail/ssq_levmar.hpp`,
+`src/ssq_levmar.cpp`); `minimize_ssq_levmar` grew a defaulted `fixed_seam`
+parameter and the null-seam path is byte-identical to the pre-change machine
+(`start`, the probes, the stacked system, the step and `xSsq` all thread the
+reduced coordinate `j` through `seam->free()[j]` to the full JVM slot — the
+indexing that M9-H caught as its own prototype defect, §7.4).
+`run_pass_pinned_lm` builds the seam in JVM coordinate order
+[phi, bphi, theta, btheta], re-pins the fixed slots from the request values
+(the pinned `SarimaFixedMapping.parameters`, not the starting fill) and hands
+the reduced start to the machine. The landing contract is unchanged: fixed
+slots return bit-exact (signed zero included), `free_count == 0` keeps the
+pinned likelihood-only short circuit, and the status vocabulary is untouched.
+
+Why it matters (M9-H measurements, single thread, `tmp_opencode/m9-perf/lmext`,
+report §4/§6): on the pinned benchmark matrix the lever takes evaluations/fit
+from 85–86 to 11–12 on the airline geometries (wall 2.4–3.4×) and from 66–75
+to 15–16 on the mixed fixed-design geometries (wall 1.32–1.82×) — the latter
+workload previously met the gate throw on this route entirely; all eight
+pinned replays stay in budget (adjustedll 2e-8·(1+|pin|), coefficients 1e-4)
+with **zero decision flips**, and the 18-case adversarial probe widened 13
+fixed-block LM records with 0 unexplained movements and 0 fixed-slot
+violations, landing within ≤7 hex-digit ulp of the BFGS route on the surface
+adjusted-ll yardstick in every converged case.
+
+Qualification carried into the tree: `tests/test_ssq_fixed_seam.cpp` (new)
+pins the seam branch-by-branch — expand fixed-clone semantics including the
+signed-zero fixed slot, `checkBoundaries` at limit 1 per block, the
+stabilize(0.99) window/inversion branches, the `fstabilize` seed/flip
+geometry (0.2, ×−1.25, at most 10) and its unsatisfiable-block no-change
+contract — plus the reduced-index vs full-slot differencing-direction
+regression of §7.4 (the middle-slot fixed mask, where two of three reduced
+coordinates index differently than they are stepped) and the §9.4
+landing-agreement synthetics against the BFGS route.
+`tests/test_estimation_control.cpp` gains the four mixed pinned requests
+(`validation/evidence/native/lm-fixed-block/`, manifest-listed) with their
+JVM pins: both routes must land inside the qualification budgets, the LM
+estimate pass must beat the BFGS evaluation count, the eval counts of record
+(15/15/16/16) are pinned, and the fixed MA slot returns 0.2 bit-exactly.
+
+Verification at the landing (host load 6–12 during the phase, every heavy
+step `nice -n 10`, Unix Makefiles, the pinned OpenBLAS provider): Release
+OpenMP lane 97/97 CTests — was 96 — twice (8:24.74 and 8:31.23 wall, ctest
+totals 504.72 s and 511.22 s); serial lane (`-DKALOS_OPENMP=OFF`) 97/97
+(8:31.02); the CI sanitizer recipe (`Debug`, OpenMP off,
+`-DKALOS_SANITIZERS=ON`) clean on the eight estimation-neighborhood tests
+(`test_estimation_control`, `test_ssq_fixed_seam`, `test_differencing_decision`,
+`test_initial_arma_identification`, `test_arma_refinement`,
+`test_outlier_scoring`, `test_transformation_decision`, `test_arma_optimizer`,
+8/8 in 556.19 s, zero sanitizer reports). Purity: the six estimation sweep
+tools reproduced the pre-change captures BYTE-identically (27 / 4368 / 423 /
+98 / 11 / 18 checks, 0 failures), the twelve x11 bpass/cpass/dpass corpus
+sweeps and the x13 allocation sweep ran with 0 failures (280 checks), and the
+BFGS replay route came back bit-identical on all eleven workloads. Landing:
+the pinned-matrix replay through the production tree equals the qualified
+flag-ON records on every destination field (audit 0 problems), the eight
+pinned cases sit inside the budgets by four to six orders (max adjustedll
+delta 8.7e-12, max coefficient 3.6e-7 relative) with evaluation counts
+11–16, and the 18-case adversarial probe re-ran to 13 widened fixed-block LM
+records, 22 gate-inert/purity witnesses, 0 problems and 36/36 deterministic
+repeat groups in each of two rounds. Manifest and migration gates green
+(209 core, 112 fixture, 416 evidence files; 406 historical files verified).
+
+Follow-ups recorded, NOT fixed here: the stale-`log_likelihood` leak on
+non-landing statuses (M9-H §7.2 — `SarimaEstimationResult::log_likelihood`
+returns the last computed likelihood of the process when a pass ends
+`initial_unavailable`; pre-existing at `kalos@6b59d31`, repro
+`tmp_opencode/m9-perf/lmext/drivers/llrepro.cpp`, callers must not read the
+field on non-landing statuses — recommend returning `unavailable()`), and the
+start-policy question that fixed design entries plus the JVM-order fold can
+make the LM *start* non-evaluable (M9-H §5: LM `start_not_evaluable` and BFGS
+`initial_unavailable` agree on those geometries). The HR-start combination
+(option D on the HR starting point, 9–10 airline evaluations in
+`tmp_opencode/m9-perf/evals/STARTS-QUALIFICATION-2026-11-25.md`) stays an
+explicitly sequenced follow-up, not part of this slice. The seam lane's own note
+(M9-H §10, with M9-G `tmp_opencode/m9-perf/evals/STARTS-QUALIFICATION-2026-11-25.md`
+and the M9-C2 stationary-initialization qualification
+`tmp_opencode/m9-perf/seam/SEAM-QUALIFICATION-2026-11-25.md`): the pinned LM
+route does not use the diffuse filter's stationary init, so the SLICOT SB03MD
+seam does not stack on it — SLICOT adoption targets the routes that keep
+BFGS, and every workload option D now covers is strictly cheaper without it.
+
+Downstream: no in-core caller reaches the widened branch — every
+`EstimationSolver::PinnedLevenbergMarquardt` consumer (differencing decision,
+TR0, final estimation, outlier scan, calendar/seasonal F-tests,
+transformation decision, HR starts, WK tiers, automatic X-13) zero-fills its
+fixed masks, so all internal routes keep the null-seam path byte-for-byte.
+`rkalos` glue never selects the LM solver and its tests carry no expectation
+of the retired rejection, so the re-vendoring rerun (`core.lock.json` +
+hashes) is expected to move **no** pinned value — the sensitive panels
+(test-native-x13-estimated, test-native-residual-trading-days, the
+test-native-x13-automatic D8 panel) should re-certify byte-identical.
+`pykalos` exposes the solver at its control boundary and carries exactly one
+downstream expectation of the old rejection —
+`tests/test_estimation.py::test_fixed_coordinate_and_refusals` expects
+`ValueError("fully free blocks")` for the LM route on a fixed MA block; that
+assertion is the only known re-pin this change forces, and it becomes a
+landing assertion of the same budgets this suite pins.
+
 ## M7 — SA and irregular trading-day F-tests (item 27 cutover gap) — 2026-11-24
 
 The SA-diagnostic trading-day F-tests are now published natively: the new
