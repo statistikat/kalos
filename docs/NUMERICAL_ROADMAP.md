@@ -784,6 +784,28 @@ suite plus sanitizer and cancellation coverage green, and no corpus decision
 flip. Otherwise the exact path stands and the item closes as a documented
 not-adopted.
 
+**Acceptance outcome (maintainer adoption, 2026-11-26): ADOPTED at the
+measured shape.** The certified post-pivot reduction shipped unflagged as
+core behavior (M12); the qualification dossiers
+`tmp_opencode/item29-d4/D4-QUALIFICATION-2026-11-26.md` and
+`tmp_opencode/item29-d4b/D4B-TRIM-QUALIFICATION-2026-11-26.md` carry the
+evidence. The headline line passes: airline-x per-evaluation 8.27× the pinned
+JVM reference (budget ≤ 10×), decisions bit-identical on the frozen probe
+corpus, values inside their bands by three orders of magnitude, every
+non-arming shape byte-identical to the exact path. The two remaining budget
+lines are reclassified as measured contract-floor limits of this design, not
+implementation defects: the trimmed evaluation still pays init (0.59 ms) plus
+the pre-pivot exact-certification steps (≈0.66 ms) plus the irreducible
+two-dgeqrf-per-step reduced-route QR floor (≈7.5 µs of the 14.2 µs step) —
+together ≈70% of a trimmed evaluation, bounding this arithmetic contract at
+≈5.5–6.1× the JVM. The airline-noreg ≤ 12× line misses at 14.5× and the
+seasonal-ML ≥ 3× per-evaluation factor misses at 2.46–2.72× (asymptotic slope
+3.59×) against that floor; closing them would require touching the arithmetic
+contract itself (double-width accumulation policy or a QR-free propagation
+form) — candidate future items, deliberately NOT opened here. Item 29 closes
+as ADOPTED at this measured shape; item 30 (k = 0 factorization routing)
+remains open and unaffected.
+
 ### 30. Factorization routing for the k = 0 stationary path (opened 2026-11-26, maintainer-authorized)
 
 **Depends on:** nothing outside the current core; independent of 29 (the

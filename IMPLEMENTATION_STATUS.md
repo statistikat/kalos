@@ -5,6 +5,156 @@ is now an independent C++17 library, without R, Rcpp, Python or Java dependencie
 Sibling bindings consume pinned generated snapshots. Persephone will require
 rkalos; Python intentionally exposes only a minimal initial surface.
 
+## M12 — Trimmed certified post-pivot diffuse filter (item 29 D4) as unflagged core behavior — 2026-11-26
+
+The certified post-pivot history-block reduction that item 29 qualified now
+ships as **core behavior without a runtime flag**, mirroring the M10-D
+precedent (eligibility IS the behavior: computed per fit, fail-closed,
+observable — no `KALOS_EXPERIMENT_*` define ships). At the last diffuse
+pivot of a canonical zero-observation-variance SARIMA filter the machine
+certifies the `P^+Z = 0` nullity through the square-root factor, the
+pivot-exhaust `predict` still runs full-m, the predicted factor's history
+block is certified rounding-level, the stationary rows are compressed once
+by a Householder QR of the tall transpose behind a **reconstruction check**
+(a wrong reduction self-rejects — the §9.5 mechanism, armed on every
+certified fit), and the recursion continues on the r-wide factor.
+Eligibility is the canonical SARIMA route — exact-history certificate,
+stable-history frames, square-root factor, `k > 0`, `h = 0`; everything else
+takes the exact full-m path. The evidence is the D4 qualification dossier
+(`tmp_opencode/item29-d4/D4-QUALIFICATION-2026-11-26.md`) and the trim
+re-qualification (`tmp_opencode/item29-d4b/D4B-TRIM-QUALIFICATION-
+2026-11-26.md`), the maintainer adoption of the trimmed ON state being dated
+2026-11-26; the flagship ≤10× line passed there at 8.27× and the two
+budget-line misses were ratified as measured contract-floor limits, not
+defects (roadmap item 29 acceptance outcome).
+
+The **§9.1 fully-observed-window guard is a required soundness clause, not
+an optimization**: the induction re-pins the certified-zero history block
+through every observation update, so one missing observation inside the
+window leaves process noise on the history coordinates unpinned (monitor
+census: 0.83 relative on the gapped corpus case after its first in-window
+gap, unguarded output shift 4.5%, versus ≤8.03e-16 on every gap-free case).
+A gap after the pivot-exhaust step keeps the fit on the exact full path
+bit-identically (route 3). Of the trim ladder only the stages with written
+exactness cases ship (D4b stages 1–2): the block-structured state advance —
+stationary rows r-wide by the exact-zero-term lemma, the pivot row kept as
+the full m-term ring-entry dot, shift rows exact copies — under a
+**companion-shape witness verified fail-closed once per fit** (a shape
+failure keeps the general product for the whole evaluation, route and
+outputs untouched), and the gain/pz right-sizing with the certified +0.0
+gain tail so the m-wide gain buffer keeps its bit content for the state add,
+the regression whitening lane and the diffuse-gain output. The measured-zero
+stage-3/4 probes are **withheld**: the ring/frame/rank witnesses stay armed
+at every step and the state-add loop stays m-long — bit-identity by
+construction bought at measured zero cost is not traded for a sign-of-zero
+residual or a weakened fail-closed posture.
+
+Observability rides the filter's existing public numerics surface
+(`DiffuseLikelihood::numerics`; this core has no version/probe call and the
+struct already carried the SLICOT seam's `finite_factor_initialization_
+residual`): `post_pivot_route` (0 not eligible — generic entry, h > 0 or
+k = 0; 1 armed, full path kept; 2 reduced recursion ran for
+`post_pivot_certified_steps` steps; 3 certificate or window-guard rejected —
+full path, values bit-for-bit), plus the certificate residual and the
+compression count/residual. Every caller can see whether a fit ran r-wide or
+full; the selection is never silent. The struct extension is the only
+visible interface change (tail-appended fields): of 92 library objects the
+full-path build of HEAD shares **89 byte-identically** with this tree, and
+the three exceptions (`diffuse_state_space.cpp.o`,
+`finite_state_factor.cpp.o`, plus `regression_likelihood.cpp.o`, which only
+sees the wider struct layout) are **byte-identical to the qualified
+trimmed-ON build** — the unflagged tree IS the qualified default, object for
+object, zero numerical deviation from the qualified prototype.
+
+**Adopted within-budget destination datum (§9.4).** With the route live, four
+complete-data cases of the eleven-workload pinned replay matrix move their
+pinned-LM coefficient destinations by ≤ **3.135e-08** (airline ma;
+2.653e-08 mixed seasonal_ma, 1.56e-08 mixed ar, 3.1e-09 airline seasonal_ma)
+against 1e-4 pinned budgets (worst budget fraction 0.0022), with adjusted
+likelihood deltas ≤1.28e-12 and every decision field, evaluation count and
+pass structure bit-identical; the BFGS estimate route moves destinations
+≤4.35e-12 with dll = 0; all gapped and stationary cases stay byte-identical.
+This is a convergence-point quantity on flat directions — a ~1e-15
+likelihood-surface re-association resolving near the destination — and it is
+the D4 analogue of the M11 reference-BFGS knife-edge: a classified,
+maintainer-adopted deviation from byte-identity, not a waiver, and this
+slice's honest deviation from the SLICOT landing's "nothing moved anywhere".
+The landing lane re-fired the same 16 destination lines digit-for-digit and
+the replay records are byte-identical to the qualified ON records (all 66
+records across both modes, ms/rep excluded).
+
+Verification at the landing (pinned OpenBLAS provider, single-thread lanes,
+`nice -n 10`, Unix Makefiles; host load 2.2–6.8, every timed lane
+loadavg-bracketed): Release OpenMP ctest **97/97 twice** (111.74 s and
+61.56 s) and **serial 97/97** (197.09 s); ASan+UBSan subset (diffuse,
+factor, regression, finite, objective, information) **15/15 exit 0** and the
+full 15-case corpus through the sanitizer-built library with **zero
+diagnostic bytes**, its outputs byte-identical to the -O3 outputs. The
+frozen probe corpus: the pristine baseline reproduces the goldens 15/15
+byte-identically; the shipped route-ON corpus is **byte-identical to the
+qualified trim records (all 15 cases)**, decisions bit-identical, worst JVM
+deviations **2.84e-15 rel / 7.11e-14 abs** with zero band problems, the
+route table reproduced (route 2 ×11, route 3 for gaps-x, route 0 for the two
+k = 0 cases), the reconstruction census reproduced (`rebuilds = 1`,
+`rebuildres = 0` on every route-2 case), and the three non-arming cases
+(gaps-x, two k = 0) **byte-identical shipped = HEAD = goldens**. The monitor
+census re-ran byte-identically to the dossier records (nearur 8.03e-16 at
+step 16; the forced-across-a-gap 0.828 at step 39 — exactly what the
+production guard rejects); the cancellation probe census equals the
+qualified ON numbers digit-for-digit (polls 8651/1867, checks 3154/493,
+problems = 0, reuse-after-cancel PASS). The estimation-decision battery
+(six decision tools, twelve x11 corpus sweeps, the x13 allocation sweep;
+19 invocations) is **zero diff lines** against the pristine build. Manifest and
+migration gates green (**219** core, **112** fixture, **472** evidence
+files; **406** historical files verified).
+
+Fresh timing (this landing, base-vs-shipped interleaved per round, 3×9-rep
+cross-round medians except where noted; JVM references frozen):
+airline-x **8.46×** the pinned JVM per evaluation (dossier 8.27×, host-noise
+band; **PASS ≤10×**, worst round 8.57×; OFF baseline 21.35×), per-step slope
+51.9 → 14.1 µs (**3.67×**, dossier 3.59×), the regression-whitening consumer
+lane at OFF/ship 2.32–2.39 and 9.41× the pinned JVM (gain-buffer bit-content
+argument holds in the consumer lane), and the route-0/3 controls at ratio
+0.96–1.04 as required. airline-noreg measures **15.16×** as the median over
+all 14 interleaved ship rounds with its clean cluster at 3.27–3.40 ms
+(**13.8–14.4×**, dossier 14.54×) — the dossier's own contamination class
+recurred (three ship rounds above 5 ms with loadavg pinned at 2.3, host
+bursts invisible to the 1-minute average), and the ≤12× line stays missed at
+the measured floor. The seasonal-ML per-evaluation factor measures
+**2.40–2.67×** (dossier 2.46–2.72×; slope 3.67×) — the ≥3× total line stays
+missed exactly where §12.2 of the trim dossier places the floor: init plus
+the pre-pivot exact-certification steps plus the irreducible two-dgeqrf-per-
+step reduced QR floor are ≈70% of a trimmed evaluation, bounding this
+arithmetic contract at ≈5.5–6.1× the JVM. Those two lines are closed as
+ADOPTED contract-floor limits by the maintainer on 2026-11-26 (roadmap item
+29 acceptance outcome); closing them needs an arithmetic-contract slice, not
+more bookkeeping trim.
+
+Downstream obligations — stated plainly: **unlike the SLICOT seam, D4
+changes the diffuse filter that EVERY product fit runs, including the pinned
+LM route, so the `rkalos` and `pykalos` re-certifications must MEASURE real
+drift against their own pins; byte-identity must NOT be assumed.** Both
+locks currently pin core `ec17543`; re-vendoring to this tree must re-measure
+at least the bit-exact hex-oracle suites — rkalos
+`test-native-tramoseats-fit/rsa1/rsa3/rsafull/residuals/forecast-errors/
+ljung-box/normality`, `test-native-x13-estimated`, `test-native-x13-
+automatic`, `test-native-x13-automatic-diagnostics`,
+`test-native-seats-from-tramo`, `test-native-tramo-preprocess/legacy/
+information` and the backend fixture table (`parameters/val` atol 1e-9 /
+rtol 1e-7) — and in pykalos `test_tramoseats_fit.py`,
+`test_tramo_automatic.py`, `test_x13_estimated.py`, `test_x13_automatic*.py`
+and the `test_estimation.py` budgets (pinned-case coefficients at 1e-8,
+`adjustedll` budgets replayed from `pins.txt`). The expected movement is the
+§9.4 class measured here — destinations ≤4.35e-12 on the estimate route and
+≤3.135e-08 on pinned routes of complete-data seasonal fits, likelihood
+deltas ≤1.28e-12 — so bit-exact fixtures on arming shapes will need
+rebaselining by measurement, any pin tighter than 1e-7 relative on
+estimated coefficients must be re-measured, and gapped or k = 0 fixtures
+stay byte-identical. Item 30 (k = 0 factorization routing) is untouched and
+stays open; the §9.2 near-boundary reading stays with the maintainer
+unchanged (route 2 arms there with byte-identical decisions and the same
+censuses as the dossier).
+
 ## M11 — SLICOT SB03MD stationary initialization for state orders m ≥ 8 — 2026-11-26
 
 `stationary_initialization` now solves the discrete-time Lyapunov equation of
