@@ -23,6 +23,8 @@
 #include <cassert>
 #include <cmath>
 #include <cstdio>
+#include <fstream>
+#include <sstream>
 #include <stdexcept>
 #include <string>
 #include <vector>
@@ -384,6 +386,213 @@ void check_case(const Case& c) {
         static_cast<int>(result.passes[n - 2].accepted));
 }
 
+// ---------------------------------------------------------------------------
+// M9-H eligibility widening: the pinned-matrix fixed-coefficient corpus.
+// The four mixed_factors requests (KALOSREQ records + JVM pins under
+// validation/evidence/native/lm-fixed-block/) used to meet the pinned
+// eligibility rejection on the sum-of-squares solver; with the widened
+// eligibility they run the pinned LM machine through the reduced-coordinate
+// seam and must land on the JVM pin within the qualification budgets
+// (adjustedll 2e-8 * (1 + |pin|), coefficients 1e-4 * (1 + |pin|)), the BFGS
+// route on the same request as the cross-route witness. The eval-count
+// fixture is live-checked: the section pins KALOS_NUM_THREADS=1, the
+// single-thread setting of the qualification lane, exactly as the M9-H
+// replay driver ran it. Provenance: pins.txt and the qualification report
+// tmp_opencode/m9-perf/lmext/LMBLOCK-QUALIFICATION-2026-11-25.md section 4.
+// ---------------------------------------------------------------------------
+
+std::vector<std::string> tokens(const std::string& line) {
+    std::vector<std::string> out;
+    std::istringstream in(line);
+    std::string t;
+    while (in >> t) out.push_back(t);
+    return out;
+}
+
+std::vector<double> numbers(const std::vector<std::string>& t, std::size_t from) {
+    std::vector<double> out;
+    for (std::size_t i = from; i < t.size(); ++i) out.push_back(std::stod(t[i]));
+    return out;
+}
+
+std::vector<std::uint8_t> flags(const std::vector<std::string>& t, std::size_t from) {
+    std::vector<std::uint8_t> out;
+    for (std::size_t i = from; i < t.size(); ++i) out.push_back(static_cast<std::uint8_t>(std::stoi(t[i])));
+    return out;
+}
+
+struct PinnedReplay {
+    kalos::SarimaEstimationRequest request;
+    double jacobian = 0.0;
+};
+
+PinnedReplay read_req(const std::string& path) {
+    std::ifstream file(path);
+    if (!file) throw std::runtime_error("cannot open " + path);
+    PinnedReplay replay;
+    auto& r = replay.request;
+    std::size_t expected_columns = 0;
+    std::size_t read_columns = 0;
+    std::string line;
+    while (std::getline(file, line)) {
+        const auto t = tokens(line);
+        if (t.empty() || t[0] == "KALOSREQ") continue;
+        const std::string& key = t[0];
+        if (key == "series") r.series.values = numbers(t, 1);
+        else if (key == "missing") {
+            r.series.missing.assign(t[1].size(), 0);
+            for (std::size_t i = 0; i < t[1].size(); ++i)
+                r.series.missing[i] = static_cast<std::uint8_t>(t[1][i] == '1' ? 1 : 0);
+        } else if (key == "scalar") {
+            r.period = std::stoi(t[1]);
+            r.d = std::stoi(t[2]);
+            r.seasonal_d = std::stoi(t[3]);
+            r.spec_d = std::stoi(t[4]);
+            r.spec_bd = std::stoi(t[5]);
+        } else if (key == "design_columns") {
+            expected_columns = std::stoull(t[1]);
+            r.design.columns = expected_columns;
+        } else if (key == "design_column") {
+            const auto column = numbers(t, 1);
+            r.design.values.insert(r.design.values.end(), column.begin(), column.end());
+            ++read_columns;
+        } else if (key == "design_coefficients") r.design.coefficients = numbers(t, 1);
+        else if (key == "design_fixed") r.design.fixed = flags(t, 1);
+        else if (key == "block_ar_initial") r.blocks[0].initial = numbers(t, 1);
+        else if (key == "block_ar_fixed") r.blocks[0].fixed = flags(t, 1);
+        else if (key == "block_ma_initial") r.blocks[1].initial = numbers(t, 1);
+        else if (key == "block_ma_fixed") r.blocks[1].fixed = flags(t, 1);
+        else if (key == "block_seasonal_ar_initial") r.blocks[2].initial = numbers(t, 1);
+        else if (key == "block_seasonal_ar_fixed") r.blocks[2].fixed = flags(t, 1);
+        else if (key == "block_seasonal_ma_initial") r.blocks[3].initial = numbers(t, 1);
+        else if (key == "block_seasonal_ma_fixed") r.blocks[3].fixed = flags(t, 1);
+        else if (key == "control") {
+            r.control.eps = std::stod(t[1]);
+            r.control.feps = std::stod(t[2]);
+            r.control.maximum_likelihood = std::stoi(t[3]) != 0;
+            r.control.unit_root_search = std::stoi(t[4]) != 0;
+            r.control.corrected_degrees_of_freedom = std::stoi(t[5]) != 0;
+            r.control.fast_derivatives = std::stoi(t[6]) != 0;
+            const std::string start = t[7];
+            r.control.starting_point =
+                start == "default" ? kalos::EstimationStartingPoint::Default
+                                   : kalos::EstimationStartingPoint::Zero;
+            r.control.solver = t[8] == "pinnedlm"
+                                   ? kalos::EstimationSolver::PinnedLevenbergMarquardt
+                                   : kalos::EstimationSolver::Bfgs;
+        } else if (key == "optimizer") {
+            const auto assign = [&](const std::string& pair) {
+                const auto eq = pair.find('=');
+                const long long value = std::stoll(pair.substr(eq + 1));
+                if (pair.rfind("max_iterations", 0) == 0)
+                    r.optimizer.max_iterations = value;
+                else
+                    r.optimizer.max_evaluations = value;
+            };
+            for (std::size_t i = 1; i < t.size(); ++i) assign(t[i]);
+        } else if (key == "jacobian") replay.jacobian = std::stod(t[1]);
+    }
+    if (read_columns != expected_columns) throw std::runtime_error("design columns: " + path);
+    if (r.series.values.empty()) throw std::runtime_error("series: " + path);
+    return replay;
+}
+
+void check_pinned_lm_corpus() {
+    const std::string root = KALOS_LM_FIXED_BLOCK_DIR;
+    // The qualification lane is single-threaded; the eval-count fixture of
+    // record is live only under that setting.
+#ifdef _WIN32
+    assert(_putenv_s("KALOS_NUM_THREADS", "1") == 0);
+    assert(_putenv_s("OMP_NUM_THREADS", "1") == 0);
+    assert(_putenv_s("OPENBLAS_NUM_THREADS", "1") == 0);
+#else
+    assert(setenv("KALOS_NUM_THREADS", "1", 1) == 0);
+    assert(setenv("OMP_NUM_THREADS", "1", 1) == 0);
+    assert(setenv("OPENBLAS_NUM_THREADS", "1", 1) == 0);
+#endif
+    std::ifstream pins(root + "/pins.txt");
+    if (!pins) throw std::runtime_error("cannot open pins.txt");
+    std::string line;
+    int cases = 0;
+    while (std::getline(pins, line)) {
+        if (line.empty() || line[0] == '#') continue;
+        std::istringstream in(line);
+        std::string id, req_file, status_lm;
+        std::vector<double> numbers_row;
+        in >> id >> req_file;
+        std::string field;
+        while (in >> field) {
+            if (field.find_first_not_of("0123456789+-.eE") == std::string::npos)
+                numbers_row.push_back(std::stod(field));
+            else
+                status_lm = field;
+        }
+        assert(numbers_row.size() == 10); // jacobian, 2 adjustedll, 6 coefficients, evals
+        const auto replay = read_req(root + "/" + req_file);
+        const double jacobian = replay.jacobian;
+        const double adjll_x13 = numbers_row[1];
+        const double adjll_tramo = numbers_row[2];
+        const double coefficient_pins[2][3] = {
+            {numbers_row[3], numbers_row[4], numbers_row[5]},
+            {numbers_row[6], numbers_row[7], numbers_row[8]},
+        };
+        const long long evals_lm = static_cast<long long>(numbers_row[9]);
+        // The pins.txt jacobian column and the request record's jacobian line
+        // are two decimal printings of the same JVM constant (shortest
+        // round-trip vs the report transcription); they agree to < 1e-9.
+        assert(std::abs(numbers_row[0] - jacobian) < 1e-9);
+
+        const auto in_budget = [](double actual, double pin, double scale) {
+            return std::abs(actual - pin) < scale * (1.0 + std::abs(pin));
+        };
+        const auto adjusted = [&](const kalos::SarimaEstimationResult& result) {
+            return result.log_likelihood + jacobian;
+        };
+
+        // BFGS cross-route witness: the product route lands on the same pin
+        // (the qualification measured both routes in one basin).
+        auto bfgs_request = replay.request;
+        bfgs_request.control.solver = kalos::EstimationSolver::Bfgs;
+        const auto bfgs = kalos::estimate_sarima_fixed(bfgs_request, {});
+        assert(bfgs.status == "converged");
+        assert(in_budget(adjusted(bfgs), adjll_x13, 2e-8));
+        assert(in_budget(adjusted(bfgs), adjll_tramo, 2e-8));
+
+        // The widened route: the pinned LM machine over the fixed blocks.
+        auto lm_request = replay.request;
+        lm_request.control.solver = kalos::EstimationSolver::PinnedLevenbergMarquardt;
+        const auto lm = kalos::estimate_sarima_fixed(lm_request, {});
+        assert(lm.status == status_lm);
+        assert(lm.converged);
+        assert(lm.passes.size() == 3);
+        assert(lm.passes[0].stage == "estimate");
+        assert(lm.passes[0].attempted && lm.passes[0].accepted);
+        assert(lm.passes[0].optimizer_status.rfind("converged", 0) == 0);
+        assert(static_cast<long long>(lm.passes[0].evaluations) == evals_lm);
+        const long long bfgs_estimates =
+            static_cast<long long>(bfgs.passes[0].evaluations);
+        assert(static_cast<long long>(lm.passes[0].evaluations) < bfgs_estimates);
+        assert(in_budget(adjusted(lm), adjll_x13, 2e-8));
+        assert(in_budget(adjusted(lm), adjll_tramo, 2e-8));
+        for (const auto& pin : coefficient_pins) {
+            for (std::size_t j = 0; j < 3; ++j) {
+                const double actual = j == 2 ? lm.coefficients[3][0]
+                                             : lm.coefficients[j][0];
+                assert(std::abs(actual - pin[j]) < 1e-4 * (1.0 + std::abs(pin[j])));
+            }
+        }
+        // Landing contract: the fixed MA slot returns bit-exactly (0.2).
+        assert(lm.coefficients[1][0] == lm_request.blocks[1].initial[0]);
+        assert(std::signbit(lm.coefficients[1][0]) ==
+               std::signbit(lm_request.blocks[1].initial[0]));
+        ++cases;
+        std::printf("  pinned-lm %s: ok (adjll %.3e (x13 budget), evals %lld < %lld)\n",
+            id.c_str(), std::abs(adjusted(lm) - adjll_x13),
+            static_cast<long long>(lm.passes[0].evaluations), bfgs_estimates);
+    }
+    assert(cases == 4);
+}
+
 } // namespace
 
 int main() {
@@ -481,6 +690,7 @@ int main() {
         }
         std::printf("  reuse %s: ok\n", id);
     }
+    check_pinned_lm_corpus();
     std::printf("test_estimation_control: all checks passed\n");
     return 0;
 }
