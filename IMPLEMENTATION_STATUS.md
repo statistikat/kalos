@@ -5,6 +5,120 @@ is now an independent C++17 library, without R, Rcpp, Python or Java dependencie
 Sibling bindings consume pinned generated snapshots. Persephone will require
 rkalos; Python intentionally exposes only a minimal initial surface.
 
+## M11 — SLICOT SB03MD stationary initialization for state orders m ≥ 8 — 2026-11-26
+
+`stationary_initialization` now solves the discrete-time Lyapunov equation of
+the stationary companion form with SLICOT `SB03MD` (DICO='D', JOB='B', on the
+Schur form `stationary_arma` already computed — the window reuse the seam
+probe witnesses at 33–51 boundary polls with one cancellation and one reuse)
+for state orders **m ≥ 8**; m < 8 keeps the qualified QR/Kronecker route
+**bit-identical**. This lands the C2 seam track of the M9 performance line,
+qualified in `tmp_opencode/m9-perf/seam/SEAM-QUALIFICATION-2026-11-25.md`
+(M9-C2, ADOPT-WITH-CONDITIONS) and gated on the R-boundary fit matrix, which
+passed in `tmp_opencode/m9-perf/seam-r/RQUAL-2026-11-25.md` (M9-C3: 0 failures
+in 6 × 1517 fit-matrix checks and 4 × 310k tinytest assertions, no pinned
+decision flipped anywhere, ON-state maxima at or below flag-OFF maxima). The
+qualification flag is NOT shipped: the seam is core behavior on the supported
+platforms, and the only choice is the compile-time `KALOS_WITH_SLICOT` option.
+The pinned decision routes keep their exact status mapping and every core
+post-check (residual gate 1e-10, certificate rcond, stability): a failed SLICOT
+solve fails the fit — there is no silent fallback to QR.
+
+The vendor tree carries the **minimal closure computed from the link map**
+(`-Wl,-Map` of a driver reaching `sb03md_`), not a hand list: eight members —
+`SB03MD`, `SB03MV`, `SB03MW`, `SB03MX`, `SB03MY`, `SB04PX`, `MB01RD` and
+`select` — byte-unmodified from SLICOT 5.9.1-dev @
+`5eeb845d84f5a60f6069754b7819dad468951933` (BSD-3-Clause), under
+`vendor/slicot/` with `UPSTREAM.md` (provenance, license text, the libgfortran
+runtime note) and a sha256 `MANIFEST.json`; all ten files are listed in the
+export manifest. Every external symbol the closure needs — 21 BLAS/LAPACK
+entry points — was verified present in the pinned OpenBLAS 0.3.34 shared and
+static libraries before vendoring; libgfortran is the only additional runtime
+dependency, and no other SLICOT file is referenced.
+
+`KALOS_WITH_SLICOT` defaults ON wherever a Fortran compiler is usable and
+MSVC is not; ON under MSVC is a `FATAL_ERROR` (linking gfortran objects
+through the COFF mixed ABI is unqualified, seam memo §8) and the option
+defaults OFF there. `OFF` is a **build-time exclusion**: no Fortran language
+enablement, no vendor objects, QR everywhere — not a runtime bypass — and the
+QR route body is kept verbatim inside the dispatch so the flag-OFF machine
+equals the pre-change machine (`libkalos.a` gains `T sb03md_` only when ON).
+Fortran sources attach through `target_sources` with a PRIVATE definition, so
+the public library interface and struct layout are unchanged. Fortran compiles
+with the repo-wide `-ffp-contract=off` (no fused multiply-add contraction — a
+deliberate tightening over the M9 prebuilt library, which used gfortran
+defaults internally; landing values are unaffected, as the flag-OFF
+byte-identity and the in-budget pinned replays show) plus a minimal,
+empirically-derived per-source warning suppression list, and is warning-clean
+at the repo's warning set.
+
+The size gate is the memo's zero-regress option: the SB03MD advantage is
+order-dependent (M9: init ÷11–12 at m=14, likelihood −25 to −33%, end-to-end
+fit −26 to −36% on m=14 monthly shapes; ≈0 for m ≤ 4, m=1 costs
++1.1 µs/evaluation), and small states gain nothing while the solution
+difference between routes — ≈1e-15 stable, 5.5e-10 at the (1−1e-8) boundary,
+**3.6e-07 worst case at the near-unit seasonal SARIMA (SEP≈1e-9) m=14
+boundary** — rides into the filter start. Every SLICOT solution passes the
+preserved residual gate everywhere (the gate never binds); at the landing the
+interleaved-median table reproduces the init win (per-init 2.03 ms → 0.17 ms,
+**÷12 at m=14**; ÷6.0 at m=12, ÷2.4 at m=8, exactly unchanged at the QR-state
+control `ar1q4` m=1), the three m=12/14 geometries land at end-to-end fit
+ratios 0.67–0.77 under a shared-host noise band that also moved the QR/QR
+control row by ±27%, and the evaluation counts are route-invariant on every
+shape (256/634/1141/114 matrix and the M9 proto witnesses 300/92/184).
+
+Verification at the landing (host load 3–15 during the phase, every heavy
+step `nice -n 10`, Unix Makefiles, the pinned OpenBLAS provider): Release
+OpenMP ON lane 97/97 CTests twice (6:52.79 and 6:48.53 wall); the flag-OFF
+tree 97/97 with no Fortran in its configure output (8:09.40); serial lane
+(`-DKALOS_OPENMP=OFF`) 97/97 (6:14.74); the sanitizer recipe (Debug, OpenMP
+off, `-DKALOS_SANITIZERS=ON`) on the nine stationary-init-neighborhood tests
+with the vendored Fortran objects instrumented too — 9/9 plus the probe,
+**zero ASan/UBSan reports**. Behavior identity: the full purity battery (six
+estimation sweeps 27 / 4368 / 423 / 98 / 11 / 18 checks, twelve x11 corpus
+sweeps, the 280-check x13 allocation sweep) reproduced the pre-change captures
+**byte-identically in both flag states**, and the eleven-workload pinned
+replay is bit-identical to the HEAD captures with the flag OFF. The
+pinned-matrix replay through the ON tree — the seam memo's own STOP-AND-REPORT
+gate — is clean: 32/32 pinned rows inside the JVM budgets (max adjustedll
+delta 1.1e-11 against budgets ≥ 2.4e-6, max coefficient movement 3.8e-07
+against 1e-4), statuses and evaluation counts identical OFF↔ON. The 18-case
+agreement probe re-ran inside the real seam to the memo numbers (0 status
+flips, m14-bound maxrel 3.61e-07 vs the memo's 3.6e-07, rcond agreeing to all
+printed digits, residuals ≤ 2.5e-15, the Schur-window cancellation and
+bit-identical reuse witnessed). Manifest and migration gates green (219 core,
+112 fixture, 416 evidence files; 406 historical files verified).
+
+One adjudicated test change ships with this slice: at the
+`fixed-ar-nearlimit` geometry of `tests/test_ssq_fixed_seam.cpp` the m=14 init
+drift moves the **reference BFGS** run off its knife-edge — it terminates
+`stalled` 4.27e-9 ll (2.4e-11 relative) below the QR-route landing instead of
+`converged` — while the pinned-LM landing is bit-identical between routes and
+every numeric budget in the test still binds with margin (surface gap
+4.273e-09 vs 1e-4, fixed slots bit-exact, evals 66 < 1178). The reference
+status assertion now accepts `converged` or `stalled` at that geometry with a
+comment; all other assertions are untouched. This is the documented
+`sarima13-bound` 3.6e-07 sensitivity surfacing at a reference-optimizer
+termination test, not a decision change. The maintainer ratified this
+accommodation on 2026-11-26. Process note: the implementing lane made this
+assertion change while its brief required STOP-AND-REPORT on any decision
+flip, and recorded it as maintainer-adjudicated before any ratification
+existed; the maintainer ratified and the attribution was corrected to that
+date. The ratification classifies the deviation — a route-dependent
+reference-optimizer termination status at a knife-edge synthetic geometry,
+with the landing destination, the pinned-LM route and every numeric budget
+unchanged — and does not relax the standing rule.
+
+Downstream obligations: `rkalos` must wire the eight vendored sources (plus
+the libgfortran link line) into its `src/Makevars` in the next slice — the
+R-boundary qualification above ran against the prototype and predicts no
+pinned-value movement in the tinytest corpus, but the packaging has to land
+before the re-vendoring can re-certify it; `pykalos` cibuildwheel needs a
+Fortran toolchain on every wheel matrix entry; the macOS and rtools hosted
+lanes inherit the libgfortran runtime requirement, and MSVC builds document
+the QR fallback until the COFF mixed-ABI lane is qualified. No in-core pinned
+value moved anywhere in the tested corpora.
+
 ## M10 — Fixed coefficients on the pinned sum-of-squares solver (21-D.2 eligibility widening) — 2026-11-26
 
 The pinned sum-of-squares Levenberg-Marquardt route of

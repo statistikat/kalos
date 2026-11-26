@@ -7,11 +7,14 @@
 
 Recorded: **2026-11-13**. Status (updated **2026-11-26**): the candidates below have now been
 profiled and benchmarked against this core under the procedure at the end of this
-document; **no candidate is adopted yet** — decision records per candidate are in the
+document; decision records per candidate are in the
 M9 report (`M9_REPORT.md` at the family workspace root, with the qualification dossiers
-listed there). SLICOT cleared its qualification with conditions; the optimizer
-candidates were rejected on measured grounds; the evaluation also located a larger
-internal lever (LM eligibility widening) outside this document's scope.
+listed there). **One candidate is now adopted**: the SLICOT SB03MD discrete-Lyapunov
+solver ships as a vendored, license-pinned minimal closure behind an m ≥ 8 size gate
+(M11 in [implementation status](IMPLEMENTATION_STATUS.md)), with the pivoted-QR route
+retained below the gate and as the documented `KALOS_WITH_SLICOT=OFF` build. The
+optimizer candidates were rejected on measured grounds; the evaluation also located a
+larger internal lever (LM eligibility widening) outside this document's scope.
 
 Related documents: [implementation status](IMPLEMENTATION_STATUS.md),
 [repository split plan](KALOS_REPOSITORY_SPLIT_PLAN.md), and
@@ -92,6 +95,19 @@ likelihood and fitted results with the existing solver and independent identitie
 Keep interruption checks around the external call and test successful reuse after
 cancellation. This experiment concerns stationary initialization, not replacement
 of the exact diffuse filter or its initial-coordinate normalization.
+
+**Adopted (M11, 2026-11-26).** The vendored closure is SLICOT 5.9.1-dev at revision
+`5eeb845d84f5a60f6069754b7819dad468951933` (BSD-3-Clause), the eight-member
+link-map-minimal SB03MD set under `vendor/slicot/` with `UPSTREAM.md` provenance
+and a sha256 manifest; every external BLAS/LAPACK symbol resolves against the
+pinned OpenBLAS provider. `stationary_initialization` uses it for state order ≥ 8
+and keeps the pivoted-QR route below the gate and in `KALOS_WITH_SLICOT=OFF`
+builds. The contracts above ship verbatim: SCALE and INFO are inspected explicitly
+and a failed solve surfaces (no silent fallback), the SEP estimate stays
+informational and does not replace the certificate condition measure, interruption
+checkpoints bracket the opaque Fortran calls, and reuse after cancellation is
+qualified. Decision records: `tmp_opencode/m9-perf/seam/SEAM-QUALIFICATION-2026-11-25.md`
+and `tmp_opencode/m9-perf/seam-r/RQUAL-2026-11-25.md`.
 
 ### RhysU/ar: inexpensive starting coefficients
 
