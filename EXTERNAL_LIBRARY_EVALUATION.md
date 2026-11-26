@@ -5,8 +5,13 @@
 
 # External numerical library evaluation
 
-Recorded: **2026-11-13**. Status: **recommendations for evaluation; no candidate
-in this document has been adopted or benchmarked against this core**.
+Recorded: **2026-11-13**. Status (updated **2026-11-26**): the candidates below have now been
+profiled and benchmarked against this core under the procedure at the end of this
+document; **no candidate is adopted yet** — decision records per candidate are in the
+M9 report (`M9_REPORT.md` at the family workspace root, with the qualification dossiers
+listed there). SLICOT cleared its qualification with conditions; the optimizer
+candidates were rejected on measured grounds; the evaluation also located a larger
+internal lever (LM eligibility widening) outside this document's scope.
 
 Related documents: [implementation status](IMPLEMENTATION_STATUS.md),
 [repository split plan](KALOS_REPOSITORY_SPLIT_PLAN.md), and
