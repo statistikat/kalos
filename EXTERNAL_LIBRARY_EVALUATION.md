@@ -47,7 +47,11 @@ alone does not represent all current functionality.
 
 OpenBLAS **0.3.34** has already been selected for standalone C++ and Python in
 the split plan. The candidates below are additional, separate evaluations.
-`rkalos` continues to use R's configured BLAS/LAPACK provider.
+`rkalos` prefers the pinned provider at build time through
+`KALOS_OPENBLAS_ROOT` (static `libopenblas.a` preferred, linked against R's
+FLIBS and bound with `--exclude-libs,ALL -Bsymbolic`); the qualification lanes
+and CI pin it to the same 0.3.34 archive, and R-configured or system detection
+is consulted only when no pin is provided.
 
 ## Recommended order
 
