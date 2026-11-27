@@ -5,6 +5,66 @@ is now an independent C++17 library, without R, Rcpp, Python or Java dependencie
 Sibling bindings consume pinned generated snapshots. Persephone will require
 rkalos; Python intentionally exposes only a minimal initial surface.
 
+## M13 — Stale-likelihood repair: no-candidate estimation results report a missing likelihood (adaption item 3) — 2026-11-27
+
+The M9-H §7.2 follow-up ("stale-`log_likelihood` leak on non-landing
+statuses", pre-existing at `kalos@6b59d31`, recommendation "return
+`unavailable()`") now ships as a core fix. Mechanism:
+`SarimaEstimationResult::log_likelihood` carries no default initializer and
+both no-retained-candidate returns — `estimate_sarima_fixed` when the final
+chain keeps no candidate and the identically-shaped warm seam in
+`optimize_sarima_from` — returned without writing the field (the inline
+comment asserted "log_likelihood stays NaN" while the member was left
+indeterminate), so the returned struct reported whatever the reused storage
+last held. The original repro driver (`llrepro.cpp`, M9-H lane scratch) was
+lost in the maintainer's scratch purge and was re-derived standalone
+(`tmp_opencode/m13-stalell/llrepro.cpp`) against HEAD `082e132` on a fresh
+Release build with the pinned OpenBLAS provider: the process fits zero_r11
+first (converged, log_likelihood **−100.76884498726261**, bits
+`c0593134c19aff22`), then estimates the unresolved-diffuse geometry already
+pinned in `test_regression_likelihood` (two observations under the 12-step
+seasonal differencing): the objective is unavailable at the start, the chain
+reports `initial_unavailable` with one evaluation, and the failure result
+reported **−100.76884498726261** / `c0593134c19aff22` — the prior fit's
+number bit-for-bit, from the shared NRVO result slot — instead of a missing
+value.
+
+The fix is the recorded recommendation, applied at both returns: an explicit
+`unavailable()` (quiet NaN) write — the representation this unit's landing-
+rejection paths and the `likelihood_only` guard already use and the
+estimation header documents ("NaN when the retained candidate is
+unavailable"). No interface change: no field type or optionality moves, the
+documented convention simply becomes true at the producer, superseding M9-H's
+caller-side guidance not to read the field on non-landing statuses. The
+re-run driver: `initial_unavailable`, log_likelihood `NaN` (`7ff8000000000000`),
+the prior fit's field unchanged.
+
+Pinning test `test_estimation_failure_likelihood` (the 98th CTest): both
+entry points' failure results carry the NaN likelihood with the prior fit's
+value provably absent, the rejected-start estimate record reports the same
+missing likelihood at one evaluation, and the zero_r11 success path is pinned
+unchanged at that suite's 5e-4 corpus likelihood tolerance.
+
+Verification at the landing (shared host with a sibling lane, every heavy
+step `nice -n 10`, Unix Makefiles, `-j4`, the pinned OpenBLAS provider):
+full ctest **98/98** — was 97 — in the Release-OpenMP lane (138.70 s) and the
+serial lane (`-DKALOS_OPENMP=OFF`, 79.05 s); the CI sanitizer recipe
+(`Debug`, OpenMP off, `-DKALOS_SANITIZERS=ON`) on the ten estimation-
+neighborhood tests (`test_estimation_control`,
+`test_estimation_failure_likelihood`, `test_ssq_fixed_seam`,
+`test_differencing_decision`, `test_initial_arma_identification`,
+`test_arma_refinement`, `test_outlier_scoring`, `test_transformation_decision`,
+`test_arma_optimizer`, `test_optimizer`) **10/10** in 185.69 s with **zero
+ASan/UBSan reports**. Purity: every pre-existing test is value-identical —
+no corpus or sweep captured the stale field (the corpora run retained-
+candidate statuses and the `verify_estimation_control` sweep excludes
+`initial_unavailable` at its own gate), and no existing assertion was
+touched.
+
+Downstream: the rkalos and pykalos re-vendorings are batched with the next
+core advance; this slice touches neither. Success-path values are unchanged
+here, so any binding re-pin reduces to the routine snapshot refresh.
+
 ## M12 — Trimmed certified post-pivot diffuse filter (item 29 D4) as unflagged core behavior — 2026-11-26
 
 The certified post-pivot history-block reduction that item 29 qualified now

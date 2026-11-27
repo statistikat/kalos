@@ -15,7 +15,8 @@ fit matrix −17.7%), and **M12** the certified post-pivot diffuse-filter path (
 per evaluation, per-step slope 3.67×, route observable via `post_pivot_*` fields).
 Matched reference state: RSA0 pipeline 2.3–3.1× ahead of JDemetra+ (bit-exact), flagship
 seasonal-ML evaluation 8.5× behind JVM against a measured contract floor of ≈5.5–6.1×.
-Current suite state: ctest 97/97 in Release-OpenMP, serial, and sanitizer lanes; manifest
+Current suite state: ctest 97/97 in Release-OpenMP, serial, and sanitizer lanes
+(98/98 as of the same-day M13 failure-likelihood pin, item 3 below); manifest
 219 core / 112 fixtures / 472 evidence; migration audit 406 files. All external-library
 candidates carry dispositions in [EXTERNAL_LIBRARY_EVALUATION.md](EXTERNAL_LIBRARY_EVALUATION.md).
 
@@ -29,7 +30,12 @@ candidates carry dispositions in [EXTERNAL_LIBRARY_EVALUATION.md](EXTERNAL_LIBRA
 3. **Stale-likelihood leak**: `initial_unavailable` estimation results return the
    process's last-computed log-likelihood instead of a missing value (pristine
    reproducible; reproducer `drivers/llrepro.cpp` in the M9-H lane scratch). Small fix +
-   pinning test, independent of performance work.
+   pinning test, independent of performance work. — **Fixed 2026-11-27**: the two
+   no-candidate returns in the estimation entry points now write the documented
+   missing value (quiet NaN); the re-derived repro (the leaked number matched the
+   prior fit's bit-for-bit) and the pinning test `test_estimation_failure_likelihood`
+   (suite 97→98) are recorded as the M13 entry in
+   [IMPLEMENTATION_STATUS.md](IMPLEMENTATION_STATUS.md).
 4. **Ledger notes awaiting decision** (M7): D8-panel pseudo-additive zero-composition
    publication (pre-existing, pinned, fail-soft-handled) and RSA2c estimated-route TD
    capture drift (no parity claim made).

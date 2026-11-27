@@ -260,6 +260,7 @@ if(KALOS_BUILD_TESTS)
     test_differencing_decision
     test_diffuse_state_space
     test_estimation_control
+    test_estimation_failure_likelihood
     test_final_estimator
     test_final_information
     test_forecast_arma_information
