@@ -5554,3 +5554,46 @@ cases (156, 233, 302, 400, 412, 430), and the full suite passes 94/94. The two
 adversarial filters are frozen from four independent JVM runs, SHA-256
 `4e3c2d4aff8e914fdbd28b4b8659b62b97bd3c393cd3573e66e1855d71f389ad`.
 [Adversarial Muller-Newton capture](validation/evidence/native/seats-wk-factorizer-tiers/muller-adversarial-x86_64.txt)
+
+### Automatic X-13 forecast standard errors: M13-P5 lands `kalos::x13_automatic_forecast_errors` (2026-11-27)
+
+The frozen nine-case x13-automatic-diagnostics panel's previously unclaimed
+`y_ef_*` rows (the JVM fullResiduals-adjacent `y_ef` forecast-error surface)
+now replay through a new public entry, `kalos::x13_automatic_forecast_errors`,
+valid on ANY available automatic landing rather than the airline-only stock
+route. Its private engine (`src/sarima_forecast_uncertainty.{hpp,cpp}`) is a
+1:1 port of the algorithm proven in the M13-P5 dual-JVM capture: a same-run
+`OracleProbe` dump of the pinned JVM (stats, coefficients, UNSCALED covariance,
+`regY()` response, the interface-default `regressionMatrix` rows, and the
+reference f0/V/SE/F per horizon) plus an INDEPENDENT R reproduction of the
+evidence `y_ef` words at most 8.1e-15 relative. The engine is that R filter:
+the canonical ARMA companion on the differenced response (stationary block
+initialized by the exact discrete Lyapunov solution) rides beside the exactly
+diffuse differencing history inside the JVM kappa-limit dual, carried as
+Pc + Pm/eps with the pinned branch thresholds (diffuse pivot a > 1e-12,
+finite innovation b > 1e-14) and the 1e-9 rank-annihilation kill; a plain
+kappa*I initialization loses eps*kappa digits and cannot certify 1e-12. The
+capture settled the semantics the port had to honor: the response keeps every
+in-sample regression effect (nothing is preadjusted), future response rows are
+predict-only while column states propagate under T alone (the FastDkFilter
+gain skip), the mean-correction column is TrendConstant's step response of
+1/D(B) (the whole-year counter at d + bd = 1), TC columns continue their 0.7
+tails into the horizon, the regression covariance enters UNSCALED next to
+sigma2 * V_h, and log fits back-transform through the LogNormal.stdev mirror.
+The exported `X13StockLikelihood` gained the final-likelihood coefficient
+vector in the covariance's fitted-model order (bit-identical to the evidence
+`coefficients` rows, which the test now claims as words) so the entry can
+rebuild the JVM design without re-estimating. Tolerance-tier replay: 144
+predicted errors across nine cases x h in {1,7,12,24} within 1e-12 relative,
+measured worst 1.86e-14, several words bit-identical; the entry costs ~19 s on
+the 43 s diagnostics test. Guard domain mirrors the stock entry: unavailable
+fits and shape violations throw, zero months answers
+`no_requested_predictions`, non-certifiable variance answers
+`covariance_range`. Release-OpenMP ctest 98/98 (102 s), serial ctest 98/98
+(82 s), and the ASan/UBSan build ran the estimation+forecast neighborhood —
+nine-case diagnostics (2,855 checks, same worst word), the nine stock
+estimated-template fits and the four-case horizon battery — with zero
+sanitizer reports. The rkalos/pykalos/persephone3 mirrors join the deferred
+re-pin batch opened by 33c6c8a. The Phase-1 proof dossier and the re-runnable
+probe live in (`tmp_opencode/m13-p5/PROOF.md`, `OracleProbe.java`,
+`analyze-oracle.R`).

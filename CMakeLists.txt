@@ -77,6 +77,7 @@ add_library(kalos STATIC
   src/regression_variable_tests.cpp
   src/residual_information.cpp
   src/residual_trading_days_tests.cpp
+  src/sarima_forecast_uncertainty.cpp
   src/sarima_stabilization.cpp
   src/seats_extract_wk.cpp
   src/sparse_history.cpp

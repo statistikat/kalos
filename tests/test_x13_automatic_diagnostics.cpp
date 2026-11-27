@@ -38,8 +38,18 @@
 // therefore replayed: the generic accessor is checked against this file, the
 // frozen stock consumer (x13_stock_residual_diagnostics, whose domain is the
 // estimated-template panel) against portable_residual_normality on the same
-// fit. The y_ef rows of this file stay with the forecast-error surface and
-// are not claimed here.
+// fit. The y_ef rows claim the M13-P5 automatic-route forecast-error surface
+// (kalos::x13_automatic_forecast_errors) as a TOLERANCE tier: the engine
+// mirrors the pinned RegArimaForecasts.calcForecast semantics (exact diffuse
+// prediction variance, FastDkFilter column sensitivities on the response's
+// gains, unscaled final-likelihood covariance, LogNormal back-transform) and
+// is proven to at most 9e-15 against the same-run dual-JVM captures, but it
+// does not replicate the JVM's square-root filter arithmetic word for word,
+// so each predicted word must agree to a relative tolerance of 1e-12 (never
+// a bit claim); the measured worst disagreement over the nine-case panel is
+// 1.9e-14. The coefficients row joins the bit claims: the exported
+// final-likelihood regression coefficients (mean first, then outliers) are
+// asserted word-exact against the capture.
 
 #include "kalos/x13_automatic.hpp"
 
@@ -61,6 +71,7 @@
 namespace {
 
 long long g_checks = 0;
+double g_worst_yef = 0.;
 
 void check(bool ok, const std::string& message) {
     if (!ok) throw std::runtime_error(message);
@@ -301,9 +312,39 @@ void run_block(const Block& block, const Input& stock_input,
             check((lb ? stats.ljung_box.df : stats.normality->df) == df,
                   id + " " + tag + " df");
         }
-        // arma, coefficients (banded landing echo, pinned by
-        // test_x13_automatic_oracle) and the y_ef rows (forecast-error
-        // surface) carry no claim in this transcription.
+        if (tag == "coefficients") {
+            std::size_t i = 0;
+            for (std::string hex; row >> hex; ++i) {
+                check(i < surface.coefficients.size(), id + " surplus coefficient");
+                check_bits(id + " coefficient[" + std::to_string(i) + "]", surface.coefficients[i], hex);
+            }
+            check(i == surface.coefficients.size(), id + " coefficient count");
+        } else if (tag.compare(0, 5, "y_ef_") == 0) {
+            const int months = std::stoi(tag.substr(5));
+            int year, month, count;
+            row >> year >> month >> count;
+            check(count == months &&
+                      (year - request.first_year) * 12 + month - request.first_period ==
+                          static_cast<int>(request.input.size()),
+                  id + " y_ef horizon dates");
+            const kalos::X13StockForecastErrors errors =
+                kalos::x13_automatic_forecast_errors(result, months);
+            check(errors.status == "available", id + " y_ef status " + errors.status);
+            check(errors.standard_errors.size() == static_cast<std::size_t>(months),
+                  id + " y_ef length");
+            std::size_t i = 0;
+            for (std::string hex; row >> hex; ++i) {
+                check(i < errors.standard_errors.size(), id + " surplus y_ef");
+                const double want = rdbits(std::stoull(hex, nullptr, 16));
+                const double rel = std::fabs(errors.standard_errors[i] - want) / std::fabs(want);
+                g_worst_yef = std::max(g_worst_yef, rel);
+                check(rel <= 1e-12,
+                      id + " y_ef[" + std::to_string(i) + "] rel " + std::to_string(rel));
+            }
+            check(i == errors.standard_errors.size(), id + " y_ef count");
+        }
+        // The arma row (banded landing echo) is pinned by
+        // test_x13_automatic_oracle and carries no claim here.
     }
     fits.emplace(id, result);
     std::printf("%s %d residuals, ser 0x%llx, lb 0x%llx/0x%llx df %g, dh 0x%llx/0x%llx df %g\n",
@@ -433,6 +474,20 @@ int main(int argc, char** argv) {
               "stock_rsa3_seas lands on the RSA3 description, not the seas-spec one");
     }
 
-    std::printf("%d cases, %lld checks\n", ran, g_checks);
+    // The forecast-error entry's guard domain (same convention as the
+    // residual accessor above).
+    bool rejected_forecast = false;
+    try { (void)kalos::x13_automatic_forecast_errors({}, 0); }
+    catch (const std::invalid_argument&) { rejected_forecast = true; }
+    check(rejected_forecast, "forecast errors on an unavailable fit");
+    bool negative_months = false;
+    try { (void)kalos::x13_automatic_forecast_errors(fits.at("stock_rsa3_air"), -1); }
+    catch (const std::invalid_argument&) { negative_months = true; }
+    check(negative_months, "negative forecast horizon");
+    const auto zero_months = kalos::x13_automatic_forecast_errors(fits.at("stock_rsa3_air"), 0);
+    check(zero_months.status == "no_requested_predictions" && zero_months.standard_errors.empty(),
+          "zero-month forecast request");
+
+    std::printf("%d cases, %lld checks, worst y_ef rel %.3e\n", ran, g_checks, g_worst_yef);
     return 0;
 }
