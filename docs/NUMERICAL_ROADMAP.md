@@ -855,6 +855,30 @@ pivots, no certificate, no QR). The acceptance budget (dossier §7) makes
 byte-identity the acceptance object; the implementation slice awaits the
 maintainer's adopt/close call on the dossier's decision register.
 
+**Adoption ruling and landing (2026-11-28): option (ii) ADOPTED and shipped.**
+Maintainer ruling: "yes go with option (ii)". The witness-gated
+structure-aware k = 0 steps land in `src/diffuse_state_space.cpp` behind a
+fail-closed shape witness (canonical k = 0 route, no armed factor, rank-zero
+initial basis, `h = 0`, `Z = e_1`, companion `T`; the pointer-local accessor
+idiom does not widen beyond this gate). Byte-identity shipped as the
+acceptance object: a 24-arm frozen panel
+(`validation/evidence/native/k0-structural-goldens/`) captured at `64c5804`
+and replayed line-for-line through the shipped library by the 101st ctest
+(`tests/test_diffuse_k0_goldens.cpp`) — all 24 arms byte-identical, including
+the thirteen non-k0 controls, the gapped / mean / near-boundary /
+zero-horizon arms and the refusal `THROW` messages; the suite is 101/101 in
+both full lanes plus sanitizers. Measured: `syn-stat-sarma11` evaluations
+26.8 → 1.71 ms fresh-process (1.38–1.42 ms warm-process), slope 114.9 →
+**4.74 µs/step**, JVM ratio 64–73× → **4.2×** (best round 3.3×);
+`syn-stat-arma21` 1.96× faster than HEAD (1.45× JVM); allocation census 1996
+→ 562 `operator new` calls per evaluation. The §7 slope budget (≤ 5 µs/step)
+and the warm-process evaluation budget (≤ 1.5 ms) hold; fresh-process
+medians sit above the absolute value only by the cold-init cost both lanes
+pay on the co-tenant host. The port hardened two sign-of-zero hazards of the
+probe skeleton (folds from the same +0 accumulator the generic loops use;
+accumulator-semantics `pz` write), value-identical on every captured shape
+and measured free. Ledger: the dated M16 entry in `IMPLEMENTATION_STATUS.md`.
+
 ### Numerical acceptance policy
 
 Use four independent validation layers, with failures attributed to the first

@@ -5699,3 +5699,94 @@ existing 99 tests are value-identical in both full lanes. The rkalos mirror
 and the persephone3 consumer's `i_f`-unavailable honesty-pin retirement are a
 SEPARATE maintainer authorization the parent program will obtain; this slice
 does not assume or perform it.
+
+### Item 30 adopted: structure-aware dense k = 0 covariance steps ship behind a fail-closed witness (2026-11-28)
+
+The maintainer ruling on the item-30 decision register (2026-11-28, "yes go
+with option (ii)") lands the witness-gated structure-aware k = 0 steps in
+[src/diffuse_state_space.cpp](src/diffuse_state_space.cpp). The acceptance
+object is byte-identity, and that is what shipped: the change is a timing win
+only — every named `DiffuseLikelihood` quantity, decision and status is
+bit-for-bit unchanged on every shape, k = 0 included. Scope is exactly the
+canonical k = 0 dense regime: the pointer-local accessor idiom and the
+exact-zero structural skips sit behind the gate and must not widen beyond it
+(2026-11-28 ruling); the k > 0 and generic-diffuse routes keep the dense and
+factorized code above the gate bit-for-bit, by construction as well as by
+measurement.
+
+The gate is evaluated once per `filter` call and is fail-closed on every
+departure: `k0_canonical` (the new `filter` parameter, passed as `k == 0`
+only by `sarima_innovations` — the generic-diffuse entry never arms it), no
+armed `FiniteStateFactor` (every canonical k > 0 call arms one, so the k > 0
+route is structurally excluded), `initial_rank == 0`,
+`observation_variance == 0`, and shape witnesses `witness_e1_loading(Z)`
+(`Z = e_1`) plus `witness_companion_columns(T)` (the stationary-ARMA
+companion). Under the armed witness three hot steps route to structure-aware
+siblings — `struct_observation` (`Pz = P[:,0]`, `f = h + pz[0]`),
+`struct_joseph` and `struct_predict_add` — each folding only the nonzero
+terms of the generic ascending-k accumulator loop from a `+0` accumulator
+start, with the `StructuralScratch` buffers (UP/TP product, Joseph column,
+projected loading) persistent across steps. Exactness is the D4 case E1
+argument (`+0 + (±0) = +0`; a nonzero accumulator is unchanged by a `±0`
+add). Deviations from the probe skeleton (m15 route 3), each value-identical
+on every captured shape and commented at the code: (1) all folds start from
+the same `+0` accumulator as the generic loops and (2) `struct_observation`
+writes `pz` through accumulator semantics, closing the sign-of-zero hazard of
+the skeleton's term-start folds and raw column read; (3) the posterior and
+loading are written in place (no return-and-copy, no static buffer); (4) the
+dossier's "0 allocations/step" is honored in the three kernels and the
+observation loading, while the per-observed-step `gain` and predictions
+bookkeeping keep their existing lifecycles because widening them past k = 0
+would touch non-k0 routes, outside the ruling's scope. A counter-instrumented
+variant build confirmed the routing on the flagship shape (sandwich=0,
+joseph=0; per-step generic remainder is the `product(transition, state)`
+advance only, exactly as the skeleton).
+
+The oracle is a new frozen panel:
+[`k0-goldens-x86_64.txt`](validation/evidence/native/k0-structural-goldens/k0-goldens-x86_64.txt),
+46 883 lines captured at `64c5804` (before the change) by the driver in the
+same evidence directory, covering 24 arms — both frozen k = 0 corpus shapes
+(`syn-stat-sarma11` m = 14, `syn-stat-arma21` m = 2), the thirteen non-k0
+controls of the item-29 corpus (D4 flagship, gapped, near-unit-root, period-4,
+differenced), the §7 coverage-row arms (`k0-sarma11-gap` with five interior
+gaps, `k0-arma21-mean`, two near-boundary-root arms, `k0-zerohorizon`), and
+the four canonical k = 0 refusal arms as exact `THROW` messages.
+[tests/test_diffuse_k0_goldens.cpp](tests/test_diffuse_k0_goldens.cpp) (the
+101st ctest) replays the panel through the shipped library at byte level:
+24/24 arms `BYTE-IDENTICAL`, 46 857 compared lines, and the capture-vs-replay
+`cmp` on the whole file is clean. Negative controls: a one-ulp edit of one
+`SUM ssq` line fires the pin, and the HEAD library passes it too. Full lanes:
+Release-OpenMP ctest 101/101 (68 s wall at -j6, loadavg bracket 4.7→7.5);
+serial ctest 101/101 (260 s); the ASan/UBSan build ran the golden-panel,
+diffuse and state-space neighborhood — all pass, zero sanitizer reports.
+Export manifest 544 to 550 evidence files.
+
+The timing gate (single thread, pinned OpenBLAS provider; interleaved
+HEAD-vs-new rounds, every phase `/proc/loadavg`-bracketed at 1-min ≤ 4.25,
+zero discarded rounds; medians of 15-rep rounds; supplementary rounds pinned
+to the idle core 4 under the persistent co-tenant load of the capture window
+— host deviation noted):
+
+| shape | HEAD `64c5804` | option (ii) | JVM ref | HEAD ratio | new ratio |
+| --- | --- | --- | --- | --- | --- |
+| `syn-stat-sarma11` (n = 240, m = 14), fresh-process median | 26.82 ms | 1.71 ms (15.6×) | 0.405 ms | 66.2× | 4.2× |
+| same, pinned lane / warm-process median (n-sweep, n = 240) | 26.84 ms | 1.63 / 1.40 ms | 0.405 ms | 66.3× | 4.0× / 3.5× |
+| `syn-stat-arma21` (n = 240, m = 2), fresh-process median | 0.426 ms | 0.218 ms (1.96× faster) | 0.150 ms | 2.84× | 1.45× |
+
+Per-step slope (pinned n-sweep, n = 24…240): HEAD 114.9 µs/step (the probe's
+105–117 band and item 29's 112 reproduce at calibration); option (ii)
+**4.74 µs/step** at a 0.274 ms fixed init (HEAD 0.216 ms) — the §7 budget's
+≤ 5 µs/step holds, and the warm-process evaluation lands inside the ≤ 1.5 ms
+budget (1.38–1.42 ms); the fresh-process medians carry the same ~0.3 ms cold
+process cost on both lanes plus co-tenant noise (best clean round 1.34 ms,
+3.3× JVM). The corpus-worst JVM ratio of the frozen corpus (64–73×) collapses
+to 4.2×; `syn-stat-arma21` improves to 1.45× and is 1.96× faster than HEAD —
+no shape got slower. Allocation census (operator-new per evaluation):
+`syn-stat-sarma11` 1996 to 562 calls (2 035 015 to 131 471 bytes),
+`syn-stat-arma21` 1980 to 546 (71 187 to 29 083 bytes) — the per-step
+`DenseMatrix` temporaries of the dense fallback are gone on the armed route.
+The roadmap entry for item 30 records the adoption. Downstream there is
+nothing to re-pin: the rkalos 9036-suite and pykalos re-pin batches expect
+zero movement from this slice by construction (byte-identical outputs on
+every shape), and the item-29 corpus goldens replay unchanged as pinned
+above.

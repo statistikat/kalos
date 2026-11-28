@@ -260,6 +260,7 @@ if(KALOS_BUILD_TESTS)
     test_calendar_generation
     test_decompose_ucarima
     test_differencing_decision
+    test_diffuse_k0_goldens
     test_diffuse_state_space
     test_estimation_control
     test_estimation_failure_likelihood
@@ -348,6 +349,11 @@ if(KALOS_BUILD_TESTS)
     if(test_name STREQUAL "test_x13_fit")
       target_compile_definitions(test_x13_fit PRIVATE
         KALOS_PSEUDO_FIXED="${CMAKE_CURRENT_SOURCE_DIR}/validation/evidence/native/x13-nonlog-pseudo/fixed-x86_64.txt")
+    endif()
+    if(test_name STREQUAL "test_diffuse_k0_goldens")
+      target_compile_definitions(test_diffuse_k0_goldens PRIVATE
+        KALOS_K0_GOLDENS="${CMAKE_CURRENT_SOURCE_DIR}/validation/evidence/native/k0-structural-goldens/k0-goldens-x86_64.txt"
+        KALOS_K0_CORPUS="${CMAKE_CURRENT_SOURCE_DIR}/validation/evidence/native/diffuse-steady-state-probe")
     endif()
     if(test_name STREQUAL "test_tramo_outlier_scan")
       target_compile_definitions(${test_name} PRIVATE
