@@ -133,6 +133,21 @@ every inventory (probe `instanceof` preloading) — only the main-class and
 | 21-I.3 TRAMO calendar controller | `tramo_trading_days_controller` (`TradingDaysController` gate, `Automatic{F,T,Wald}RegressionTest` builder, FTEST Info math on the landed OLS + `f_upper_p`) | `TramoSpec.fromString("TRfull")` → `TramoKernel.process(observer)` | `tramo-TRfull-{tdeff,clean}.out` (213/141 lines): full FT Info raw doubles, gate outcomes, final variable lists; TR2/TR4 controls (no controller) | ~500 lines + 2×9 doubles bit-exact Info replay + gate decisions |
 | 21-I.4 integration + refusal retirement | rsa4/rsa5c template calendar-block expansion (248-byte rows), end-to-end detection replay, `persephone3` refusal ladder | both lanes (R-lane bytes re-verified identical) | template bytes (m4gap + `x13tpl-.out` 193 lines) + the four x13run captures as end-to-end rows | ~300 lines + template byte checks; retires refusals per decision I-8 ladder |
 
+**Probe dossier 2026-11-28** ([`item21-calendar-detection-probe-2026-11-28.md`](item21-calendar-detection-probe-2026-11-28.md)):
+live three-layer refusal inventory plus a nine-fit JVM decision battery
+(`rsa3/rsa4/rsa5c × clean/tdeff/air`, double captures byte-identical) that
+re-confirms I-2 (`dstats.F` never loads) and CORRECTS the 21-I.2 replay
+statistic: `AICcComparator` compares `getAICC()` with strict `<` at
+`aicDiff = 0.0` (bytecode-proven; the row's "bicc arrays" are probe-printed
+BICc, which is NOT the selection statistic — it mis-ranked the td7 candidate
+on `rsa5c/air`). Measured margins on AICC: TD decisions robust (all |margin|
+≥ 2.0 raw units), Easter on a thin surface (min |margin| 0.769, with a
+measured within-fit out→in→out round flip on `rsa5c/tdeff`); calendar-free
+`clean` landings are bit-identical to rsa3 while calendar-firing landings move
+every component. Four priced options (close / I-8-step-1 / TD-staged / full)
+and per-slice acceptance budgets await maintainer choice; option (iii) alone
+cannot admit rsa4/rsa5c (both templates always request Easter).
+
 **21-I.1 LANDED 2026-11-22** as `kalos::calendar_generation`
 (`include/kalos/calendar_generation.hpp`, ctest #75
 `test_calendar_generation`). The envelope-shape oracle `gen2-.out` was added
