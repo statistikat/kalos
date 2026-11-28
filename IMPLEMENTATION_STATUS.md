@@ -5597,3 +5597,48 @@ sanitizer reports. The rkalos/pykalos/persephone3 mirrors join the deferred
 re-pin batch opened by 33c6c8a. The Phase-1 proof dossier and the re-runnable
 probe live in (`tmp_opencode/m13-p5/PROOF.md`, `OracleProbe.java`,
 `analyze-oracle.R`).
+
+### X-11 diagnostic battery: M14-P4 lands `kalos::x13_mstats` (2026-11-28)
+
+The X-11 M-statistics battery — `m1`..`m11` through the pinned `getM` clamp,
+`q`, `qm2` and both MDiagnostics quality grades — now ships natively on the
+automatic and estimated-template X-13 lanes as `kalos::x13_mstats`, consuming
+a finished `X13FitResult`. Every formula, loop bound, skip rule and operation
+order is transcribed from the pinned 3.9.0 bytecode (`Mstatistics.of` through
+`getQ`/`getQm2`, with `X11Utility.calcAbsMeanVariation(s)`/`adr` and the
+`CombinedSeasonality` M7 pair) and was independently proven to reproduce the
+published words from bit-identical inputs before any native code was written.
+Two JVM-semantics findings from this session are load-bearing. First, the M6
+preset consumes `X11Results.getD9Msr()`, which the pinned `X11DStep` builds
+UNCONDITIONALLY as `X11Utility.defaultMsrTable` over the A1-domain D9bis
+window; the year-removal selection walk (`MsrFilterSelection.doMSR`, whose
+last attempt is a different value) never feeds M6 — conflating them produced
+errors up to 9.4e-01 on the `ao` calendar. Second, the M6-in-`q` gate reads
+`X11Results.isD9default()`, a field the pinned `X11DStep` declares and reads
+but NEVER writes, so it is always false and the gate reduces to
+`d9filter == S3X5`; the live JVM confirms the distinction directly (`doMSR`
+returns S3X5 with `isUsingDefault()=true` on `ao` while the fit reports
+`isD9default()=false`). A `MsrFilterSelection`/`MsrTable`/
+`FilteredMeanEndPoints` replay through public parts reproduces the full walk
+attempt-for-attempt, closing the last seam. The oracle is a twelve-case
+double-JVM battery — the three stock RSA3 fits and the nine stock
+RSA0/RSA1/RSA2c estimated-template fits on the x13-refusal-jvm-profiles
+calendars, captured identically by two pinned JVMs under the bridge profile
+([capture](validation/reference/capture-x11-mstats.py),
+[probe](validation/reference/X11MstatsProbe.java),
+[battery](validation/evidence/native/x11-mstats/battery-x86_64.txt)).
+Tier policy in [test_x11_mstats.cpp](tests/test_x11_mstats.cpp) (675 checks):
+bit claims for the mode echo, both grades, `m4` (12/12) and the M6 invariant
+`published[6] == getM(0.4*|D9Msr global - 4|)` asserted word-exact against the
+fit's own default-table global; a `max(1e-11, 5e-12*|want|)` tolerance tier
+for the other twelve words with measured worst 2.4e-13 (`m2`), M6 9.4e-13 and
+`q`/`qm2` 5.1e-14 — residual ulp noise inherited verbatim from the upstream
+A8/B1 regression-application seam feeding D8/D10-D13 (1-45 ulp in-sample),
+not from the Mstatistics layer; grades match 12/12. Pseudo-additive fits are
+refused with the explicit status and unavailable fits throw, never a partial
+battery. Export manifest 472 to 474 evidence files. Release-OpenMP ctest
+99/99 (67 s), serial ctest 99/99 (65 s), and the ASan/UBSan build ran the
+MSR-selection, estimated-template, automatic-diagnostics and battery
+neighborhood — 677 s, zero sanitizer reports. The existing 98 tests are
+value-identical in both full lanes. The rkalos/pykalos/persephone3 mirrors
+join the deferred re-pin batch.
