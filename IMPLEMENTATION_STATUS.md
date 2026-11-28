@@ -5642,3 +5642,60 @@ MSR-selection, estimated-template, automatic-diagnostics and battery
 neighborhood — 677 s, zero sanitizer reports. The existing 98 tests are
 value-identical in both full lanes. The rkalos/pykalos/persephone3 mirrors
 join the deferred re-pin batch.
+
+### X-13 irregular-component forecast: M14-P5 lands `kalos::x13_automatic_irregular_forecast` (2026-11-28)
+
+The published `i_f` field — the irregular-component forecast the JVM
+`X13Extractor` derives from any X-13 fit — now ships natively as
+`kalos::x13_automatic_irregular_forecast(fit)`, valid on every complete
+automatic landing (the automatic lane and the RSA0/RSA1/RSA2c estimated-
+template lanes). The bytecode dossier (`javap` on `X13Extractor.class`,
+supplemented by CFR decompilation) settles the definition without ambiguity:
+`i_f` is NOT model-based. The extractor's `lambda$new$28` (methods #357
+`getFinals`, #394 `getD12a`, #462 `size`, #465 `getMode`, #469
+`isMultiplicative`) manufactures a CONSTANT series on the finals trend-forecast
+(D12a) domain — 1.0 when `DecompositionMode.isMultiplicative()` (Multiplicative
+OR LogAdditive), +0.0 otherwise (Additive, PseudoAdditive, Undefined) — with
+exactly the D12a start period and size. No ARIMA/ARMA forecast, no mean
+correction (the mean-corrected `rsa3_ao` capture still answers 1.0) and no
+back-transform (the log `rsa3_air` fit answers `i_f ≡ 1.0` verbatim, not
+exponentiated); D12a contributes its domain only, never its words. The gate
+chain is transcribed one-for-one: finals absent answers `"unavailable"` (the
+JVM finals-null arm, defensive on the native side where an available fit
+always carries finals), an empty D12a (zero forecast horizon) answers
+`"no_requested_predictions"`, and a non-available fit or a finals domain
+disagreeing with the echoed horizon throws, mirroring the `y_ef` entry's
+honesty contract. The predicate used is the JVM `DecompositionMode` one, NOT
+the X11 context's `isMultiplicative()` (which counts PseudoAdditive): the
+captures distinguish them directly, and `i_b` (the D12b twin) stays out of
+scope.
+The oracle is a thirteen-case double-JVM battery — the twelve stock fits
+(RSA3 and the nine estimated templates on the x13-refusal-jvm-profiles
+calendars) plus a zero-horizon RSA3 arm pinning the D12a-empty gate (both rows
+null) — captured identically by two pinned JVMs under the bridge profile
+([capture](validation/reference/capture-x13-iforecast.py),
+[probe](validation/reference/X13IrregularForecastProbe.java),
+[battery](validation/evidence/native/x13-automatic-iforecast/iforecast-x86_64.txt));
+the capture script re-verified the frozen battery from two fresh JVMs this
+session (SHA-256 `8576296f…360c5`). Tier policy in
+[test_x13_automatic_iforecast.cpp](tests/test_x13_automatic_iforecast.cpp)
+(551 checks): BIT claims for the mode echo, the log flag, the domain shape and
+all 144 published `i_f` words (12/12 word-exact; the reproduction driver
+confirmed `I_F_LINES_BIT_IDENTICAL_12_OF_12` against the capture before any
+library code was written), the `no_requested_predictions` arm and the throw
+arm. The D12a rows are DOMAIN claims only (start, count): the content was
+measured at worst 5.84e-14 relative drift on the decoder-faithful mirror. One
+load-bearing measurement came out of pinning this: the automatic mirror MUST
+carry the golden row's `mixed`/`balanced` flags (as the mstats battery's
+mirror does) — `last_solution()` sets the pass-2 `spec.q` from `mixed`, and
+the false default reroutes candidate selection, tripping the
+`ArmaParameterMap` request-shape guard deterministically and inflating the
+d12a content drift to 1.144e-03; with the flags restored the route is the
+JVM-faithful one. Export manifest 474 to 476 evidence files. Release-OpenMP
+ctest 100/100 (130 s, the new test 66 s), serial ctest 100/100 (62 s), and the
+ASan/UBSan build ran the iforecast, automatic-diagnostics, horizon and mstats
+neighborhood (551/2855/6459/675 checks) — 1062 s, zero sanitizer reports. The
+existing 99 tests are value-identical in both full lanes. The rkalos mirror
+and the persephone3 consumer's `i_f`-unavailable honesty-pin retirement are a
+SEPARATE maintainer authorization the parent program will obtain; this slice
+does not assume or perform it.

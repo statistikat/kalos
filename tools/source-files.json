@@ -782,6 +782,8 @@
     "validation/evidence/native/x13-allocation/tables.csv",
     "validation/evidence/native/x13-allocation/vars.csv",
     "validation/evidence/native/x13-automatic-diagnostics/public-x86_64.txt",
+    "validation/evidence/native/x13-automatic-iforecast/iforecast-x86_64.txt",
+    "validation/evidence/native/x13-automatic-iforecast/reference.json",
     "validation/evidence/native/x13-automatic/SHA256SUMS.csv",
     "validation/evidence/native/x13-automatic/cases.csv",
     "validation/evidence/native/x13-automatic/inputs.csv",
