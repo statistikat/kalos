@@ -831,6 +831,30 @@ class on the frozen shapes, decisions bit-identical, all pinned budgets held,
 full suite plus sanitizer and cancellation lanes green; otherwise the
 current routing stands and the item closes as a documented not-adopted.
 
+**Probe outcome (2026-11-28): probe slice shipped, decision pending.**
+`docs/item30-k0-routing-probe-2026-11-28.md` with the frozen corpus
+`validation/evidence/native/k0-routing-probe/` (no production source). The
+current-state datum re-measures at `1e2e3c8`: `syn-stat-sarma11` evaluations
+25.6–29.6 ms across lanes (64–73× JVM, item 29's 66.7× unmoved and still
+corpus-worst); attribution is the dense `sandwich` (69% of samples) plus the
+out-of-line bounds-checked `DenseMatrix::operator()` (25.6%) — zero LAPACK
+calls inside the loop, and item 29 §3's "heap churn" framing corrected to a
+red herring. Falsification: the `k > 0` gate guards conservatism, not
+degeneracy — the `FiniteStateFactor` runs cleanly at k = 0 (judgments
+identical, values inside the ratified bands at 6.1e-14 rel) but is measured
+dominated: 3.5–3.9 ms (8.6–9.6×) and an 11–18% regression at m = 2 (factor
+route), and
+dispatching to `stationary_innovations` gains nothing (same machine). The
+recommended deliverable is option (ii): witness-gated structure-aware k = 0
+covariance steps (exact-zero-term skip under the canonical `Z = e_1` /
+companion-`T` / `h = 0` witness, persistent buffers, pointer-local
+accumulation), measured **byte-identical** on both frozen k = 0 shapes at
+0.99–1.21 ms (2.4–3.0× JVM, slope 2.9–3.5 µs/step) and 0.077 ms (0.52×) at
+m = 2 — below the item-29 contract floor, which does not bind here (no
+pivots, no certificate, no QR). The acceptance budget (dossier §7) makes
+byte-identity the acceptance object; the implementation slice awaits the
+maintainer's adopt/close call on the dossier's decision register.
+
 ### Numerical acceptance policy
 
 Use four independent validation layers, with failures attributed to the first
