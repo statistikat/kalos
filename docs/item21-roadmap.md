@@ -203,6 +203,15 @@ Sign-off: p-value/t-statistic cutoffs (`RegressionTestSpec` defaults),
 the 1.96/2.5 mean rules, whether calendar-detection modules are in
 item-21 scope or a separate item.
 
+21-I stage 1 (recorded 2026-11-28): the ATD machine
+(`AutomaticTradingRegressionModule`, two-arm comparator + the LoP
+preadjust-vs-column fork + per-round re-fires) is wired into the automatic
+driver and replay-qualified against the frozen TD-only JVM battery —
+contract "ATD step (21-I stage 1)", corpus
+`validation/evidence/native/calendar-detection/`, pin test
+`test_x13_automatic_td`. The easter/CEDM-effect battery and the
+refusal-ladder extension are stages 2-3 and stay deferred.
+
 ### Z — integration and qualification
 
 Pinned: the `calc` round structure itself (round steps, `pass2`,
@@ -588,6 +597,57 @@ bit-exact on all four cases (AR sign fix verified through the driver),
 `test_x13_automatic_horizon` (6459 checks, 0 failures) and
 `test_arima_forecasts`; zero-horizon lanes untouched (oracle 4637/0). The
 pinning notes kalos-21h4-pinning.md sections A–J carry the decode.
+
+**21-I stage 1 (2026-11-28) — the CEDM ATD step landed; the automatic
+driver now runs automatic trading-days detection.** The
+`AutomaticTradingRegressionModule` is wired as a two-arm comparator
+(`run_atd`): request data `automatic_trading_days`, `td_clustering`
+(JVM option index, 0 = td2 .. 8 = td7), `td_leap_year`, `td_auto_adjust`,
+`td_aicc_diff`, `td_estimation_eps`; firing anchors are the pinned calc
+positions - `atd0` between the regAIC no-op and `checkMu(1.96)`, one
+re-fire per round after the refine/AMI-removal block, skipped exactly when
+the round is stable with `loop <= 1` (calc offsets 405-423). Each firing
+records the JVM `AutomaticTradingRegressionModule.Info` payload (per-arm
+observations/parameters/SsqErr/AICC on the Jacobian-adjusted likelihood,
+winner index) as a chain entry. The preadjust-vs-column fork follows the
+battery: a td win with `td_auto_adjust` sets the LoP preadjustment (the
+JVM `lopTransform=LeapYear` bit, native `auto_calendar->preadjusted`),
+otherwise the td block lands as regression columns ahead of the outlier
+columns; a later RegressionVariablesTest group removal can demote the
+preadjustment (`setPreadjustment(None)`, the 21-G unit semantics: TD units
+tested jointly with `TRegressionTest(cval)`, `DerivedRegressionTest(1.96)`
+fallback, LoP column width-1, mean test last). Three latent bugs, invisible
+to the RSA2c-only replays, were root-caused and fixed at the caller:
+the log-level test is calendar-aware (the decoder hands `Builder.preadjust
+= autoAdjust ? lp : None` - the level branch estimates with [td, lp], the
+log branch drops lp, a preadjustment folds the LoP factors into the data
+with the sum-log Jacobian gain; the 21-B unit is extended with empty-safe
+columns, byte-identical when empty), a Changed `outliers0` skips the
+initial `regtest0` (calc 137-189; full-case chain pin 20 -> 19), and
+`landing_statistics` folds the calendar columns before the outlier columns
+(t-stat alignment on td runs). The refusal gate narrowed per the probe
+spec's option (iv): calendar/easter/user flags refuse verbatim,
+`automatic_trading_days` runs the machine; the wrapper table and the
+rsa4/rsa5c envelope paths stay untouched. Evidence:
+`validation/evidence/native/calendar-detection` (double-captured JVM
+TD-only battery, 4 templates x {clean,tdeff,air}, all twelve captures
+byte-identical modulo the timing line; native Tier-1 replays; the javap
+decode set; generated tables). Replay qualification: ATD arm selections
+exact on every paired firing of all nine cases, the preadjust fork exact
+9/9, final states exact-or-ulp (<= 10 ulp) on `td2noe/{tdeff,air}`,
+`td7noe/tdeff`, `td2noadj/air`, both rsa3 baselines unmoved; the
+`td7noe/air` and `td2noadj/tdeff` refine/AMI ODM-boundary residuals
+(mid-round re-fire states differ, every decision bit matches - carried to
+stage 2) and the pre-existing 21-H clean-corpus gap (degenerate variance;
+reproduced by the HEAD-source binary, not TD-related) are pinned as native
+baselines, never as JVM claims. Lanes: ctest 102/102 Release+OpenMP and
+102/102 serial; new pin test `test_x13_automatic_td` (209 checks,
+generated golden, pinned-decision margins >= 0.1); the ASan+UBSan
+estimation/automatic neighborhood is 5/5 with zero sanitizer diagnostics
+(strict direct rerun, `halt_on_error=1`); replay determinism 9/9
+byte-identical double runs (2.8-95 s/case, single thread, loadavg-
+bracketed in `tables/tier3-timing.txt`). The easter battery (stage 2) and
+the refusal-ladder extension (stage 3) stay deferred.
 
 ## Non-goals
 

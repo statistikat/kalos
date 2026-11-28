@@ -122,6 +122,24 @@ This is the same qualification class as the pinned variance-guard landing
 the pinned run itself sits on a knife-edge. A future 21-A replay-fidelity
 pass should revisit these two fixtures first.
 
+## TD extension (21-I stage 1)
+
+The request gained the calendar-carrying surface (`level_columns`,
+`log_columns`, `log_preadjust_factors`): the X13 decoder puts the spec
+trading-days variables into the initial description and hands the module
+its `preadjust` option, so the level branch estimates with the full td+lp
+design, the log branch drops the lp variable (LogLevelModule offsets
+146-153) and, under a preadjustment, the length-of-period factors fold
+into the data before the log — the Jacobian gains `sum log f` over the
+estimation window, the same structure the CEDM arms use. Empty vectors
+keep the pinned 21-B shape byte-identical (zero-movement verified: the
+21-B corpus replay is unchanged). Qualification: the m17-td1 TD battery
+(`validation/evidence/native/calendar-detection`): with the td design the
+pinned unit reproduces the JVM branch AICC/likelihood of the ATD-firing
+states to ulps (the log/level margins the battery decisions ride on), and
+`tests/test_x13_automatic_td.cpp` pins the resulting decision bits
+end-to-end.
+
 ## Not delivered or claimed
 
 No promotion of `-2.0` (the comparison arrives as required request data;

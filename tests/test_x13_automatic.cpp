@@ -636,21 +636,39 @@ void t01_status_matrix() {
                "unsupported:x13 fit requires an explicit sigma policy",
                "sigma gate beats deferred gate");
   }
-  // deferred detection modules (all four flags)
+  // deferred detection modules (21-I narrowed gate: the calendar, easter and
+  // user-variable flags still refuse verbatim; automatic_trading_days now
+  // runs the machine and is pinned below)
   {
-    const int kFlags[4] = {0, 1, 2, 3};
-    for (int f = 0; f < 4; ++f) {
+    const int kFlags[3] = {0, 1, 2};
+    for (int f = 0; f < 3; ++f) {
       kalos::X13AutomaticRequest r = baseline(24);
       if (f == 0) r.use_calendar_detection = true;
       if (f == 1) r.use_easter_detection = true;
-      if (f == 2) r.automatic_trading_days = true;
-      if (f == 3) r.use_user_variables = true;
+      if (f == 2) r.use_user_variables = true;
       r.outlier_span = std::make_pair(0, 20);
       check_eq_s(kalos::x13_automatic_fit(r).status,
                  "unsupported:x13 automatic fit defers calendar/easter/TD/"
                  "user detection (21-I)",
                  "deferred module gate");
     }
+  }
+  // automatic_trading_days is no longer a refusal: the full-span TD request
+  // passes the gate (and the partial-span TD request answers through the
+  // span gate, not the deferred gate).
+  {
+    kalos::X13AutomaticRequest r = baseline(24);
+    r.automatic_trading_days = true;
+    r.outlier_span = std::make_pair(0, 20);
+    check_eq_s(kalos::x13_automatic_fit(r).status,
+               "unsupported:x13 automatic fit spans the full series only",
+               "td flag answers via the span gate");
+    r = baseline(24);
+    r.automatic_trading_days = true;
+    r.outlier_span = std::make_pair(0, 23);
+    const kalos::X13AutomaticFitResult res = kalos::x13_automatic_fit(r);
+    check(res.status.compare(0, 10, "unsupported") != 0,
+          "td flag accepted at the gate (full span)");
   }
   // full-series span only: partial spans refuse, both ends
   {
@@ -813,7 +831,8 @@ void t05_quick_shape_chain() {
   check_final_echo(r, "no-outlier shape");
   // the pre-round anchor sequence, exact: with the machine off neither the
   // initial outlier round nor its conditional regtest entry exists (the
-  // pinned calc runs regtest0 only when outliers0 changed the design).
+  // pinned calc fires regressionTest0 only inside the needOutliers branch,
+  // and only when outliers0 returns Unchanged - calc offsets 137-189).
   const char* want[] = {"init", "transformation", "meantest0", "accept0"};
   bool prefix_ok = r.chain.size() >= 4;
   for (std::size_t i = 0; i < 4 && prefix_ok; ++i) {
@@ -1033,7 +1052,7 @@ void t08_full_case() {
   check_eq_i(r.bp, 0, "full case: bp pinned");
   check_eq_i(r.bd, 1, "full case: bd pinned");
   check_eq_i(r.bq, 1, "full case: bq pinned");
-  check_eq_i(static_cast<int>(r.chain.size()), 20,
+  check_eq_i(static_cast<int>(r.chain.size()), 19,
              "full case: chain size pinned");
   check_available_shape(r, shock_request(), "full case");
 
@@ -1061,10 +1080,12 @@ void t08_full_case() {
   check_final_echo(r, "full case");
 
   // --- chain: the pinned anchor sequence and machine coverage ---
-  const char* want[] = {"init",       "transformation", "meantest0",
-                        "outliers0",  "regtest0",       "accept0"};
-  bool prefix_ok = r.chain.size() >= 6;
-  for (std::size_t i = 0; i < 6 && prefix_ok; ++i) {
+  // calc offsets 137-189: a Changed outliers0 jumps past regressionTest0,
+  // so the full case (the spike lands at outliers0) carries no regtest0.
+  const char* want[] = {"init", "transformation", "meantest0", "outliers0",
+                        "accept0"};
+  bool prefix_ok = r.chain.size() >= 5;
+  for (std::size_t i = 0; i < 5 && prefix_ok; ++i) {
     prefix_ok = r.chain[i].stage == want[i];
   }
   check(prefix_ok, "full case: pre-round anchor sequence pinned");

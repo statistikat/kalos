@@ -337,6 +337,7 @@ if(KALOS_BUILD_TESTS)
     test_x13_allocation
     test_x13_estimated_templates
     test_x13_automatic
+    test_x13_automatic_td
     test_x13_fit)
     add_executable(${test_name} tests/${test_name}.cpp)
     target_link_libraries(${test_name} PRIVATE kalos::kalos)
@@ -460,6 +461,12 @@ if(KALOS_BUILD_TESTS)
       # One full automatic search with outlier detection on the probe corpus
       # shape runs ~250 s (suite wall time ~5 min single-process); the
       # sanitizer lane multiplies this several-fold.
+      set_tests_properties(${test_name} PROPERTIES TIMEOUT 3600)
+    endif()
+    if(test_name STREQUAL "test_x13_automatic_td")
+      # 21-I stage 1: nine full ATD battery replays (96-156 monthly
+      # observations each, full automatic search per case); generous for the
+      # sanitizer lane.
       set_tests_properties(${test_name} PROPERTIES TIMEOUT 3600)
     endif()
     if(test_name STREQUAL "test_tramo_regression_tests")

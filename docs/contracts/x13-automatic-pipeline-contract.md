@@ -86,6 +86,7 @@ calc:   log&&any(v<=0) -> error status
           branch estimation stays in the modelling — 12.8)
         regAIC                                     no-op: calendar/easter
                                                    tests null in scope
+        ATD.atd0 (automaticTradingDays)            ATD step (21-I stage 1)
         checkMu(m, 1.96)         run_mean_controller (21-G; mean-added
                                  estimation = adapter row 3)
         if needOutliers && outliers.process(m, curva)==Changed:
@@ -102,6 +103,7 @@ calc:   log&&any(v<=0) -> error status
    │     if Changed && desc has outliers: removeVariable(isOutlier(v,true))
    │       + clearEstimation + needOutliers=true     (round vocabulary 12.9)
    │     [m.estimate]?; if stable && loop<=1: regAIC
+   │     ATD refire (21-I stage 1) unless stable && loop<=1
    │   if needOutliers: outliers.process(m, curva) [detect_outliers 21-C
    │     + forward-add as Variables + fixing, §Vocabulary] + [estimate]?
    │   if outliers!=null && loop<=2: pass2(stable,m) else accept-refresh
@@ -194,6 +196,44 @@ maps AO/TC/SO → Irregular (capture-proven, 12.6) and LS → LevelShift
 (pin-verify against the first LS-selected capture before enabling that
 pairing at the seam — recorded below).
 
+## ATD step (21-I stage 1)
+
+The CEDM `AutomaticTradingRegressionModule` is wired as a qualified two-arm
+comparator with request data `automatic_trading_days` (module gate),
+`td_clustering` (JVM option index: 0 = td2 .. 8 = td7), `td_leap_year`
+(default true, the td2 fold), `td_auto_adjust` (the preadjust-vs-column
+fork) and `td_aicc_diff` (selection threshold, default 0). Firings sit at
+the pinned anchors of the diagram above: `atd0` between the regAIC no-op
+and `checkMu(1.96)`, and one per round after the refine/removal block,
+skipped exactly when the round is stable with `loop <= 1`. Each firing
+estimates the model with and without the trading-days column block
+(estimation eps `td_estimation_eps`, default 1e-5) and records the JVM
+`AutomaticTradingRegressionModule.Info` payload: per-arm effective
+observations, parameter count, SsqErr at the retained coefficients and the
+AICC on the Jacobian-adjusted log-likelihood, plus the winner index
+(`best`: 0 = no td, 1 = td; the comparator picks the AICC-minimal arm when
+the improvement clears `td_aicc_diff`, else arm 0).
+
+Landing (option (iv) staging, matching the frozen battery): a `best = 1`
+firing with `td_auto_adjust` sets the LoP preadjustment (the JVM
+`lopTransform=LeapYear` bit; native `auto_calendar->preadjusted = true`,
+the td columns leave the regression design); otherwise the td block lands
+as regression columns (`preadjusted = false`, the columns precede the
+outlier columns in the landing design and in `landing_statistics`). A
+later RegressionVariablesTest group removal can demote the preadjustment
+(`setPreadjustment(None)`), pinned at the 21-G unit.
+
+Qualification: `validation/evidence/native/calendar-detection` (frozen
+double JVM TD-only battery + native Tier-1 replays + generated tables);
+the replay pin test is `tests/test_x13_automatic_td.cpp`. The transformation
+decision consumes the td-selected design: the pinned log/level unit is
+TD-extended (transformation-decision contract, "TD extension"). Known
+residuals are recorded in the corpus README and the roadmap ledger (the
+degenerate clean corpus reproduces a pre-existing 21-H baseline gap; two
+TD-only runs sit at the refine/AMI ODM-boundary — ATD decision bits match
+everywhere, finals diverge). The easter battery and the refusal-ladder
+extension are stages 2-3 of 21-I and stay deferred.
+
 ## Scope envelope and fail-closed matrix
 
 Delivered: frequency 12 only; arbitrary integer X-11 backcast/forecast
@@ -204,8 +244,9 @@ modes through the pinned forcing; a complete, finite input (missing-value
 interpolation is not part of the automatic description build); outlier
 span = full estimation domain, no exclusions; `transform.function=Auto`
 (the decoder builds the LogLevelModule only in that case); calendar,
-easter (test=Add semantics only), automatic-TD and user-variable detection
-**deferred/fail-closed** (21-I), `SeasonalityDetector` and the
+easter (test=Add semantics only) and user-variable detection
+**deferred/fail-closed** (21-I); automatic trading-days detection runs
+(21-I stage 1, "ATD step" below); `SeasonalityDetector` and the
 `FRegressionTest` joint branch dead in the current jar and fail-closed at
 their unit surfaces; every module scalar required request data (nothing
 promoted — decisions 1-9 stay open per the roadmap ledger).
@@ -215,7 +256,8 @@ promoted — decisions 1-9 stay open per the roadmap ledger).
 | frequency != 12 | `unsupported:x13 automatic fit monthly series only` |
 | missing/non-finite observations | `unsupported:x13 automatic fit requires a complete finite series` |
 | sigma policy unset | `unsupported:x13 fit requires an explicit sigma policy` (shared) |
-| calendar/easter-detection/automatic-TD/user detection requested | `unsupported:x13 automatic fit defers calendar/easter/TD/user detection (21-I)` |
+| calendar/easter-detection/user detection requested | `unsupported:x13 automatic fit defers calendar/easter/TD/user detection (21-I)` |
+| `automatic_trading_days` requested | runs the machine (21-I stage 1, "ATD step" below; the narrowed gate) |
 | outlier span narrower than the series | `unsupported:x13 automatic fit spans the full series only` |
 | selection-pass refusal | verbatim `unsupported:<stage>` (fit passthrough) |
 | JVM-throw chain outcomes (kernel `return null`) | `failed:<stage>` with the chain kept |
